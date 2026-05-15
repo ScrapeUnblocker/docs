@@ -11,7 +11,7 @@
   "favicon": "/favicon.png",
   "logo": {
     "light": "/logo/light.png",
-    "dark": "/logo/dark.png",
+    "dark": "/logo/dark.svg",
     "href": "https://developers.scrapeunblocker.com"
   },
   "appearance": {
