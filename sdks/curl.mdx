@@ -1,0 +1,77 @@
+---
+title: "cURL"
+description: "Copy-paste cURL commands for all three endpoints."
+---
+
+The simplest way to test ScrapeUnblocker. Drop these into a terminal, replace `YOUR_API_KEY`, and you're scraping.
+
+## Fetch page HTML
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Fetch page HTML through a specific country
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com&proxy_country=de" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Get parsed JSON instead of HTML
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://www.amazon.com/dp/B08N5WRWNW&parsed_data=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Get HTML + cookies + the proxy address used
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com&get_cookies=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Scrape a Google SERP
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=best+running+shoes" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Scrape multiple SERP pages from a specific country
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=pizza&pages_to_check=3&proxy_country=it" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Fetch a single image as PNG
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getImage?url=https://example.com/photo.jpg" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  --output photo.png
+```
+
+## Bash one-liner with API key from environment
+
+```bash
+export SCRAPEUNBLOCKER_KEY="su_live_..."
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com" \
+  -H "x-scrapeunblocker-key: $SCRAPEUNBLOCKER_KEY"
+```
+
+## URL-encoding parameter values
+
+cURL does not URL-encode for you. If your `url` parameter contains special characters (`&`, `?`, `=`, spaces), encode them or wrap them with `--data-urlencode`:
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource" \
+  -H "x-scrapeunblocker-key: $SCRAPEUNBLOCKER_KEY" \
+  --data-urlencode "url=https://example.com/path?foo=bar&baz=qux" \
+  -G
+```
+
+`-G` tells cURL to convert `--data-urlencode` into query-string parameters while still using `POST`.

@@ -1,0 +1,77 @@
+---
+title: "Introduction"
+description: "ScrapeUnblocker is anti-bot bypass infrastructure for scraping any URL. Three endpoints, one API key, no proxy management."
+sidebarTitle: "Overview"
+---
+
+## What is ScrapeUnblocker?
+
+ScrapeUnblocker is a proxy and anti-bot bypass service that handles the hard parts of web scraping for you: Cloudflare, DataDome, PerimeterX, Akamai, hCaptcha challenges, residential rotation, browser fingerprinting, and origin-side blocks.
+
+You send a URL. We route it through the right bypass chain - custom domain plugins, super-profile browser, residential proxies, fallback providers - and return the page content. No proxy lists, no headless browser fleet, no fingerprint maintenance.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Make your first request in under 60 seconds.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    All three endpoints with request and response schemas.
+  </Card>
+  <Card title="Guides" icon="book-open" href="/guides/page-source">
+    Use-case walkthroughs - parsing, SERPs, images, country targeting.
+  </Card>
+  <Card title="Code Examples" icon="terminal" href="/sdks/curl">
+    Copy-paste snippets for cURL, Python, Node.js, and Scrapy.
+  </Card>
+</CardGroup>
+
+## What's in the API
+
+Three public endpoints. That's the whole surface area.
+
+<CardGroup cols={3}>
+  <Card title="getPageSource" icon="globe" href="/api-reference/endpoint/get-page-source-getpagesource-post">
+    Return HTML for any URL. Or set `parsed_data=true` to get structured JSON extracted via Schema.org, `__NEXT_DATA__`, or AI-generated rules.
+  </Card>
+  <Card title="serpApi" icon="magnifying-glass" href="/api-reference/endpoint/run-serp-serpapi-post">
+    Google SERP scraping. Returns normalized JSON with organic results, top and bottom ads, totals.
+  </Card>
+  <Card title="getImage" icon="image" href="/api-reference/endpoint/get-image-getimage-post">
+    Fetch a single image as PNG bytes through a real browser - for hosts that block plain GET requests.
+  </Card>
+</CardGroup>
+
+## How it works
+
+<Steps>
+  <Step title="You send a URL">
+    `POST` to one of three endpoints with your API key in the `x-scrapeunblocker-key` header.
+  </Step>
+  <Step title="We route through the right bypass">
+    The service picks the cheapest path that works for the target domain - direct, residential proxy, stealth browser, or upstream fallback.
+  </Step>
+  <Step title="You get the content back">
+    HTML, parsed JSON, SERP data, or image bytes. No retry loops, no proxy rotation logic on your end.
+  </Step>
+</Steps>
+
+## Who uses it
+
+ScrapeUnblocker is used in production for:
+
+- **Price intelligence** on Amazon, eBay, and marketplace sites
+- **Real-estate listings** from Zillow, Mobile.de, and country-specific portals
+- **Job board scraping** from LinkedIn, Indeed, and aggregators
+- **SERP monitoring** for SEO and brand-tracking workflows
+- **AI training data** collection from JavaScript-heavy sites
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+  <Card title="Read the Quickstart" icon="play" href="/quickstart">
+    Working request in a minute.
+  </Card>
+</CardGroup>

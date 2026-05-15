@@ -1,0 +1,136 @@
+---
+title: "Quickstart"
+description: "Make your first ScrapeUnblocker request in under a minute."
+---
+
+## Before you start
+
+You need an API key. Grab one from the [pricing page](https://scrapeunblocker.com/pricing) - a free trial is available, no credit card required.
+
+The base URL for every request is:
+
+```
+https://api.scrapeunblocker.com
+```
+
+Authenticate by passing your key in the `x-scrapeunblocker-key` header.
+
+## Your first request
+
+Fetch the rendered HTML of any URL:
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://example.com"},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+)
+print(r.text)
+```
+
+```javascript Node.js
+const res = await fetch(
+  "https://api.scrapeunblocker.com/getPageSource?url=https://example.com",
+  {
+    method: "POST",
+    headers: { "x-scrapeunblocker-key": "YOUR_API_KEY" },
+  }
+);
+console.log(await res.text());
+```
+
+</CodeGroup>
+
+The response body is the prettified HTML of the target page.
+
+## Want structured data instead of HTML?
+
+Add `parsed_data=true` and the API returns extracted JSON instead - product fields, article content, listing data, whichever fits the page type. Extraction uses Schema.org, `__NEXT_DATA__`, or AI-generated rules under the hood.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://www.amazon.com/dp/B08N5WRWNW&parsed_data=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={
+        "url": "https://www.amazon.com/dp/B08N5WRWNW",
+        "parsed_data": True,
+    },
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+)
+print(r.json())
+```
+
+</CodeGroup>
+
+Response shape:
+
+```json
+{
+  "data": {
+    "page_type": "product",
+    "source": "schema_org",
+    "data": {
+      "title": "...",
+      "price": "...",
+      "currency": "USD"
+    }
+  }
+}
+```
+
+See the [parsed data guide](/guides/parsed-data) for the full list of page types and extraction sources.
+
+## Scrape a Google SERP
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=best+running+shoes&pages_to_check=2" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+Returns `topAds`, `bottomAds`, `organic`, `totalResults`, and the proxy country used. Up to 10 pages per call. Details in the [SERP guide](/guides/serp-scraping).
+
+## Fetch an image through a browser
+
+For hosts that block plain image GETs (or serve a tracking pixel to non-browsers):
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getImage?url=https://example.com/photo.jpg" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  --output photo.png
+```
+
+Returns raw PNG bytes. See the [image fetching guide](/guides/image-fetching).
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/authentication">
+    Where to find your key, how to rotate it, security best practices.
+  </Card>
+  <Card title="Country targeting" icon="globe" href="/guides/country-targeting">
+    Force requests through a specific country's proxy pool.
+  </Card>
+  <Card title="Handling failures" icon="triangle-exclamation" href="/guides/handling-failures">
+    What `403`, `503`, and `504` mean - and how to retry.
+  </Card>
+  <Card title="Full API Reference" icon="code" href="/api-reference/introduction">
+    Every parameter for every endpoint.
+  </Card>
+</CardGroup>

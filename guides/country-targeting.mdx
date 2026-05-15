@@ -1,0 +1,88 @@
+---
+title: "Country targeting"
+description: "Force requests through a specific country's residential proxy pool."
+---
+
+The `proxy_country` parameter forces ScrapeUnblocker to use a residential IP from a specific country. It's accepted by all three public endpoints.
+
+## When you need it
+
+<CardGroup cols={2}>
+  <Card title="Geo-fenced content" icon="globe">
+    Streaming catalogs, e-commerce prices, news paywalls - many sites serve different content (or block entirely) based on the visitor's country.
+  </Card>
+  <Card title="Localized SERPs" icon="magnifying-glass">
+    Google results differ dramatically by region. Use `proxy_country` on `/serpApi` to scrape SERPs as they appear in a given market.
+  </Card>
+  <Card title="Anti-bot geo rotation" icon="shield">
+    Some bot-protection vendors apply tighter rules to certain country pools. Rotating through a friendly country can lift a `403`.
+  </Card>
+  <Card title="Compliance" icon="scale-balanced">
+    Verify that geo-blocking on your own site behaves as intended from a list of source countries.
+  </Card>
+</CardGroup>
+
+## Format
+
+`proxy_country` is a two-letter ISO 3166-1 alpha-2 country code, lowercase:
+
+| Country | Code |
+| --- | --- |
+| United States | `us` |
+| United Kingdom | `gb` |
+| Germany | `de` |
+| France | `fr` |
+| Spain | `es` |
+| Italy | `it` |
+| Netherlands | `nl` |
+| Poland | `pl` |
+| Lithuania | `lt` |
+| Canada | `ca` |
+| Australia | `au` |
+| Japan | `jp` |
+
+Full list available in the [help center](https://scrapeunblocker.com/contact). If you request a country we don't have proxies for, the request still completes but uses our default routing - check the `proxy_country` field in the response to see what was actually used.
+
+## Examples
+
+### `/getPageSource`
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com&proxy_country=de" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### `/serpApi`
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=pizza&proxy_country=it" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### `/getImage`
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getImage?url=https://host.com/img.jpg&proxy_country=jp" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  --output image.png
+```
+
+## Verifying which country was used
+
+`/serpApi` always returns the `proxy_country` actually used in its JSON response. For `/getPageSource`, set `get_cookies=true` to see which proxy served the request:
+
+```json
+{
+  "html": "...",
+  "cookies": [ ... ],
+  "proxy": "de"
+}
+```
+
+See [cookies and sessions](/guides/cookies-and-sessions).
+
+## Tips
+
+- **Match the country to the target.** Scraping `amazon.de` from a US IP often returns the US redirect page. Use `proxy_country=de`.
+- **Rotate on `403`.** If a target blocks one country, try another. Cycling `us` → `gb` → `de` resolves most rate-based blocks.
+- **Expect higher latency on smaller pools.** Less common countries have smaller proxy pools, which means longer rotation between requests.

@@ -1,0 +1,170 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "ScrapeUnblocker",
+  "description": "Anti-bot bypass and proxy infrastructure for scraping any URL. Documentation, API reference, and integration guides.",
+  "colors": {
+    "primary": "#00C896",
+    "light": "#1FE0AB",
+    "dark": "#00A87D"
+  },
+  "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://developers.scrapeunblocker.com"
+  },
+  "appearance": {
+    "default": "dark"
+  },
+  "background": {
+    "color": {
+      "dark": "#0A0A0B",
+      "light": "#FFFFFF"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "authentication",
+              "errors",
+              "rate-limits",
+              "changelog"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/page-source",
+              "guides/parsed-data",
+              "guides/serp-scraping",
+              "guides/image-fetching",
+              "guides/country-targeting",
+              "guides/cookies-and-sessions",
+              "guides/handling-failures"
+            ]
+          },
+          {
+            "group": "Code Examples",
+            "pages": [
+              "sdks/curl",
+              "sdks/python",
+              "sdks/nodejs",
+              "sdks/scrapy"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Scraping",
+            "openapi": {
+              "source": "/api-reference/openapi.json",
+              "directory": "api-reference"
+            }
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Dashboard",
+          "href": "https://scrapeunblocker.com/account",
+          "icon": "gauge"
+        },
+        {
+          "anchor": "Pricing",
+          "href": "https://scrapeunblocker.com/pricing",
+          "icon": "tag"
+        },
+        {
+          "anchor": "Status",
+          "href": "https://scrapeunblocker.com/status",
+          "icon": "signal-bars"
+        },
+        {
+          "anchor": "Contact",
+          "href": "https://scrapeunblocker.com/contact",
+          "icon": "envelope"
+        }
+      ]
+    }
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Help center",
+        "href": "https://scrapeunblocker.com/contact"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get API Key",
+      "href": "https://scrapeunblocker.com/pricing"
+    }
+  },
+  "footer": {
+    "socials": {
+      "website": "https://scrapeunblocker.com",
+      "linkedin": "https://www.linkedin.com/company/scrapeunblocker"
+    },
+    "links": [
+      {
+        "header": "Product",
+        "items": [
+          { "label": "Pricing", "href": "https://scrapeunblocker.com/pricing" },
+          { "label": "Get API key", "href": "https://scrapeunblocker.com/pricing" },
+          { "label": "Status", "href": "https://scrapeunblocker.com/status" }
+        ]
+      },
+      {
+        "header": "Resources",
+        "items": [
+          { "label": "Documentation", "href": "https://developers.scrapeunblocker.com" },
+          { "label": "API Reference", "href": "https://developers.scrapeunblocker.com/api-reference/introduction" },
+          { "label": "Blog", "href": "https://scrapeunblocker.com/blog" }
+        ]
+      },
+      {
+        "header": "Company",
+        "items": [
+          { "label": "Contact", "href": "https://scrapeunblocker.com/contact" },
+          { "label": "Privacy", "href": "https://scrapeunblocker.com/privacy-policy" },
+          { "label": "Terms", "href": "https://scrapeunblocker.com/terms-and-conditions" }
+        ]
+      }
+    ]
+  },
+  "api": {
+    "playground": {
+      "display": "none"
+    },
+    "examples": {
+      "languages": ["curl", "python", "javascript"]
+    }
+  },
+  "search": {
+    "prompt": "Search docs..."
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "ScrapeUnblocker Docs",
+      "og:type": "website"
+    },
+    "indexing": "navigable"
+  }
+}

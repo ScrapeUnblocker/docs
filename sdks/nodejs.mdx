@@ -1,0 +1,149 @@
+---
+title: "Node.js"
+description: "Examples using built-in fetch, axios, and a small retry-aware wrapper."
+---
+
+The ScrapeUnblocker API works with Node's built-in `fetch` (Node 18+) without any dependencies. axios works equally well if you prefer it.
+
+## Built-in fetch
+
+```javascript
+const BASE = "https://api.scrapeunblocker.com";
+const KEY = process.env.SCRAPEUNBLOCKER_KEY;
+
+async function getPage(url, params = {}) {
+  const qs = new URLSearchParams({ url, ...params });
+  const res = await fetch(`${BASE}/getPageSource?${qs}`, {
+    method: "POST",
+    headers: { "x-scrapeunblocker-key": KEY },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  return res;
+}
+
+async function getSerp(keyword, params = {}) {
+  const qs = new URLSearchParams({ keyword, ...params });
+  const res = await fetch(`${BASE}/serpApi?${qs}`, {
+    method: "POST",
+    headers: { "x-scrapeunblocker-key": KEY },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+async function getImage(url, params = {}) {
+  const qs = new URLSearchParams({ url, ...params });
+  const res = await fetch(`${BASE}/getImage?${qs}`, {
+    method: "POST",
+    headers: { "x-scrapeunblocker-key": KEY },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return Buffer.from(await res.arrayBuffer());
+}
+```
+
+## Usage
+
+```javascript
+// HTML
+const html = await (await getPage("https://example.com")).text();
+
+// Parsed JSON
+const data = await (await getPage("https://www.amazon.com/dp/B08N5WRWNW", {
+  parsed_data: "true",
+})).json();
+
+// Country-targeted
+const de = await (await getPage("https://example.de", { proxy_country: "de" })).text();
+
+// SERP
+const serp = await getSerp("best running shoes", { pages_to_check: "2" });
+for (const r of serp.organic) {
+  console.log(r.position, r.title, r.url);
+}
+
+// Image
+import { writeFile } from "node:fs/promises";
+const png = await getImage("https://example.com/photo.jpg");
+await writeFile("photo.png", png);
+```
+
+<Note>
+  `URLSearchParams` values must be strings. Pass `"true"` and `"2"`, not `true` and `2`. Numbers get coerced automatically, but booleans become the literal string `"true"`/`"false"`, which is what the API expects.
+</Note>
+
+## With axios
+
+```bash
+npm install axios
+```
+
+```javascript
+import axios from "axios";
+
+const client = axios.create({
+  baseURL: "https://api.scrapeunblocker.com",
+  headers: { "x-scrapeunblocker-key": process.env.SCRAPEUNBLOCKER_KEY },
+  timeout: 180_000,
+});
+
+const html = (await client.post("/getPageSource", null, {
+  params: { url: "https://example.com" },
+})).data;
+
+const serp = (await client.post("/serpApi", null, {
+  params: { keyword: "best running shoes", pages_to_check: 2 },
+})).data;
+```
+
+axios passes numbers and booleans through correctly via `params`, so you can use native JS types.
+
+## Retry wrapper
+
+```javascript
+const RETRYABLE = new Set([408, 503, 504]);
+
+async function callWithRetry(path, params, { maxAttempts = 4 } = {}) {
+  let rotated = false;
+  let last;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const qs = new URLSearchParams(params);
+    const res = await fetch(`https://api.scrapeunblocker.com${path}?${qs}`, {
+      method: "POST",
+      headers: { "x-scrapeunblocker-key": process.env.SCRAPEUNBLOCKER_KEY },
+    });
+    if (res.ok) return res;
+    last = res;
+    if (res.status === 403 && !rotated) {
+      params = { ...params, proxy_country: "us" };
+      rotated = true;
+      continue;
+    }
+    if (RETRYABLE.has(res.status)) {
+      await new Promise(r => setTimeout(r, Math.min(60_000, 2 ** attempt * 1000)));
+      continue;
+    }
+    break;
+  }
+  throw new Error(`HTTP ${last.status}: ${await last.text()}`);
+}
+```
+
+## Concurrency control
+
+If you're crawling many URLs, cap concurrent in-flight requests to match your plan's limit. `p-limit` is the simplest option:
+
+```bash
+npm install p-limit
+```
+
+```javascript
+import pLimit from "p-limit";
+
+const limit = pLimit(10);
+const urls = [/* ... */];
+
+const results = await Promise.all(
+  urls.map(u => limit(() => callWithRetry("/getPageSource", { url: u })))
+);
+```

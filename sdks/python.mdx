@@ -1,0 +1,169 @@
+---
+title: "Python"
+description: "ScrapeUnblocker with the requests library, async with httpx, and a production retry helper."
+---
+
+There is no official Python SDK. The API is small enough that a thin wrapper around `requests` (or `httpx` for async) covers every use case.
+
+## Install
+
+```bash
+pip install requests
+```
+
+## Minimal client
+
+```python
+import os
+import requests
+
+BASE = "https://api.scrapeunblocker.com"
+KEY = os.environ["SCRAPEUNBLOCKER_KEY"]
+
+def get_page(url, **params):
+    r = requests.post(
+        f"{BASE}/getPageSource",
+        params={"url": url, **params},
+        headers={"x-scrapeunblocker-key": KEY},
+        timeout=180,
+    )
+    r.raise_for_status()
+    return r
+
+def get_serp(keyword, **params):
+    r = requests.post(
+        f"{BASE}/serpApi",
+        params={"keyword": keyword, **params},
+        headers={"x-scrapeunblocker-key": KEY},
+        timeout=180,
+    )
+    r.raise_for_status()
+    return r.json()
+
+def get_image(url, **params):
+    r = requests.post(
+        f"{BASE}/getImage",
+        params={"url": url, **params},
+        headers={"x-scrapeunblocker-key": KEY},
+        timeout=180,
+    )
+    r.raise_for_status()
+    return r.content
+```
+
+## Usage
+
+```python
+# HTML
+html = get_page("https://example.com").text
+
+# Parsed JSON
+data = get_page("https://www.amazon.com/dp/B08N5WRWNW", parsed_data=True).json()
+
+# Country-targeted
+de_html = get_page("https://example.de", proxy_country="de").text
+
+# SERP
+serp = get_serp("best running shoes", pages_to_check=2)
+for result in serp["organic"]:
+    print(result["position"], result["title"], result["url"])
+
+# Image
+png_bytes = get_image("https://example.com/photo.jpg")
+with open("photo.png", "wb") as f:
+    f.write(png_bytes)
+```
+
+## Production-grade client with retries
+
+Handles `403` country rotation, `503`/`504`/`408` backoff, and fails fast on terminal errors:
+
+```python
+import os
+import time
+import requests
+from typing import Optional
+
+class ScrapeUnblocker:
+    BASE = "https://api.scrapeunblocker.com"
+    RETRYABLE = {408, 503, 504}
+    MAX_ATTEMPTS = 4
+    TIMEOUT = 180
+
+    def __init__(self, api_key: Optional[str] = None):
+        self.key = api_key or os.environ["SCRAPEUNBLOCKER_KEY"]
+        self._session = requests.Session()
+        self._session.headers["x-scrapeunblocker-key"] = self.key
+
+    def _call(self, path, params):
+        rotated = False
+        for attempt in range(self.MAX_ATTEMPTS):
+            r = self._session.post(
+                f"{self.BASE}{path}",
+                params=params,
+                timeout=self.TIMEOUT,
+            )
+            if r.status_code == 200:
+                return r
+            if r.status_code == 403 and not rotated:
+                params = {**params, "proxy_country": "us"}
+                rotated = True
+                continue
+            if r.status_code in self.RETRYABLE:
+                time.sleep(min(60, 2 ** attempt))
+                continue
+            r.raise_for_status()
+        r.raise_for_status()
+        return r
+
+    def page(self, url, **kw):
+        return self._call("/getPageSource", {"url": url, **kw})
+
+    def serp(self, keyword, **kw):
+        return self._call("/serpApi", {"keyword": keyword, **kw}).json()
+
+    def image(self, url, **kw):
+        return self._call("/getImage", {"url": url, **kw}).content
+```
+
+```python
+client = ScrapeUnblocker()
+html = client.page("https://example.com").text
+serp = client.serp("pizza", proxy_country="it")
+png = client.image("https://example.com/photo.jpg")
+```
+
+## Async with httpx
+
+```python
+import os
+import asyncio
+import httpx
+
+BASE = "https://api.scrapeunblocker.com"
+KEY = os.environ["SCRAPEUNBLOCKER_KEY"]
+
+async def fetch_many(urls):
+    async with httpx.AsyncClient(
+        headers={"x-scrapeunblocker-key": KEY},
+        timeout=180,
+    ) as client:
+        tasks = [
+            client.post(f"{BASE}/getPageSource", params={"url": u})
+            for u in urls
+        ]
+        return await asyncio.gather(*tasks)
+
+urls = ["https://example.com", "https://example.org"]
+responses = asyncio.run(fetch_many(urls))
+```
+
+Use a [semaphore](https://docs.python.org/3/library/asyncio-sync.html#asyncio.Semaphore) to cap concurrency to your plan's limit:
+
+```python
+sem = asyncio.Semaphore(10)
+
+async def one(client, url):
+    async with sem:
+        return await client.post(f"{BASE}/getPageSource", params={"url": url})
+```

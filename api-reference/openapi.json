@@ -1,0 +1,369 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ScrapeUnblocker API",
+    "description": "Public API for the ScrapeUnblocker proxy/anti-bot service. Authenticate every request with the `x-scrapeunblocker-key` header. Three endpoints are documented here: page-source extraction, Google SERP scraping, and image fetch. All other paths exist for internal operations and are intentionally hidden from this spec.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.scrapeunblocker.com",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/getPageSource": {
+      "post": {
+        "tags": [
+          "Scraping"
+        ],
+        "summary": "Fetch the HTML (or parsed JSON) for any URL",
+        "description": "Routes the URL through the appropriate anti-bot bypass chain (custom domain plugins, super-profile browser, residential proxies, Scrapfly fallback). Returns the prettified HTML by default. Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to additionally receive cookies and the proxy address that served the request.",
+        "operationId": "get_page_source_getPageSource_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Url"
+            }
+          },
+          {
+            "name": "method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Method"
+            }
+          },
+          {
+            "name": "value",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Value"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          },
+          {
+            "name": "time_sleep",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "title": "Time Sleep"
+            }
+          },
+          {
+            "name": "parsed_data",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Parsed Data"
+            }
+          },
+          {
+            "name": "get_cookies",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Get Cookies"
+            }
+          },
+          {
+            "name": "method_timeout",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "title": "Method Timeout"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success — body is HTML (or JSON when `parsed_data=true` / `get_cookies=true`).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid URL or unsupported scheme."
+          },
+          "403": {
+            "description": "Blocked by bot protection on every available bypass path."
+          },
+          "503": {
+            "description": "Upstream origin returned a server-side outage page; not a bot block."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/serpApi": {
+      "post": {
+        "tags": [
+          "Scraping"
+        ],
+        "summary": "Scrape a Google search SERP for organic + ad results",
+        "description": "Runs a Google web search for `keyword` and returns a normalized JSON structure with `topAds`, `bottomAds`, `organic` results, `totalResults`, and the proxy country actually used. Set `pages_to_check` 1-10 to paginate. `wait_after_load` adds a delay after the SERP loads (useful for sites where ads render late); `captcha_pause` lets you eyeball / solve a CAPTCHA when running interactively.",
+        "operationId": "run_serp_serpApi_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Keyword"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          },
+          {
+            "name": "pages_to_check",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10,
+              "minimum": 1,
+              "default": 1,
+              "title": "Pages To Check"
+            }
+          },
+          {
+            "name": "wait_after_load",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Wait After Load"
+            }
+          },
+          {
+            "name": "captcha_pause",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Captcha Pause"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with organic/ads/totals.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "403": {
+            "description": "Google CAPTCHA after retries with different proxies — try another `proxy_country`."
+          },
+          "504": {
+            "description": "SERP fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/getImage": {
+      "post": {
+        "tags": [
+          "Scraping"
+        ],
+        "summary": "Fetch a single image as raw PNG bytes",
+        "description": "Navigates to the given image URL via a real browser + residential proxy, draws the first `<img>` to a canvas, and returns the resulting PNG. Use this when a regular GET against the image returns a challenge page or a tiny tracking pixel because the host requires a real browser context.",
+        "operationId": "get_image_getImage_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Url"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PNG bytes (`image/png`).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "No image element found on the target URL."
+          },
+          "403": {
+            "description": "Image-processing failure (e.g. canvas tainted by CORS) or upstream block."
+          },
+          "408": {
+            "description": "Browser run timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MobileDeLiquidityQuery": {
+        "properties": {
+          "urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Urls"
+          }
+        },
+        "type": "object",
+        "required": [
+          "urls"
+        ],
+        "title": "MobileDeLiquidityQuery"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "ScrapeUnblockerKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-scrapeunblocker-key",
+        "description": "Your ScrapeUnblocker API key. Apply on every request."
+      }
+    }
+  }
+}

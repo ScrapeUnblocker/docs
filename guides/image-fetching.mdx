@@ -1,0 +1,82 @@
+---
+title: "Image fetching"
+description: "Fetch images through a real browser context when plain GET returns a challenge or tracking pixel."
+---
+
+The `/getImage` endpoint navigates to an image URL through a real browser with a residential proxy, draws the first `<img>` to a canvas, and returns the resulting PNG bytes. Use it when a plain `GET https://host/image.jpg` returns:
+
+- A bot-protection challenge page (Cloudflare, hCaptcha)
+- A 1x1 tracking pixel
+- A redirect to a login wall
+
+For images that load fine with a normal HTTP GET, **don't use this endpoint** - it's slower and more expensive. A regular `requests.get(url)` is the right choice there.
+
+## Request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getImage?url=https://example.com/photo.jpg" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  --output photo.png
+```
+
+```python Python
+import requests
+
+r = requests.post(
+    "https://api.scrapeunblocker.com/getImage",
+    params={"url": "https://example.com/photo.jpg"},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=120,
+)
+with open("photo.png", "wb") as f:
+    f.write(r.content)
+```
+
+```javascript Node.js
+import { writeFile } from "node:fs/promises";
+
+const res = await fetch(
+  "https://api.scrapeunblocker.com/getImage?url=https://example.com/photo.jpg",
+  {
+    method: "POST",
+    headers: { "x-scrapeunblocker-key": "YOUR_API_KEY" },
+  }
+);
+const bytes = Buffer.from(await res.arrayBuffer());
+await writeFile("photo.png", bytes);
+```
+
+</CodeGroup>
+
+## Response
+
+`200` returns raw PNG bytes with `Content-Type: image/png`. Save them directly to a file or pipe them into your image pipeline.
+
+The output is **always PNG** regardless of the source image format. Width and height match the source.
+
+## Country targeting
+
+Pass `proxy_country` (ISO 3166-1 alpha-2) to force a specific country. Some image CDNs geo-fence by IP region, returning empty or watermarked images outside the expected country:
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getImage?url=https://example.com/photo.jpg&proxy_country=us" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  --output photo.png
+```
+
+## Errors
+
+| Code | Meaning |
+| --- | --- |
+| `404` | The page at `url` loaded but contained no `<img>` element |
+| `403` | Image-processing failure (e.g. canvas tainted by CORS) or upstream block |
+| `408` | Browser run timed out |
+| `422` | Missing `url` parameter |
+
+## Tips
+
+- **Pass an image URL, not a page URL.** The endpoint expects to navigate directly to something that resolves to an `<img>` (either as the document, or with one prominent `<img>` on the page). Pointing it at a full product page is unreliable.
+- **Expect 5-30s latency.** Real-browser navigation is intrinsically slow. Batch image fetches with a worker pool, don't do them synchronously in a hot path.
+- **Cache aggressively.** The same image URL returns the same bytes - you only need to fetch once per image.

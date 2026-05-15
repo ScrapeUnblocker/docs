@@ -1,0 +1,93 @@
+---
+title: "Scrapy middleware"
+description: "Drop-in Scrapy downloader middleware that routes every request through ScrapeUnblocker."
+---
+
+If you already have a Scrapy project, the `scrapeunblocker-scrapy-middleware` package lets you keep your spiders unchanged - every `Request` is silently rewritten to go through `/getPageSource`, with HTML returned to your callbacks as if the spider had fetched the URL directly.
+
+<Note>
+  The middleware is maintained at [github.com/scrapeunblocker/scrapeunblocker-scrapy-middleware](https://github.com/scrapeunblocker). For the most up-to-date install and configuration instructions, check the README there.
+</Note>
+
+## Install
+
+```bash
+pip install scrapeunblocker-scrapy-middleware
+```
+
+## Enable in `settings.py`
+
+```python
+DOWNLOADER_MIDDLEWARES = {
+    "scrapeunblocker_middleware.ScrapeUnblockerMiddleware": 543,
+}
+
+SCRAPEUNBLOCKER_API_KEY = "su_live_..."
+
+# Optional defaults applied to every request unless overridden via Request.meta
+SCRAPEUNBLOCKER_DEFAULTS = {
+    "proxy_country": "us",
+}
+```
+
+## Per-request overrides
+
+Pass options via `Request.meta["scrapeunblocker"]` to override defaults for a single request:
+
+```python
+import scrapy
+
+class PriceSpider(scrapy.Spider):
+    name = "prices"
+    start_urls = ["https://example.com/product/123"]
+
+    def parse(self, response):
+        yield {"price": response.css(".price::text").get()}
+
+        yield scrapy.Request(
+            "https://example.com/product/124",
+            meta={
+                "scrapeunblocker": {
+                    "proxy_country": "de",
+                    "parsed_data": True,
+                    "time_sleep": 3,
+                }
+            },
+            callback=self.parse,
+        )
+```
+
+## What the middleware does
+
+For every outgoing request, the middleware:
+
+1. Rewrites the URL to `https://api.scrapeunblocker.com/getPageSource?url=<original>`.
+2. Changes the method to `POST`.
+3. Adds the `x-scrapeunblocker-key` header.
+4. Merges `SCRAPEUNBLOCKER_DEFAULTS` and `meta["scrapeunblocker"]` into the query string.
+5. On response, restores the original URL on the Scrapy `Response` object so your selectors see the URL you requested, not the proxy URL.
+
+## Handling parsed data
+
+When `parsed_data=True` is set, the response body is JSON, not HTML. Use the convenience accessor:
+
+```python
+def parse(self, response):
+    if response.meta.get("scrapeunblocker", {}).get("parsed_data"):
+        data = response.json()["data"]["data"]
+        yield {"title": data["title"], "price": data["price"]}
+    else:
+        yield {"price": response.css(".price::text").get()}
+```
+
+## Retry behavior
+
+The middleware does **not** override Scrapy's `RetryMiddleware`. Configure retries in `settings.py` as you would for any other downloader:
+
+```python
+RETRY_ENABLED = True
+RETRY_TIMES = 3
+RETRY_HTTP_CODES = [403, 408, 500, 502, 503, 504]
+```
+
+A `403` retry from Scrapy will hit ScrapeUnblocker again, which independently rotates through bypass routes - so a second `403` usually means the target is truly hard-blocked on that day. See [handling failures](/guides/handling-failures).

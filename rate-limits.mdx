@@ -1,0 +1,48 @@
+---
+title: "Rate limits"
+description: "Concurrency and throughput limits per plan, plus how to handle them."
+---
+
+ScrapeUnblocker rate-limits per-account, not per-IP. Your plan determines:
+
+- **Concurrent requests** - how many in-flight requests we'll accept at once.
+- **Monthly request quota** - total calls per billing period.
+
+Free trial accounts start with a small concurrency limit. Paid plans scale up. Exact numbers for each tier are on the [pricing page](https://scrapeunblocker.com/pricing).
+
+## When you hit the limit
+
+If you exceed your concurrency cap, additional requests queue briefly on our side rather than failing immediately. If queuing would exceed a reasonable wait, you'll get a `429 Too Many Requests` response.
+
+The recommended client behavior:
+
+1. Run a fixed worker pool sized to your concurrency limit.
+2. On `429`, back off for the duration in the `Retry-After` header (if present), otherwise 5 seconds.
+3. Resume.
+
+```python
+import time
+import requests
+
+def call(url, key):
+    while True:
+        r = requests.post(
+            "https://api.scrapeunblocker.com/getPageSource",
+            params={"url": url},
+            headers={"x-scrapeunblocker-key": key},
+            timeout=120,
+        )
+        if r.status_code == 429:
+            wait = int(r.headers.get("Retry-After", "5"))
+            time.sleep(wait)
+            continue
+        return r
+```
+
+## Monthly quota
+
+When you've used your monthly quota, requests return `402 Payment Required`. Upgrade your plan or wait for the next billing cycle. You can monitor remaining quota in the [dashboard](https://scrapeunblocker.com/account).
+
+## Need more throughput?
+
+Contact us via the [help center](https://scrapeunblocker.com/contact) - we offer custom limits for high-volume customers.

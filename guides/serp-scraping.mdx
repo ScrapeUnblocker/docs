@@ -1,0 +1,120 @@
+---
+title: "Google SERP scraping"
+description: "Scrape Google search results - organic, ads, totals - through the /serpApi endpoint."
+---
+
+The `/serpApi` endpoint scrapes Google search results and returns normalized JSON. It handles the CAPTCHA gauntlet, ad rendering delays, and proxy rotation that make Google scraping painful.
+
+## Minimum request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=best+running+shoes" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+r = requests.post(
+    "https://api.scrapeunblocker.com/serpApi",
+    params={"keyword": "best running shoes"},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=120,
+)
+data = r.json()
+```
+
+```javascript Node.js
+const res = await fetch(
+  "https://api.scrapeunblocker.com/serpApi?keyword=best%20running%20shoes",
+  {
+    method: "POST",
+    headers: { "x-scrapeunblocker-key": "YOUR_API_KEY" },
+  }
+);
+const data = await res.json();
+```
+
+</CodeGroup>
+
+## Response shape
+
+```json
+{
+  "keyword": "best running shoes",
+  "proxy_country": "us",
+  "totalResults": 458000000,
+  "topAds": [
+    {
+      "title": "Nike Run Club - Free Shipping",
+      "url": "https://www.nike.com/...",
+      "displayedUrl": "nike.com",
+      "description": "Shop the latest running shoes...",
+      "position": 1
+    }
+  ],
+  "bottomAds": [ ... ],
+  "organic": [
+    {
+      "title": "10 Best Running Shoes of 2026",
+      "url": "https://runnersworld.com/...",
+      "displayedUrl": "runnersworld.com",
+      "description": "Our experts tested...",
+      "position": 1
+    }
+  ]
+}
+```
+
+## Useful parameters
+
+### `pages_to_check`
+
+How many SERP pages to scrape, 1 to 10. Defaults to 1.
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=running+shoes&pages_to_check=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+Results from all pages are concatenated into `topAds`, `bottomAds`, and `organic` with `position` reflecting cross-page ordering.
+
+### `proxy_country`
+
+Two-letter ISO code forcing the request through that country's IP pool. Affects what Google shows you - SERP composition varies by region.
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=pizza&proxy_country=de" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+If the proxy pool for that country is exhausted or unavailable, the response includes the country we actually fell back to in the `proxy_country` field.
+
+### `wait_after_load`
+
+Seconds to wait after the SERP loads before extraction. Set this if you're seeing ads missing from `topAds`/`bottomAds` - some ad units render late.
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=insurance&wait_after_load=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### `captcha_pause`
+
+Seconds to pause if Google shows a CAPTCHA, giving an interactive user time to solve it. Only useful when running the API in attended mode. Leave at 0 for automated workloads - rely on `proxy_country` rotation instead.
+
+## Errors
+
+| Code | Meaning |
+| --- | --- |
+| `403` | Google CAPTCHA after retries on multiple proxies. Try a different `proxy_country` or wait. |
+| `504` | SERP fetch timed out. Lower `pages_to_check` or retry. |
+| `422` | Missing `keyword` or invalid parameter range |
+
+## Tips
+
+- **Phrase keywords like a user would.** `keyword=best+pizza+nyc` performs differently from `keyword=best%20pizza%20nyc%202026`. Use spaces or `+`, not commas.
+- **Watch `totalResults` for sanity.** A `totalResults` of 0 with valid organic results means the count couldn't be extracted - not that there are no results.
+- **Cross-page dedup is your job.** If you call with `pages_to_check=10`, expect some overlap on borderline results. Dedup on `url`.

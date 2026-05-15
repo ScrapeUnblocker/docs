@@ -1,0 +1,76 @@
+---
+title: "Errors"
+description: "HTTP status codes returned by ScrapeUnblocker and what they mean."
+---
+
+ScrapeUnblocker uses standard HTTP status codes. Status codes in the `2xx` range indicate success. Codes in the `4xx` range indicate an issue with the request (bad parameters, blocked by the target site, etc.). Codes in the `5xx` range indicate either an upstream issue at the target site or, rarely, a problem on our side.
+
+## Status codes
+
+| Code | Meaning | Where to look |
+| --- | --- | --- |
+| `200` | Success | Response body contains the requested content |
+| `400` | Invalid URL or unsupported scheme | Check your `url` parameter is well-formed and uses `http`/`https` |
+| `401` | Missing or invalid API key | See [Authentication](/authentication) |
+| `403` | Blocked by target site's bot protection on every available bypass path | Try a different `proxy_country`, or see [handling failures](/guides/handling-failures) |
+| `404` | No image element found (only on `/getImage`) | The page loaded but contained no `<img>` tag |
+| `408` | Browser run timed out (only on `/getImage`) | Retry, or increase `method_timeout` if applicable |
+| `422` | Validation error - missing required field or wrong type | The response body contains a `detail` array pinpointing the problem field |
+| `503` | Upstream origin returned a server-side outage page | The target site is down. Not a bot block. Retry later. |
+| `504` | SERP fetch timed out (only on `/serpApi`) | Retry. If persistent, lower `pages_to_check` or pick a different `proxy_country` |
+
+## 422 validation error shape
+
+When you send an invalid request body, `/getPageSource`, `/serpApi`, and `/getImage` all return a structured validation error:
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["query", "url"],
+      "msg": "field required",
+      "type": "value_error.missing"
+    }
+  ]
+}
+```
+
+`loc` is the path to the problem field. `msg` is human-readable. `type` is a stable machine-readable identifier.
+
+## 403 - blocked vs. invalid key
+
+A `403` from ScrapeUnblocker **never** means your API key is wrong. Invalid keys return `401`. A `403` always means: the target site blocked us on every bypass route we tried.
+
+When you see `403`:
+
+1. **Try a different `proxy_country`.** Some sites geo-fence or geo-rotate their bot protection. A US site may be unreachable from EU IPs and vice versa.
+2. **Wait and retry.** Rate-based blocks expire after a few minutes.
+3. **Check the [status page](https://scrapeunblocker.com/status)** for known incidents with that target domain.
+4. **Contact support** if the same URL repeatedly fails - we may need to add a custom plugin for that domain.
+
+More detail in the [handling failures guide](/guides/handling-failures).
+
+## Retries and idempotency
+
+All three endpoints are safe to retry. Requests are idempotent in the sense that retrying with the same parameters does not double-charge or create duplicate state on your account. We recommend exponential backoff for transient `5xx` errors:
+
+```python
+import time
+import requests
+
+def fetch_with_retry(url, max_attempts=3):
+    for attempt in range(max_attempts):
+        r = requests.post(
+            "https://api.scrapeunblocker.com/getPageSource",
+            params={"url": url},
+            headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+            timeout=120,
+        )
+        if r.status_code == 200:
+            return r
+        if r.status_code in (503, 504) and attempt < max_attempts - 1:
+            time.sleep(2 ** attempt)
+            continue
+        r.raise_for_status()
+    return r
+```

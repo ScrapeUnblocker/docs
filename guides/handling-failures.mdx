@@ -1,0 +1,133 @@
+---
+title: "Handling failures"
+description: "What 403, 503, 504, and 422 actually mean - and how to recover from each."
+---
+
+ScrapeUnblocker tries every available bypass route before giving up. When it does return a non-2xx, the status code tells you exactly what went wrong. This guide covers the playbook for each.
+
+## 403 - blocked on every route
+
+We tried every bypass we have for this domain - direct, residential, stealth browser, fallback provider - and every path was blocked.
+
+**Recovery:**
+
+1. **Switch `proxy_country`.** This is the highest-yield fix. Many sites apply country-specific bot rules.
+
+   ```bash
+   curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=...&proxy_country=de" \
+     -H "x-scrapeunblocker-key: YOUR_API_KEY"
+   ```
+
+2. **Wait a few minutes and retry.** Rate-based blocks expire on their own.
+
+3. **Lower request volume.** If you're hitting the same domain hard, the block is probably your traffic pattern, not the IP.
+
+4. **Contact support.** If the same URL `403`s consistently, the domain may need a custom plugin. The [help center](https://scrapeunblocker.com/contact) is the right place.
+
+<Warning>
+  `403` is never an auth problem. Invalid API keys return `401`. If you're seeing `401`, see [Authentication](/authentication).
+</Warning>
+
+## 503 - upstream is down
+
+The target site itself returned a server-side outage page (maintenance, 5xx from origin, capacity issues). This is not a bot block - we successfully reached the origin, the origin is just broken right now.
+
+**Recovery:** wait and retry. Exponential backoff is appropriate:
+
+```python
+import time
+import requests
+
+def get_with_backoff(url, key, max_attempts=5):
+    for i in range(max_attempts):
+        r = requests.post(
+            "https://api.scrapeunblocker.com/getPageSource",
+            params={"url": url},
+            headers={"x-scrapeunblocker-key": key},
+            timeout=120,
+        )
+        if r.status_code != 503:
+            return r
+        time.sleep(min(60, 2 ** i))
+    return r
+```
+
+## 504 - SERP timeout
+
+Only returned by `/serpApi`. Means we couldn't load Google's results page within the time budget for that request.
+
+**Recovery:**
+
+1. **Lower `pages_to_check`.** Each additional page extends the timeout window.
+2. **Pick a different `proxy_country`.** Some country pools are slower or under heavier rotation.
+3. **Retry.** Transient network issues account for most `504`s.
+
+## 408 - browser timeout
+
+Only returned by `/getImage`. Means the real-browser navigation took too long.
+
+**Recovery:** retry. If persistent, the image URL may not point to something the browser can resolve - confirm the URL works in a regular browser first.
+
+## 422 - validation error
+
+You sent a bad parameter. The response body pinpoints the field:
+
+```json
+{
+  "detail": [
+    {
+      "loc": ["query", "url"],
+      "msg": "field required",
+      "type": "value_error.missing"
+    }
+  ]
+}
+```
+
+**Recovery:** fix the request. `422` is not retryable - retrying the same bad request will fail the same way.
+
+## Retry policy that works
+
+For most production workloads, this policy handles all four error classes correctly:
+
+```python
+import time
+import requests
+
+RETRYABLE = {408, 503, 504}
+
+def scrape(url, key, max_attempts=4):
+    last = None
+    for attempt in range(max_attempts):
+        r = requests.post(
+            "https://api.scrapeunblocker.com/getPageSource",
+            params={"url": url},
+            headers={"x-scrapeunblocker-key": key},
+            timeout=180,
+        )
+        if r.status_code == 200:
+            return r
+        last = r
+        if r.status_code == 403 and attempt == 0:
+            # one shot at rotating country
+            r = requests.post(
+                "https://api.scrapeunblocker.com/getPageSource",
+                params={"url": url, "proxy_country": "us"},
+                headers={"x-scrapeunblocker-key": key},
+                timeout=180,
+            )
+            if r.status_code == 200:
+                return r
+            last = r
+        if r.status_code in RETRYABLE:
+            time.sleep(2 ** attempt)
+            continue
+        break
+    last.raise_for_status()
+```
+
+This:
+
+- Retries `408`/`503`/`504` with exponential backoff.
+- Tries one country rotation on `403`.
+- Fails fast on `401`, `422`, and other terminal errors.

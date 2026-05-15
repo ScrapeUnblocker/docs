@@ -1,0 +1,109 @@
+---
+title: "Fetching page HTML"
+description: "Get the rendered HTML of any URL through the right bypass chain - direct, residential proxy, stealth browser, or fallback."
+---
+
+The `/getPageSource` endpoint is the workhorse of the API. You pass a URL, ScrapeUnblocker picks the cheapest bypass route that works for that domain, and returns the prettified HTML.
+
+## Minimum request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://example.com"},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=120,
+)
+html = r.text
+```
+
+```javascript Node.js
+const res = await fetch(
+  "https://api.scrapeunblocker.com/getPageSource?url=https://example.com",
+  {
+    method: "POST",
+    headers: { "x-scrapeunblocker-key": "YOUR_API_KEY" },
+  }
+);
+const html = await res.text();
+```
+
+</CodeGroup>
+
+## How routing decisions are made
+
+ScrapeUnblocker keeps a per-domain success history and picks the cheapest path that has worked recently:
+
+<Steps>
+  <Step title="Domain plugin">
+    If we have a custom-built plugin for the target domain (Mobile.de, Zillow, Amazon, etc.), we use it. Plugins ship hardcoded knowledge about that site's protection - cookie order, headers, anti-fingerprinting tweaks.
+  </Step>
+  <Step title="Direct fetch">
+    For unprotected origins, a plain HTTP fetch is tried first. Fastest and cheapest.
+  </Step>
+  <Step title="Residential proxy">
+    If direct fails, the request is rotated through a residential IP in a relevant country.
+  </Step>
+  <Step title="Stealth browser">
+    For JavaScript-rendered pages or sites with browser fingerprint checks, we spin up a real browser with a randomized profile.
+  </Step>
+  <Step title="Upstream fallback">
+    If all in-house paths fail, the request falls back to a third-party provider as a last resort.
+  </Step>
+</Steps>
+
+You don't pick the route. It's chosen automatically per request based on what has worked for that domain.
+
+## Useful parameters
+
+### `method` and `value`
+
+For domains with custom plugins, `method` selects a specific extraction strategy and `value` passes a parameter to it. Common patterns:
+
+- `method=ajax&value=<endpoint>` - hit a site's internal JSON API and return the JSON instead of HTML.
+- `method=scroll&value=3` - scroll the page N times before returning HTML, for infinite-scroll listings.
+
+The exact methods supported depend on the domain plugin. Check the [help center](https://scrapeunblocker.com/contact) for per-domain documentation.
+
+### `time_sleep`
+
+Number of seconds to wait *after* the page loads before returning HTML. Useful for sites that hydrate content lazily after first paint.
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com&time_sleep=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### `method_timeout`
+
+Hard cap on how long ScrapeUnblocker will spend on a single bypass attempt before moving to the next one. Default is 60 seconds. Lower it for fast-failing crawls; raise it for slow targets you really need.
+
+### `proxy_country`
+
+Two-letter ISO country code forcing the request through that country's proxy pool. See [country targeting](/guides/country-targeting).
+
+## Response
+
+By default, the response body is the prettified HTML of the page. Content-Type is `text/html`.
+
+When you add `parsed_data=true` or `get_cookies=true`, the response becomes JSON. See [parsed data](/guides/parsed-data) and [cookies and sessions](/guides/cookies-and-sessions).
+
+## Errors
+
+| Code | Meaning |
+| --- | --- |
+| `400` | Invalid URL or unsupported scheme |
+| `403` | Every bypass path was blocked - try `proxy_country` or wait |
+| `503` | Target site is serving a server-side outage page |
+| `422` | One of your parameters failed validation |
+
+Full reference in [errors](/errors).

@@ -1,0 +1,106 @@
+---
+title: "Authentication"
+description: "Authenticate every API request with the x-scrapeunblocker-key header."
+---
+
+ScrapeUnblocker uses API keys for authentication. Every request must include your key in the `x-scrapeunblocker-key` HTTP header. Requests without a valid key are rejected.
+
+## Where to find your key
+
+Your API key is available in your account dashboard:
+
+<Card title="Open Dashboard" icon="gauge" href="https://scrapeunblocker.com/account">
+  scrapeunblocker.com/account
+</Card>
+
+If you don't have an account yet, sign up on the [pricing page](https://scrapeunblocker.com/pricing) - the free trial does not require a credit card.
+
+## Using your key
+
+Pass the key as a request header:
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+headers = {"x-scrapeunblocker-key": "YOUR_API_KEY"}
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://example.com"},
+    headers=headers,
+)
+```
+
+```javascript Node.js
+const headers = { "x-scrapeunblocker-key": "YOUR_API_KEY" };
+const res = await fetch(
+  "https://api.scrapeunblocker.com/getPageSource?url=https://example.com",
+  { method: "POST", headers }
+);
+```
+
+</CodeGroup>
+
+<Note>
+  The header name is case-insensitive, but always spelled with hyphens: `x-scrapeunblocker-key`. Do not use `X-ScrapeUnblocker-Key` in places where exact-case matters (some CDNs strip non-canonical case).
+</Note>
+
+## Keeping your key safe
+
+<Warning>
+  Your API key is the only credential needed to make billable requests against your account. Treat it like a password.
+</Warning>
+
+- **Never commit keys to source control.** Use environment variables (`.env` files added to `.gitignore`).
+- **Never expose keys in client-side code.** Browsers and mobile apps can read them. Always proxy requests through your own backend.
+- **Rotate immediately if leaked.** Generate a new key in the dashboard - the old one will keep working for a short grace period.
+
+## Environment variables
+
+The recommended way to store your key:
+
+<CodeGroup>
+
+```bash .env
+SCRAPEUNBLOCKER_KEY=su_live_xxxxxxxxxxxxxxxx
+```
+
+```python Python
+import os
+import requests
+
+key = os.environ["SCRAPEUNBLOCKER_KEY"]
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://example.com"},
+    headers={"x-scrapeunblocker-key": key},
+)
+```
+
+```javascript Node.js
+const key = process.env.SCRAPEUNBLOCKER_KEY;
+const res = await fetch(
+  "https://api.scrapeunblocker.com/getPageSource?url=https://example.com",
+  { method: "POST", headers: { "x-scrapeunblocker-key": key } }
+);
+```
+
+</CodeGroup>
+
+## Authentication errors
+
+A missing or invalid key returns HTTP `401 Unauthorized`. Common causes:
+
+| Symptom | Likely cause |
+| --- | --- |
+| `401` with valid-looking key | Trailing whitespace or newline in the header value |
+| `401` for every request | Key was rotated in dashboard but old key still cached |
+| `403` (not `401`) | Key is valid - the target site blocked the request. See [handling failures](/guides/handling-failures) |
+
+If you've checked the above and still see `401`, contact support from the [help center](https://scrapeunblocker.com/contact).

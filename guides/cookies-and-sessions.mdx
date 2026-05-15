@@ -1,0 +1,106 @@
+---
+title: "Cookies and sessions"
+description: "Capture cookies and the proxy address used to serve a request - for session continuity, debugging, and downstream replay."
+---
+
+By default, `/getPageSource` returns HTML and nothing else - cookies set during the navigation are dropped after the response is sent. Set `get_cookies=true` to capture them.
+
+## Request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com&get_cookies=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://example.com", "get_cookies": True},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=120,
+)
+payload = r.json()
+```
+
+</CodeGroup>
+
+## Response shape
+
+When `get_cookies=true`, the response becomes JSON:
+
+```json
+{
+  "html": "<!DOCTYPE html>...",
+  "cookies": [
+    {
+      "name": "session_id",
+      "value": "abc123...",
+      "domain": ".example.com",
+      "path": "/",
+      "expires": 1735689600,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "proxy": "us"
+}
+```
+
+| Field | What it is |
+| --- | --- |
+| `html` | The page source, same as you'd get without `get_cookies` |
+| `cookies` | Every cookie set during the navigation, in canonical form |
+| `proxy` | ISO country code of the proxy that served the request |
+
+## What you can do with the cookies
+
+### Replay them on your own client
+
+If a site sets a session cookie that gates access to data, you can fetch the page through ScrapeUnblocker once, capture cookies, then make follow-up requests directly with those cookies attached. Faster than going through the proxy for every call.
+
+```python
+import requests
+
+r1 = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://example.com/login-landing", "get_cookies": True},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+)
+cookies = {c["name"]: c["value"] for c in r1.json()["cookies"]}
+
+r2 = requests.get(
+    "https://example.com/api/internal-data",
+    cookies=cookies,
+)
+```
+
+<Warning>
+  This only works if the target site doesn't bind sessions to the original IP. Many do. If `r2` fails, route follow-up requests through ScrapeUnblocker too.
+</Warning>
+
+### Debug bot-protection state
+
+Some sites set bot-detection cookies (`cf_clearance`, `__cf_bm`, `datadome`, `_dd_s`) that are signed against the originating IP. Capturing them lets you confirm the protection actually completed - missing or empty bot cookies often correlate with a `403` on the next request.
+
+### Pin a proxy country for follow-up calls
+
+The `proxy` field tells you which country pool served the request. If you need a follow-up call to land on the same continent (for IP-bound sessions), pass that value to `proxy_country` next time. See [country targeting](/guides/country-targeting).
+
+## Combining with `parsed_data`
+
+If you set both `parsed_data=true` and `get_cookies=true`, the response carries everything:
+
+```json
+{
+  "data": { "page_type": "product", "source": "schema_org", "data": { ... } },
+  "cookies": [ ... ],
+  "proxy": "us"
+}
+```
+
+The `html` field is omitted in this case - you asked for parsed data, not raw HTML.

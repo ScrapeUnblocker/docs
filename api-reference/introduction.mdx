@@ -1,0 +1,50 @@
+---
+title: "API Reference"
+description: "Public endpoints, request schemas, and response shapes."
+---
+
+## Base URL
+
+```
+https://api.scrapeunblocker.com
+```
+
+## Authentication
+
+All endpoints require the `x-scrapeunblocker-key` header. See [Authentication](/authentication) for details.
+
+```bash
+-H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Endpoints
+
+The public API has three endpoints. All other paths on `api.scrapeunblocker.com` are internal and may change without notice.
+
+<CardGroup cols={1}>
+  <Card title="POST /getPageSource" icon="globe" href="/api-reference/endpoint/get-page-source-getpagesource-post">
+    Return the rendered HTML for any URL, or extracted structured JSON when `parsed_data=true`. Supports country targeting, cookie retrieval, custom wait times, and per-domain bypass routing.
+  </Card>
+  <Card title="POST /serpApi" icon="magnifying-glass" href="/api-reference/endpoint/run-serp-serpapi-post">
+    Scrape Google search results. Returns organic results, top ads, bottom ads, total result count, and the proxy country actually used. Supports 1-10 page pagination.
+  </Card>
+  <Card title="POST /getImage" icon="image" href="/api-reference/endpoint/get-image-getimage-post">
+    Fetch a single image as PNG bytes via a real browser context. For hosts that return challenge pages or tracking pixels to non-browsers.
+  </Card>
+</CardGroup>
+
+## Response format
+
+`200` responses are content-type aware:
+
+- `/getPageSource` returns `text/html` by default, or `application/json` when `parsed_data=true` or `get_cookies=true`.
+- `/serpApi` always returns `application/json`.
+- `/getImage` always returns `image/png`.
+
+Error responses (`4xx`, `5xx`) are `application/json` with a `detail` field describing the issue. See [Errors](/errors) for the full list.
+
+## Conventions
+
+- **Method**: all three endpoints use `POST`. Parameters go in the query string, not the request body.
+- **Encoding**: URL-encode parameter values. Special characters in `url` (especially `&` and `?`) must be percent-encoded.
+- **Timeouts**: set a generous client-side timeout - 120 seconds is a safe baseline. Browser-based bypasses can take 30-60s for cold targets.
