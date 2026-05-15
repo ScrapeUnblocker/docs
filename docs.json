@@ -92,11 +92,6 @@
           "icon": "tag"
         },
         {
-          "anchor": "Status",
-          "href": "https://scrapeunblocker.com/status",
-          "icon": "signal-bars"
-        },
-        {
           "anchor": "Contact",
           "href": "https://scrapeunblocker.com/contact",
           "icon": "envelope"
@@ -127,8 +122,7 @@
         "header": "Product",
         "items": [
           { "label": "Pricing", "href": "https://scrapeunblocker.com/pricing" },
-          { "label": "Get API key", "href": "https://scrapeunblocker.com/pricing" },
-          { "label": "Status", "href": "https://scrapeunblocker.com/status" }
+          { "label": "Get API key", "href": "https://scrapeunblocker.com/pricing" }
         ]
       },
       {
