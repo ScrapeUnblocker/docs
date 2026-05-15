@@ -4,9 +4,9 @@
   "name": "ScrapeUnblocker",
   "description": "Anti-bot bypass and proxy infrastructure for scraping any URL. Documentation, API reference, and integration guides.",
   "colors": {
-    "primary": "#00C896",
-    "light": "#1FE0AB",
-    "dark": "#00A87D"
+    "primary": "#4ECDC4",
+    "light": "#6FE0D8",
+    "dark": "#2BA89F"
   },
   "favicon": "/favicon.svg",
   "logo": {
