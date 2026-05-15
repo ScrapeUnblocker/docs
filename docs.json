@@ -162,8 +162,18 @@
   "seo": {
     "metatags": {
       "og:site_name": "ScrapeUnblocker Docs",
-      "og:type": "website"
+      "og:type": "website",
+      "og:title": "ScrapeUnblocker Documentation",
+      "og:description": "Anti-bot bypass and proxy infrastructure for scraping any URL. API reference, guides, and code examples for getPageSource, serpApi, and getImage endpoints.",
+      "og:image": "https://developers.scrapeunblocker.com/logo/light.png",
+      "og:url": "https://developers.scrapeunblocker.com",
+      "twitter:card": "summary_large_image",
+      "twitter:title": "ScrapeUnblocker Documentation",
+      "twitter:description": "Anti-bot bypass and proxy infrastructure for scraping any URL. Three endpoints, one API key.",
+      "twitter:image": "https://developers.scrapeunblocker.com/logo/light.png",
+      "description": "Documentation for the ScrapeUnblocker API. Web scraping with built-in anti-bot bypass, residential proxies, and structured data extraction.",
+      "keywords": "web scraping API, anti-bot bypass, Cloudflare bypass, residential proxies, SERP scraping, page source API, data extraction, ScrapeUnblocker"
     },
-    "indexing": "navigable"
+    "indexing": "all"
   }
 }
