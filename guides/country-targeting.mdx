@@ -24,24 +24,33 @@ The `proxy_country` parameter forces ScrapeUnblocker to use a residential IP fro
 
 ## Format
 
-`proxy_country` is a two-letter ISO 3166-1 alpha-2 country code, lowercase:
+`proxy_country` is a two-letter ISO 3166-1 alpha-2 country code, lowercase.
+
+## Supported countries
 
 | Country | Code |
 | --- | --- |
-| United States | `us` |
-| United Kingdom | `gb` |
-| Germany | `de` |
+| Belgium | `be` |
+| Canada | `ca` |
+| China | `cn` |
+| Croatia | `hr` |
+| Denmark | `dk` |
+| Finland | `fi` |
 | France | `fr` |
-| Spain | `es` |
+| Germany | `de` |
+| Israel | `il` |
 | Italy | `it` |
+| Japan | `jp` |
+| Lithuania | `lt` |
 | Netherlands | `nl` |
 | Poland | `pl` |
-| Lithuania | `lt` |
-| Canada | `ca` |
-| Australia | `au` |
-| Japan | `jp` |
+| Spain | `es` |
+| Sweden | `se` |
+| Taiwan | `tw` |
+| United Kingdom | `gb` |
+| United States | `us` |
 
-Full list available in the [help center](https://scrapeunblocker.com/contact). If you request a country we don't have proxies for, the request still completes but uses our default routing - check the `proxy_country` field in the response to see what was actually used.
+If you request a country outside this list, the request still completes but uses our default routing. Check the `proxy_country` field in the response (on `/serpApi`) or use `get_cookies=true` (on `/getPageSource`) to see which country was actually used.
 
 ## Examples
 
