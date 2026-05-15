@@ -82,6 +82,11 @@
     "global": {
       "anchors": [
         {
+          "anchor": "Home",
+          "href": "https://scrapeunblocker.com",
+          "icon": "house"
+        },
+        {
           "anchor": "Dashboard",
           "href": "https://app.scrapeunblocker.com",
           "icon": "gauge"
