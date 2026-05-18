@@ -30,13 +30,13 @@ You send a URL. We route it through the right bypass chain - custom domain plugi
 Three public endpoints. That's the whole surface area.
 
 <CardGroup cols={3}>
-  <Card title="getPageSource" icon="globe" href="/api-reference/endpoint/get-page-source-getpagesource-post">
+  <Card title="getPageSource" icon="globe" href="/api-reference/scraping/fetch-the-html-or-parsed-json-for-any-url">
     Return HTML for any URL. Or set `parsed_data=true` to get structured JSON extracted via Schema.org, `__NEXT_DATA__`, or AI-generated rules.
   </Card>
-  <Card title="serpApi" icon="magnifying-glass" href="/api-reference/endpoint/run-serp-serpapi-post">
+  <Card title="serpApi" icon="magnifying-glass" href="/api-reference/scraping/scrape-a-google-search-serp-for-organic-+-ad-results">
     Google SERP scraping. Returns normalized JSON with organic results, top and bottom ads, totals.
   </Card>
-  <Card title="getImage" icon="image" href="/api-reference/endpoint/get-image-getimage-post">
+  <Card title="getImage" icon="image" href="/api-reference/scraping/fetch-a-single-image-as-raw-png-bytes">
     Fetch a single image as PNG bytes through a real browser - for hosts that block plain GET requests.
   </Card>
 </CardGroup>

@@ -22,13 +22,13 @@ All endpoints require the `x-scrapeunblocker-key` header. See [Authentication](/
 The public API has three endpoints. All other paths on `api.scrapeunblocker.com` are internal and may change without notice.
 
 <CardGroup cols={1}>
-  <Card title="POST /getPageSource" icon="globe" href="/api-reference/endpoint/get-page-source-getpagesource-post">
+  <Card title="POST /getPageSource" icon="globe" href="/api-reference/scraping/fetch-the-html-or-parsed-json-for-any-url">
     Return the rendered HTML for any URL, or extracted structured JSON when `parsed_data=true`. Supports country targeting, cookie retrieval, custom wait times, and per-domain bypass routing.
   </Card>
-  <Card title="POST /serpApi" icon="magnifying-glass" href="/api-reference/endpoint/run-serp-serpapi-post">
+  <Card title="POST /serpApi" icon="magnifying-glass" href="/api-reference/scraping/scrape-a-google-search-serp-for-organic-+-ad-results">
     Scrape Google search results. Returns organic results, top ads, bottom ads, total result count, and the proxy country actually used. Supports 1-10 page pagination.
   </Card>
-  <Card title="POST /getImage" icon="image" href="/api-reference/endpoint/get-image-getimage-post">
+  <Card title="POST /getImage" icon="image" href="/api-reference/scraping/fetch-a-single-image-as-raw-png-bytes">
     Fetch a single image as PNG bytes via a real browser context. For hosts that return challenge pages or tracking pixels to non-browsers.
   </Card>
 </CardGroup>
