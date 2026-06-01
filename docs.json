@@ -40,6 +40,12 @@
             ]
           },
           {
+            "group": "No-code area",
+            "pages": [
+              "no-code/overview"
+            ]
+          },
+          {
             "group": "Guides",
             "pages": [
               "guides/page-source",

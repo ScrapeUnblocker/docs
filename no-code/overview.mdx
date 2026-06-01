@@ -1,0 +1,120 @@
+---
+title: "No-code area"
+description: "Describe what you want in plain language and ScrapeUnblocker plans, runs, and emails the scrape for you - no code required."
+sidebarTitle: "Overview"
+---
+
+The **No-code area** is a point-and-type interface for people who want the data without writing a scraper. You describe what you want to collect in plain language, and ScrapeUnblocker plans the job, runs it on the same infrastructure that powers the API, and emails you the results as a clean CSV or JSON file.
+
+No endpoints, no API key handling, no proxy or selector setup. If you can describe it in a sentence, you can collect it.
+
+<Note>
+Open it in your dashboard: [app.scrapeunblocker.com/dashboard/no-code](https://app.scrapeunblocker.com/dashboard/no-code). Runs draw from the same quota as your API plan.
+</Note>
+
+## How it works
+
+<Steps>
+  <Step title="Describe it">
+    Type what you want to collect in plain language - in any language. For example: *"What standing desks under €400 are on Amazon Germany?"* or *"Weekly new Mediterranean villas under €500,000 on idealista"*.
+  </Step>
+  <Step title="We plan it">
+    A planner reads your request, picks the best source, and builds the exact target pages to fetch. You see a short summary and an **estimated API-call count before anything runs**.
+  </Step>
+  <Step title="We run it">
+    ScrapeUnblocker fetches every page through the full bypass chain - residential proxies, JS rendering, CAPTCHA handling - and drills into each listing to pull structured rows.
+  </Step>
+  <Step title="You get results">
+    A CSV or JSON file lands in your inbox. Every run is saved under **Recent runs** so you can re-download it any time.
+  </Step>
+</Steps>
+
+## Where should we look?
+
+The first choice tells the planner which source to use.
+
+| Mode | What it does | Best for |
+| --- | --- | --- |
+| **Auto** | Lets the planner pick the best source for your request. | When you are not sure, or want the fastest good answer. |
+| **Specific websites** | Scrapes real marketplace / classifieds / listing pages and extracts structured rows from each one. | Concrete prices, sellers, and inventory from real listing sites. |
+| **Google search** | Runs a Google search and returns the organic result snippets. | Broad market-overview questions where snippets are enough. |
+
+You can name the sites yourself (for example *"on mobile.de"* or *"on idealista"*), or name a country and category (*"Lithuania used cars"*) and let the planner choose the largest local sites.
+
+## How thorough?
+
+Depth controls how many search pages are walked and whether each listing is opened.
+
+| Depth | What it does | Trade-off |
+| --- | --- | --- |
+| **Quick** | First search page only. | Fastest, fewest calls. |
+| **Deep** | Walks pages 1-3 of each search and drills into each listing. | Balanced coverage and cost. |
+| **Thorough** | Walks pages 1-5. | Best for low-volume or niche searches. |
+
+## One-time or scheduled
+
+<CardGroup cols={2}>
+  <Card title="One-time job" icon="bolt">
+    Run the scrape once, right now, and get the file emailed when it finishes.
+  </Card>
+  <Card title="Scheduled jobs" icon="calendar">
+    Run it automatically every day or every week at a time you pick, in your own timezone - ideal for tracking new listings, prices, and deals.
+  </Card>
+</CardGroup>
+
+For a scheduled job, write the request the way you want it to run on every pass, for example *"Daily new used BMW M3 listings on mobile.de under €40,000"*.
+
+## Results and delivery
+
+- **Format** - choose **CSV** or **JSON** before you run.
+- **Email** - the finished file is sent to the address you specify (your account email by default).
+- **Re-download** - every run is listed under **Recent runs** with its row count, call count, and status, and can be downloaded again later.
+
+## Cost and quota
+
+The No-code area uses the **same API calls and the same plan quota** as direct API usage. The planner shows an estimate before you run so there are no surprises.
+
+| Source | Roughly how many calls |
+| --- | --- |
+| **Amazon products** | 1 call per product |
+| **Google search** | 1 call per keyword |
+| **Specific websites** | ~51 calls per listing page (1 for the page itself, plus up to 50 listings drilled into) |
+
+<Warning>
+If a job would exceed your remaining quota, the dashboard warns you before you start. With overage enabled on your plan you are billed for the extra; otherwise the job stops when the quota runs out. The final count is often lower than the estimate, because pages with fewer listings or filtered-out duplicates consume fewer calls.
+</Warning>
+
+## Writing a good request
+
+The planner does best with a specific, self-contained sentence. Helpful details:
+
+- **Name the site(s)** when you know them - *"on autoscout24.de"*, *"on Zillow"*, *"on otodom.pl"*.
+- **Name the market** when you do not - *"used cars in Lithuania"*, *"apartments for rent in Warsaw"*.
+- **Add filters** - a price ceiling, a city or district, a model, a date range.
+- **Say "newest"** when you want fresh listings - *"new listings"*, *"sorted by newest"*.
+
+Stuck on wording? The **Pick one for me** button drops in a ready-made example you can edit or run as-is.
+
+## No-code area vs the API
+
+<CardGroup cols={2}>
+  <Card title="Use the No-code area" icon="wand-magic-sparkles">
+    You want a dataset emailed to you on demand or on a schedule, and you would rather not write code.
+  </Card>
+  <Card title="Use the API" icon="code" href="/quickstart">
+    You are building an application and want to call `getPageSource`, `serpApi`, or `getImage` directly from your own code.
+  </Card>
+</CardGroup>
+
+Both run on the same engine and share one plan. Start with whichever fits the task, and switch any time.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the No-code area" icon="play" href="https://app.scrapeunblocker.com/dashboard/no-code">
+    Describe your first job and get the results emailed.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
