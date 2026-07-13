@@ -46,6 +46,13 @@
             ]
           },
           {
+            "group": "Plugins",
+            "pages": [
+              "plugins/overview",
+              "plugins/skyscanner"
+            ]
+          },
+          {
             "group": "Guides",
             "pages": [
               "guides/page-source",

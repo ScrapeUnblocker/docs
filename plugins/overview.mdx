@@ -1,0 +1,57 @@
+---
+title: "Plugins"
+description: "Productized scrapers for specific sites - fill in a few fields and get clean, structured JSON. Run them from the dashboard or call them programmatically."
+sidebarTitle: "Overview"
+---
+
+Plugins are **ready-made scrapers for specific, high-value sites**. Instead of sending a raw URL and parsing HTML yourself, you fill in a few plain fields (a route, a city, some dates) and get back clean, structured JSON - already parsed, sorted, and ready to use.
+
+Under the hood a plugin runs on the same anti-bot infrastructure as the rest of ScrapeUnblocker: warm, challenge-cleared browser sessions, residential proxies, and per-site logic. You never see any of that. You send a search, you get data.
+
+<Note>
+Open the plugins in your dashboard: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). Runs draw from the same quota as your API plan.
+</Note>
+
+## Two ways to use a plugin
+
+<CardGroup cols={2}>
+  <Card title="In the dashboard - no code" icon="wand-magic-sparkles" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Pick a plugin, fill in the fields (autosuggest helps you choose the right place), and hit **Run**. You get a clean results view, the raw JSON, and a copy-paste snippet in cURL, Python and JavaScript.
+  </Card>
+  <Card title="Programmatically - for volume" icon="code" href="/plugins/skyscanner">
+    Call the plugin endpoint with your `x-scrapeunblocker-key`. One request returns the full JSON. Ideal when you need thousands of searches in a pipeline.
+  </Card>
+</CardGroup>
+
+Both paths hit the same engine and share one plan. Start with whichever fits the task, and switch any time.
+
+## Available plugins
+
+<CardGroup cols={3}>
+  <Card title="Skyscanner Flights" icon="plane" href="/plugins/skyscanner">
+    Live flight itineraries for a route and date - price, airline, times, stops, and a booking deep link per fare.
+  </Card>
+  <Card title="Skyscanner Hotels" icon="hotel" href="/plugins/skyscanner">
+    Every hotel for a city and dates - nightly and total price, stars, review score, distance, and image.
+  </Card>
+  <Card title="Skyscanner Car Hire" icon="car" href="/plugins/skyscanner">
+    Rental quotes for a pickup location and dates - vendor, car, seats, bags, fuel policy, and a book link.
+  </Card>
+</CardGroup>
+
+More plugins are added over time. Each one is documented on its own page with the exact fields, response shape, and examples.
+
+## Cost and quota
+
+Plugin runs use the **same plan quota** as direct API usage - there is no separate billing surface. A single plugin search is one call; the response already contains the full result set (dozens to hundreds of items), so you rarely need more than one request per search.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Skyscanner plugins" icon="plane" href="/plugins/skyscanner">
+    Flights, hotels and car hire - fields, responses, and API examples.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

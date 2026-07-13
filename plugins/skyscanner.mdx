@@ -1,0 +1,105 @@
+---
+title: "Skyscanner plugins"
+description: "Live Skyscanner flights, hotels and car-hire data as clean JSON - from the dashboard or the API. No partner application, no waiting."
+sidebarTitle: "Skyscanner"
+---
+
+Three plugins turn live Skyscanner results into structured JSON: **Flights**, **Hotels** and **Car Hire**. Each one resolves free-text place names for you, runs the search on warm, anti-bot-cleared sessions, and returns a full, sorted result set.
+
+All three share one API key and honour the parameters that drive real pricing:
+
+- **`market`** - the country you are booking from. Changes prices and available providers (e.g. `UK`, `DE`, `US`).
+- **`locale`** - the language of the result text (e.g. `en-GB`, `de-DE`).
+- **`currency`** - the currency of the returned prices (e.g. `EUR`, `GBP`, `USD`).
+
+<Note>
+Try them in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). Each plugin shows a live results view plus a copy-paste code snippet.
+</Note>
+
+## Flights
+
+Live itineraries for a route and date. Every option returns with price, airline, departure and arrival times, duration, stop count, and a **booking deep link** to the exact fare. One-way or return, any cabin class, any passenger count.
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `origin` | yes | Airport or city name (e.g. `London`). Resolved via autosuggest. |
+| `dest` | yes | Destination airport or city name. |
+| `depart_date` | yes | `YYYY-MM-DD`. |
+| `return_date` | no | Omit for a one-way search. |
+| `adults` | no | Passenger count (default `1`). |
+| `cabin` | no | `economy`, `premium_economy`, `business`, `first`. |
+| `market` / `locale` / `currency` | no | See above. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/flights/skyscanner-quotes?origin=London&dest=Krakow&depart_date=2026-09-11&market=UK&locale=en-GB&currency=EUR&adults=1" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+The response contains `itineraries.results[]`, each with `price`, `legs[]` (times, airports, carriers, stop count) and `pricingOptions[]` - the `pricingOptions[].items[].url` is the deep link to that fare.
+
+## Hotels
+
+Every hotel for a city and check-in/check-out window, with nightly price, total price, star rating, review score and count, distance and image. Pagination is handled for you, up to hundreds of properties per search.
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `destination` | yes | City or place name (e.g. `London`). Resolved via autosuggest. |
+| `checkin` | yes | `YYYY-MM-DD`. |
+| `checkout` | yes | `YYYY-MM-DD`. |
+| `adults` | no | Guest count (default `2`). |
+| `rooms` | no | Room count (default `1`). |
+| `max_results` | no | More results = more pages walked (~35/page, up to `300`). |
+| `market` / `locale` / `currency` | no | See above. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/hotels/skyscanner-quotes?destination=London&checkin=2026-08-12&checkout=2026-08-14&adults=2&rooms=1&market=UK&locale=en-GB&currency=GBP&max_results=100" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+The response contains a `hotels[]` list with `name`, per-night and total price, `stars`, review score and count, `distance`, `image` and a link.
+
+## Car Hire
+
+Rental quotes for a pickup location and dates, with vendor, car model, seats, bags, fuel policy, pickup type, and a **book link** per quote.
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `pickup` | yes | Pickup place or airport name. Resolved via autosuggest. |
+| `dropoff` | no | Defaults to the pickup location. |
+| `pickup_datetime` | yes | `YYYY-MM-DDTHH:MM`. |
+| `dropoff_datetime` | yes | `YYYY-MM-DDTHH:MM`. |
+| `driver_age` | no | Default `30`. |
+| `market` / `locale` / `currency` | no | See above. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/carhire/skyscanner-quotes?pickup=Madrid&pickup_datetime=2026-09-11T10:00&dropoff_datetime=2026-09-13T10:00&market=UK&locale=en-GB&currency=EUR&driver_age=30" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+The response contains a `quotes[]` list with `car`, `vendor`, `price`, `seats`, `bags`, `fuelPolicy`, `sipp`, `pickupType` and a `bookUrl`.
+
+## What you can build
+
+- **Price monitoring and alerts** - poll a route, hotel or rental daily and notify when a price drops.
+- **Fare and rate comparison** - blend Skyscanner numbers into a meta-search page or internal pricing dashboard.
+- **Market research** - track how prices for a city or route move over weeks, by market and currency.
+- **Travel content** - generate "cheapest flights from X" or "hotels near Y" pages that stay fresh.
+
+## Skyscanner's own partner API
+
+Skyscanner offers a partner **Travel API** directly, and for some enterprises that is the right long-term route. It is worth knowing what it involves: you apply through a partner questionnaire, and approval is **not instant - onboarding can take up to two weeks**, granted at Skyscanner's discretion based on your use case and volume. Details are on the [Skyscanner Travel API partner page](https://www.partners.skyscanner.net/product/travel-api).
+
+<Note>
+Our plugins are the shortcut: no application and no waiting. Sign up, add your API key, and pull flights, hotels and car-hire data the same day - from the dashboard or from code. If you later qualify for direct partner access, you can switch; until then, the plugins get you the data now.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a flights, hotels or car-hire search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
