@@ -1,0 +1,87 @@
+---
+title: "MCP Server (Claude)"
+description: "Connect ScrapeUnblocker to Claude and any other MCP client so the assistant can fetch any web page through your own API key."
+---
+
+The official **MCP server** lets [Claude](https://claude.ai) (Desktop, Code, and the web app) and any other [Model Context Protocol](https://modelcontextprotocol.io) client fetch **any web page's HTML** - or AI-parsed JSON, or Google results - through ScrapeUnblocker, bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
+
+You bring your **own** API key. Nothing is proxied through a shared account.
+
+```bash
+npx -y scrapeunblocker-mcp
+```
+
+Requires Node.js 18+. Published on npm as [`scrapeunblocker-mcp`](https://www.npmjs.com/package/scrapeunblocker-mcp).
+
+## Tools
+
+| Tool | What it does |
+|------|--------------|
+| `fetch_html` | Fetch the fully rendered HTML of any URL. |
+| `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
+| `google_search` | Run a Google search and return organic results as JSON. |
+
+## Get an API key
+
+Grab your key from the [dashboard](https://app.scrapeunblocker.com). The server reads it from the `SCRAPEUNBLOCKER_KEY` environment variable, so each user runs it with their own key.
+
+## Install
+
+<Tabs>
+  <Tab title="Claude Code">
+    ```bash
+    claude mcp add scrapeunblocker \
+      --env SCRAPEUNBLOCKER_KEY=YOUR_API_KEY \
+      -- npx -y scrapeunblocker-mcp
+    ```
+  </Tab>
+  <Tab title="Claude Desktop">
+    Add this to your `claude_desktop_config.json`
+    (Settings → Developer → Edit Config), then restart Claude Desktop:
+
+    ```json
+    {
+      "mcpServers": {
+        "scrapeunblocker": {
+          "command": "npx",
+          "args": ["-y", "scrapeunblocker-mcp"],
+          "env": {
+            "SCRAPEUNBLOCKER_KEY": "YOUR_API_KEY"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Any MCP client">
+    The server speaks MCP over stdio. Start it with your key in the environment:
+
+    ```bash
+    SCRAPEUNBLOCKER_KEY=YOUR_API_KEY npx -y scrapeunblocker-mcp
+    ```
+  </Tab>
+</Tabs>
+
+Once connected, the three tools appear automatically and the assistant calls them when it needs to reach a page that would otherwise be blocked.
+
+## Example prompts
+
+- "This page keeps blocking me: `https://example-shop.com/product/123`. Use `fetch_html` to get it and list the price."
+- "Fetch the parsed data for `https://www.amazon.com/dp/B08N5WRWNW` and summarise the product."
+- "Search Google for `best running shoes 2026` and give me the top 5 links, then fetch the first one."
+
+## Configuration
+
+| Environment variable | Required | Description |
+|----------------------|----------|-------------|
+| `SCRAPEUNBLOCKER_KEY` | Yes | Your API key. `SCRAPEUNBLOCKER_API_KEY` is also accepted. |
+| `SCRAPEUNBLOCKER_BASE_URL` | No | Override the API base URL (defaults to `https://api.scrapeunblocker.com`). |
+
+<Note>
+  The MCP server is a thin wrapper over the [Node.js SDK](/sdks/nodejs) and the same [getPageSource](/guides/page-source) endpoint. Anything the tools return is exactly what the API returns - see the [guides](/guides/page-source) for response shapes.
+</Note>
+
+## Source
+
+- npm: [`scrapeunblocker-mcp`](https://www.npmjs.com/package/scrapeunblocker-mcp)
+- GitHub: [ScrapeUnblocker/scrapeunblocker-mcp](https://github.com/ScrapeUnblocker/scrapeunblocker-mcp)

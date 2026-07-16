@@ -53,6 +53,12 @@
             ]
           },
           {
+            "group": "AI Assistants",
+            "pages": [
+              "sdks/mcp"
+            ]
+          },
+          {
             "group": "Guides",
             "pages": [
               "guides/page-source",

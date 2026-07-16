@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-16" description="MCP server for Claude">
+  Released the official **MCP server** so [Claude](https://claude.ai) (Desktop, Code, and the web app) and any other [Model Context Protocol](https://modelcontextprotocol.io) client can fetch any web page through ScrapeUnblocker, using your own API key:
+
+  ```bash
+  npx -y scrapeunblocker-mcp
+  ```
+
+  Three tools: `fetch_html`, `fetch_parsed`, and `google_search`. See the [MCP server guide](/sdks/mcp).
+</Update>
+
 <Update label="2026-07-16" description="Official SDKs">
   Released official client libraries for four languages, each wrapping `getPageSource` (HTML / parsed JSON / cookies), `serpApi`, `getImage`, and the Skyscanner plugins - with typed errors and automatic retries:
 
