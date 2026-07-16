@@ -64,6 +64,30 @@ Grab your key from the [dashboard](https://app.scrapeunblocker.com). The server 
 
 Once connected, the three tools appear automatically and the assistant calls them when it needs to reach a page that would otherwise be blocked.
 
+## Hosted connector (claude.ai web & mobile)
+
+Don't want to run anything locally? Use the hosted server. It works across
+**claude.ai** (web and mobile), Claude Desktop, and Claude Code - no install.
+
+Your endpoint, with your key in the URL:
+
+```
+https://mcp.scrapeunblocker.com/mcp?key=YOUR_API_KEY
+```
+
+**Add it on claude.ai:** Settings → Connectors → **Add custom connector**, then paste
+the URL above (with your key). Save, and the tools appear everywhere you use Claude.
+
+**Add it to Claude Code:**
+
+```bash
+claude mcp add --transport http scrapeunblocker \
+  "https://mcp.scrapeunblocker.com/mcp?key=YOUR_API_KEY"
+```
+
+The key can also be sent as an `Authorization: Bearer YOUR_API_KEY` header instead of
+the query parameter.
+
 ## Example prompts
 
 - "This page keeps blocking me: `https://example-shop.com/product/123`. Use `fetch_html` to get it and list the price."
