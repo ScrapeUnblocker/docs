@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-16" description="Python SDK">
+  Released the official **Python client** on PyPI:
+
+  ```bash
+  pip install scrapeunblocker
+  ```
+
+  Sync `Client` and async `AsyncClient` wrapping `getPageSource` (HTML / parsed JSON / cookies), `serpApi`, `getImage`, and the Skyscanner plugins - with typed errors and automatic retries. See the [Python guide](/sdks/python).
+</Update>
+
 <Update label="2026-07-13" description="Plugins">
   Introduced **Plugins** - ready-made scrapers for specific sites that return clean, structured JSON. Available in the [dashboard](https://app.scrapeunblocker.com/dashboard/plugins) (no code) and via the API for volume.
 

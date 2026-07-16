@@ -1,55 +1,54 @@
 ---
 title: "Python"
-description: "Copy-paste Python examples for every ScrapeUnblocker feature."
+description: "Install the official scrapeunblocker package, or call the plain HTTP API directly."
 ---
 
-There is no Python SDK to install - the API is plain HTTP, so the `requests` library covers everything. Async examples use `httpx`.
+The official Python client wraps the ScrapeUnblocker API in a small, fully typed package - sync and async, with typed errors and automatic retries.
 
 ```bash
-pip install requests
+pip install scrapeunblocker
 ```
 
-Store your API key in an environment variable:
+Requires Python 3.8+. The only dependency is `httpx`.
+
+<Note>
+  Prefer no dependencies? The API is plain HTTP, so you can skip the package and
+  call it with `requests` / `httpx` directly - see [Raw HTTP](#raw-http-without-the-package) at the bottom.
+</Note>
+
+Store your API key in an environment variable so the client picks it up automatically:
 
 ```bash
-export SCRAPEUNBLOCKER_KEY="su_live_..."
+export SCRAPEUNBLOCKER_KEY="YOUR_API_KEY"
 ```
 
-## Fetch page HTML
+## Quickstart
 
 ```python
-import os
-import requests
+from scrapeunblocker import Client
 
-response = requests.post(
-    "https://api.scrapeunblocker.com/getPageSource",
-    params={"url": "https://example.com"},
-    headers={"x-scrapeunblocker-key": os.environ["SCRAPEUNBLOCKER_KEY"]},
-)
-html = response.text
+su = Client()   # reads SCRAPEUNBLOCKER_KEY, or pass Client(api_key="YOUR_API_KEY")
+
+html = su.get_page_source("https://example.com")
 ```
 
 ## Get parsed JSON instead of HTML
 
-The killer feature: pass `parsed_data=True` and the API extracts structured data using Schema.org, `__NEXT_DATA__`, or AI-generated rules - no per-site parsers to maintain.
+The killer feature: `get_parsed()` returns structured data extracted using Schema.org, `__NEXT_DATA__`, or AI-generated rules - no per-site parsers to maintain.
 
 ```python
-import os
-import requests
+result = su.get_parsed("https://www.amazon.com/dp/B08N5WRWNW")
 
-response = requests.post(
-    "https://api.scrapeunblocker.com/getPageSource",
-    params={
-        "url": "https://www.amazon.com/dp/B08N5WRWNW",
-        "parsed_data": True,
-    },
-    headers={"x-scrapeunblocker-key": os.environ["SCRAPEUNBLOCKER_KEY"]},
-)
+print(result.page_type)         # "product"
+print(result.source)            # how it was extracted
+print(result.data["title"])
+print(result.data["price"])
+```
 
-payload = response.json()
-print(payload["data"]["page_type"])    # "product"
-print(payload["data"]["data"]["title"])
-print(payload["data"]["data"]["price"])
+If a parse ever comes back wrong, force a fresh set of rules:
+
+```python
+result = su.get_parsed(url, refresh_rules=True, rules_hint="price is missing")
 ```
 
 See the [parsed data guide](/guides/parsed-data) for response shapes.
@@ -57,106 +56,83 @@ See the [parsed data guide](/guides/parsed-data) for response shapes.
 ## Scrape a Google SERP
 
 ```python
-import os
-import requests
+serp = su.serp("best running shoes", pages_to_check=2)
 
-response = requests.post(
-    "https://api.scrapeunblocker.com/serpApi",
-    params={
-        "keyword": "best running shoes",
-        "pages_to_check": 2,
-    },
-    headers={"x-scrapeunblocker-key": os.environ["SCRAPEUNBLOCKER_KEY"]},
-)
-
-serp = response.json()
 for result in serp["organic"]:
     print(result["position"], result["title"], result["url"])
 ```
 
 ## Force a country
 
-`proxy_country` works on all three endpoints.
+`proxy_country` works on every method.
 
 ```python
-import os
-import requests
-
-response = requests.post(
-    "https://api.scrapeunblocker.com/getPageSource",
-    params={
-        "url": "https://www.amazon.de/dp/B08N5WRWNW",
-        "parsed_data": True,
-        "proxy_country": "de",
-    },
-    headers={"x-scrapeunblocker-key": os.environ["SCRAPEUNBLOCKER_KEY"]},
+result = su.get_parsed(
+    "https://www.amazon.de/dp/B08N5WRWNW",
+    proxy_country="de",
 )
 ```
 
 ## Capture cookies and the proxy used
 
 ```python
-import os
-import requests
+page = su.get_page_with_cookies("https://example.com")
 
-response = requests.post(
-    "https://api.scrapeunblocker.com/getPageSource",
-    params={
-        "url": "https://example.com",
-        "get_cookies": True,
-    },
-    headers={"x-scrapeunblocker-key": os.environ["SCRAPEUNBLOCKER_KEY"]},
-)
-
-data = response.json()
-html = data["html"]
-cookies = {c["name"]: c["value"] for c in data["cookies"]}
-served_by = data["proxy"]   # e.g. "us"
+print(page.html)
+print(page.cookies)
+print(page.proxy)     # e.g. "us"
 ```
 
-## Fetch an image as PNG bytes
+## Fetch an image
 
 ```python
-import os
-import requests
+data = su.get_image("https://example.com/photo.jpg")
 
-response = requests.post(
-    "https://api.scrapeunblocker.com/getImage",
-    params={"url": "https://example.com/photo.jpg"},
-    headers={"x-scrapeunblocker-key": os.environ["SCRAPEUNBLOCKER_KEY"]},
-)
-
-with open("photo.png", "wb") as f:
-    f.write(response.content)
+with open("photo.jpg", "wb") as f:
+    f.write(data)
 ```
 
-## Async with httpx
+## Skyscanner plugins
 
-For high-throughput crawls, `httpx.AsyncClient` runs many requests concurrently. Cap concurrency to your plan's limit with a semaphore.
+Flights, hotels and car hire as JSON. Resolve a place name to entity IDs, then search:
 
 ```python
-import os
+locations = su.skyscanner.flight_locations("London")
+
+flights = su.skyscanner.flights(
+    origin="London", dest="New York",
+    depart_date="2026-09-01", adults=1, currency="USD",
+)
+
+hotels = su.skyscanner.hotels(
+    destination="Madrid", checkin="2026-09-01", checkout="2026-09-03",
+)
+
+cars = su.skyscanner.carhire(
+    pickup="Madrid",
+    pickup_datetime="2026-09-01T10:00",
+    dropoff_datetime="2026-09-03T10:00",
+)
+```
+
+## Async
+
+Every method has an async twin on `AsyncClient`. For high-throughput crawls, cap concurrency to your plan's limit with a semaphore.
+
+```python
 import asyncio
-import httpx
+from scrapeunblocker import AsyncClient
 
-KEY = os.environ["SCRAPEUNBLOCKER_KEY"]
 CONCURRENCY = 10
 
-async def scrape(client, sem, url):
+async def scrape(su, sem, url):
     async with sem:
-        r = await client.post(
-            "https://api.scrapeunblocker.com/getPageSource",
-            params={"url": url, "parsed_data": True},
-        )
-        return r.json()
+        return await su.get_parsed(url)
 
 async def main(urls):
     sem = asyncio.Semaphore(CONCURRENCY)
-    async with httpx.AsyncClient(
-        headers={"x-scrapeunblocker-key": KEY},
-        timeout=180,
-    ) as client:
-        return await asyncio.gather(*(scrape(client, sem, u) for u in urls))
+    async with AsyncClient() as su:
+        return await asyncio.gather(*(scrape(su, sem, u) for u in urls))
 
 results = asyncio.run(main([
     "https://www.amazon.com/dp/B08N5WRWNW",
@@ -164,40 +140,58 @@ results = asyncio.run(main([
 ]))
 ```
 
-## Retries that handle every failure mode
+## Error handling
 
-`403` rotates country once. `408`, `503`, `504` retry with exponential backoff. `401`, `422`, and other terminal codes fail fast.
+Non-2xx responses raise typed exceptions, all subclasses of `ScrapeUnblockerError`. Transient failures (429, 502, 503, 504 and network errors) are retried automatically with exponential backoff.
 
 ```python
-import os
-import time
-import requests
+from scrapeunblocker import Client, BlockedError, RateLimitError, UpstreamOutageError
 
-KEY = os.environ["SCRAPEUNBLOCKER_KEY"]
-RETRYABLE = {408, 503, 504}
+su = Client()
+try:
+    html = su.get_page_source("https://example.com")
+except BlockedError:
+    ...   # 403: the target blocked every bypass path (not billed)
+except RateLimitError:
+    ...   # 429: slow down
+except UpstreamOutageError:
+    ...   # 503: the target site itself is down - retry later
+```
 
-def fetch(url, **params):
-    rotated = False
-    for attempt in range(4):
-        r = requests.post(
-            "https://api.scrapeunblocker.com/getPageSource",
-            params={"url": url, **params},
-            headers={"x-scrapeunblocker-key": KEY},
-        )
-        if r.status_code == 200:
-            return r
-        if r.status_code == 403 and not rotated:
-            params = {**params, "proxy_country": "us"}
-            rotated = True
-            continue
-        if r.status_code in RETRYABLE:
-            time.sleep(2 ** attempt)
-            continue
-        r.raise_for_status()
-    r.raise_for_status()
-    return r
+| Exception | Status | Meaning |
+|---|---|---|
+| `InvalidRequestError` | 400 | Bad URL or unsupported scheme |
+| `AuthenticationError` | 401 | Missing or invalid API key |
+| `BlockedError` | 403 | Blocked by bot protection on every path |
+| `RateLimitError` | 429 | Too many requests |
+| `UpstreamOutageError` | 503 | The target origin is down |
+| `ServerError` | 5xx | Unexpected server error |
+| `ScrapeTimeoutError` | - | Request exceeded the timeout |
+| `ConnectionError` | - | Could not reach the API |
 
-response = fetch("https://example.com", parsed_data=True)
+Tune the retry count and timeout on the client:
+
+```python
+Client(timeout=180.0, max_retries=2)
 ```
 
 See [handling failures](/guides/handling-failures) for what each status code means.
+
+## Raw HTTP (without the package)
+
+The API is plain HTTP, so you can call it with `requests` or `httpx` directly - no SDK required.
+
+```python
+import os
+import requests
+
+response = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://example.com", "parsed_data": True},
+    headers={"x-scrapeunblocker-key": os.environ["SCRAPEUNBLOCKER_KEY"]},
+)
+payload = response.json()
+print(payload["data"]["page_type"])
+```
+
+The endpoints are `getPageSource`, `serpApi`, and `getImage`; every parameter shown above maps to a query parameter of the same name.
