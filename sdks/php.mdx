@@ -1,0 +1,146 @@
+---
+title: "PHP"
+description: "Install the official scrapeunblocker/client Composer package, or call the plain HTTP API directly."
+---
+
+The official PHP client wraps the ScrapeUnblocker API in a small, dependency-free package (built-in cURL) with typed exceptions and automatic retries.
+
+```bash
+composer require scrapeunblocker/client
+```
+
+Requires PHP 8.1+ with the `curl` and `json` extensions.
+
+Store your API key in an environment variable so the client picks it up automatically:
+
+```bash
+export SCRAPEUNBLOCKER_KEY="YOUR_API_KEY"
+```
+
+## Quickstart
+
+```php
+<?php
+require 'vendor/autoload.php';
+
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY, or new Client('YOUR_API_KEY')
+
+$html = $su->getPageSource('https://example.com');
+```
+
+## Get parsed JSON instead of HTML
+
+```php
+$product = $su->getParsed('https://www.amazon.com/dp/B08N5WRWNW');
+
+echo $product->pageType;   // "product"
+echo $product->source;     // how it was extracted
+print_r($product->data);   // the fields
+
+// If a parse ever comes back wrong, force a fresh set of rules:
+$fresh = $su->getParsed($url, ['refresh_rules' => true, 'rules_hint' => 'price is missing']);
+```
+
+See the [parsed data guide](/guides/parsed-data) for response shapes.
+
+## Scrape a Google SERP
+
+```php
+$serp = $su->serp('best running shoes', ['pages_to_check' => 2]);
+
+foreach ($serp['organic'] as $result) {
+    echo $result['position'], ' ', $result['title'], ' ', $result['url'], "\n";
+}
+```
+
+## Force a country
+
+```php
+$result = $su->getParsed('https://www.amazon.de/dp/B08N5WRWNW', ['proxy_country' => 'de']);
+```
+
+## Capture cookies and the proxy used
+
+```php
+$page = $su->getPageWithCookies('https://example.com');
+echo $page->html;
+print_r($page->cookies);
+echo $page->proxy;
+```
+
+## Fetch an image
+
+```php
+$bytes = $su->getImage('https://example.com/photo.jpg');
+file_put_contents('photo.jpg', $bytes);
+```
+
+## Skyscanner plugins
+
+```php
+$locations = $su->skyscanner->flightLocations('London');
+
+$flights = $su->skyscanner->flights([
+    'origin' => 'London', 'dest' => 'New York',
+    'depart_date' => '2026-09-01', 'adults' => 1, 'currency' => 'USD',
+]);
+
+$hotels = $su->skyscanner->hotels(['destination' => 'Madrid', 'checkin' => '2026-09-01', 'checkout' => '2026-09-03']);
+$cars = $su->skyscanner->carhire(['pickup' => 'Madrid', 'pickup_datetime' => '2026-09-01T10:00', 'dropoff_datetime' => '2026-09-03T10:00']);
+```
+
+## Error handling
+
+Non-2xx responses throw typed exceptions, all subclasses of `ScrapeUnblockerException`. Transient failures (429, 502, 503, 504 and network errors) are retried automatically.
+
+```php
+use ScrapeUnblocker\Exception\BlockedException;
+use ScrapeUnblocker\Exception\RateLimitException;
+use ScrapeUnblocker\Exception\UpstreamOutageException;
+
+try {
+    $html = $su->getPageSource('https://example.com');
+} catch (BlockedException $e) {
+    // 403: the target blocked every bypass path (not billed)
+} catch (RateLimitException $e) {
+    // 429: slow down
+} catch (UpstreamOutageException $e) {
+    // 503: the target site itself is down - retry later
+}
+```
+
+| Exception | Status | Meaning |
+|---|---|---|
+| `InvalidRequestException` | 400 | Bad URL or unsupported scheme |
+| `AuthenticationException` | 401 | Missing or invalid API key |
+| `BlockedException` | 403 | Blocked by bot protection on every path |
+| `RateLimitException` | 429 | Too many requests |
+| `UpstreamOutageException` | 503 | The target origin is down |
+| `ServerException` | 5xx | Unexpected server error |
+| `TimeoutException` | - | Request exceeded the timeout |
+| `ConnectionException` | - | Could not reach the API |
+
+Tune the retry count and timeout on the client:
+
+```php
+new Client('YOUR_API_KEY', ['timeout' => 180, 'max_retries' => 2]);
+```
+
+## Raw HTTP (without the package)
+
+The API is plain HTTP, so you can call it with cURL directly - no package required.
+
+```php
+$ch = curl_init('https://api.scrapeunblocker.com/getPageSource?url=https://example.com&parsed_data=true');
+curl_setopt_array($ch, [
+    CURLOPT_POST => true,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ['x-scrapeunblocker-key: ' . getenv('SCRAPEUNBLOCKER_KEY')],
+]);
+$payload = json_decode(curl_exec($ch), true);
+echo $payload['data']['page_type'];
+```
+
+The endpoints are `getPageSource`, `serpApi`, and `getImage`; every parameter shown above maps to a query parameter of the same name.
