@@ -69,16 +69,39 @@ Once connected, the three tools appear automatically and the assistant calls the
 Don't want to run anything locally? Use the hosted server. It works across
 **claude.ai** (web and mobile), Claude Desktop, and Claude Code - no install.
 
-Your endpoint, with your key in the URL:
+There are two ways to connect: **sign in with OAuth** (no key to copy) or put
+**your API key in the URL**.
+
+### Sign in with OAuth (recommended on claude.ai)
+
+Connect with your ScrapeUnblocker login - no key to paste, and it bills your own
+account.
+
+1. On **claude.ai**: Settings → Connectors → **Add custom connector**.
+2. **URL:** `https://mcp.scrapeunblocker.com/mcp` (no `?key=`).
+3. Open **Advanced settings** and set **OAuth Client ID** to:
+   ```
+   1ELBvQeGrqVMM5FHWBos3xG473C0IGBQ
+   ```
+   Leave **OAuth Client Secret** empty.
+4. **Add**, then sign in with your ScrapeUnblocker account and **Authorize**.
+
+The tools then appear everywhere you use Claude. You need a ScrapeUnblocker
+account for the email you sign in with - [create a free one](https://app.scrapeunblocker.com)
+first if you don't have it.
+
+### Or use your API key in the URL
+
+Simplest for Claude Code and other MCP clients - your key goes in the URL:
 
 ```
 https://mcp.scrapeunblocker.com/mcp?key=YOUR_API_KEY
 ```
 
-**Add it on claude.ai:** Settings → Connectors → **Add custom connector**, then paste
-the URL above (with your key). Save, and the tools appear everywhere you use Claude.
+**claude.ai:** Settings → Connectors → **Add custom connector**, paste the URL above
+(with your key), Save.
 
-**Add it to Claude Code:**
+**Claude Code:**
 
 ```bash
 claude mcp add --transport http scrapeunblocker \
