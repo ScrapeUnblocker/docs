@@ -5,12 +5,6 @@
     "description": "Public API for the ScrapeUnblocker proxy/anti-bot service. Authenticate every request with the `x-scrapeunblocker-key` header. Three endpoints are documented here: page-source extraction, Google SERP scraping, and image fetch. All other paths exist for internal operations and are intentionally hidden from this spec.",
     "version": "1.0.0"
   },
-  "servers": [
-    {
-      "url": "https://api.scrapeunblocker.com",
-      "description": "Production"
-    }
-  ],
   "paths": {
     "/getPageSource": {
       "post": {
@@ -93,6 +87,25 @@
             "schema": {
               "type": "integer",
               "title": "Method Timeout"
+            }
+          },
+          {
+            "name": "refresh_rules",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh Rules"
+            }
+          },
+          {
+            "name": "rules_hint",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Rules Hint"
             }
           }
         ],
@@ -208,6 +221,557 @@
           },
           "504": {
             "description": "SERP fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/carhire/skyscanner-quotes": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Skyscanner car hire quotes as JSON",
+        "description": "Live Skyscanner car-hire results for a pickup/dropoff and date range, returned as structured JSON. Resolves free-text place names for you and runs the search on a warm, anti-bot-cleared session. `market` / `locale` / `currency` drive real pricing.",
+        "operationId": "skyscanner_carhire_quotes_carhire_skyscanner_quotes_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Url"
+            }
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "www.skyscanner.net",
+              "title": "Host"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Market"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Currency"
+            }
+          },
+          {
+            "name": "driver_age",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "title": "Driver Age"
+            }
+          },
+          {
+            "name": "pickup_entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Pickup Entity"
+            }
+          },
+          {
+            "name": "dropoff_entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dropoff Entity"
+            }
+          },
+          {
+            "name": "pickup",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Pickup"
+            }
+          },
+          {
+            "name": "dropoff",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dropoff"
+            }
+          },
+          {
+            "name": "pickup_datetime",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Pickup Datetime"
+            }
+          },
+          {
+            "name": "dropoff_datetime",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dropoff Datetime"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          },
+          {
+            "name": "warmup_url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Warmup Url"
+            }
+          },
+          {
+            "name": "max_polls",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 8,
+              "title": "Max Polls"
+            }
+          },
+          {
+            "name": "poll_interval",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 10.0,
+              "minimum": 0.0,
+              "default": 2.0,
+              "title": "Poll Interval"
+            }
+          },
+          {
+            "name": "settle",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 20.0,
+              "minimum": 0.0,
+              "default": 5.0,
+              "title": "Settle"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Car-hire quotes as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid search parameters."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/flights/skyscanner-quotes": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Skyscanner flight itineraries as JSON",
+        "description": "Live Skyscanner itineraries for a route and date. Each option returns price, airline, departure/arrival times, duration, stop count and a booking deep link to the exact fare. One-way or return, any cabin class, any passenger count. Place names are resolved for you and the search runs on a warm, anti-bot-cleared session.",
+        "operationId": "skyscanner_flights_flights_skyscanner_quotes_post",
+        "parameters": [
+          {
+            "name": "origin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Origin"
+            }
+          },
+          {
+            "name": "dest",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dest"
+            }
+          },
+          {
+            "name": "origin_entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Origin Entity"
+            }
+          },
+          {
+            "name": "dest_entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dest Entity"
+            }
+          },
+          {
+            "name": "origin_iata",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Origin Iata"
+            }
+          },
+          {
+            "name": "dest_iata",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dest Iata"
+            }
+          },
+          {
+            "name": "depart_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Depart Date"
+            }
+          },
+          {
+            "name": "return_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Return Date"
+            }
+          },
+          {
+            "name": "adults",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 9,
+              "minimum": 1,
+              "default": 1,
+              "title": "Adults"
+            }
+          },
+          {
+            "name": "cabin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "economy",
+              "title": "Cabin"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "GBP",
+              "title": "Currency"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "UK",
+              "title": "Market"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "en-GB",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          },
+          {
+            "name": "max_polls",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 8,
+              "title": "Max Polls"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Itineraries as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid search parameters."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/hotels/skyscanner-quotes": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Skyscanner hotel offers as JSON",
+        "description": "Live Skyscanner hotel results for a destination and stay dates, returned as structured JSON. Resolves the destination for you and runs the search on a warm, anti-bot-cleared session. `market` / `locale` / `currency` drive real pricing.",
+        "operationId": "skyscanner_hotels_hotels_skyscanner_quotes_post",
+        "parameters": [
+          {
+            "name": "destination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Destination"
+            }
+          },
+          {
+            "name": "destination_entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Destination Entity"
+            }
+          },
+          {
+            "name": "checkin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Checkin"
+            }
+          },
+          {
+            "name": "checkout",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Checkout"
+            }
+          },
+          {
+            "name": "adults",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 16,
+              "minimum": 1,
+              "default": 2,
+              "title": "Adults"
+            }
+          },
+          {
+            "name": "rooms",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 8,
+              "minimum": 1,
+              "default": 1,
+              "title": "Rooms"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "GBP",
+              "title": "Currency"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "UK",
+              "title": "Market"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "en-GB",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          },
+          {
+            "name": "max_polls",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 8,
+              "title": "Max Polls"
+            }
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 300,
+              "minimum": 1,
+              "default": 30,
+              "title": "Max Results"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hotel offers as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid search parameters."
           },
           "422": {
             "description": "Validation Error",
@@ -365,5 +929,11 @@
         "description": "Your ScrapeUnblocker API key. Apply on every request."
       }
     }
-  }
+  },
+  "servers": [
+    {
+      "url": "https://api.scrapeunblocker.com",
+      "description": "Production"
+    }
+  ]
 }

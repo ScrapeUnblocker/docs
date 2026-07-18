@@ -3,6 +3,35 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-18" description="Skyscanner plugins in the API reference">
+  The three Skyscanner plugin endpoints are now part of the public OpenAPI spec,
+  so they show up in the [API Reference](/api-reference/introduction) and in any
+  OpenAPI-aware client (Postman, Insomnia, code generators):
+
+  ```
+  POST /flights/skyscanner-quotes
+  POST /hotels/skyscanner-quotes
+  POST /carhire/skyscanner-quotes
+  ```
+
+  Nothing changed about how they work - they were already documented and
+  available in all four SDKs. See [Skyscanner plugins](/plugins/skyscanner).
+</Update>
+
+<Update label="2026-07-18" description="Clearer errors for non-HTML URLs and Skyscanner searches">
+  `getPageSource` no longer reports two cases as `403 Blocked by bot protection`
+  when no block was involved:
+
+  - A URL that serves an **image or other non-HTML resource** now returns
+    **`415`** naming the content type. For images, use `getImage`.
+  - A **Skyscanner flights / hotels / car-hire search URL** now returns **`400`**
+    pointing at the plugin that serves it, with the endpoint in the
+    `X-Recommended-Endpoint` header. Other Skyscanner pages are unaffected.
+
+  Also fixed: `getImage` returned `404 No image found` for every URL. It now
+  returns the PNG.
+</Update>
+
 <Update label="2026-07-16" description="Hosted MCP connector">
   Added a **hosted** MCP connector so you can use ScrapeUnblocker in **claude.ai**
   (web and mobile) with no local install - just add a custom connector with your key:
