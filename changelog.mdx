@@ -3,6 +3,22 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-21" description="New Google Local (Maps) plugin">
+  A new plugin returns **Google Local (Maps) business listings** as structured
+  JSON - name, rating, review count, price level, category, address, opening
+  hours and a top review snippet:
+
+  ```
+  POST /maps/google-local?keyword=coffee shops in chicago&proxy_country=US
+  ```
+
+  It runs on our warm, anti-bot-cleared Google sessions, so you get the local
+  pack without a Google Places API key or billing project. Available in the
+  [dashboard](https://app.scrapeunblocker.com/dashboard/plugins), the
+  [API reference](/api-reference/introduction), and all four SDKs. See
+  [Google Local plugin](/plugins/google-local).
+</Update>
+
 <Update label="2026-07-18" description="Skyscanner plugins in the API reference">
   The three Skyscanner plugin endpoints are now part of the public OpenAPI spec,
   so they show up in the [API Reference](/api-reference/introduction) and in any

@@ -1,0 +1,92 @@
+---
+title: "Google Local plugin"
+description: "Google Maps / Local business listings as clean JSON - name, rating, reviews, category, address and hours. One request, no Places API key."
+sidebarTitle: "Google Local"
+---
+
+The **Google Local** plugin turns a Google Local (Maps) search into structured JSON. Give it a search phrase and a country, and it returns the businesses Google shows in its local finder - each with name, rating, review count, price level, category, address, opening hours and a top review snippet.
+
+It runs on the same warm, anti-bot-cleared Google sessions as our SERP endpoint, so you get the local pack without a Google Places API key, billing project, or quota approval.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /maps/google-local
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keyword` | yes | Search phrase, e.g. `coffee shops in chicago` or `plumbers near SW1A`. |
+| `proxy_country` | no | Exit-IP country (ISO-2, e.g. `US`, `GB`). Local results are location-sensitive - set the market you want. |
+| `gl` | no | Google country of search (ISO-2 lowercase, e.g. `us`, `de`). |
+| `hl` | no | Google UI language (e.g. `en`, `de`, `fr`). Default `en`. |
+
+Because local results depend on location, pass `proxy_country` (and optionally `gl`) that match the market you care about - a search from a US exit returns US businesses.
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/maps/google-local?keyword=coffee%20shops%20in%20chicago&proxy_country=US&gl=us" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Response
+
+A JSON object with a `results` array (up to ~20 businesses) plus counts:
+
+```json
+{
+  "keyword": "coffee shops in chicago",
+  "proxyCountry": "US",
+  "resultsCollected": 20,
+  "results": [
+    {
+      "position": 1,
+      "name": "Starbucks Reserve Roastery",
+      "rating": 4.4,
+      "reviews": 19000,
+      "price": "$10-20",
+      "category": "Coffee shop",
+      "address": "646 N Michigan Ave",
+      "hours": "Closed - Opens 6:30 AM",
+      "review_snippet": "The wide variety of coffee, food, drinks, and alcohol is out of this world."
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `name` | Business name. |
+| `rating` | Average star rating (e.g. `4.4`), or `null` if unrated. |
+| `reviews` | Review count as an integer (Google's `19K` is expanded to `19000`). |
+| `price` | Price level as shown (e.g. `$10-20`), when present. |
+| `category` | Primary category (e.g. `Coffee shop`). |
+| `address` | Street address as shown in the listing. |
+| `hours` | Open/closed status line (e.g. `Closed - Opens 6:30 AM`), when present. |
+| `review_snippet` | A top review quote, when present. |
+| `position` | 1-based rank in the local results. |
+
+## What you can build
+
+- **Local lead generation** - pull every business for a category and city, with contact-ready name and address.
+- **Review and rating monitoring** - track how a business (or its competitors) ranks and rates over time.
+- **Local SEO research** - see who ranks in the local pack for a keyword and market, and how positions move.
+- **Market mapping** - enumerate coverage of a category across many cities.
+
+## Google's own Places API
+
+Google offers the **Places API** directly, but it requires a Google Cloud project, an API key, per-request billing, and it meters and restricts what you can pull. This plugin needs none of that: sign up, add your ScrapeUnblocker key, and pull local listings the same day - from the dashboard or from code.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Google Local search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
