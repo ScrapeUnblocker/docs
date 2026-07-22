@@ -966,7 +966,7 @@
           "Plugins"
         ],
         "summary": "Scrape oopbuy.com product-search listings",
-        "description": "Searches oopbuy.com for `keyword` and returns product listings as JSON: `title`, `titleCn`, `price` (in USD), `priceCny`, `monthSold`, `image`, `spu`, `channel`, and a product `url`. Pick the source marketplace with `channel` ('1688', 'taobao', or 'official'), order with `sort`, and page with `page`/`page_size`. Note: oopbuy trademark-blocks brand-name keywords at its own backend, so brand queries return HTTP 422.",
+        "description": "Searches oopbuy.com for `keyword` and returns product listings as JSON: `title`, `titleCn`, `price` (in USD), `priceCny`, `monthSold`, `image`, `spu`, `channel`, and a product `url`. Pick the source marketplace with `channel` ('1688', 'taobao', or 'official'), order with `sort`, and page with `page`/`page_size`. Note: oopbuy trademark-blocks brand-name keywords at its own backend. That block is oopbuy's own genuine answer (it returns it as an HTTP 200 too), so we mirror it: brand queries come back as HTTP 200 with `keywordRejected: true` and an empty `results` array, not an error.",
         "operationId": "oopbuy_search_goods_oopbuy_search_post",
         "parameters": [
           {
@@ -975,10 +975,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "Search phrase, e.g. 'hoodie' or 'phone case'. Generic product terms only - oopbuy trademark-blocks brand names (nike, adidas) at its own backend and returns no results for them.",
+              "description": "Search phrase, e.g. 'hoodie' or 'phone case'. oopbuy trademark-blocks brand names (nike, adidas) at its own backend; those come back as a successful HTTP 200 carrying `keywordRejected: true` and an empty `results` array, not an error.",
               "title": "Keyword"
             },
-            "description": "Search phrase, e.g. 'hoodie' or 'phone case'. Generic product terms only - oopbuy trademark-blocks brand names (nike, adidas) at its own backend and returns no results for them."
+            "description": "Search phrase, e.g. 'hoodie' or 'phone case'. oopbuy trademark-blocks brand names (nike, adidas) at its own backend; those come back as a successful HTTP 200 carrying `keywordRejected: true` and an empty `results` array, not an error."
           },
           {
             "name": "channel",
@@ -1052,21 +1052,28 @@
         ],
         "responses": {
           "200": {
-            "description": "JSON with a `results` array of listings.",
+            "description": "Successful scrape. Either a `results` array of listings, or - for a brand/trademark-blocked keyword - `keywordRejected: true` with an empty `results` array (oopbuy's own genuine response).",
             "content": {
               "application/json": {
                 "schema": {}
               }
             }
           },
-          "422": {
-            "description": "Keyword rejected by oopbuy (brand/trademark filter)."
-          },
           "502": {
             "description": "Search failed (upstream block or proxy failure)."
           },
           "504": {
             "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
         },
         "security": [

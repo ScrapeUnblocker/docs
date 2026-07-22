@@ -15,7 +15,9 @@ description: "Notable changes to the ScrapeUnblocker API."
   Pick the source marketplace with `channel` (`1688`, `taobao`, `official`),
   order with `sort`, and page with `page` / `page_size`. Note that oopbuy
   trademark-blocks brand-name keywords (nike, adidas) at its own backend -
-  those return HTTP `422`. Available in the
+  those come back as a successful `200` with `keywordRejected: true` and an
+  empty `results` array (oopbuy's own genuine response), not an error.
+  Available in the
   [dashboard](https://app.scrapeunblocker.com/dashboard/plugins), the
   [API reference](/api-reference/introduction), and all four SDKs. See
   [oopbuy Search plugin](/plugins/oopbuy-search).

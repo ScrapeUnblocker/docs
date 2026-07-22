@@ -20,7 +20,7 @@ POST /goods/oopbuy-search
 
 | Field | Required | Notes |
 | --- | --- | --- |
-| `keyword` | yes | Generic product term, e.g. `hoodie` or `phone case`. Brand names (`nike`, `adidas`) are trademark-blocked by oopbuy itself and return HTTP `422`. |
+| `keyword` | yes | Generic product term, e.g. `hoodie` or `phone case`. Brand names (`nike`, `adidas`) are trademark-blocked by oopbuy itself; those come back as a successful `200` with `keywordRejected: true` and an empty `results` array (see below), not an error. |
 | `channel` | no | Source marketplace: `1688` (default), `taobao`, or `official` (oopbuy's own curated storefront). |
 | `page` | no | Page number, default `1`. |
 | `page_size` | no | Results per page, default `20`, max `60`. |
@@ -121,11 +121,28 @@ A JSON object with a `results` array plus totals:
 | `image` | Product image URL. |
 | `url` | oopbuy product-detail page URL. |
 
+### Brand-blocked keywords
+
+oopbuy trademark-blocks brand-name searches (`nike`, `adidas`, ...) at its own backend and returns no listings for them, for every caller including its own website. That is oopbuy's genuine answer, not a failure of the scrape - oopbuy itself serves it as an HTTP `200` - so the plugin mirrors it: a successful `200` whose body carries `keywordRejected: true` and an empty `results` array. Branch on the `keywordRejected` field, not on an HTTP status code, and swap in a generic product term.
+
+```json
+{
+  "keyword": "nike",
+  "channel": "1688",
+  "keywordRejected": true,
+  "reason": "brand_trademark_filter",
+  "total": 0,
+  "pages": 0,
+  "resultsCollected": 0,
+  "results": [],
+  "notice": "oopbuy trademark-blocks brand-name keywords (nike, adidas, ...) at its own backend and serves no listings for them, for every caller including its own website. Use a generic product term."
+}
+```
+
 ### Errors
 
 | Status | Meaning |
 | --- | --- |
-| `422` | Keyword rejected by oopbuy (brand/trademark filter). Use a generic product term instead. |
 | `502` | Search failed upstream. |
 | `504` | Search timed out. |
 
