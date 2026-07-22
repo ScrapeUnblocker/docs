@@ -10,14 +10,69 @@ ScrapeUnblocker uses standard HTTP status codes. Status codes in the `2xx` range
 | Code | Meaning | Where to look |
 | --- | --- | --- |
 | `200` | Success | Response body contains the requested content |
-| `400` | Invalid URL or unsupported scheme | Check your `url` parameter is well-formed and uses `http`/`https` |
-| `401` | Missing or invalid API key | See [Authentication](/authentication) |
+| `400` | Invalid URL or unsupported scheme, or the `x-scrapeunblocker-key` header is missing entirely | Check your `url` parameter is well-formed and uses `http`/`https`, and that you send the key header |
+| `401` | Authentication problem - the key is not recognised, or the account behind it has no valid subscription | See [401 unauthorized](#401-unauthorized) below and [Authentication](/authentication) |
+| `402` | Billing problem - quota exceeded, credit limit exceeded, or repeated payment failures | See [rate limits and quotas](/rate-limits), or update your payment method in the [dashboard](https://app.scrapeunblocker.com) |
 | `403` | Blocked by target site's bot protection on every available bypass path | Try a different `proxy_country`, or see [handling failures](/guides/handling-failures) |
 | `404` | No image element found (only on `/getImage`) | The page loaded but contained no `<img>` tag |
 | `408` | Browser run timed out (only on `/getImage`) | Retry, or increase `method_timeout` if applicable |
 | `422` | Validation error - missing required field or wrong type | The response body contains a `detail` array pinpointing the problem field |
 | `503` | Upstream origin returned a server-side outage page | The target site is down. Not a bot block. Retry later. |
 | `504` | SERP fetch timed out (only on `/serpApi`) | Retry. If persistent, lower `pages_to_check` or pick a different `proxy_country` |
+
+## 401 unauthorized
+
+A `401` means the request was rejected at our edge, before it ever reached the scraping engine. Because nothing was scraped, a `401` does not count against your quota and is never billed.
+
+Unlike validation errors, `401` responses have a plain-text body (`Content-Type: text/plain`), not JSON. There are two distinct messages, and they mean different things:
+
+| Response body | Meaning |
+| --- | --- |
+| `Unauthorized` | The key you sent is not recognised |
+| `No valid subscription` | The key is recognised, but the account behind it has no active subscription |
+
+### `Unauthorized`
+
+```
+HTTP/1.1 401 Unauthorized
+Content-Type: text/plain
+
+Unauthorized
+```
+
+The value of your `x-scrapeunblocker-key` header does not match any known key. Common causes:
+
+- **A typo, or a truncated copy-paste.** Keys are long; make sure the whole value was copied.
+- **Trailing whitespace or a newline** in the header value - especially when the key is read from a file rather than an environment variable.
+- **An empty header value.** Sending `x-scrapeunblocker-key` with nothing after it counts as an unknown key, not as a missing header.
+- **A rotated or revoked key.** After you generate a new key in the [dashboard](https://app.scrapeunblocker.com), the old one stops working once its short grace period ends.
+- **Environment mismatch.** Production keys only work against `api.scrapeunblocker.com`. A key issued for one environment sent to another is an unknown key there.
+
+### `No valid subscription`
+
+```
+HTTP/1.1 401 Unauthorized
+Content-Type: text/plain
+
+No valid subscription
+```
+
+The key itself is valid, but the account it belongs to currently has no subscription period covering today - for example the free trial has ended and no plan was chosen, or a plan lapsed and was not renewed. Pick a plan in the [dashboard](https://app.scrapeunblocker.com) and access resumes within about a minute; no key change is needed.
+
+<Note>
+  A billing problem on an **active** subscription returns `402`, not `401` - quota exceeded, credit limit exceeded, or a card that failed repeatedly. `401` is strictly about who you are, `402` about what you owe.
+</Note>
+
+### Missing header returns `400`, not `401`
+
+If you omit the `x-scrapeunblocker-key` header entirely, the response is `400 Bad Request` with the body `Missing x-scrapeunblocker-key`. This is deliberate: it separates "you forgot to authenticate" from "you authenticated, and it was rejected", so client code can tell a wiring bug from a credential problem.
+
+```
+HTTP/1.1 400 Bad Request
+Content-Type: text/plain
+
+Missing x-scrapeunblocker-key
+```
 
 ## 422 validation error shape
 

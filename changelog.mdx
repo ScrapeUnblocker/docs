@@ -3,6 +3,21 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-22" description="401 responses documented">
+  The [Errors](/errors) page now documents **HTTP `401`**, which was previously
+  missing. `401` has two distinct plain-text bodies with different fixes:
+  `Unauthorized` (the key is not recognised - typo, trailing whitespace, empty
+  value, rotated key, or wrong environment) and `No valid subscription` (the key
+  is fine, but the account has no active plan). Both are rejected at our edge, so
+  they never count against your quota.
+
+  The page also clarifies the neighbouring codes: omitting the
+  `x-scrapeunblocker-key` header entirely returns `400 Missing
+  x-scrapeunblocker-key` rather than `401`, and billing problems on an active
+  subscription (quota, credit limit, repeated payment failures) return `402`.
+  See [401 unauthorized](/errors#401-unauthorized).
+</Update>
+
 <Update label="2026-07-22" description="New oopbuy product-search plugin">
   A new plugin returns **oopbuy.com product-search listings** as structured
   JSON - title (English and Chinese), USD and CNY price, monthly sales count,
