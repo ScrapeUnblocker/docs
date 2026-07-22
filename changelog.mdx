@@ -3,19 +3,29 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
-<Update label="2026-07-22" description="401 responses documented">
-  The [Errors](/errors) page now documents **HTTP `401`**, which was previously
-  missing. `401` has two distinct plain-text bodies with different fixes:
-  `Unauthorized` (the key is not recognised - typo, trailing whitespace, empty
-  value, rotated key, or wrong environment) and `No valid subscription` (the key
-  is fine, but the account has no active plan). Both are rejected at our edge, so
-  they never count against your quota.
+<Update label="2026-07-22" description="402 and 401 responses documented">
+  The [Errors](/errors) page now documents **HTTP `402`**, which was missing from
+  the status table entirely. A `402` has three distinct plain-text bodies, each
+  with its own fix:
 
-  The page also clarifies the neighbouring codes: omitting the
-  `x-scrapeunblocker-key` header entirely returns `400 Missing
-  x-scrapeunblocker-key` rather than `401`, and billing problems on an active
-  subscription (quota, credit limit, repeated payment failures) return `402`.
-  See [401 unauthorized](/errors#401-unauthorized).
+  - `Quota exceeded` - the plan's requests for this billing period are used up
+  - `Credit limit exceeded` - the unpaid balance has grown past the account's
+    credit limit
+  - `Payment failed - update payment method` - a card payment for an open
+    invoice has been declined three times
+
+  All three clear on their own once the underlying billing state changes -
+  access returns within about a minute, with no key change needed. Note that
+  subscribing to a new plan does not clear a failed payment: the old unpaid
+  invoice has to be settled. See
+  [402 payment required](/errors#402-payment-required).
+
+  **HTTP `401`** is now documented properly too, with its two bodies -
+  `Unauthorized` (key not recognised) and `No valid subscription` (key is fine,
+  account has no active plan) - plus the neighbouring cases: omitting the
+  `x-scrapeunblocker-key` header entirely returns `400`, not `401`, and neither
+  `401` nor `402` counts against your quota. See
+  [401 unauthorized](/errors#401-unauthorized).
 </Update>
 
 <Update label="2026-07-22" description="New oopbuy product-search plugin">

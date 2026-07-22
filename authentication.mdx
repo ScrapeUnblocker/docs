@@ -103,7 +103,7 @@ An unrecognised key returns HTTP `401 Unauthorized` with the plain-text body `Un
 | `401 Unauthorized` for every request | Key was rotated in dashboard but old key still cached |
 | `401 No valid subscription` | Key is fine - the account has no active plan. Pick one in the [dashboard](https://app.scrapeunblocker.com) |
 | `400 Missing x-scrapeunblocker-key` | The header was not sent at all (an empty value gives `401`, not `400`) |
-| `402` (not `401`) | Key and account are fine - quota, credit limit, or a failed payment. See [rate limits](/rate-limits) |
+| `402` (not `401`) | Key and account are fine - quota, credit limit, or a failed payment. See [402 payment required](/errors#402-payment-required) |
 | `403` (not `401`) | Key is valid - the target site blocked the request. See [handling failures](/guides/handling-failures) |
 
 Full breakdown of each case in [Errors - 401 unauthorized](/errors#401-unauthorized). If you've checked the above and still see `401`, contact support from the [help center](https://scrapeunblocker.com/contact).

@@ -41,7 +41,9 @@ def call(url, key):
 
 ## Monthly quota
 
-When you've used your monthly quota, requests return `402 Payment Required`. Upgrade your plan or wait for the next billing cycle. You can monitor remaining quota in the [dashboard](https://app.scrapeunblocker.com).
+When you've used your monthly quota, requests return `402 Payment Required` with the body `Quota exceeded`. Upgrade your plan or wait for the next billing cycle. You can monitor remaining quota in the [dashboard](https://app.scrapeunblocker.com).
+
+Quota is only one of three reasons for a `402` - an unpaid balance past your credit limit and a card that has failed repeatedly produce the same status code with different messages. See [402 payment required](/errors#402-payment-required) for all three and how each clears.
 
 ## Need more throughput?
 

@@ -12,7 +12,7 @@ ScrapeUnblocker uses standard HTTP status codes. Status codes in the `2xx` range
 | `200` | Success | Response body contains the requested content |
 | `400` | Invalid URL or unsupported scheme, or the `x-scrapeunblocker-key` header is missing entirely | Check your `url` parameter is well-formed and uses `http`/`https`, and that you send the key header |
 | `401` | Authentication problem - the key is not recognised, or the account behind it has no valid subscription | See [401 unauthorized](#401-unauthorized) below and [Authentication](/authentication) |
-| `402` | Billing problem - quota exceeded, credit limit exceeded, or repeated payment failures | See [rate limits and quotas](/rate-limits), or update your payment method in the [dashboard](https://app.scrapeunblocker.com) |
+| `402` | Billing problem - quota exceeded, credit limit exceeded, or repeated payment failures | See [402 payment required](#402-payment-required) below |
 | `403` | Blocked by target site's bot protection on every available bypass path | Try a different `proxy_country`, or see [handling failures](/guides/handling-failures) |
 | `404` | No image element found (only on `/getImage`) | The page loaded but contained no `<img>` tag |
 | `408` | Browser run timed out (only on `/getImage`) | Retry, or increase `method_timeout` if applicable |
@@ -73,6 +73,75 @@ Content-Type: text/plain
 
 Missing x-scrapeunblocker-key
 ```
+
+## 402 payment required
+
+A `402` means your key and account are recognised and in good standing as credentials - the request was stopped for a **billing** reason. Like `401`, it is refused at our edge before anything is scraped, so a `402` consumes no quota and is never billed.
+
+The body is plain text (`Content-Type: text/plain`), not JSON. There are three messages:
+
+| Response body | Meaning | Fix |
+| --- | --- | --- |
+| `Quota exceeded` | You have used every request your plan allows this billing period | Upgrade your plan, or wait for the period to reset |
+| `Credit limit exceeded` | Your unpaid balance has grown past your account's credit limit | Pay the outstanding invoice |
+| `Payment failed - update payment method` | A card payment for an open invoice has failed three times in a row | Update your card, then pay the invoice |
+
+If more than one applies, the most serious wins: payment failure outranks credit limit, which outranks quota.
+
+<Note>
+  All three clear themselves. Our load balancer refreshes key statuses about once a minute, so once you upgrade or the invoice is paid, access comes back within roughly a minute - no key change, no support ticket, no redeploy.
+</Note>
+
+### `Quota exceeded`
+
+```
+HTTP/1.1 402 Payment Required
+Content-Type: text/plain
+
+Quota exceeded
+```
+
+Your usage for the current billing period has passed your plan's quota. If your plan allows overages, this only fires once you are past quota **plus** the overage allowance - inside that band requests still succeed and the extra usage is invoiced. Any active coupon credit is spent before plan quota, so a key with remaining credit is never quota-blocked.
+
+The counter resets at the start of your next billing period, which starts on your subscription's anniversary day, not on the first of the month. To get moving sooner, upgrade in the [dashboard](https://app.scrapeunblocker.com) - the new quota applies on the next status refresh. Current usage against quota is visible in the dashboard, so this is the one `402` you can see coming.
+
+### `Credit limit exceeded`
+
+```
+HTTP/1.1 402 Payment Required
+Content-Type: text/plain
+
+Credit limit exceeded
+```
+
+This applies to accounts that accrue usage-based charges. We add up what you currently owe - the amount remaining on your open invoices, plus metered usage already consumed on active subscriptions but not yet invoiced - and compare it against your account's credit limit. Past the limit, the key is paused.
+
+When this triggers we also finalise and attempt payment on the outstanding invoices automatically, so in the common case where your card is good it settles itself and access returns within about a minute. If payment does not go through, pay the invoice from the [dashboard](https://app.scrapeunblocker.com). A higher credit limit can be arranged through [support](https://scrapeunblocker.com/contact).
+
+### `Payment failed - update payment method`
+
+```
+HTTP/1.1 402 Payment Required
+Content-Type: text/plain
+
+Payment failed - update payment method
+```
+
+An invoice on your account is open and its payment has been attempted and declined three times. Those attempts are our payment provider's automatic retries spread over several days, so reaching this state means a card has been failing for a while - typically expired, cancelled, or short of funds.
+
+Update your payment method in the [dashboard](https://app.scrapeunblocker.com) and settle the open invoice. As soon as the invoice is paid the block lifts on the next status refresh, within about a minute.
+
+<Warning>
+  Subscribing to a new plan does **not** clear this on its own. The old unpaid invoice stays open, so the block stays in place until that specific invoice is paid, even if the new subscription is active and paid for.
+</Warning>
+
+### `402` versus its neighbours
+
+| Code | It means |
+| --- | --- |
+| `401` | We do not accept your credentials - unknown key, or no subscription at all. See [401 unauthorized](#401-unauthorized) |
+| `402` | We accept your credentials; the account owes money or is out of quota |
+| `429` | Nothing is wrong with the account - you are simply sending requests faster than your plan's rate limit. See [rate limits](/rate-limits) |
 
 ## 422 validation error shape
 
