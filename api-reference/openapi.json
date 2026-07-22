@@ -791,6 +791,70 @@
         ]
       }
     },
+    "/getImage": {
+      "post": {
+        "tags": [
+          "Scraping"
+        ],
+        "summary": "Fetch a single image as raw PNG bytes",
+        "description": "Navigates to the given image URL via a real browser + residential proxy, draws the first `<img>` to a canvas, and returns the resulting PNG. Use this when a regular GET against the image returns a challenge page or a tiny tracking pixel because the host requires a real browser context.",
+        "operationId": "get_image_getImage_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Url"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PNG bytes (`image/png`).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "No image element found on the target URL."
+          },
+          "403": {
+            "description": "Image-processing failure (e.g. canvas tainted by CORS) or upstream block."
+          },
+          "408": {
+            "description": "Browser run timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
     "/maps/google-local": {
       "post": {
         "tags": [
@@ -896,61 +960,113 @@
         ]
       }
     },
-    "/getImage": {
+    "/goods/oopbuy-search": {
       "post": {
         "tags": [
-          "Scraping"
+          "Plugins"
         ],
-        "summary": "Fetch a single image as raw PNG bytes",
-        "description": "Navigates to the given image URL via a real browser + residential proxy, draws the first `<img>` to a canvas, and returns the resulting PNG. Use this when a regular GET against the image returns a challenge page or a tiny tracking pixel because the host requires a real browser context.",
-        "operationId": "get_image_getImage_post",
+        "summary": "Scrape oopbuy.com product-search listings",
+        "description": "Searches oopbuy.com for `keyword` and returns product listings as JSON: `title`, `titleCn`, `price` (in USD), `priceCny`, `monthSold`, `image`, `spu`, `channel`, and a product `url`. Pick the source marketplace with `channel` ('1688', 'taobao', or 'official'), order with `sort`, and page with `page`/`page_size`. Note: oopbuy trademark-blocks brand-name keywords at its own backend, so brand queries return HTTP 422.",
+        "operationId": "oopbuy_search_goods_oopbuy_search_post",
         "parameters": [
           {
-            "name": "url",
+            "name": "keyword",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Url"
-            }
+              "description": "Search phrase, e.g. 'hoodie' or 'phone case'. Generic product terms only - oopbuy trademark-blocks brand names (nike, adidas) at its own backend and returns no results for them.",
+              "title": "Keyword"
+            },
+            "description": "Search phrase, e.g. 'hoodie' or 'phone case'. Generic product terms only - oopbuy trademark-blocks brand names (nike, adidas) at its own backend and returns no results for them."
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Source marketplace: '1688' (default), 'taobao', or 'official' (oopbuy's own curated storefront).",
+              "default": "1688",
+              "title": "Channel"
+            },
+            "description": "Source marketplace: '1688' (default), 'taobao', or 'official' (oopbuy's own curated storefront)."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based page number.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based page number."
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 60,
+              "minimum": 1,
+              "description": "Results per page (max 60).",
+              "default": 20,
+              "title": "Page Size"
+            },
+            "description": "Results per page (max 60)."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Ordering: 'default', 'price_asc', 'price_desc', or 'best_selling'.",
+              "default": "default",
+              "title": "Sort"
+            },
+            "description": "Ordering: 'default', 'price_asc', 'price_desc', or 'best_selling'."
           },
           {
             "name": "proxy_country",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE').",
               "title": "Proxy Country"
-            }
+            },
+            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE')."
           }
         ],
         "responses": {
           "200": {
-            "description": "PNG bytes (`image/png`).",
+            "description": "JSON with a `results` array of listings.",
             "content": {
               "application/json": {
                 "schema": {}
               }
             }
           },
-          "404": {
-            "description": "No image element found on the target URL."
-          },
-          "403": {
-            "description": "Image-processing failure (e.g. canvas tainted by CORS) or upstream block."
-          },
-          "408": {
-            "description": "Browser run timed out."
-          },
           "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+            "description": "Keyword rejected by oopbuy (brand/trademark filter)."
+          },
+          "502": {
+            "description": "Search failed (upstream block or proxy failure)."
+          },
+          "504": {
+            "description": "Fetch timed out."
           }
         },
         "security": [

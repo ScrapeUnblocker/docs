@@ -50,7 +50,8 @@
             "pages": [
               "plugins/overview",
               "plugins/skyscanner",
-              "plugins/google-local"
+              "plugins/google-local",
+              "plugins/oopbuy-search"
             ]
           },
           {

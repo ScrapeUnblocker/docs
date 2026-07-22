@@ -3,6 +3,24 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-22" description="New oopbuy product-search plugin">
+  A new plugin returns **oopbuy.com product-search listings** as structured
+  JSON - title (English and Chinese), USD and CNY price, monthly sales count,
+  image and a product-detail link, in about a second:
+
+  ```
+  POST /goods/oopbuy-search?keyword=hoodie&channel=1688&sort=best_selling
+  ```
+
+  Pick the source marketplace with `channel` (`1688`, `taobao`, `official`),
+  order with `sort`, and page with `page` / `page_size`. Note that oopbuy
+  trademark-blocks brand-name keywords (nike, adidas) at its own backend -
+  those return HTTP `422`. Available in the
+  [dashboard](https://app.scrapeunblocker.com/dashboard/plugins), the
+  [API reference](/api-reference/introduction), and all four SDKs. See
+  [oopbuy Search plugin](/plugins/oopbuy-search).
+</Update>
+
 <Update label="2026-07-21" description="New Google Local (Maps) plugin">
   A new plugin returns **Google Local (Maps) business listings** as structured
   JSON - name, rating, review count, price level, category, address, opening

@@ -1,0 +1,148 @@
+---
+title: "oopbuy Search plugin"
+description: "oopbuy.com product-search listings as clean JSON - title, USD and CNY price, monthly sales, image and product link. One request, ~1 second."
+sidebarTitle: "oopbuy Search"
+---
+
+The **oopbuy Search** plugin turns an [oopbuy.com](https://oopbuy.com) keyword search into structured JSON. oopbuy is a China buying-agent storefront that fronts 1688, Taobao and its own curated catalog - give the plugin a product term and it returns the matching listings in about a second, each with title (English and Chinese), USD and CNY price, monthly sales count, image and a product-detail link.
+
+Pick the source marketplace with `channel`, order the results with `sort`, and walk pages with `page` / `page_size`.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /goods/oopbuy-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keyword` | yes | Generic product term, e.g. `hoodie` or `phone case`. Brand names (`nike`, `adidas`) are trademark-blocked by oopbuy itself and return HTTP `422`. |
+| `channel` | no | Source marketplace: `1688` (default), `taobao`, or `official` (oopbuy's own curated storefront). |
+| `page` | no | Page number, default `1`. |
+| `page_size` | no | Results per page, default `20`, max `60`. |
+| `sort` | no | `default`, `price_asc`, `price_desc`, or `best_selling`. |
+| `proxy_country` | no | Exit-IP country (ISO-2, e.g. `US`, `DE`). |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/goods/oopbuy-search?keyword=hoodie&channel=1688&sort=best_selling&page=1&page_size=20" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+results = su.oopbuy_search(
+    keyword="hoodie", channel="1688",
+    sort="best_selling", page=1, page_size=20,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const results = await su.oopbuySearch({
+  keyword: "hoodie", channel: "1688",
+  sort: "best_selling", page: 1, page_size: 20,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$results = $su->oopbuySearch([
+    'keyword' => 'hoodie', 'channel' => '1688',
+    'sort' => 'best_selling', 'page' => 1, 'page_size' => 20,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+results = su.oopbuy_search(
+  keyword: "hoodie", channel: "1688",
+  sort: "best_selling", page: 1, page_size: 20
+)
+```
+
+</CodeGroup>
+
+## Response
+
+A JSON object with a `results` array plus totals:
+
+```json
+{
+  "keyword": "hoodie",
+  "channel": "1688",
+  "total": 48210,
+  "pages": 2411,
+  "resultsCollected": 20,
+  "results": [
+    {
+      "spu": "778432112056",
+      "channel": "1688",
+      "title": "Autumn and winter fleece-lined hoodie, loose fit",
+      "titleCn": "秋冬加绒连帽卫衣宽松",
+      "price": 4.12,
+      "originalPrice": 5.6,
+      "priceCny": 29.9,
+      "monthSold": 12000,
+      "image": "https://cbu01.alicdn.com/img/ibank/....jpg",
+      "url": "https://oopbuy.com/product/1688/778432112056"
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `spu` | Product ID on the source marketplace. |
+| `channel` | Marketplace the item comes from (`1688`, `taobao`, `official`). |
+| `title` | Product title in English. |
+| `titleCn` | Original Chinese title. |
+| `price` | Current price in USD. |
+| `originalPrice` | Pre-discount price in USD, or `null` if not discounted. |
+| `priceCny` | Current price in CNY. |
+| `monthSold` | Units sold in the last month, as an integer. |
+| `image` | Product image URL. |
+| `url` | oopbuy product-detail page URL. |
+
+### Errors
+
+| Status | Meaning |
+| --- | --- |
+| `422` | Keyword rejected by oopbuy (brand/trademark filter). Use a generic product term instead. |
+| `502` | Search failed upstream. |
+| `504` | Search timed out. |
+
+## What you can build
+
+- **Sourcing and price research** - find the cheapest 1688/Taobao suppliers for a product category, in USD, without reading Chinese.
+- **Best-seller monitoring** - track `monthSold` for a niche over time and spot trending products early.
+- **Catalog enrichment** - map your SKUs to Chinese-marketplace listings with images, prices, and detail links.
+- **Reseller tooling** - power a product-search UI for a buying-agent or dropshipping front end.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an oopbuy search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
