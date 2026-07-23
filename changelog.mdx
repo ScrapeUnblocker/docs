@@ -3,6 +3,26 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-23" description="All four SDKs on 0.1.6 - typed billing errors">
+  The **Node.js, Ruby and PHP SDKs** now carry the same typed billing errors
+  released for Python earlier today, and all four are on **0.1.6** so their
+  version numbers line up from here on:
+
+  ```bash
+  pip install scrapeunblocker==0.1.6
+  npm install scrapeunblocker@0.1.6
+  gem install scrapeunblocker -v 0.1.6
+  composer require scrapeunblocker/client:0.1.6
+  ```
+
+  Each one gains `PaymentRequired*` for `402` (with the quota, credit-limit and
+  failed-payment subclasses), the no-subscription flavour of `401`, and typed
+  errors for `404`, `408`, `415` and `422`. Nothing was removed, so existing
+  `APIError` / `ApiException` handlers keep working. See the
+  [Node.js](/sdks/nodejs#error-handling), [Ruby](/sdks/ruby#error-handling) and
+  [PHP](/sdks/php#error-handling) guides.
+</Update>
+
 <Update label="2026-07-23" description="Python SDK 0.1.6 - typed billing errors">
   **`scrapeunblocker` 0.1.6** for Python raises a typed exception for every
   documented status code. `402` previously arrived as a bare `APIError`; it now
