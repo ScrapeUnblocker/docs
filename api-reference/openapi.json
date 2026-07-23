@@ -25,39 +25,12 @@
             }
           },
           {
-            "name": "method",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "title": "Method"
-            }
-          },
-          {
-            "name": "value",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "title": "Value"
-            }
-          },
-          {
             "name": "proxy_country",
             "in": "query",
             "required": false,
             "schema": {
               "type": "string",
               "title": "Proxy Country"
-            }
-          },
-          {
-            "name": "time_sleep",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "title": "Time Sleep"
             }
           },
           {
@@ -78,34 +51,6 @@
               "type": "boolean",
               "default": false,
               "title": "Get Cookies"
-            }
-          },
-          {
-            "name": "method_timeout",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "title": "Method Timeout"
-            }
-          },
-          {
-            "name": "refresh_rules",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false,
-              "title": "Refresh Rules"
-            }
-          },
-          {
-            "name": "rules_hint",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "title": "Rules Hint"
             }
           }
         ],
