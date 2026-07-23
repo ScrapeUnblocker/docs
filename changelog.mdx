@@ -3,6 +3,26 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-23" description="Python SDK 0.1.6 - typed billing errors">
+  **`scrapeunblocker` 0.1.6** for Python raises a typed exception for every
+  documented status code. `402` previously arrived as a bare `APIError`; it now
+  raises `PaymentRequiredError`, with a subclass per billing block -
+  `QuotaExceededError`, `CreditLimitExceededError` and `PaymentFailedError` -
+  so each can be handled separately:
+
+  ```python
+  except QuotaExceededError:   ...  # plan quota used up for this period
+  except CreditLimitExceededError: ...  # unpaid balance past the credit limit
+  except PaymentFailedError:   ...  # card declined three times
+  ```
+
+  Also new: `NoSubscriptionError` (the `401` that means the key is fine but the
+  account has no plan), plus `NotFoundError`, `BrowserTimeoutError`,
+  `UnsupportedContentError` and `ValidationError`. Nothing was removed and every
+  new class derives from `APIError`, so existing handlers keep working.
+  See the [Python SDK guide](/sdks/python#error-handling).
+</Update>
+
 <Update label="2026-07-22" description="402 and 401 responses documented">
   The [Errors](/errors) page now documents **HTTP `402`**, which was missing from
   the status table entirely. A `402` has three distinct plain-text bodies, each
