@@ -46,6 +46,19 @@
             ]
           },
           {
+            "group": "Spider Cloud",
+            "pages": [
+              "spider-cloud/overview",
+              "spider-cloud/getting-started",
+              "spider-cloud/routing",
+              "spider-cloud/projects",
+              "spider-cloud/deploys",
+              "spider-cloud/jobs",
+              "spider-cloud/schedules",
+              "spider-cloud/destinations"
+            ]
+          },
+          {
             "group": "Plugins",
             "pages": [
               "plugins/overview",

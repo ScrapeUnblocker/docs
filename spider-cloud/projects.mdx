@@ -1,0 +1,110 @@
+---
+title: "Projects and settings"
+description: "What a project holds, how environment variables and Scrapy settings differ, and which of the two your spiders actually read."
+sidebarTitle: "Projects"
+---
+
+A **project** is one Scrapy repository plus everything attached to it: the repository connection, its environment, its builds, its jobs, its schedules and its delivery destinations. Most people have one project per repository.
+
+## Name and id
+
+Every project has a display **name** and a fixed **project id**.
+
+The name is yours to change whenever you like - it is what the project picker shows. The id is derived from the name when the project is created and **can never be changed afterwards**. That is not a limitation we forgot to lift: every stored item and log is filed under the id, each job's storage path begins with it, and every image we build is tagged with it. Renaming it would leave all of that behind a path nothing looks up any more, while the dashboard carried on looking correct.
+
+If you truly need a different id, create a new project.
+
+## Environment variables
+
+Set under **Settings → Environment variables**, one `KEY=value` per line, or as key/value fields. They are handed to **every job in the project**.
+
+Use them for what your own spider code reads: a database URI your pipeline connects to, an API key a parser needs, a flag your `settings.py` checks.
+
+<Warning>
+Credentials for delivering scraped data do not belong here. A [destination](/spider-cloud/destinations) connects from our side, so those credentials never enter the container that runs third-party code - yours and whatever your `requirements.txt` pulled in.
+</Warning>
+
+Names beginning with `SU_CLOUD_`, `SU_UNBLOCK`, `SU_API_`, `SU_S3_` or `SU_RUNNER_` are **reserved and dropped**. They configure the platform's own side of the container - where items are sent, which key routed traffic uses - and a project that could redefine them could point its own item sink somewhere else.
+
+## Scrapy settings
+
+Scrapy settings are a separate layer from environment variables, and the difference is not cosmetic.
+
+They are set as JSON under **Run options → Scrapy settings**, on a single run or on a schedule:
+
+```json
+{
+  "DOWNLOAD_DELAY": 1,
+  "CONCURRENT_REQUESTS": 8
+}
+```
+
+They are merged **key by key**, weakest first:
+
+1. your project's own `settings.py`, as Scrapy loads it;
+2. settings saved as the project's defaults;
+3. settings on the job or schedule.
+
+A job that pins one setting therefore does not drop the rest - only that key changes. Everything above the first level reaches Scrapy at `cmdline` priority, the same priority `scrapy crawl -s KEY=value` uses, which outranks the settings module.
+
+### Which one does your project actually read?
+
+<Warning>
+**A project ported from Zyte-style hosting usually cannot see environment variables at all.**
+
+That pattern builds its configuration by calling something like `populate_settings(_get_apisettings())` in `settings.py`, which reads a platform-supplied settings blob and **never touches `os.environ`**. Outside that platform, such a module quietly falls back to its hardcoded defaults, and anything you put in the environment is never read by anyone.
+
+For those projects, **Scrapy settings are the only project-level way to configure the spider** - they arrive at `cmdline` priority, which outranks the module no matter what it decided.
+</Warning>
+
+The rule of thumb:
+
+| Put it in... | When |
+| --- | --- |
+| **Environment variables** | Your own code calls `os.environ` / `os.getenv` for it. |
+| **Scrapy settings** | It is a Scrapy setting, or your `settings.py` does not read the environment. |
+
+If you are unsure which case you are in, set it in both. They do not conflict.
+
+## The ScrapeUnblocker key
+
+Each project stores the ScrapeUnblocker API key its routed jobs run on. It is taken **from your account** when the project is created, so nobody has to type a key they already have, and traffic counts against your quota rather than ours or another customer's.
+
+Under **Settings → ScrapeUnblocker key** you see whether one is stored - never the key itself, which is held encrypted and is never shown again anywhere - and three actions:
+
+| Action | When to use it |
+| --- | --- |
+| **Use my account key** / **Refresh from my account** | First setup if the automatic lookup failed, or after rotating the key on your account. |
+| **Use a different key** | To run this project on a second account's key. |
+| **Remove** | To stop this project using a key of its own. Jobs set to route then fail rather than run untracked. |
+
+A job set to `marked` or `all` with no usable key **fails immediately with the reason on the row**, instead of sitting in the queue looking like congestion. See [routing modes](/spider-cloud/routing).
+
+## Concurrency
+
+Your organisation has a number of **concurrency slots** - how many jobs may run at once across the whole fleet. Beyond that, jobs wait in `pending` until one of your running jobs finishes. A queue of your own making looks exactly like a queue caused by capacity, so check what else of yours is running before assuming the fleet is full.
+
+## Retention
+
+Items and logs are kept for the retention period of your plan and then deleted. A job whose data has passed that point still exists, with its stats and history intact; its **Items** view says the stored data has been deleted rather than showing an empty list. If you need the data to outlive that window, add a [destination](/spider-cloud/destinations).
+
+## Deleting and restoring a project
+
+Deleting is reversible for **24 hours**. In that window:
+
+- **queued jobs are cancelled immediately** - the point of deleting is that work stops;
+- **schedules are left exactly as they were**, so restoring gives back the project you deleted rather than one with its automation quietly switched off. While the project is deleted the schedule's clock keeps moving and the runs are skipped, so restoring resumes the normal rhythm instead of firing every missed run at once;
+- the project stays visible in the picker, marked deleted, with the time left and a **Restore** button.
+
+After 24 hours the stored output is removed and the project is gone for good.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Deploys and refs" icon="rocket" href="/spider-cloud/deploys">
+    Connecting the repository, building a branch, and what each build records.
+  </Card>
+  <Card title="Jobs" icon="list-check" href="/spider-cloud/jobs">
+    Run options, job states, items and crawl statistics.
+  </Card>
+</CardGroup>

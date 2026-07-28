@@ -1,0 +1,132 @@
+---
+title: "Jobs"
+description: "Starting a run, the options it carries, the states it moves through, and how to read its items, logs and crawl statistics."
+sidebarTitle: "Jobs"
+---
+
+A **job** is one run of one deploy. It carries its own routing mode, Scrapy settings and spider arguments, so a quick test and a nightly schedule can behave completely differently on the same code.
+
+## Starting a job
+
+| From | What it does |
+| --- | --- |
+| **Spiders → Run** | Runs that one spider with the current Run options. |
+| **Spiders → Run selected** | Runs the ticked spiders. Two or more spiders are always sent as **one grouped job** - see below. |
+| **Schedules → Run now** | Runs a schedule's exact configuration immediately, without moving its clock. |
+| A schedule firing | Same thing, on its own timetable. |
+
+## Run options
+
+Open **Run options** above the spider list, or inside the schedule editor for a scheduled run.
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| **Which requests go through ScrapeUnblocker** | Nothing | `off` / `marked` / `all`. The only option here that costs money - read [routing modes](/spider-cloud/routing). |
+| **Keep the project's own pipelines off** | On | Removes your `ITEM_PIPELINES` for this run. Items still reach the platform, and your own systems are not written to. |
+| **Run the spiders together** | Off | Grouped mode. Available on schedules; a multi-spider manual run is grouped automatically. |
+| **Deploy version** | Latest | Pin a schedule to a known-good build, or follow the newest. |
+| **Scrapy settings** | - | JSON, merged over the project's settings. See [projects](/spider-cloud/projects#scrapy-settings). |
+| **Spider arguments** | - | JSON, passed to every spider in the run - the same thing as `scrapy crawl -a key=value`. |
+
+### Grouped runs
+
+Normally one spider means one container and one concurrency slot. **Grouped** puts several spiders in one container, sharing one Twisted reactor.
+
+This exists because per-spider containers are the wrong shape for a project with hundreds of small spiders: a thousand light spiders need hundreds of gigabytes as separate containers but only a few gigabytes sharing one reactor. The trade-off is a shared blast radius - a crash at reactor level takes the whole group with it - which is why it is opt-in rather than the default.
+
+A grouped job's items belong to the job, not to any one spider in it. That is why per-spider item counts on the Spiders tab say *"+N grouped runs"* separately instead of dividing the same items between every spider that shared the job.
+
+### Pipeline isolation
+
+With **Keep the project's own pipelines off** switched on, your `ITEM_PIPELINES` are removed for that run and only the platform's own item sink remains. A spider cannot write to S3, a database or an API even if its code says to.
+
+This is what makes it safe to trial-run a copy of a production spider here while the real one keeps running elsewhere. Turn it off when you want the project to write where its code writes - and remember that a [destination](/spider-cloud/destinations) delivers your items either way, from outside the container.
+
+## Job states
+
+| State | Meaning |
+| --- | --- |
+| `pending` | Queued, waiting for one of your concurrency slots or for fleet capacity. |
+| `dispatched` | Handed to a machine; the container is starting. |
+| `running` | Crawling. |
+| `finished` | Ended cleanly. |
+| `failed` | Ended badly, or never really started. The reason is on the row. |
+| `killed` | Stopped by you, or cancelled because the project was deleted while it was queued. |
+| `timed_out` | Hit the job time limit. |
+| `lost` | The machine running it no longer recognises the job and it could not be reconciled. Rare, and it means the outcome is genuinely unknown. |
+
+Press **Stop** on a live job to end it. A job that was never dispatched is simply dropped from the queue.
+
+### What makes a job `failed`
+
+A green job with no data is the worst outcome on a paid platform, so a run is reported as failed when:
+
+- a spider **never started** - a component that failed to initialise, a database middleware with nowhere to connect. Scrapy would still exit `0` here;
+- a spider logged a **critical error**;
+- a spider **closed for an unexpected reason**. Reaching a limit you asked for - an item cap, a page cap, a `CLOSESPIDER_TIMEOUT` - is not one of those and stays a clean finish;
+- the run **made no successful requests at all**.
+
+Jobs also die on their ceilings: each container has a memory limit and a hard time limit, and a spider that exceeds memory is killed rather than allowed to take the machine with it.
+
+## Inspecting a job
+
+**Inspect** opens three views. All three refresh every five seconds while the job is moving, and stop as soon as it is not.
+
+### Logs
+
+The spider's own output. Scrapy's stats dump at the end of a run lands here too, which is where the `su_cloud/*` [routing counters](/spider-cloud/routing#checking-how-much-was-actually-routed) can be read.
+
+### Items
+
+The scraped items, as JSON, **while the job is still running**. The runner writes items to storage in large chunks, so what is readable trails what the spider has scraped - the header shows both numbers and names the difference as *"still buffered on the runner"*.
+
+Paging is by cursor: **Load more** appends the next page and never re-reads what you have already seen. A page is a window onto the data, not an export - for the whole dataset, use a [destination](/spider-cloud/destinations).
+
+An empty list always comes with a reason, because "not written out yet" and "nothing was scraped" look identical otherwise and only one of them is alarming:
+
+| Reason | What it means |
+| --- | --- |
+| Not started yet | The job is still queued. |
+| Scraped N item(s), none written to storage yet | Buffered. Wait for the first chunk. |
+| Running and has not scraped anything yet | Nothing so far. Check the log if it stays that way. |
+| Finished without scraping any items | The crawl genuinely produced nothing. |
+| Stored data has passed the retention period | It existed and has been deleted per your plan. |
+| Reported N item(s) but wrote no chunks | A storage write failed and those items are gone. Rare, and worth telling us about. |
+
+### Stats
+
+What the crawl actually did, refreshed by the spider every 30 seconds. Three of these are routinely misread, so they are named for exactly what they count:
+
+| Figure | What it counts |
+| --- | --- |
+| **Responses** | Responses received, split into ok and failed. `failed` is HTTP failure only - a 4xx or 5xx that came back. |
+| **Errors** | Failures below HTTP: a timeout, a reset connection, a name that did not resolve. These never became responses, and they are usually fixed by something different from a 500. |
+| **Into the downloader** | Requests that entered the downloader middleware stack. **Not the same as requests made.** |
+| **Answered before a fetch** | The gap: requests a middleware - a cache, a dedup filter, your own code - answered or dropped before anything was fetched. A real consumer job reports 177 into the downloader against 18 responses, and calling that difference "failures" would put 159 imaginary problems in front of you. |
+| **Retried** | Retries. They go through the downloader again, so they are counted there more than once. |
+
+There is deliberately **no success rate anywhere on this screen**. A redirect that was followed counts as two responses, so no honest percentage exists.
+
+While a job is running these numbers are a snapshot, not a final tally, and the screen says so.
+
+## Delivery
+
+If the project has [destinations](/spider-cloud/destinations), the **Delivered** column shows what happened when the finished job's items were handed over - `1 240 → mydb.items`, or the error if it failed. A delivery failure does not change the job's own outcome: the crawl did succeed, and the items are still in storage.
+
+## What the container can and cannot do
+
+- **The filesystem is discarded** when the job ends. `FEEDS` is therefore switched off with a warning in the log; items reach storage through the platform instead.
+- **The telnet console is off**, always.
+- **The network is restricted.** Containers cannot reach cloud metadata endpoints or private address ranges, so a spider cannot be pointed at internal infrastructure - ours or anyone else's.
+- **No platform credentials are inside.** Object storage keys and delivery credentials live outside the container, which is why delivery runs from our side rather than from your pipeline.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Routing modes" icon="shield-halved" href="/spider-cloud/routing">
+    Decide what a run costs before you start it.
+  </Card>
+  <Card title="Destinations" icon="database" href="/spider-cloud/destinations">
+    Have every finished job deliver a copy of its items.
+  </Card>
+</CardGroup>

@@ -1,0 +1,117 @@
+---
+title: "Deploys and refs"
+description: "Connecting a repository, building a branch, tag or commit, and what every build records about where it came from."
+sidebarTitle: "Deploys"
+---
+
+A **deploy** is one built image of your project. Deploys are numbered per project - `v1`, `v2`, `v3` - and they are immutable: deploying again builds a new version rather than replacing one. Every job records the deploy it ran on, so *"which code produced this data"* is always answerable from the job row alone.
+
+## Connecting the repository
+
+Both paths live on the **Deploys** tab, under **Where the code comes from**.
+
+<Tabs>
+  <Tab title="GitHub App">
+    **Connect GitHub** takes you to GitHub, where you tick the repositories we may read. Coming back, pick one from the dropdown and press **Save**.
+
+    We store the **installation id** and nothing else. The token used to clone is minted for each build and **expires within the hour**, and it can only see the repositories you ticked. **Disconnect** forgets the installation on our side; the App stays installed on GitHub until you remove it there.
+
+    Only the person who owns the installation can attach it, so nobody can point their project at your repositories by guessing an id.
+  </Tab>
+  <Tab title="Any other git host">
+    Fill in **Repository URL** and **Branch** directly, and paste an **Access token** for a private repository.
+
+    Rules the URL has to satisfy:
+
+    - **`https://` only.** `ssh://` and `git://` are refused.
+    - **No credentials in the URL.** They would end up in logs and in the deploy record - use the token field, which is stored encrypted.
+
+    The token field is write-only: leave it empty to keep the stored one, clear it to remove it.
+  </Tab>
+</Tabs>
+
+Whichever path you take, the repository has to contain a Scrapy project with a **`scrapy.cfg` at its root**.
+
+## Choosing what to build
+
+The **Branch to build** control offers the repository's branches, fetched from GitHub at that moment. Nothing is cached: branches are created and deleted while people work, and a remembered list would keep naming branches that no longer exist while looking authoritative.
+
+Next to it, any ref can be typed by hand. **A tag or a commit sha will never appear in a branch list**, so the free-text field is the way to build one - and it is also the fallback whenever the list cannot be filled. If listing fails, the reason is shown under the field and typing still works:
+
+| What you see | What it means |
+| --- | --- |
+| This project has no GitHub connection | The repository is on another host, or the App was never connected. Type the branch name. |
+| The GitHub App installation cannot see *repo* | The App was not given access to that repository. Add it on GitHub, or type the ref. |
+| GitHub refused the installation token | Reconnect GitHub. |
+| This repository has more branches than we list | Only the first page or so is listed. Any ref not shown can still be typed. |
+
+A ref typed into **Branch to build** applies to **that build only** - the badge says *one-off* - and the project stays on its saved branch. Change the saved branch in the block above when you want it to stick.
+
+## What a build does
+
+<Steps>
+  <Step title="Clone">
+    A shallow clone of the ref you asked for. History is discarded - it is not part of what gets built.
+  </Step>
+  <Step title="Check">
+    The root must hold a `scrapy.cfg`. Without one the build stops with *"no scrapy.cfg found - is this the root of a Scrapy project?"*.
+  </Step>
+  <Step title="Build">
+    A Dockerfile is generated for you. If `requirements.txt` exists, it is installed in its own layer, so changing spider code later does not reinstall your dependencies. The project is then copied in and the image is left running as an unprivileged user.
+  </Step>
+  <Step title="List the spiders">
+    We run `scrapy list` inside the finished image and record the names. This is what lets a job for a spider that does not exist be refused up front, rather than by starting a container so it can fail.
+  </Step>
+</Steps>
+
+The result message names all three facts worth keeping:
+
+```
+Deployed version 3 from develop (0a1967e8) - 12 spider(s) found.
+```
+
+Deploying does not disturb anything already running. Jobs in flight finish on the deploy they started with.
+
+## What each build records
+
+The **Builds** table on the Deploys tab shows:
+
+| Column | What it is |
+| --- | --- |
+| **Version** | `v3`. The newest is marked *current* - it is the one the Spiders tab lists and the one a job uses unless it pins another. |
+| **Built from** | Two stacked facts: the **ref you asked for** (`develop`), and under it the **commit it resolved to** (`0a1967e8`). |
+| **Source** | How it got here - `git` for a repository build. |
+| **Spiders** | How many `scrapy list` found. |
+| **Created** | When it was built. |
+
+The ref and the commit answer different questions and neither substitutes for the other: `develop` is what a person recognises, while the commit is the only thing that reproduces the build. Where the ref reads **not recorded**, the build predates us keeping it, or it followed the repository's default branch - whose name we are never told. It is said in words rather than guessed at from the project's current branch, which would be a guess that reads as a fact.
+
+## Pinning a build
+
+By default a run uses the newest deploy, and a schedule set up months ago keeps following the newest - which is what people expect from automation they have stopped thinking about.
+
+Under **Run options → Deploy version** you can pin a schedule to a specific build that is known to work. Set it back to *Always the latest deploy* to unpin.
+
+## Advanced: your own Dockerfile
+
+If the generated Dockerfile cannot cover your case, a project may ship its own. It has to build `FROM` the platform base image, and a Dockerfile that runs as root, asks for privileged mode, or references the Docker socket is refused - each of those breaks an assumption the sandbox depends on. [Contact us](https://scrapeunblocker.com/contact) for the current base image tag before taking this path.
+
+## When a build fails
+
+| Symptom | Cause and fix |
+| --- | --- |
+| *no scrapy.cfg found* | The repository root is not a Scrapy project root, or the project lives in a subdirectory. |
+| Build log ends in a `pip` error | A dependency will not install. Fix `requirements.txt` and deploy again; the failed version number is simply skipped. |
+| Clone fails | The ref does not exist on that repository, or the token cannot read it. |
+| *The deploy built, but no spiders were found in it* | `scrapy list` returned nothing usable - usually a spider module that raises on import. Run `scrapy list` locally; it will fail the same way. |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Jobs" icon="list-check" href="/spider-cloud/jobs">
+    Run a spider from the build and watch what it does.
+  </Card>
+  <Card title="Schedules" icon="calendar" href="/spider-cloud/schedules">
+    Pin a schedule to a build, or let it follow the newest.
+  </Card>
+</CardGroup>

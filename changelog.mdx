@@ -3,6 +3,36 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-28" description="Spider Cloud documented">
+  **[Spider Cloud](/spider-cloud/overview)** now has its own section: host your
+  own Scrapy project with us, deploy it straight from a git repository, run and
+  schedule spiders, and read the items back - with ScrapeUnblocker routing built
+  in, so a spider that gets blocked elsewhere needs no proxy or fingerprint code
+  here.
+
+  Eight pages, starting with
+  [Getting started](/spider-cloud/getting-started), which walks one repository
+  from an empty dashboard to a finished run with data in it. The one to read
+  before your first run is
+  [routing modes](/spider-cloud/routing) - the choice between `off`, `marked`
+  and `all` decides what a job costs:
+
+  ```python
+  # `marked` routes only what the spider asks for, and nothing else.
+  yield scrapy.Request(url, meta={"unblock": True})
+  ```
+
+  `all` sends **every** request through the API, so a spider walking a hundred
+  thousand detail pages makes a hundred thousand paid calls. `marked` exists so
+  a producer can be unblocked without dragging its consumer onto the paid path.
+
+  Also covered: [projects and settings](/spider-cloud/projects) (including why a
+  project ported from Zyte-style hosting usually cannot see environment
+  variables at all), [deploys and refs](/spider-cloud/deploys),
+  [jobs](/spider-cloud/jobs), [schedules](/spider-cloud/schedules) and
+  [delivery destinations](/spider-cloud/destinations).
+</Update>
+
 <Update label="2026-07-23" description="All four SDKs on 0.1.6 - typed billing errors">
   The **Node.js, Ruby and PHP SDKs** now carry the same typed billing errors
   released for Python earlier today, and all four are on **0.1.6** so their

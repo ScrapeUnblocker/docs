@@ -1,0 +1,76 @@
+---
+title: "Delivery destinations"
+description: "Have every finished job's items delivered into your own database, without your credentials ever entering the container that runs the spider."
+sidebarTitle: "Destinations"
+---
+
+A **destination** is where a finished job's items are delivered, on top of the copy the platform already stores. Add one under **Settings → Deliver a copy elsewhere**.
+
+Destinations are optional. Your items are readable in the dashboard and kept for your plan's retention period either way. Add one when you want the data to land somewhere of your own - and when you want it to outlive that retention window.
+
+## Why it runs outside the container
+
+Delivery happens on our side, never from inside the spider's container. That is not a detail of implementation, it is the point:
+
+- your database credentials never sit in an environment that also runs third-party code - your dependencies, and whatever they pulled in;
+- delivery works **regardless of what the spider does**. A run with its own pipelines switched off writes nothing anywhere, and its items still arrive at your destination.
+
+Credentials are stored encrypted and are never shown back. The connection string appears in the dashboard masked.
+
+## MongoDB
+
+The form asks for four things:
+
+| Field | Notes |
+| --- | --- |
+| **Name** | Whatever you will recognise in a list. |
+| **Connection string** | `mongodb+srv://user:pass@host/`. Stored encrypted, shown masked. |
+| **Database** | Defaults to `spider_cloud`. |
+| **Collection** | Defaults to `spiders`. |
+
+Items are inserted in batches, unordered, so one rejected document does not stop the rest.
+
+Every document gets four fields attached, because a collection filled by several jobs is impossible to reason about without them:
+
+| Field | What it holds |
+| --- | --- |
+| `_su_job` | The job key that produced this document. |
+| `_su_spiders` | The spiders that job ran. |
+| `_su_deploy_id` | Which build it ran. |
+| `_su_scraped_at` | When the job finished, or when it started if it did not. |
+
+<Note>
+Webhook delivery - batched `POST`s of the same items to an HTTPS endpoint of yours - is supported by the platform but is not yet offered in the dashboard form. [Contact us](https://scrapeunblocker.com/contact) if you want one set up for a project.
+</Note>
+
+## When delivery happens
+
+Once per job, when the job reaches a final state and has items in storage. A job that scraped nothing has nothing to deliver, and nothing is sent.
+
+Every enabled destination on the project receives the same items - add two and both get a copy.
+
+## Reading the result
+
+Two places say what happened:
+
+- the destination itself shows **last delivery** - `ok`, or the error - and when;
+- the job row shows the outcome per destination in its **Delivered** column: `1 240 → mydb.items`, or the failure.
+
+<Warning>
+**A delivery failure does not fail the job.** The crawl did succeed, and its items are still in object storage for the retention period - so a wrong password or an unreachable host costs you the delivery, not the data. Fix the destination and the items are still there to be delivered again.
+</Warning>
+
+## Turning one off
+
+A destination can be removed at any time. Nothing already delivered is affected, and the platform's own copy of the items is untouched.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Projects and settings" icon="sliders" href="/spider-cloud/projects">
+    Why delivery credentials belong here rather than in the environment.
+  </Card>
+  <Card title="Jobs" icon="list-check" href="/spider-cloud/jobs">
+    Where the Delivered column lives, and how to read a run.
+  </Card>
+</CardGroup>

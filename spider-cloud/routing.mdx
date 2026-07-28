@@ -1,0 +1,151 @@
+---
+title: "ScrapeUnblocker routing"
+description: "Choose how much of a crawl leaves through the unblocking API - nothing, only the requests the spider marks, or everything - and what each choice costs."
+sidebarTitle: "Routing modes"
+---
+
+This is the setting that makes Spider Cloud different from any other Scrapy host, and the one setting on the page that decides what a run costs. It is worth the five minutes.
+
+Every job and every schedule carries a routing mode. You set it under **Run options → Which requests go through ScrapeUnblocker**.
+
+| Mode | What leaves through ScrapeUnblocker | What it costs |
+| --- | --- | --- |
+| **`off`** *(default)* | Nothing. Every request goes out from the spider itself, exactly as it would on your own machine. | Nothing against your ScrapeUnblocker key. |
+| **`marked`** | Only requests the spider tagged with `meta["unblock"] = True`. | One API call per marked request. |
+| **`all`** | Everything, except requests that opt out. | **One API call per request the spider makes.** |
+
+<Warning>
+**`all` charges for every single request.** A spider that walks a hundred thousand detail pages makes a hundred thousand paid calls. This is not a warning about a rare edge case - it is the ordinary shape of a consumer spider, and it is the entire reason the three modes exist rather than one on/off switch.
+
+Before switching a job to `all`, ask what its request count looks like at full size. If the answer is "large, and most of those pages are not defended", you want `marked`.
+</Warning>
+
+## Why `marked` exists
+
+Real projects are mixed. The usual producer/consumer pair is the clearest case:
+
+- the **producer** walks listing and search pages. These are the pages that get blocked, and there are a few hundred of them.
+- the **consumer** walks the detail pages the producer found. There are a hundred thousand of them, and most hosts serve them without complaint.
+
+With a boolean switch, getting the producer unblocked drags the consumer onto the paid path with it. With `marked`, the spider says which requests are worth it and the rest go out direct and free.
+
+## Marking a request
+
+`marked` reads one key: a truthy `meta["unblock"]` on the request.
+
+```python
+import scrapy
+
+
+class ListingsSpider(scrapy.Spider):
+    name = "listings"
+
+    async def start(self):
+        # The search pages are defended - route these.
+        yield scrapy.Request(
+            "https://example.com/search?page=1",
+            meta={"unblock": True},
+            callback=self.parse_listing,
+        )
+
+    def parse_listing(self, response):
+        for href in response.css("a.item::attr(href)").getall():
+            # Detail pages are not defended - no meta, so these go out direct and cost nothing.
+            yield response.follow(href, callback=self.parse_detail)
+
+    def parse_detail(self, response):
+        yield {"url": response.url, "title": response.css("h1::text").get()}
+```
+
+That key name is not new - it is the convention projects already use in their own hand-written ScrapeUnblocker middlewares (`meta={"page": 1, "unblock": True}`). If you are migrating such a project, **delete your middleware, set the job to `marked`, and change no spider code**.
+
+## Opting out in `all` mode
+
+In `all` mode two things stay direct:
+
+```python
+# Never routed, whatever the mode says.
+yield scrapy.Request(url, meta={"su_skip": True})
+
+# In `all` mode, an explicit False is honoured as a bypass.
+yield scrapy.Request(url, meta={"unblock": False})
+```
+
+Use them for sitemaps, JSON endpoints, image or asset URLs, and anything else the site serves without a fight. A spider saying "not this one" is taken at its word.
+
+## Per-request options
+
+When a request is routed, these `meta` keys shape that one call. They are ignored on requests that go out direct.
+
+| `meta` key | Effect |
+| --- | --- |
+| `su_proxy_country` | Lowercase two-letter [country code](/guides/country-targeting) for this request's proxy, overriding the job's default. |
+| `su_time_sleep` | Seconds to wait on the page before the HTML is taken, for content that arrives late. |
+| `su_parsed_data` | `True` returns the API's structured JSON instead of HTML - see [parsed data](/guides/parsed-data). |
+| `su_wait_method` + `su_wait_value` | Wait for an element before capturing, for pages whose content arrives by JavaScript. The method is one of `css`, `xPath`, `className`, `tagName`; the value is the selector. |
+| `su_wait_timeout` | Seconds to spend on that wait before giving up. |
+
+```python
+yield scrapy.Request(
+    "https://example.com/flights",
+    meta={
+        "unblock": True,
+        "su_proxy_country": "de",
+        "su_wait_method": "css",
+        "su_wait_value": "div.result-row",
+        "su_wait_timeout": 20,
+    },
+    callback=self.parse,
+)
+```
+
+## What routing changes about a request
+
+Understanding this is what stops the two surprises below.
+
+A routed request is rewritten to call the API with your original URL as a parameter, and the API key is attached from the project. Your spider does not see any of that: **the response is handed back with the original URL restored**, so callbacks, `response.follow`, relative links and duplicate filtering all behave exactly as they did.
+
+<Warning>
+**A routed request is sent to the API as a POST with an empty body.** The URL is what gets fetched, so anything the request carried in its own body - a form submission, a JSON API call - does not survive the rewrite. Requests like that should stay direct: mark them `meta={"su_skip": True}` in `all` mode, or simply do not mark them in `marked` mode.
+</Warning>
+
+**`robots.txt` is always fetched directly**, never through the API, and is never charged. Routing it would be wrong three times over: it spends a paid call on an undefended file, the API rejects it, and a `robots.txt` that fails to load makes Scrapy behave as if there were no rules at all - so an unblocking platform would end up quietly ignoring robots rules on its users' behalf.
+
+**In `all` mode, retries are capped at 2** if your project asks for more. Retrying through a paid API is paying repeatedly for the same page, and the API already retries internally. In `marked` mode your `RETRY_TIMES` is left alone, because most of that crawl is direct and free and capping it would make your own traffic give up early to save money that is not being spent.
+
+## Routing needs the project's key
+
+A routed job runs on **the ScrapeUnblocker key stored on the project**, which is taken from your account when the project is created. That is what makes the traffic count against your quota rather than anyone else's.
+
+If a job is set to `marked` or `all` and no usable key is stored, the job **fails immediately with the reason on the row** - it is not queued. Fix it under **Settings → ScrapeUnblocker key**. See [projects](/spider-cloud/projects#the-scrapeunblocker-key) for the three things you can do there.
+
+## Checking how much was actually routed
+
+The middleware counts its own decisions into the crawl's Scrapy stats, which are dumped at the end of the job log:
+
+| Counter | Meaning |
+| --- | --- |
+| `su_cloud/unblocked_requests` | Requests sent through the API. **This is the number that costs money.** |
+| `su_cloud/direct_requests` | Requests that went out from the spider itself. |
+| `su_cloud/robotstxt_direct` | `robots.txt` fetches, always direct. |
+| `su_cloud/unblock_auth_errors` | The API rejected the key (`401`). |
+| `su_cloud/unblock_rate_limited` | The API rate-limited the run (`429`). |
+
+A `401` also writes a line into the log naming the likely cause: a key that does not match the host it is being used against. If the ratio of `unblocked_requests` to `direct_requests` is not what you expected, the mode is the first thing to check and the spider's `meta` the second.
+
+## Changing the mode later
+
+The mode is stored per job and per schedule, not per project, so it is chosen fresh each time you run and can differ between a manual test and the nightly schedule. Schedules that route **every** request are flagged as such in the schedules list, because a schedule spends money without anyone watching.
+
+Nothing that was already saved is quietly upgraded: a job or schedule created before the three modes existed keeps meaning what it meant - everything routed, or nothing.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Jobs" icon="list-check" href="/spider-cloud/jobs">
+    Run options in full, job states, and reading a crawl's numbers.
+  </Card>
+  <Card title="Projects and settings" icon="sliders" href="/spider-cloud/projects">
+    Where the ScrapeUnblocker key lives and how to replace it.
+  </Card>
+</CardGroup>

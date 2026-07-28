@@ -1,0 +1,97 @@
+---
+title: "Schedules"
+description: "Run spiders on a rhythm - built from a form, described in your own words, or written as cron - on a clock in your own timezone."
+sidebarTitle: "Schedules"
+---
+
+A **schedule** queues jobs for you on a timetable. Everything a manual run carries - routing mode, pipeline isolation, Scrapy settings, spider arguments, a pinned deploy - is saved on the schedule, so the run it produces is exactly the run you configured.
+
+## Creating one
+
+<Steps>
+  <Step title="Pick the spiders">
+    Everything ticked runs on this rhythm. Spiders shown faded are ones the current deploy no longer contains - they stay visible so editing a schedule never silently drops one, but runs will fail until the spider is back or you untick it.
+  </Step>
+  <Step title="Say how often">
+    Five ready-made rhythms - every N minutes, every N hours, every day, certain days of the week, once a month - plus **Advanced: cron expression** for anything else.
+  </Step>
+  <Step title="Set the timezone">
+    The clock the times are read in. See below - this is the field that quietly goes wrong.
+  </Step>
+  <Step title="Check the next runs">
+    The next five runs are shown, in the schedule's own timezone, and refresh as you edit. `0 6 * * 1` and `0 6 1 * *` look alike and mean very different things; this is where you catch that.
+  </Step>
+  <Step title="Save">
+    A name is optional - left empty, the schedule is named after its spiders.
+  </Step>
+</Steps>
+
+## Timezones
+
+Every schedule stores its own **IANA timezone**, and the default is `Europe/Vilnius`.
+
+<Warning>
+**Leaving the timezone at its default is the mistake that actually happens.** "Every morning at 6" means six o'clock somewhere, and if that somewhere is not where you are, every run lands hours off - while the schedule looks completely correct in the list. Set the field to your own zone when you create the schedule, and confirm it against the five preview times before saving.
+</Warning>
+
+A cron expression is a statement about the **wall clock**, and it is honoured as one across daylight saving changes. When clocks go back and the same local hour happens twice, the schedule runs once, not twice.
+
+A timezone the system cannot resolve is refused at save time rather than quietly falling back to another clock - a silent fallback would shift every run by the offset with nothing anywhere looking wrong.
+
+## Cron expressions
+
+The advanced field takes a standard five-field expression: **minute hour day-of-month month day-of-week**.
+
+```
+0 6 * * 1-5     every weekday at 06:00
+*/15 * * * *    every fifteen minutes
+0 3 1 * *       03:00 on the first of each month
+```
+
+Ranges (`1-5`), lists (`1,4`) and steps (`*/15`) work. `@daily`-style macros and the Quartz extensions `L`, `W` and `#` do not. An expression that cannot be parsed, or that would never come around, is refused when you save it - a schedule that silently never fires is worse than an error.
+
+Each saved schedule is shown with a plain-English rendering of its rhythm next to its name. Where an expression is too unusual to describe honestly, the expression itself is shown instead of a description that is merely plausible.
+
+## Describing it in your own words
+
+Above the form is a free-text box: **Say it in your own words**. Type something like *"every weekday morning at 6"* or *"kas rytą 6 val"* - any language works - and press **Suggest a schedule**.
+
+Three things to know about it:
+
+- **It only fills in the form.** Nothing is saved from it. You check the result in the fields below and press Save yourself.
+- **It runs only when you press the button** - never as you type. Each press costs a model call, which is also why it is capped at 1000 characters.
+- **It can be wrong.** Always read the five preview times before saving. If your sentence described more than one rhythm, the box says so and captures only part of it.
+
+On installations where the planner is not configured, the box simply is not there and the manual form is the whole story.
+
+## Managing schedules
+
+| Action | What it does |
+| --- | --- |
+| **Run now** | Queues the schedule's job immediately, built from the **stored** configuration. Its next scheduled run is unchanged, so testing a schedule never costs you a run. |
+| **Pause** / **Enable** | Keeps the schedule without running it. A paused schedule shows *paused* instead of a next run. |
+| **Edit** | Same form, same validation. Changing the rhythm or the timezone recalculates the next run. |
+| **Delete** | Stops future runs. Jobs it already started are left alone, and nothing else about the project changes. |
+
+## Which build a schedule runs
+
+By default a schedule follows the project's **newest deploy** - which is what people expect from something set up months ago and not thought about since. Under **Run options → Deploy version** you can pin it to a specific build, and set it back to *Always the latest deploy* to unpin.
+
+If the project has no usable deploy when a schedule fires, that run is skipped rather than failing; **Run now** says so directly.
+
+## Cost
+
+A schedule spends money without anyone watching, so routing deserves a second look here more than anywhere else. A schedule set to route **every** request is flagged in the list with a warning badge for exactly that reason.
+
+If a schedule runs a large consumer spider every night, `marked` is almost certainly the mode you want. See [routing modes](/spider-cloud/routing).
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Routing modes" icon="shield-halved" href="/spider-cloud/routing">
+    What an unattended schedule costs, and how to keep it small.
+  </Card>
+  <Card title="Destinations" icon="database" href="/spider-cloud/destinations">
+    Have each scheduled run deliver its items into your own database.
+  </Card>
+</CardGroup>

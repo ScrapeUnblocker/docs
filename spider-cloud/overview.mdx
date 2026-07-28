@@ -1,0 +1,74 @@
+---
+title: "Spider Cloud"
+description: "Run your own Scrapy project on ScrapeUnblocker infrastructure - connect a repository, deploy, run spiders, and take the data where you want it."
+sidebarTitle: "Overview"
+---
+
+**Spider Cloud** hosts your Scrapy project. You connect a git repository, we build it into an image, and your spiders run on our machines - with logs, items, stats, schedules and delivery attached to every run.
+
+The part you cannot get elsewhere: **ScrapeUnblocker routing is built in**. A spider that gets blocked on another hosting platform runs here without you writing a single line of proxy, header or fingerprint code. You choose per run how much of the crawl goes through the unblocking API - nothing, only the requests the spider asks for, or everything.
+
+<Note>
+Open it in your dashboard: [app.scrapeunblocker.com/dashboard/spiders](https://app.scrapeunblocker.com/dashboard/spiders). Spider Cloud is enabled per account - if the page says **Not authorized**, [contact us](https://scrapeunblocker.com/contact) to have it turned on.
+</Note>
+
+## What you need
+
+<CardGroup cols={2}>
+  <Card title="A Scrapy project in git" icon="folder-tree">
+    A `scrapy.cfg` at the repository root, spiders under a `spiders/` package, and a `requirements.txt` if you have dependencies beyond Scrapy.
+  </Card>
+  <Card title="A ScrapeUnblocker account" icon="key">
+    The key on your account is attached to each project automatically, so routed runs are billed to you and nobody else.
+  </Card>
+</CardGroup>
+
+Nothing about the project has to change to run here. No SDK, no decorators, no platform-specific base class - the same repository you run with `scrapy crawl` locally is the one we build.
+
+## How it fits together
+
+| Piece | What it is |
+| --- | --- |
+| **Project** | A repository, its environment, its settings and its history of builds. One project per Scrapy repository. |
+| **Deploy** | One built image of the project, numbered `v1`, `v2`, and so on. Every job records the deploy it ran, so "which code produced this data" is always answerable. |
+| **Job** | One run: one spider, or several spiders together. Carries its own routing mode, settings and spider arguments. |
+| **Schedule** | A rhythm that queues jobs for you, on a clock in your own timezone. |
+| **Destination** | Where a finished job's items are delivered, on top of the copy we already store. |
+
+## What runs your spider
+
+Every job is a throwaway container with a strict shape, and a few consequences are worth knowing before your first run:
+
+- **Your item pipelines can be switched off** for a run. This is on by default, so trial-running a spider that normally writes to your production database touches nothing.
+- **`FEEDS` has no effect.** The container filesystem is discarded when the job ends, so feed exports would write into nothing. Items reach storage through the platform instead, and you read or deliver them from there.
+- **The telnet console is always off.**
+- **Spiders written for older Scrapy still work.** Scrapy 2.13 replaced `start_requests()` with `async def start()`, and by 2.17 the old hook is gone with no error - a spider written the old way would crawl nothing and exit successfully. We detect that at load time and adapt the spider, then say so in the log.
+- **A job that fetched nothing is reported as failed**, not as a green run with no data.
+
+## Spider Cloud vs the rest of ScrapeUnblocker
+
+<CardGroup cols={2}>
+  <Card title="Use Spider Cloud" icon="spider">
+    You already have (or want to write) a Scrapy project, and you want it hosted, scheduled and unblocked without maintaining machines.
+  </Card>
+  <Card title="Use the API" icon="code" href="/quickstart">
+    You are building an application and want to call `getPageSource`, `serpApi` or `getImage` from your own code, wherever it runs.
+  </Card>
+  <Card title="Use the No-code area" icon="wand-magic-sparkles" href="/no-code/overview">
+    You want a dataset emailed to you and would rather not write a scraper at all.
+  </Card>
+  <Card title="Use the Scrapy integration" icon="plug" href="/sdks/scrapy">
+    You have a Scrapy project that runs somewhere else and only want the unblocking part.
+  </Card>
+</CardGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Getting started" icon="play" href="/spider-cloud/getting-started">
+    From nothing to your first successful run, in order.
+  </Card>
+  <Card title="ScrapeUnblocker routing" icon="shield-halved" href="/spider-cloud/routing">
+    The three routing modes, what each one costs, and how a spider marks a request.
+  </Card>
+</CardGroup>

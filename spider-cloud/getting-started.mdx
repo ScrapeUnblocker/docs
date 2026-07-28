@@ -1,0 +1,158 @@
+---
+title: "Getting started with Spider Cloud"
+description: "From an empty dashboard to a spider that has run and produced items - every step, in order."
+sidebarTitle: "Getting started"
+---
+
+This page takes one Scrapy repository from nothing to a finished run with data in it. Seven steps, in this order: create a project, connect the repository, deploy a build, pick a spider, run it, watch the job, read the items.
+
+<Note>
+Everything below happens at [app.scrapeunblocker.com/dashboard/spiders](https://app.scrapeunblocker.com/dashboard/spiders). If that page says **Not authorized**, Spider Cloud is not enabled for your account yet - [contact us](https://scrapeunblocker.com/contact).
+</Note>
+
+## Before you start
+
+Your repository needs to be a Scrapy project as Scrapy itself understands one:
+
+- a **`scrapy.cfg` at the root** - this is what the build checks for, and a repository without one is refused with *"no scrapy.cfg found - is this the root of a Scrapy project?"*;
+- **spiders under your `spiders/` package**, discoverable by `scrapy list`;
+- a **`requirements.txt`** if you need anything beyond what the base image provides. Scrapy and the platform entrypoint are already installed.
+
+You do not write a Dockerfile. One is generated for you.
+
+## 1. Create a project
+
+Press **New project**. The form asks for four things and saves them in one pass:
+
+<Steps>
+  <Step title="Name">
+    Anything you will recognise in a list. The **project id** underneath is derived from it - lowercase letters, numbers and dashes, up to 63 characters. You can edit it here, and only here: the id is what every stored item, log and image is filed under, so it cannot be changed later.
+  </Step>
+  <Step title="Where the code comes from">
+    **GitHub** (recommended), **Other git host** for GitLab or a self-hosted server, or **Decide later**. With GitHub, pressing Create sends you straight to GitHub afterwards - the install has to attach to a project that already exists, so it is two steps in that order.
+  </Step>
+  <Step title="Environment variables">
+    Optional, one `KEY=value` per line. These are for things your own spider code reads. Credentials for delivering scraped data do not belong here - see [destinations](/spider-cloud/destinations), which keep them out of the container entirely.
+  </Step>
+  <Step title="Create project">
+    The project is created, and the **ScrapeUnblocker key from your signed-in account is attached to it automatically**. There is no field for it: you are already a customer, and the key decides whose quota routed runs count against.
+  </Step>
+</Steps>
+
+If that key lookup fails - a brand new account, a hiccup upstream - the project is still created and you land on its **Settings** tab with an amber note explaining why. Everything that does not route through ScrapeUnblocker works as normal, and one button on that tab fixes it.
+
+## 2. Connect the repository
+
+<Tabs>
+  <Tab title="GitHub">
+    **Connect GitHub** sends you to GitHub's own install screen, where you tick the repositories you want us to build from. You are choosing on GitHub, not here.
+
+    Coming back, the dashboard says either *"GitHub connected. The repository is set - you can deploy now."* or *"GitHub connected (N repositories available). Pick one below."* - then choose the repository from the dropdown, set the branch, and press **Save**.
+
+    What we keep is the **installation id**, which is not a credential. The token used to clone is minted for each build and **expires within the hour**, and it only ever sees the repositories you ticked.
+  </Tab>
+  <Tab title="GitLab or self-hosted">
+    Fill in the **Repository URL** field directly. It must be an ordinary `https://` git URL - `ssh://` and `git://` are not accepted, and credentials must not be put in the URL itself.
+
+    For a private repository, paste an access token in the **Access token** field. It is stored encrypted and never shown back; leave the field empty later to keep the stored one, or clear it to remove it.
+  </Tab>
+</Tabs>
+
+## 3. Deploy a build
+
+On the **Deploys** tab, pick a **branch to build** and press **Deploy**.
+
+The list of branches is fetched from GitHub at that moment and never cached, because branches are created and deleted while people work and a remembered list would confidently name one that no longer exists. Next to it you can type any ref by hand - a tag or a commit sha will never appear in a branch list. Typing a ref here builds that ref **once**; the project stays on its saved branch.
+
+Building takes a few minutes while your dependencies install. When it works you get:
+
+```
+Deployed version 3 from develop (0a1967e8) - 12 spider(s) found.
+```
+
+Three facts in that line, and each one matters later: the **version** (`v3`) is what a job pins to, the **ref** (`develop`) is what you asked for, and the **commit** (`0a1967e8`) is the only thing that reproduces the build. The spider count comes from running `scrapy list` inside the image that was just built - so a spider that fails to import is one that will not be listed here.
+
+## 4. Pick a spider
+
+The **Spiders** tab lists the spiders in the newest deploy, with what each one last did. A row that says *"not in this build"* is a spider that ran recently but has since been renamed or removed - it is kept visible so its jobs remain findable.
+
+## 5. Run it
+
+Open **Run options** before your first run. Two settings there decide what the run does and what it costs:
+
+| Option | Default | What it means |
+| --- | --- | --- |
+| **Which requests go through ScrapeUnblocker** | Nothing | `off` / `marked` / `all`. Read [routing modes](/spider-cloud/routing) before choosing `all` - it charges per request. |
+| **Keep the project's own pipelines off** | On | Your item pipelines are removed for this run, so nothing is written to your own systems. Turn it off when you want the project to write where its code writes. |
+
+Then press **Run** on a spider, or tick several and press **Run selected**. The job is queued and the dashboard moves you to **Jobs**.
+
+## 6. Watch the job
+
+A job moves through these states:
+
+| State | Meaning |
+| --- | --- |
+| `pending` | Queued. Waiting for one of your organisation's concurrency slots, or for fleet capacity. |
+| `dispatched` | Handed to a machine, container starting. |
+| `running` | Scrapy is crawling. |
+| `finished` | The crawl ended cleanly. |
+| `failed` | The crawl ended badly, or never really started. The reason is on the row. |
+| `killed` | You stopped it, or the project was deleted while it was queued. |
+| `timed_out` | It hit the job time limit. |
+| `lost` | The machine running it lost track of it and we could not reconcile. |
+
+Press **Inspect** on a job row for three live views:
+
+- **Logs** - the spider's own output.
+- **Items** - the actual scraped items, as JSON, *while the job is still running*.
+- **Stats** - responses by status, transport-level errors, retries, items and elapsed time. The spider pushes a fresh snapshot every 30 seconds.
+
+All three refresh every five seconds while the job is moving, and stop the moment it is not.
+
+## 7. Read the items
+
+The **Items** view pages through what has been written to storage, newest page appended as you press **Load more**. Two numbers sit above it: how many items you are looking at, and how many the spider has scraped. While a job runs the second is usually ahead of the first, and the view says so - *"N still buffered on the runner"*. That is normal. Items are batched into large chunks before being stored, so the first chunk of a slow crawl appears a few minutes in.
+
+When the list is empty, the view **always says why**. There is a real difference between "not written out yet" and "nothing was scraped", and only one of them means something is wrong:
+
+| What it says | What happened |
+| --- | --- |
+| This job has not started yet | It is still queued. |
+| The spider has scraped N item(s), but none have been written to storage yet | Buffered on the runner. Wait. |
+| This job is running and has not scraped anything yet | Nothing yet - check the log if it stays that way. |
+| This job finished without scraping any items | The crawl really did produce nothing. See below. |
+| Its stored data has passed the retention period | The items existed and have been deleted per your plan. |
+
+From here you can leave the data where it is and read it in the dashboard, or add a [destination](/spider-cloud/destinations) so every finished job delivers a copy into your own database.
+
+## When it does not work
+
+These four are the ones that actually happen.
+
+<Warning>
+**Routing is on and the project has no ScrapeUnblocker key.** The job fails immediately - it does not queue - with *"project 'x' has no ScrapeUnblocker API key, and this job routes traffic through ScrapeUnblocker"*. Fix it under **Settings → ScrapeUnblocker key → Use my account key**. Failing loudly is deliberate: a job stuck in `pending` for this reason would look like a busy queue rather than a misconfiguration.
+</Warning>
+
+**The job finished with zero items.** Look at **Stats** first. Responses at zero means nothing was fetched - a spider that yields no requests, or a component that failed to initialise. Responses without items means the crawl worked and the extraction did not, which is a selector problem you can see in the **Logs**. Note that a job which made no successful requests at all is reported as `failed` rather than `finished`, on purpose: a green job with no data is the worst way to find out.
+
+**The build failed.** The dashboard shows the build log; the useful part is near the end, and it is almost always a dependency that would not install. Fix `requirements.txt` and deploy again - the failed version number is simply skipped.
+
+**The deploy built but no spiders were found.** The image is fine and `scrapy list` returned nothing usable. Check that the repository really holds a Scrapy project with spiders under its `spiders/` package, and that they import cleanly.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="ScrapeUnblocker routing" icon="shield-halved" href="/spider-cloud/routing">
+    The three modes, what each costs, and how a spider marks a single request.
+  </Card>
+  <Card title="Schedules" icon="calendar" href="/spider-cloud/schedules">
+    Run it every morning without you, in your own timezone.
+  </Card>
+  <Card title="Projects and settings" icon="sliders" href="/spider-cloud/projects">
+    Environment variables, Scrapy settings, and which of the two your project actually reads.
+  </Card>
+  <Card title="Destinations" icon="database" href="/spider-cloud/destinations">
+    Deliver every finished job's items into your own database.
+  </Card>
+</CardGroup>
