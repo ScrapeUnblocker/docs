@@ -35,6 +35,11 @@ description: "Notable changes to the ScrapeUnblocker API."
   measurement showed arrive within ~0.4 s, and Google's "unusual traffic"
   challenge went undetected whenever it was served at the search URL instead of
   redirecting - so a burnt exit was retried instead of replaced. Both fixed.
+
+  **`wait_after_load` works again.** The engine now serving SERP was ignoring it
+  entirely. It is also no longer something you should need: extraction waits for
+  the ads on its own, so use `wait_after_load` only when you deliberately want a
+  longer settle.
 </Update>
 
 <Update label="2026-07-28" description="Spider Cloud documented">

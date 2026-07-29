@@ -116,7 +116,12 @@ If the proxy pool for that country is exhausted or unavailable, the response inc
 
 ### `wait_after_load`
 
-Seconds to wait after the SERP loads before extraction. Set this if you're seeing ads missing from `topAds`/`bottomAds` - some ad units render late.
+Extra seconds to wait before extraction, on top of the wait we already do.
+
+You should not normally need it: extraction waits for the paid units to finish
+arriving before reading the page, so ads are not missed because of timing. Reach
+for this only when you have a specific reason to let a SERP settle longer - it
+is added to your response time as-is.
 
 ```bash
 curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=insurance&wait_after_load=3" \
