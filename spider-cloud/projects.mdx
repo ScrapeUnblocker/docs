@@ -50,9 +50,9 @@ A job that pins one setting therefore does not drop the rest - only that key cha
 ### Which one does your project actually read?
 
 <Warning>
-**A project ported from Zyte-style hosting usually cannot see environment variables at all.**
+**Some projects cannot see environment variables at all.**
 
-That pattern builds its configuration by calling something like `populate_settings(_get_apisettings())` in `settings.py`, which reads a platform-supplied settings blob and **never touches `os.environ`**. Outside that platform, such a module quietly falls back to its hardcoded defaults, and anything you put in the environment is never read by anyone.
+If your `settings.py` builds its configuration from a settings blob handed to it by whatever ran it, rather than from `os.environ`, then it **never reads the environment**. Moved somewhere new, such a module quietly falls back to its hardcoded defaults, and anything you put in the environment is never read by anyone.
 
 For those projects, **Scrapy settings are the only project-level way to configure the spider** - they arrive at `cmdline` priority, which outranks the module no matter what it decided.
 </Warning>
