@@ -3,6 +3,40 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-29" description="SERP: every ad, accurate organic counts, AI Overview">
+  **`/serpApi` now returns every paid unit on the page.** Google had started
+  serving part of its ad inventory from a wrapper inside the organic column
+  rather than the two containers we read, so those units were missing: a German
+  insurance query carried six ads and came back with four. Ads are now found
+  wherever they sit and sorted into `topAds` / `bottomAds` by their position
+  relative to the organic results.
+
+  **`organicResultsCount` was double the real number.** Two of the paths used to
+  collect organic results reached the same entries at different depths, so every
+  result was returned twice - positions 1-9 followed by an identical 10-18. The
+  list is now deduplicated, which means the count you get for an unchanged query
+  will be about half of what it was, and correct. Paid blocks that Google places
+  inside the organic column are excluded from `organic` as well.
+
+  **New field: `aiOverview`.** Google's AI-written summary above the results,
+  with the hostnames it cites, or `null` when the search has none:
+
+  ```json
+  "aiOverview": {
+    "text": "Web scraping is an automated method used to extract data...",
+    "sources": ["reddit.com", "en.wikipedia.org"]
+  }
+  ```
+
+  It is read from the page we already fetched, never waited for, so it adds no
+  latency. See [SERP scraping](/guides/serp-scraping).
+
+  **Faster, too.** The extraction step used to wait a flat 1.2 s for ads that
+  measurement showed arrive within ~0.4 s, and Google's "unusual traffic"
+  challenge went undetected whenever it was served at the search URL instead of
+  redirecting - so a burnt exit was retried instead of replaced. Both fixed.
+</Update>
+
 <Update label="2026-07-28" description="Spider Cloud documented">
   **[Spider Cloud](/spider-cloud/overview)** now has its own section: host your
   own Scrapy project with us, deploy it straight from a git repository, run and

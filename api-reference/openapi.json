@@ -96,7 +96,7 @@
           "Scraping"
         ],
         "summary": "Scrape a Google search SERP for organic + ad results",
-        "description": "Runs a Google web search for `keyword` and returns a normalized JSON structure with `topAds`, `bottomAds`, `organic` results, `totalResults`, and the proxy country actually used. Set `pages_to_check` 1-10 to paginate. `wait_after_load` adds a delay after the SERP loads (useful for sites where ads render late); `captcha_pause` lets you eyeball / solve a CAPTCHA when running interactively.",
+        "description": "Runs a Google web search for `keyword` and returns a normalized JSON structure with `topAds`, `bottomAds`, `organic` results, `totalResults`, `aiOverview` (Google's AI-written summary and the hostnames it cites, or `null` when the search has none), and the proxy country actually used. Set `pages_to_check` 1-10 to paginate. `wait_after_load` adds a delay after the SERP loads (useful for sites where ads render late); `captcha_pause` lets you eyeball / solve a CAPTCHA when running interactively.",
         "operationId": "run_serp_serpApi_post",
         "parameters": [
           {

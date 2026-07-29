@@ -64,9 +64,31 @@ const data = await res.json();
       "description": "Our experts tested...",
       "position": 1
     }
-  ]
+  ],
+  "aiOverview": {
+    "text": "Running shoes are generally chosen by gait, cushioning and...",
+    "sources": ["runnersworld.com", "reddit.com"]
+  }
 }
 ```
+
+### `aiOverview`
+
+Google's AI-written summary above the results, plus the hostnames it cites, or
+`null` when the search does not have one. Whether Google generates an overview
+depends on the query and the region, so treat this as an extra rather than a
+guarantee - a commercial query usually has none, an informational one usually
+does.
+
+It is read from the page we already fetched and never waited for, so it costs
+you no extra time. In rare cases where the overview is still being written when
+the page is captured, the field is `null`.
+
+<Note>
+  `topAds` and `bottomAds` cover the paid units wherever Google puts them,
+  including the blocks it now renders inside the organic column. Anything paid is
+  in one of those two lists and never in `organic`.
+</Note>
 
 ## Useful parameters
 
