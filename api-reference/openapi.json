@@ -1027,6 +1027,246 @@
           }
         ]
       }
+    },
+    "/marketplace/ebay-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape eBay search listings",
+        "description": "Searches any regional eBay marketplace for `keyword` and returns the listings as JSON: `title`, `price` + `currency`, `condition` (with a normalised `conditionCode`), `seller` (username, feedback percentage and score), `shippingCost`, `sold`, `watchers`, `bids`, `image` and a clean item `url`. Filter with `condition`, `listing_type`, `min_price`/`max_price`, `free_shipping`, `seller` or `category`, sort with `sort`, and page with `page`/`page_size` (60, 120 or 240 per page). Set `marketplace` to search a specific site - prices, currency and availability differ between ebay.com, ebay.de, ebay.co.uk and the rest.\n\nWhen eBay finds no exact match it still serves a full page of its own loosely-related suggestions. That case is reported honestly: `exactMatches` is `false` and a `notice` explains it, so those listings are never mistaken for real matches.",
+        "operationId": "ebay_search_marketplace_ebay_search_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Search phrase, e.g. 'iphone 13' or a part number like '1K0953519A'.",
+              "title": "Keyword"
+            },
+            "description": "Search phrase, e.g. 'iphone 13' or a part number like '1K0953519A'."
+          },
+          {
+            "name": "marketplace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Regional eBay site to search. Prices, currency and availability differ per marketplace. One of: ebay.com, ebay.co.uk, ebay.de, ebay.fr, ebay.it, ebay.es, ebay.nl, ebay.pl, ebay.at, ebay.ch, ebay.be, ebay.ie, ebay.ca, ebay.com.au, ebay.in, ebay.ph, ebay.com.sg, ebay.com.my, ebay.com.hk.",
+              "default": "ebay.com",
+              "title": "Marketplace"
+            },
+            "description": "Regional eBay site to search. Prices, currency and availability differ per marketplace. One of: ebay.com, ebay.co.uk, ebay.de, ebay.fr, ebay.it, ebay.es, ebay.nl, ebay.pl, ebay.at, ebay.ch, ebay.be, ebay.ie, ebay.ca, ebay.com.au, ebay.in, ebay.ph, ebay.com.sg, ebay.com.my, ebay.com.hk."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based page number.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based page number."
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Listings per page - eBay's own page sizes: 60, 120, 240.",
+              "default": 60,
+              "title": "Page Size"
+            },
+            "description": "Listings per page - eBay's own page sizes: 60, 120, 240."
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Item condition filter: new, open_box, refurbished, used, for_parts. Omit for every condition.",
+              "title": "Condition"
+            },
+            "description": "Item condition filter: new, open_box, refurbished, used, for_parts. Omit for every condition."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Ordering: best_match, newly_listed, ending_soon, price_asc, price_desc. Default 'best_match'.",
+              "default": "best_match",
+              "title": "Sort"
+            },
+            "description": "Ordering: best_match, newly_listed, ending_soon, price_asc, price_desc. Default 'best_match'."
+          },
+          {
+            "name": "listing_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Listing format: all, buy_it_now, auction. Default 'all'.",
+              "default": "all",
+              "title": "Listing Type"
+            },
+            "description": "Listing format: all, buy_it_now, auction. Default 'all'."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price to include, in the marketplace's currency.",
+              "title": "Min Price"
+            },
+            "description": "Lowest price to include, in the marketplace's currency."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price to include, in the marketplace's currency.",
+              "title": "Max Price"
+            },
+            "description": "Highest price to include, in the marketplace's currency."
+          },
+          {
+            "name": "free_shipping",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only listings eBay marks as free delivery.",
+              "default": false,
+              "title": "Free Shipping"
+            },
+            "description": "Only listings eBay marks as free delivery."
+          },
+          {
+            "name": "seller",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Restrict the search to one seller's username.",
+              "title": "Seller"
+            },
+            "description": "Restrict the search to one seller's username."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "eBay category id to search inside, e.g. '131090' for vehicle parts and accessories.",
+              "title": "Category"
+            },
+            "description": "eBay category id to search inside, e.g. '131090' for vehicle parts and accessories."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to an exit chosen for the marketplace.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to an exit chosen for the marketplace."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `results` array of listings. A search that genuinely matches nothing returns 200 with an empty array, and eBay's relaxed suggestions are flagged with `exactMatches: false`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid search parameters."
+          },
+          "502": {
+            "description": "Blocked by eBay or no results page returned."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
     }
   },
   "components": {

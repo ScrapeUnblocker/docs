@@ -3,6 +3,37 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-07-31" description="New plugin - eBay Search">
+  **`POST /marketplace/ebay-search`** turns any eBay search into structured
+  JSON on 19 regional marketplaces, from `ebay.com` to `ebay.com.au`. Each
+  listing comes back with title, numeric price and currency, condition (plus a
+  normalised `conditionCode`), seller username and feedback, shipping cost,
+  sold / watcher / bid counts, image and a clean item URL:
+
+  ```bash
+  curl -X POST "https://api.scrapeunblocker.com/marketplace/ebay-search?keyword=iphone%2013&condition=used&sort=newly_listed" \
+    -H "x-scrapeunblocker-key: YOUR_API_KEY"
+  ```
+
+  Filter with `condition`, `listing_type`, `min_price`/`max_price`,
+  `free_shipping`, `seller` or `category`; sort with `sort`; page with
+  `page`/`page_size` (60, 120 or 240 per page).
+
+  When eBay finds no exact match it still serves a page of loosely-related
+  suggestions. Those are never passed off as results: the response sets
+  `exactMatches: false` and explains it in `notice`.
+
+  The plugin is live in the [dashboard](https://app.scrapeunblocker.com/dashboard/plugins),
+  in all four SDKs on **0.1.8**, and documented at [eBay Search](/plugins/ebay).
+
+  ```bash
+  pip install scrapeunblocker==0.1.8
+  npm install scrapeunblocker@0.1.8
+  gem install scrapeunblocker -v 0.1.8
+  composer require scrapeunblocker/client:0.1.8
+  ```
+</Update>
+
 <Update label="2026-07-29" description="SERP: every ad, accurate organic counts, AI Overview">
   **`/serpApi` now returns every paid unit on the page.** Google had started
   serving part of its ad inventory from a wrapper inside the organic column

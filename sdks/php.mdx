@@ -77,6 +77,26 @@ $bytes = $su->getImage('https://example.com/photo.jpg');
 file_put_contents('photo.jpg', $bytes);
 ```
 
+## eBay search
+
+Listings from any of the 19 regional eBay marketplaces as JSON:
+
+```php
+$items = $su->ebaySearch('iphone 13', [
+    'marketplace' => 'ebay.com',
+    'condition' => 'used',
+    'sort' => 'newly_listed',
+]);
+
+if ($items['exactMatches']) {
+    foreach ($items['results'] as $item) {
+        echo $item['title'], ' ', $item['price'], ' ', $item['currency'], PHP_EOL;
+    }
+}
+```
+
+`exactMatches` is `false` when eBay found nothing for the keyword and answered with its own loosely-related suggestions instead. Full field list on the [eBay Search plugin page](/plugins/ebay).
+
 ## Skyscanner plugins
 
 ```php

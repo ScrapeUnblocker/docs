@@ -74,6 +74,22 @@ bytes = su.get_image("https://example.com/photo.jpg")
 File.binwrite("photo.jpg", bytes)
 ```
 
+## eBay search
+
+Listings from any of the 19 regional eBay marketplaces as JSON:
+
+```ruby
+items = su.ebay_search("iphone 13", marketplace: "ebay.com", condition: "used", sort: "newly_listed")
+
+if items["exactMatches"]
+  items["results"].each do |item|
+    puts [item["title"], item["price"], item["currency"], item["condition"]].join(" | ")
+  end
+end
+```
+
+`exactMatches` is `false` when eBay found nothing for the keyword and answered with its own loosely-related suggestions instead. Full field list on the [eBay Search plugin page](/plugins/ebay).
+
 ## Skyscanner plugins
 
 ```ruby

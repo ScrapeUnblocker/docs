@@ -92,6 +92,25 @@ with open("photo.jpg", "wb") as f:
     f.write(data)
 ```
 
+## eBay search
+
+Listings from any of the 19 regional eBay marketplaces as JSON:
+
+```python
+items = su.ebay_search(
+    "iphone 13",
+    marketplace="ebay.com",
+    condition="used",
+    sort="newly_listed",
+)
+
+if items["exactMatches"]:
+    for item in items["results"]:
+        print(item["title"], item["price"], item["currency"], item["condition"])
+```
+
+`exactMatches` is `False` when eBay found nothing for the keyword and answered with its own loosely-related suggestions instead. Full field list on the [eBay Search plugin page](/plugins/ebay).
+
 ## Skyscanner plugins
 
 Flights, hotels and car hire as JSON. Resolve a place name to entity IDs, then search:

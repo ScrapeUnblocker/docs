@@ -1,0 +1,169 @@
+---
+title: "eBay Search plugin"
+description: "eBay search listings as clean JSON - title, price, condition, seller feedback, shipping, sold counts and a direct item link, on any regional marketplace."
+sidebarTitle: "eBay Search"
+---
+
+The **eBay Search** plugin turns any eBay search into structured JSON. Give it a keyword and a marketplace, and it returns the listings eBay shows - each with title, price and currency, condition, seller username and feedback, shipping cost, sold and watcher counts, image and a clean item URL.
+
+It runs on the same eBay-specific path that already serves thousands of eBay requests an hour through our API, so you get the listings without touching eBay's bot wall, and without an eBay developer account, OAuth flow or API quota.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /marketplace/ebay-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keyword` | yes | Search phrase, e.g. `iphone 13`, or a part number like `1K0953519A`. |
+| `marketplace` | no | Regional eBay site. Default `ebay.com`. See the list below. |
+| `page` | no | 1-based page number. Default `1`. |
+| `page_size` | no | Listings per page: `60`, `120` or `240` (eBay's own page sizes). Default `60`. |
+| `condition` | no | `new`, `open_box`, `refurbished`, `used` or `for_parts`. Omit for every condition. |
+| `sort` | no | `best_match` (default), `newly_listed`, `ending_soon`, `price_asc`, `price_desc`. |
+| `listing_type` | no | `all` (default), `buy_it_now` or `auction`. |
+| `min_price` / `max_price` | no | Price range in the marketplace's own currency. |
+| `free_shipping` | no | `true` to keep only listings eBay marks as free delivery. |
+| `seller` | no | Restrict the search to one seller's username. |
+| `category` | no | eBay category id to search inside, e.g. `131090` for vehicle parts. |
+| `proxy_country` | no | Exit-IP country (ISO-2, e.g. `US`, `DE`). |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/marketplace/ebay-search?keyword=iphone%2013&marketplace=ebay.com&condition=used&sort=newly_listed" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Supported marketplaces
+
+`ebay.com` `ebay.co.uk` `ebay.de` `ebay.fr` `ebay.it` `ebay.es` `ebay.nl` `ebay.pl` `ebay.at` `ebay.ch` `ebay.be` `ebay.ie` `ebay.ca` `ebay.com.au` `ebay.in` `ebay.ph` `ebay.com.sg` `ebay.com.my` `ebay.com.hk`
+
+Prices, currency, stock and even condition labels differ per marketplace, so pick the one you actually sell or buy in.
+
+## Response
+
+```json
+{
+  "keyword": "iphone 13",
+  "marketplace": "ebay.com",
+  "page": 1,
+  "pageSize": 60,
+  "searchUrl": "https://www.ebay.com/sch/i.html?_nkw=iphone+13&_ipg=60&_sop=12",
+  "totalResults": 27000,
+  "totalResultsRaw": "27,000 + results for iphone 13",
+  "exactMatches": true,
+  "resultsCollected": 60,
+  "results": [
+    {
+      "position": 1,
+      "listingId": "283987164379",
+      "title": "Apple iPhone 13 128GB Unlocked - Very Good Condition",
+      "url": "https://www.ebay.com/itm/283987164379",
+      "image": "https://i.ebayimg.com/images/g/BPIA/s-l500.webp",
+      "condition": "Pre-Owned",
+      "conditionCode": "used",
+      "itemSpecifics": ["Pre-Owned", "Apple"],
+      "seller": {
+        "username": "discountcomputerdepot",
+        "feedbackPercent": 99.6,
+        "feedbackScore": 168600,
+        "feedbackRaw": "discountcomputerdepot 99.6% positive (168.6K)"
+      },
+      "price": 284.99,
+      "currency": "USD",
+      "priceRaw": "$284.99",
+      "shippingCost": 0,
+      "shippingRaw": "Free delivery in 2-4 days",
+      "freeShipping": true,
+      "freeReturns": true,
+      "sold": 1653,
+      "watchers": null,
+      "bids": null,
+      "timeLeftRaw": null,
+      "buyItNow": true,
+      "bestOffer": false,
+      "locationRaw": "Located in United States",
+      "attributes": ["Almost gone"]
+    }
+  ]
+}
+```
+
+### Search fields
+
+| Field | Notes |
+| --- | --- |
+| `totalResults` | eBay's own result count for the search, as an integer. |
+| `totalResultsRaw` | The same count as eBay words it, e.g. `27,000 + results for iphone 13`. |
+| `exactMatches` | `false` when eBay found nothing for the keyword - see below. |
+| `searchUrl` | The exact eBay URL the search ran against, so any result is reproducible. |
+| `resultsCollected` | Number of real listings on this page (eBay's filler cards are dropped). |
+
+### Listing fields
+
+| Field | Notes |
+| --- | --- |
+| `listingId` | eBay's own listing id. |
+| `title` | Listing title. |
+| `url` | Clean item URL, with eBay's tracking parameters stripped. |
+| `image` | Thumbnail URL. |
+| `price` / `currency` | Numeric price and ISO currency, parsed from the marketplace's own format. |
+| `priceRaw` | Price exactly as eBay printed it, e.g. `EUR 269,90`. |
+| `condition` | eBay's own condition label, in the marketplace's language. |
+| `conditionCode` | Normalised: `new`, `new_other`, `open_box`, `refurbished`, `used`, `for_parts`, or `null` for a label we do not map. |
+| `itemSpecifics` | The full attribute line, e.g. `["Good - Refurbished", "Dell"]`. |
+| `seller` | `username`, `feedbackPercent`, `feedbackScore`, and the raw line. `null` when eBay shows no seller. |
+| `shippingCost` | Numeric delivery surcharge, `0` for free delivery, `null` when eBay does not state it. |
+| `freeShipping` / `freeReturns` | Booleans when eBay states them, `false`/`null` otherwise. |
+| `sold` / `watchers` / `bids` | Counts, when the listing shows them. |
+| `timeLeftRaw` | Auction countdown as eBay words it. |
+| `buyItNow` / `bestOffer` | Buying formats offered on the listing. |
+| `locationRaw` | Item location line, e.g. `Located in United States`. |
+| `attributes` | Any other line eBay printed on the card, verbatim. |
+| `position` | 1-based rank on the page. |
+
+<Note>
+Fields marked "raw" carry eBay's own wording in the marketplace's language. They are kept alongside the parsed values so nothing eBay showed is lost, even on a marketplace whose phrasing we do not normalise.
+</Note>
+
+## When eBay finds nothing
+
+Search eBay for a string that matches no listing and it does **not** return an empty page. It returns a full page of loosely-related suggestions under a heading that reads `0 results`. Reporting those as matches would be wrong, so the plugin flags the state instead:
+
+```json
+{
+  "totalResults": 0,
+  "exactMatches": false,
+  "resultsCollected": 60,
+  "notice": "eBay found no exact matches for this keyword. The listings below are eBay's own relaxed suggestions..."
+}
+```
+
+Check `exactMatches` before treating the listings as results. When it is `true`, every listing is a genuine match for your keyword.
+
+## What you can build
+
+- **Price monitoring** - track what a product actually sells for across marketplaces and conditions, not just its list price.
+- **Competitor and seller research** - pull a seller's full inventory with `seller`, including feedback and sold counts.
+- **Sourcing and arbitrage** - compare the same keyword on `ebay.de` and `ebay.com` with `condition=used` to spot price gaps.
+- **Parts lookup** - search a manufacturer part number inside `category=131090` to find used vehicle parts and who stocks them.
+- **Demand signals** - `sold` and `watchers` show what is actually moving, per listing.
+
+## eBay's own Browse API
+
+eBay publishes a Browse API, but it needs a developer account, an OAuth application, per-call rate limits and a review process, and it exposes a different subset of listings than the site itself shows. This plugin needs none of that: it reads the same search page a buyer sees, with your ScrapeUnblocker key and nothing else.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an eBay search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
