@@ -136,6 +136,15 @@ A profile URL returns `page_type: "social_profile"` with `username`, `nickname`,
   rather than guessed at. Each entry carries a post `url` - fetch that for the
   exact counts. TikTok profiles are the same: the profile carries account
   totals, and per-video numbers come from the video URL.
+
+  Verified against live payloads: a profile timeline node carries only
+  `code`, `caption`, `display_uri`, `media_type` and the author - Instagram
+  serves engagement for exactly one media per page, the one the page is about.
+  Both shapes also carry `counts_hidden`: on a post it is `true` when the
+  creator has turned like counts off, which tells a `null` you can act on apart
+  from one you cannot. On a profile grid it is `null` along with the counts,
+  because Instagram sends neither. `posts_count` is `null` on a logged-out
+  profile fetch for the same reason - the field is in the payload, sent empty.
 </Note>
 
 ## When parsed data is the right choice
