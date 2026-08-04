@@ -137,8 +137,13 @@ Seconds to pause if Google shows a CAPTCHA, giving an interactive user time to s
 | Code | Meaning |
 | --- | --- |
 | `403` | Google CAPTCHA after retries on multiple proxies. Try a different `proxy_country` or wait. |
+| `502` | Zero results with no "no results" notice on the page, on two separate fetches - an upstream block, not an empty search. Retry. |
 | `504` | SERP fetch timed out. Lower `pages_to_check` or retry. |
 | `422` | Missing `keyword` or invalid parameter range |
+
+A keyword Google genuinely has no results for is **not** an error: you get `200`
+with `resultsCollected: 0` and an empty `organic` array. This is normal for narrow
+`site:` queries, and it means you can trust an empty result set instead of retrying it.
 
 ## Tips
 
