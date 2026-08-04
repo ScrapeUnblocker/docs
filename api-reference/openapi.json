@@ -806,7 +806,7 @@
           "Plugins"
         ],
         "summary": "Scrape Google Local business listings",
-        "description": "Runs a Google Local (`tbm=lcl`) search for `keyword` and returns up to ~20 businesses as JSON: `name`, `rating`, `reviews`, `price`, `category`, `address`, `hours`, and a top `review_snippet`. Local results are location-sensitive - set `proxy_country` (and optionally `gl`/`hl`) to target a market.",
+        "description": "Runs a Google Local (`tbm=lcl`) search for `keyword` and returns up to ~20 businesses as JSON: `name`, `rating`, `reviews`, `price`, `category`, `address`, `phone`, `website`, `hours`, and a top `review_snippet`. `phone` and `website` are null when Google does not render them for that result - service businesses (plumbers, contractors) almost always carry both. Local results are location-sensitive - set `proxy_country` (and optionally `gl`/`hl`) to target a market.",
         "operationId": "google_local_maps_google_local_post",
         "parameters": [
           {

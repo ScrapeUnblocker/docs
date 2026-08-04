@@ -71,6 +71,8 @@ Detected category of the page. Common values:
 - `article` - news, blog, or editorial content
 - `job` - job posting
 - `real_estate` - property listing
+- `social_profile` - a creator/brand profile on TikTok or Instagram
+- `social_post` - a single TikTok video or Instagram post/reel
 - `unknown` - extractor could not classify the page
 
 ### `source`
@@ -88,6 +90,53 @@ Which extraction strategy produced the data:
 ### `data`
 
 The extracted fields. Schema depends on `page_type`. Field names are normalized across sources - a `product` always has `title` and `price` regardless of whether `source` is `schema_org` or `ai_rule`.
+
+## Social pages: TikTok and Instagram
+
+TikTok and Instagram build their pages in the browser from a JSON payload
+embedded in the HTML, so there is very little in the markup to read. Both are
+handled by dedicated extractors that read that payload directly, which means the
+engagement numbers come back as **exact integers** rather than the rounded,
+prose-formatted values the page eventually paints (`36K likes`).
+
+**TikTok** - a video URL returns `page_type: "social_post"`:
+
+```json
+{
+  "page_type": "social_post",
+  "data": {
+    "video_id": "7665302162330766606",
+    "description": "The next giant leap isn't a footprint.",
+    "plays": 338217, "likes": 39511, "comments": 904,
+    "shares": 2514, "saves": 4208, "reposts": 0,
+    "posted_at": "2026-07-22T10:48:34+00:00",
+    "duration_s": 56, "cover_url": "https://...", "hashtags": ["moon"],
+    "music": { "id": "76653", "title": "original sound", "author": "NASA" },
+    "author": {
+      "username": "nasa", "nickname": "NASA", "verified": true,
+      "followers": 421511, "likes": 1618595, "videos": 18
+    }
+  }
+}
+```
+
+A profile URL returns `page_type: "social_profile"` with `username`, `nickname`,
+`bio`, `verified`, `avatar_url`, `followers`, `following`, `likes` and `videos`.
+
+**Instagram** - a post or reel URL returns `page_type: "social_post"` with
+`shortcode`, `caption`, `likes`, `comments`, `posted_at`, `media_type`
+(`image` / `video` / `carousel`), `thumbnail_url`, `video_url`, `hashtags` and an
+`author` block. A profile URL returns `page_type: "social_profile"` with
+`username`, `full_name`, `biography`, `followers`, `following`, `verified`,
+`external_urls` and a `recent_posts` array.
+
+<Note>
+  Instagram does not include per-post engagement in the payload it serves on a
+  **profile** page, so `recent_posts[].likes` and `.comments` are `null` there
+  rather than guessed at. Each entry carries a post `url` - fetch that for the
+  exact counts. TikTok profiles are the same: the profile carries account
+  totals, and per-video numbers come from the video URL.
+</Note>
 
 ## When parsed data is the right choice
 

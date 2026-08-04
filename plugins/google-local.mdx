@@ -1,10 +1,10 @@
 ---
 title: "Google Local plugin"
-description: "Google Maps / Local business listings as clean JSON - name, rating, reviews, category, address and hours. One request, no Places API key."
+description: "Google Maps / Local business listings as clean JSON - name, rating, reviews, category, address, phone, website and hours. One request, no Places API key."
 sidebarTitle: "Google Local"
 ---
 
-The **Google Local** plugin turns a Google Local (Maps) search into structured JSON. Give it a search phrase and a country, and it returns the businesses Google shows in its local finder - each with name, rating, review count, price level, category, address, opening hours and a top review snippet.
+The **Google Local** plugin turns a Google Local (Maps) search into structured JSON. Give it a search phrase and a country, and it returns the businesses Google shows in its local finder - each with name, rating, review count, price level, category, address, phone, website, opening hours and a top review snippet.
 
 It runs on the same warm, anti-bot-cleared Google sessions as our SERP endpoint, so you get the local pack without a Google Places API key, billing project, or quota approval.
 
@@ -50,8 +50,11 @@ A JSON object with a `results` array (up to ~20 businesses) plus counts:
       "price": "$10-20",
       "category": "Coffee shop",
       "address": "646 N Michigan Ave",
+      "phone": "(312) 646-0184",
+      "website": "https://www.starbucksreserve.com/",
       "hours": "Closed - Opens 6:30 AM",
-      "review_snippet": "The wide variety of coffee, food, drinks, and alcohol is out of this world."
+      "review_snippet": "The wide variety of coffee, food, drinks, and alcohol is out of this world.",
+      "sponsored": false
     }
   ]
 }
@@ -65,13 +68,25 @@ A JSON object with a `results` array (up to ~20 businesses) plus counts:
 | `price` | Price level as shown (e.g. `$10-20`), when present. |
 | `category` | Primary category (e.g. `Coffee shop`). |
 | `address` | Street address as shown in the listing. |
+| `phone` | Phone number as shown, or `null`. |
+| `website` | The business's own site, or `null`. |
 | `hours` | Open/closed status line (e.g. `Closed - Opens 6:30 AM`), when present. |
 | `review_snippet` | A top review quote, when present. |
+| `sponsored` | `true` for a paid listing, `false` for an organic one. |
 | `position` | 1-based rank in the local results. |
+
+<Note>
+  `phone` and `website` are `null` when Google does not render them for that
+  result, and how often that happens depends on the vertical. Service
+  businesses almost always carry both - a live `plumbers in chicago` search
+  returned a phone for 21 of 21 results and a website for 20 of 21 - while
+  restaurant and cafe searches often carry neither. We return `null` rather
+  than a value borrowed from a neighbouring listing.
+</Note>
 
 ## What you can build
 
-- **Local lead generation** - pull every business for a category and city, with contact-ready name and address.
+- **Local lead generation** - pull every business for a category and city, with a contact-ready name, address, phone and website.
 - **Review and rating monitoring** - track how a business (or its competitors) ranks and rates over time.
 - **Local SEO research** - see who ranks in the local pack for a keyword and market, and how positions move.
 - **Market mapping** - enumerate coverage of a category across many cities.

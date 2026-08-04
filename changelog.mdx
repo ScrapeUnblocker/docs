@@ -3,6 +3,37 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-08-04" description="TikTok and Instagram parsed data, Google Local contacts, Skyscanner markets">
+  Five fixes, all from one round of outside testing.
+
+  **`parsed_data=true` now works on TikTok and Instagram.** Both sites build
+  their pages in the browser, so there was almost nothing in the markup to read
+  and the response came back as little more than a page title - even though the
+  HTML we handed you carried every number. Dedicated extractors now read the
+  embedded payload, which also means **exact integers** instead of the rounded
+  prose the page paints: a TikTok video returns `plays`, `likes`, `comments`,
+  `shares` and `saves`; an Instagram post returns exact `likes` and `comments`,
+  the real `author.username` and a real `posted_at`. See
+  [Parsed data](/guides/parsed-data#social-pages-tiktok-and-instagram).
+
+  **Google Local returns `phone` and `website`.** The phone used to arrive glued
+  to the end of `hours`; it is now its own field and `hours` is clean. `website`
+  is new. Paid listings are flagged with `sponsored` and no longer report
+  "Sponsored" as the business name. See
+  [Google Local](/plugins/google-local).
+
+  **Skyscanner flights honour `market`, `locale` and `currency`.** A request for
+  `market=TR&locale=tr-TR&currency=TRY` came back priced in GBP with en-GB deep
+  links; it now returns Turkish lira and Turkish place names.
+
+  **`/serpApi` no longer fails a query that has an answer.** A search whose
+  results page did not finish rendering was returned as a successful but empty
+  fetch, which surfaced as `502 No SERP results collected` on a query that
+  worked on the next call. That page is now discarded and retried. Separately, a
+  search where Google genuinely reports no matches - normal for a narrow `site:`
+  query - returns `200` with an empty result set instead of a `502`.
+</Update>
+
 <Update label="2026-07-31" description="New plugin - eBay Search">
   **`POST /marketplace/ebay-search`** turns any eBay search into structured
   JSON on 19 regional marketplaces, from `ebay.com` to `ebay.com.au`. Each
