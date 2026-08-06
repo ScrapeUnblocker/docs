@@ -71,7 +71,8 @@
           {
             "group": "AI Assistants",
             "pages": [
-              "sdks/mcp"
+              "sdks/mcp",
+              "sdks/claude-code"
             ]
           },
           {

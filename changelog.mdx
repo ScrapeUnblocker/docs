@@ -3,6 +3,23 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-08-06" description="Claude Code plugin">
+  **ScrapeUnblocker installs into [Claude Code](https://claude.com/claude-code)
+  with two commands.**
+
+  ```
+  /plugin marketplace add ScrapeUnblocker/claude-code-plugin
+  /plugin install scrapeunblocker@scrapeunblocker
+  ```
+
+  You get the three MCP tools (`fetch_html`, `fetch_parsed`, `google_search`), a
+  `/scrape-url` command, and reference skills Claude pulls in while writing
+  scraping code for your project. Your API key is prompted for once when the
+  plugin is enabled and stored in your operating system's keychain - no
+  environment variable to set, no config file to edit. See
+  [Claude Code Plugin](/sdks/claude-code).
+</Update>
+
 <Update label="2026-08-04" description="TikTok and Instagram parsed data, Google Local contacts, Skyscanner markets">
   Five fixes, all from one round of outside testing.
 

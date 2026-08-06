@@ -1,0 +1,77 @@
+---
+title: "Claude Code Plugin"
+description: "Install ScrapeUnblocker into Claude Code with two commands - MCP tools, a /scrape-url command, and reference skills, with your key stored in the OS keychain."
+---
+
+The official **Claude Code plugin** gives [Claude Code](https://claude.com/claude-code) everything it needs to read pages that block it: the MCP tools, a one-shot `/scrape-url` command, and reference material it pulls in when writing scraping code for your project.
+
+You bring your **own** API key. It is entered once, when the plugin is enabled, and stored in your operating system's keychain - not in a settings file, not in an environment variable.
+
+## Install
+
+Run both commands inside Claude Code:
+
+```
+/plugin marketplace add ScrapeUnblocker/claude-code-plugin
+/plugin install scrapeunblocker@scrapeunblocker
+```
+
+Claude Code asks for your API key while enabling the plugin. Get one from the [dashboard](https://app.scrapeunblocker.com) if you don't have it yet.
+
+## What you get
+
+**MCP tools** - Claude calls these on its own whenever a page is blocked or needs a real browser:
+
+| Tool | What it does |
+|------|--------------|
+| `fetch_html` | Fetch the fully rendered HTML of any URL. |
+| `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
+| `google_search` | Run a Google search and return organic results as JSON. |
+
+**Command** - for when you want an explicit one-off fetch:
+
+```
+/scrapeunblocker:scrape-url https://example.com
+/scrapeunblocker:scrape-url https://example.com parsed
+/scrapeunblocker:scrape-url https://example.com country=US
+```
+
+**Skills** - reference material loaded on demand while Claude writes code against the API:
+
+| Skill | Covers |
+|-------|--------|
+| `best-practices` | Endpoints, parameters, retries, choosing the right call |
+| `page-source` | Rendered HTML, render waits, country targeting |
+| `parsed-data` | Structured extraction and how to fix a bad parse |
+
+## Example prompts
+
+- "Read `https://example-shop.com/product/123` and tell me the price." - Claude reaches for `fetch_html` by itself once the page blocks a plain request.
+- "Get the parsed data for `https://www.amazon.com/dp/B08N5WRWNW` and summarise the product."
+- "Write me a Python script that scrapes these 40 listing URLs." - Claude pulls in the skills and writes it against the SDK, with retries and country targeting handled properly.
+
+## Managing the plugin
+
+| Command | What it does |
+|---------|--------------|
+| `/plugin configure scrapeunblocker@scrapeunblocker` | Change the stored API key |
+| `/plugin update scrapeunblocker` | Pull the latest version |
+| `/plugin uninstall scrapeunblocker@scrapeunblocker` | Remove it |
+
+## Plugin or MCP server?
+
+Both run the same server underneath, so the tools are identical.
+
+| | Plugin | [MCP server](/sdks/mcp) |
+|---|--------|-------------|
+| Setup | Two commands, key prompted for you | Add the server config, set `SCRAPEUNBLOCKER_KEY` yourself |
+| Where the key lives | OS keychain | Environment variable or config file |
+| Extras | `/scrape-url` command, skills | Tools only |
+| Works in | Claude Code | Claude Code, Claude Desktop, claude.ai, any MCP client |
+
+Use the plugin in Claude Code; use the MCP server everywhere else.
+
+## Source
+
+- GitHub: [ScrapeUnblocker/claude-code-plugin](https://github.com/ScrapeUnblocker/claude-code-plugin)
+- The bundled server is the same npm package: [`scrapeunblocker-mcp`](https://www.npmjs.com/package/scrapeunblocker-mcp)
