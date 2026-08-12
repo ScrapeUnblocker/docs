@@ -1267,6 +1267,163 @@
           }
         ]
       }
+    },
+    "/goods/temu-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a Temu product page",
+        "description": "Fetches a single Temu product and returns it as JSON: `name`, `description`, `brand`, `sku`, `price`, `priceCurrency`, `availability`, `rating`, `reviewCount` and `images`. Temu serves product data only to search-engine crawlers, so this reads the ld+json SEO document rather than a browser render. The url must be a product page (path ends in `-g-<id>.html`).",
+        "operationId": "temu_product_goods_temu_product_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Full Temu product url, e.g. 'https://www.temu.com/xyz-g-601099512345678.html'. Must be a product page (its path ends in `-g-<id>.html`); search/category urls have no product data and are rejected.",
+              "title": "Url"
+            },
+            "description": "Full Temu product url, e.g. 'https://www.temu.com/xyz-g-601099512345678.html'. Must be a product page (its path ends in `-g-<id>.html`); search/category urls have no product data and are rejected."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product found and parsed.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Not a Temu product url."
+          },
+          "429": {
+            "description": "Temu fleet rate limit reached - retry shortly."
+          },
+          "502": {
+            "description": "Product document could not be fetched."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/goods/temu-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Search Temu by keyword",
+        "description": "Searches Temu for `keyword` and returns product urls taken from Temu's own search page. With `details=true` it also resolves the top `details_limit` urls to full product objects (name, price, rating, images, ...). Product data comes from Temu's crawler SEO document, so this needs no browser render.",
+        "operationId": "temu_search_goods_temu_search_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Search phrase, e.g. 'kids toys' or 'phone case'.",
+              "title": "Keyword"
+            },
+            "description": "Search phrase, e.g. 'kids toys' or 'phone case'."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Max product urls to return (Temu serves ~14 per search page).",
+              "default": 40,
+              "title": "Limit"
+            },
+            "description": "Max product urls to return (Temu serves ~14 per search page)."
+          },
+          {
+            "name": "details",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "If true, also resolve the top `details_limit` urls to full product objects (each is an extra fetch and counts toward the rate limit).",
+              "default": false,
+              "title": "Details"
+            },
+            "description": "If true, also resolve the top `details_limit` urls to full product objects (each is an extra fetch and counts toward the rate limit)."
+          },
+          {
+            "name": "details_limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "description": "How many results to resolve to full products when `details=true`.",
+              "default": 8,
+              "title": "Details Limit"
+            },
+            "description": "How many results to resolve to full products when `details=true`."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search succeeded (may carry `products` when `details=true`).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "429": {
+            "description": "Temu fleet rate limit reached - retry shortly."
+          },
+          "502": {
+            "description": "Search returned no product urls (block or empty)."
+          },
+          "504": {
+            "description": "Search timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
     }
   },
   "components": {

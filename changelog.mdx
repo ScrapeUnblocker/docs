@@ -3,6 +3,25 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-08-12" description="New Temu plugin - product data and keyword search">
+  **New plugin: [Temu](/plugins/temu).** Two endpoints for Temu, which never
+  serves product data to a browser (the page hydrates through a call that refuses
+  automation). The plugin reads the `ld+json` document Temu serves to search
+  crawlers instead - the only view that carries the real fields.
+
+  - **`POST /goods/temu-product?url=...`** returns a single product as JSON:
+    `name`, `description`, `brand`, `price`, `priceCurrency`, `availability`,
+    `rating`, `reviewCount` and `images`.
+  - **`POST /goods/temu-search?keyword=...`** returns product URLs taken straight
+    from Temu's own search page (no third-party search in the loop). With
+    `details=true` it also resolves the top results to full product objects.
+
+  Temu meters the crawler view, so the plugin is built for **targeted** use
+  (price checks, monitoring, comparison), enforces its own fleet-wide rate limit,
+  and answers `429` when the budget is spent. Price currency follows the exit
+  region. See [the Temu plugin page](/plugins/temu).
+</Update>
+
 <Update label="2026-08-06" description="Claude Code plugin">
   **ScrapeUnblocker installs into [Claude Code](https://claude.com/claude-code)
   with two commands.**

@@ -1,0 +1,160 @@
+---
+title: "Temu plugin"
+description: "Temu product data as clean JSON - name, price, availability, rating, review count and images - plus keyword search that returns product URLs straight from Temu. No browser render."
+sidebarTitle: "Temu"
+---
+
+The **Temu** plugin reads Temu product data as structured JSON. Temu never puts
+product data in the HTML a browser gets - the page hydrates through a client-side
+call that refuses automation - so the plugin reads the `ld+json` SEO document
+Temu serves to search-engine crawlers instead. That document carries the real
+fields: name, description, price and currency, availability, rating, review count
+and the image list.
+
+There are two endpoints: **product** (one product URL to full JSON) and
+**search** (a keyword to Temu product URLs, taken straight from Temu's own search
+page - no third-party search in the loop).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+<Warning>
+Temu meters the crawler view, so this plugin is built for **targeted** use (price
+checks, monitoring, comparison), not bulk crawling. It enforces its own
+fleet-wide rate limit and answers `429` immediately when the budget is spent -
+retry shortly rather than hammering. Price `currency` follows the exit IP's
+region, so the same product can come back in `USD`, `EUR` or `AED`.
+</Warning>
+
+## Product
+
+Fetch a single Temu product by URL.
+
+```
+POST /goods/temu-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `url` | yes | Full Temu product URL. Must be a product page - its path ends in `-g-<id>.html`. Search / category URLs are rejected with `400`. |
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/goods/temu-product?url=https%3A%2F%2Fwww.temu.com%2Fexample-g-601099512345678.html" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Response
+
+```json
+{
+  "url": "https://www.temu.com/example-g-601099512345678.html",
+  "name": "822pcs Spaceship Building Blocks Set",
+  "description": "Shop the 822pcs Spaceship Building Blocks Set on Temu ...",
+  "sku": null,
+  "brand": "Temu",
+  "price": "49.04",
+  "priceCurrency": "USD",
+  "availability": "https://schema.org/InStock",
+  "rating": 4.6,
+  "reviewCount": 871,
+  "images": [
+    "https://img.kwcdn.com/product/fancy/xxxx.jpg"
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `name` | Product title. |
+| `description` | Product description text. |
+| `brand` | Brand name, if present. |
+| `sku` | Source SKU when Temu includes one, else `null`. |
+| `price` | Price as a string, as Temu serves it. |
+| `priceCurrency` | ISO currency of `price`. Follows the exit IP region. |
+| `availability` | schema.org availability URL, e.g. `.../InStock`. |
+| `rating` | Average rating (out of 5). |
+| `reviewCount` | Number of reviews. |
+| `images` | Product image URLs. |
+
+## Search
+
+Search Temu for a keyword and get back product URLs, taken from Temu's own
+search page. With `details=true` it also resolves the top results to full product
+objects (same shape as **Product** above).
+
+```
+POST /goods/temu-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keyword` | yes | Search phrase, e.g. `kids toys` or `phone case`. |
+| `limit` | no | Max product URLs to return, default `40`, max `100`. Temu serves ~14 per search page. |
+| `details` | no | If `true`, also resolve the top `details_limit` URLs to full product objects. Each is an extra fetch and counts toward the rate limit. Default `false`. |
+| `details_limit` | no | How many results to resolve when `details=true`. Default `8`, max `20`. |
+
+```bash cURL
+# URLs only
+curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20toys&limit=20" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+
+# URLs plus full product objects for the top 8
+curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20toys&details=true&details_limit=8" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Response
+
+```json
+{
+  "keyword": "kids toys",
+  "resultsCollected": 14,
+  "urls": [
+    "https://www.temu.com/kids-toy-g-601099500000001.html",
+    "https://www.temu.com/other-toy-g-601099500000002.html"
+  ],
+  "products": [
+    {
+      "url": "https://www.temu.com/kids-toy-g-601099500000001.html",
+      "name": "...",
+      "price": "10.64",
+      "priceCurrency": "EUR",
+      "availability": "https://schema.org/InStock",
+      "rating": 4.6,
+      "reviewCount": 871,
+      "images": ["https://img.kwcdn.com/product/fancy/xxxx.jpg"]
+    }
+  ]
+}
+```
+
+`products` is present only when `details=true`. If the rate budget runs out
+mid-resolve, `products` carries the ones fetched so far and `urls` still lists
+them all.
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | The `url` is not a Temu product page (path must end in `-g-<id>.html`). Product endpoint only. |
+| `429` | The plugin's fleet-wide Temu rate budget is spent. Retry shortly. |
+| `502` | The product/search document could not be fetched (block or empty result). |
+| `504` | The fetch timed out. |
+
+## What you can build
+
+- **Price monitoring** - track a product's `price` and `availability` over time.
+- **Competitive research** - pull a keyword's top listings with `details=true` and compare prices and ratings.
+- **Catalog enrichment** - resolve Temu product URLs to clean fields (name, price, rating, images) for your own catalog.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Temu lookup and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
