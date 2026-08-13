@@ -79,9 +79,9 @@ curl -X POST "https://api.scrapeunblocker.com/goods/temu-product?url=https%3A%2F
 
 ## Search
 
-Search Temu for a keyword and get back product URLs, taken from Temu's own
-search page. With `details=true` it also resolves the top results to full product
-objects (same shape as **Product** above).
+Search Temu for a keyword and get back a page of products with their prices,
+ratings and images already filled in - straight from Temu's own search page,
+about 40 products per call.
 
 ```
 POST /goods/temu-search
@@ -90,17 +90,12 @@ POST /goods/temu-search
 | Field | Required | Notes |
 | --- | --- | --- |
 | `keyword` | yes | Search phrase, e.g. `kids toys` or `phone case`. |
-| `limit` | no | Max product URLs to return, default `40`, max `100`. Temu serves ~14 per search page. |
-| `details` | no | If `true`, also resolve the top `details_limit` URLs to full product objects. Each is an extra fetch and counts toward the rate limit. Default `false`. |
-| `details_limit` | no | How many results to resolve when `details=true`. Default `8`, max `20`. |
+| `limit` | no | Max products to return, default `40`, max `100`. One search page carries ~40. |
+| `details` | no | Rarely needed. Products already come with full fields; this only fills in any that arrived as URL-only, by resolving them to the product document. Default `false`. |
+| `details_limit` | no | How many URL-only results to resolve when `details=true`. Default `8`, max `20`. |
 
 ```bash cURL
-# URLs only
-curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20toys&limit=20" \
-  -H "x-scrapeunblocker-key: YOUR_API_KEY"
-
-# URLs plus full product objects for the top 8
-curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20toys&details=true&details_limit=8" \
+curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20toys&limit=40" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
@@ -109,29 +104,28 @@ curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20t
 ```json
 {
   "keyword": "kids toys",
-  "resultsCollected": 14,
-  "urls": [
-    "https://www.temu.com/kids-toy-g-601099500000001.html",
-    "https://www.temu.com/other-toy-g-601099500000002.html"
-  ],
+  "resultsCollected": 40,
   "products": [
     {
-      "url": "https://www.temu.com/kids-toy-g-601099500000001.html",
-      "name": "...",
-      "price": "10.64",
-      "priceCurrency": "EUR",
-      "availability": "https://schema.org/InStock",
-      "rating": 4.6,
-      "reviewCount": 871,
-      "images": ["https://img.kwcdn.com/product/fancy/xxxx.jpg"]
+      "goodsId": "601099613072998",
+      "name": "Kids Educational Building Blocks Set, 253pcs",
+      "price": 11.68,
+      "marketPrice": 14.77,
+      "currency": "EUR",
+      "rating": 4.8,
+      "reviewCount": "8 914",
+      "sold": "87K+",
+      "image": "https://img.kwcdn.com/product/fancy/xxxx.jpg",
+      "url": "https://www.temu.com/lt-en/kids-toy-g-601099613072998.html"
     }
   ]
 }
 ```
 
-`products` is present only when `details=true`. If the rate budget runs out
-mid-resolve, `products` carries the ones fetched so far and `urls` still lists
-them all.
+Fields per product: `goodsId`, `name`, `price` (a number, e.g. `11.68`),
+`marketPrice` (the crossed-out reference price, `null` when there is no
+discount), `currency`, `rating`, `reviewCount`, `sold`, `image` and `url`. A
+field is `null` when Temu did not supply it for that listing.
 
 ## Errors
 
@@ -145,7 +139,7 @@ them all.
 ## What you can build
 
 - **Price monitoring** - track a product's `price` and `availability` over time.
-- **Competitive research** - pull a keyword's top listings with `details=true` and compare prices and ratings.
+- **Competitive research** - pull a keyword's top ~40 listings and compare prices, RRPs and ratings.
 - **Catalog enrichment** - resolve Temu product URLs to clean fields (name, price, rating, images) for your own catalog.
 
 ## Next steps
