@@ -1,6 +1,6 @@
 ---
-title: "MCP Server (Claude)"
-description: "Connect ScrapeUnblocker to Claude and any other MCP client so the assistant can fetch any web page through your own API key."
+title: "MCP Server"
+description: "Connect ScrapeUnblocker to Claude, ChatGPT and any other MCP client so the assistant can fetch any web page through your own API key."
 ---
 
 The official **MCP server** lets [Claude](https://claude.ai) (Desktop, Code, and the web app) and any other [Model Context Protocol](https://modelcontextprotocol.io) client fetch **any web page's HTML** - or AI-parsed JSON, or Google results - through ScrapeUnblocker, bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
@@ -116,6 +116,28 @@ claude mcp add --transport http scrapeunblocker \
 
 The key can also be sent as an `Authorization: Bearer YOUR_API_KEY` header instead of
 the query parameter.
+
+## ChatGPT
+
+ChatGPT reaches the same hosted server as a **custom connector**. You need a ChatGPT
+**Plus, Pro, Business or Enterprise** plan with **developer mode** enabled. Your API key
+goes in the URL, so there is nothing to sign into.
+
+1. In ChatGPT, open **Settings → Apps & Connectors → Advanced settings** and turn on
+   **Developer mode**.
+2. Back in **Apps & Connectors**, click **Create** (new connector).
+3. Give it a name (e.g. `ScrapeUnblocker`), set **Authentication** to **No authentication**,
+   and paste this as the **MCP Server URL** (your key is already in it):
+   ```
+   https://mcp.scrapeunblocker.com/mcp?key=YOUR_API_KEY
+   ```
+4. Click **Create** and confirm. In a new chat, open the **+** menu → **Developer mode**
+   and enable the connector - the three tools become available.
+
+<Warning>
+  The URL carries your key, so keep it private - anyone who has it can spend your quota.
+  Rotate the key any time from the [dashboard](https://app.scrapeunblocker.com).
+</Warning>
 
 ## Example prompts
 
