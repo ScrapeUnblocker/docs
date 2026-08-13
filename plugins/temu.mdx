@@ -79,9 +79,10 @@ curl -X POST "https://api.scrapeunblocker.com/goods/temu-product?url=https%3A%2F
 
 ## Search
 
-Search Temu for a keyword and get back a page of products with their prices,
-ratings and images already filled in - straight from Temu's own search page,
-about 40 products per call.
+Search Temu for a keyword and get back the matching product URLs - about 40 per
+call, straight from Temu's own search page. Search is discovery only: take the
+URLs it returns and fetch each product's data (name, price, rating, reviews,
+images) through **[Product](#product)** above.
 
 ```
 POST /goods/temu-search
@@ -90,9 +91,7 @@ POST /goods/temu-search
 | Field | Required | Notes |
 | --- | --- | --- |
 | `keyword` | yes | Search phrase, e.g. `kids toys` or `phone case`. |
-| `limit` | no | Max products to return, default `40`, max `100`. One search page carries ~40. |
-| `details` | no | Rarely needed. Products already come with full fields; this only fills in any that arrived as URL-only, by resolving them to the product document. Default `false`. |
-| `details_limit` | no | How many URL-only results to resolve when `details=true`. Default `8`, max `20`. |
+| `limit` | no | Max product URLs to return, default `40`, max `100`. One search page carries ~40. |
 
 ```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20toys&limit=40" \
@@ -105,27 +104,15 @@ curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20t
 {
   "keyword": "kids toys",
   "resultsCollected": 40,
-  "products": [
-    {
-      "goodsId": "601099613072998",
-      "name": "Kids Educational Building Blocks Set, 253pcs",
-      "price": 11.68,
-      "marketPrice": 14.77,
-      "currency": "EUR",
-      "rating": 4.8,
-      "reviewCount": "8 914",
-      "sold": "87K+",
-      "image": "https://img.kwcdn.com/product/fancy/xxxx.jpg",
-      "url": "https://www.temu.com/lt-en/kids-toy-g-601099613072998.html"
-    }
+  "urls": [
+    "https://www.temu.com/lt-en/kids-educational-building-blocks-set-g-601099613072998.html",
+    "https://www.temu.com/lt-en/water-elf-set-g-601104298893637.html"
   ]
 }
 ```
 
-Fields per product: `goodsId`, `name`, `price` (a number, e.g. `11.68`),
-`marketPrice` (the crossed-out reference price, `null` when there is no
-discount), `currency`, `rating`, `reviewCount`, `sold`, `image` and `url`. A
-field is `null` when Temu did not supply it for that listing.
+Each entry is a clean product URL ending in `-g-<id>.html` - pass it to
+`POST /goods/temu-product` to get that product's fields.
 
 ## Errors
 
@@ -139,7 +126,7 @@ field is `null` when Temu did not supply it for that listing.
 ## What you can build
 
 - **Price monitoring** - track a product's `price` and `availability` over time.
-- **Competitive research** - pull a keyword's top ~40 listings and compare prices, RRPs and ratings.
+- **Competitive research** - search a keyword for ~40 product URLs, then resolve each to compare prices, RRPs and ratings.
 - **Catalog enrichment** - resolve Temu product URLs to clean fields (name, price, rating, images) for your own catalog.
 
 ## Next steps

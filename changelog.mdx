@@ -3,12 +3,12 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
-<Update label="2026-08-13" description="Temu search now returns full products with prices">
-  **[Temu search](/plugins/temu#search) upgraded.** `POST /goods/temu-search`
-  now returns about **40 products per keyword with their fields already filled
-  in** - `name`, `price`, `marketPrice` (RRP), `currency`, `rating`,
-  `reviewCount`, `sold`, `image` and `url` - instead of bare URLs. No
-  `details=true` round-trip needed. Typical response time ~2s.
+<Update label="2026-08-13" description="Temu search returns ~40 product URLs, ~2s">
+  **[Temu search](/plugins/temu#search) is faster and wider.** `POST
+  /goods/temu-search` now returns about **40 product URLs per keyword** in ~2s
+  (up from ~14, and no third-party search in the loop). Search is discovery only
+  - fetch each URL's data through `POST /goods/temu-product`. The `details`
+  parameter has been removed.
 </Update>
 
 <Update label="2026-08-12" description="New Temu plugin - product data and keyword search">
