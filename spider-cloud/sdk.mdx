@@ -1,0 +1,104 @@
+---
+title: "SDK and command line"
+description: "Deploy, run, schedule and pull data from your spiders with the Python client and the su-cloud CLI, instead of the dashboard."
+sidebarTitle: "SDK & CLI"
+---
+
+Everything the [dashboard](https://app.scrapeunblocker.com/dashboard/spiders) does, a script can do too. The `scrapeunblocker-cloud` package gives you both a Python client and a `su-cloud` command line: deploy a project, start and watch jobs, schedule them, and stream the scraped items straight back.
+
+```bash
+pip install scrapeunblocker-cloud
+```
+
+It is pure standard library - installing it next to your Scrapy project pulls in no other dependencies.
+
+## Get a token
+
+The SDK authenticates with a per-account API token. Create one in the dashboard under **Spider Cloud → API tokens**: press **Create token**, copy it once (it is shown only that time), and keep it somewhere safe. One token acts as your whole account and reaches every project you own; revoke it from the same place if it ever leaks.
+
+<Note>
+A token is a bearer credential. Keep it out of source control - pass it through the environment or `su-cloud login`, never a committed file.
+</Note>
+
+## Configure
+
+Point the tools at your token and org. Either run `su-cloud login` once, which writes `~/.su-cloud.json`, or set the environment:
+
+```bash
+export SU_CLOUD_TOKEN="suc_..."      # the token you just created
+export SU_CLOUD_ORG="your-org"       # your organisation slug
+export SU_CLOUD_PROJECT="shop"       # optional default project
+```
+
+The endpoint defaults to `https://cloud.scrapeunblocker.com`; set `SU_CLOUD_API` only if you are told to.
+
+## Command line
+
+```bash
+su-cloud login                              # store url/token/org/project in ~/.su-cloud.json
+su-cloud ping                               # check the control plane is reachable
+
+su-cloud deploy                             # package the current Scrapy project and build it
+su-cloud run products -a category=shoes --unblock --wait
+su-cloud jobs --state running
+su-cloud job j1699999999abc                 # one job's detail
+su-cloud logs j1699999999abc --lines 200
+su-cloud items j1699999999abc > out.jsonl   # scraped items to stdout, one JSON per line
+su-cloud download j1699999999abc -o out.jsonl.gz
+su-cloud stats j1699999999abc
+
+su-cloud schedules
+su-cloud schedule-add nightly "0 2 * * *" products --unblock
+su-cloud destinations
+su-cloud destination-add mymongo mongodb -s uri=mongodb+srv://... -s database=shop -s collection=products
+```
+
+`deploy` must be run from the root of your Scrapy project (the folder with `scrapy.cfg`); the project name defaults to that folder's name unless you set one. Pass `--unblock` to route the spider's requests through ScrapeUnblocker - the same switch as the dashboard's [routing](/spider-cloud/routing) control.
+
+## Python
+
+```python
+from scrapeunblocker_cloud import SpiderCloudClient
+
+client = SpiderCloudClient(token="suc_...", org="your-org", project="shop")
+
+# Deploy the current directory, then run a spider through ScrapeUnblocker.
+client.deploy(".", notes="add price field")
+job = client.run("products", args={"category": "shoes"}, unblock=True)
+
+job.wait()                       # block until it finishes
+print(job.state, job.items_total)
+
+for item in job.items():         # stream the scraped data straight back
+    print(item)
+
+for line in job.logs(lines=100):
+    print(line)
+```
+
+Org and project set on the client are the defaults for every call, so a single-project user never repeats them; every method also accepts `org=` / `project=` to override per call.
+
+### What you can reach
+
+| Namespace | Methods |
+|-----------|---------|
+| `client.orgs` | `list`, `create` |
+| `client.projects` | `list`, `create`, `settings`, `update_settings` |
+| `client.deploys` | `list`, `upload`, `from_git` |
+| `client.jobs` | `run`, `list`, `get` |
+| `Job` | `wait`, `refresh`, `logs`, `items`, `items_page`, `download`, `stats`, `cancel`, `.state`, `.done` |
+| `client.schedules` | `list`, `create`, `toggle`, `delete` |
+| `client.destinations` | `list`, `create`, `delete` |
+
+### Pulling data
+
+`job.items()` pages through the whole dataset by cursor and yields one item at a time - it works while the job is still running, returning what has been flushed so far. For a full export as a file, use `job.download("out.jsonl.gz")` (a byte-for-byte `.jsonl.gz`, or `fmt="jsonl"` for plain lines). `job.stats()` returns the crawl statistics - responses by outcome, retries, items and elapsed time.
+
+## Errors
+
+Everything raises a subclass of `SpiderCloudError`: `AuthError` (bad or revoked token), `NotFoundError` (unknown org, project or job), `APIError` (other non-2xx, with `.status` and `.detail`), `ConnectionFailed` (endpoint unreachable) and `ConfigError` (missing token, org or project).
+
+## Links
+
+- **PyPI:** [`scrapeunblocker-cloud`](https://pypi.org/project/scrapeunblocker-cloud/)
+- **Source:** [github.com/ScrapeUnblocker/scrapeunblocker-cloud-python](https://github.com/ScrapeUnblocker/scrapeunblocker-cloud-python)

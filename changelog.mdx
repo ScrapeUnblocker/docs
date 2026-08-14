@@ -3,6 +3,25 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-08-14" description="Spider Cloud SDK and su-cloud CLI">
+  **Spider Cloud has a Python client and a command line.** Everything the
+  dashboard does - deploy a project, run and watch jobs, schedule them, pull the
+  scraped items - now works from a script.
+
+  ```bash
+  pip install scrapeunblocker-cloud
+  ```
+
+  - **`su-cloud` CLI:** `deploy`, `run`, `jobs`, `logs`, `items`, `download`,
+    `stats`, `schedule-add`, `destination-add` and more.
+  - **`SpiderCloudClient` library:** projects, deploys, jobs, schedules and
+    destinations, plus `job.items()` to stream data by cursor and
+    `job.download()` for a full `.jsonl.gz` export.
+  - Authenticates with a per-account **API token**, created in the dashboard
+    under **Spider Cloud → API tokens**. Pure standard library, no runtime
+    dependencies. See [SDK & CLI](/spider-cloud/sdk).
+</Update>
+
 <Update label="2026-08-13" description="Temu search returns ~40 product URLs, ~2s">
   **[Temu search](/plugins/temu#search) is faster and wider.** `POST
   /goods/temu-search` now returns about **40 product URLs per keyword** in ~2s

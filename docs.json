@@ -50,6 +50,7 @@
             "pages": [
               "spider-cloud/overview",
               "spider-cloud/getting-started",
+              "spider-cloud/sdk",
               "spider-cloud/routing",
               "spider-cloud/projects",
               "spider-cloud/deploys",
