@@ -1274,7 +1274,7 @@
           "Plugins"
         ],
         "summary": "Scrape a Temu product page",
-        "description": "Fetches a single Temu product and returns it as JSON: `name`, `description`, `brand`, `sku`, `price`, `priceCurrency`, `availability`, `rating`, `reviewCount` and `images`. Temu serves product data only to search-engine crawlers, so this reads the ld+json SEO document rather than a browser render. The url must be a product page (path ends in `-g-<id>.html`).",
+        "description": "Fetches a single Temu product and returns it as JSON: `name`, `description`, `brand`, `sku`, `price`, `priceCurrency`, `availability`, `itemCondition`, `rating`, `reviewCount`, `variantGroupId`, `images`, `reviews` (per-review rating and date; Temu masks the review text and author name in this document) and `video` (a `{contentUrl, thumbnailUrl, uploadDate}` object when the product ships one, else null). Temu serves product data only to search-engine crawlers, so this reads the ld+json SEO document rather than a browser render. The url must be a product page (path ends in `-g-<id>.html`).",
         "operationId": "temu_product_goods_temu_product_post",
         "parameters": [
           {

@@ -3,6 +3,24 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-08-17" description="Temu product returns reviews, video and variant group">
+  **[Temu product](/plugins/temu#product) returns more fields** - all from the
+  same document, at no extra request. `POST /goods/temu-product` now also
+  includes:
+
+  - **`reviews`** - per-review `rating` and `date`. Temu masks the review author
+    and text in the crawler document (they come back as `****`); the rating and
+    date are real.
+  - **`video`** - `{ contentUrl, thumbnailUrl, uploadDate }` when the product
+    ships a video, else `null`.
+  - **`variantGroupId`** - the Temu product-group ID that ties variants of the
+    same item together.
+  - **`itemCondition`** - schema.org condition URL, e.g. `.../NewCondition`.
+
+  All additive - existing fields are unchanged. The image list still carries the
+  1-2 images Temu puts in the crawler document, not the full gallery.
+</Update>
+
 <Update label="2026-08-14" description="Spider Cloud SDK and su-cloud CLI">
   **Spider Cloud has a Python client and a command line.** Everything the
   dashboard does - deploy a project, run and watch jobs, schedule them, pull the

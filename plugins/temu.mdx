@@ -8,8 +8,9 @@ The **Temu** plugin reads Temu product data as structured JSON. Temu never puts
 product data in the HTML a browser gets - the page hydrates through a client-side
 call that refuses automation - so the plugin reads the `ld+json` SEO document
 Temu serves to search-engine crawlers instead. That document carries the real
-fields: name, description, price and currency, availability, rating, review count
-and the image list.
+fields: name, description, price and currency, availability, item condition,
+rating, review count, variant group, the image list, per-review ratings and a
+product video when one exists.
 
 There are two endpoints: **product** (one product URL to full JSON) and
 **search** (a keyword to Temu product URLs, taken straight from Temu's own search
@@ -58,9 +59,19 @@ curl -X POST "https://api.scrapeunblocker.com/goods/temu-product?url=https%3A%2F
   "availability": "https://schema.org/InStock",
   "rating": 4.6,
   "reviewCount": 871,
+  "itemCondition": "https://schema.org/NewCondition",
+  "variantGroupId": "601099512345678",
   "images": [
     "https://img.kwcdn.com/product/fancy/xxxx.jpg"
-  ]
+  ],
+  "reviews": [
+    { "rating": 5.0, "date": "2026-07-08", "author": "****", "body": "****" }
+  ],
+  "video": {
+    "contentUrl": "https://goods-vod.kwcdn.com/goods-video/xxxx.f30.mp4",
+    "thumbnailUrl": "https://img.kwcdn.com/product/fancy/xxxx.jpg",
+    "uploadDate": "2025-08-27T04:35:42.00Z"
+  }
 }
 ```
 
@@ -73,9 +84,13 @@ curl -X POST "https://api.scrapeunblocker.com/goods/temu-product?url=https%3A%2F
 | `price` | Price as a string, as Temu serves it. |
 | `priceCurrency` | ISO currency of `price`. Follows the exit IP region. |
 | `availability` | schema.org availability URL, e.g. `.../InStock`. |
+| `itemCondition` | schema.org condition URL, e.g. `.../NewCondition`. `null` if absent. |
 | `rating` | Average rating (out of 5). |
 | `reviewCount` | Number of reviews. |
-| `images` | Product image URLs. |
+| `variantGroupId` | Temu product-group ID that ties variants of the same item together. `null` if absent. |
+| `images` | Product image URLs. Temu's crawler document carries only 1-2 here (not the full gallery). |
+| `reviews` | Per-review `rating` and `date`. Temu **masks** the review `author` and `body` in the crawler document (they come back as `****`); the rating and date are real. Empty list if none. |
+| `video` | `{ contentUrl, thumbnailUrl, uploadDate }` when the product ships a video, else `null`. |
 
 ## Search
 
