@@ -3,6 +3,15 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-08-17" description="Temu search sort - relevance, sales, recent, price">
+  **[Temu search](/plugins/temu#search) takes a `sort`.** `POST
+  /goods/temu-search?keyword=...&sort=...` now orders results using Temu's own
+  sort: `relevance` (default), `best_selling`, `recent`, `price_asc` (price low
+  to high) or `price_desc` (price high to low). It is server-side, so the whole
+  result set comes back sorted, not just a re-order of the page. The chosen
+  `sort` is echoed in the response.
+</Update>
+
 <Update label="2026-08-17" description="Temu product returns reviews, video and variant group">
   **[Temu product](/plugins/temu#product) returns more fields** - all from the
   same document, at no extra request. `POST /goods/temu-product` now also

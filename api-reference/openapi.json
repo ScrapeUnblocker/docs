@@ -1356,37 +1356,30 @@
               "type": "integer",
               "maximum": 100,
               "minimum": 1,
-              "description": "Max product urls to return (Temu serves ~14 per search page).",
+              "description": "Max product urls to return (one search page carries ~40).",
               "default": 40,
               "title": "Limit"
             },
-            "description": "Max product urls to return (Temu serves ~14 per search page)."
+            "description": "Max product urls to return (one search page carries ~40)."
           },
           {
-            "name": "details",
+            "name": "sort",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "boolean",
-              "description": "If true, also resolve the top `details_limit` urls to full product objects (each is an extra fetch and counts toward the rate limit).",
-              "default": false,
-              "title": "Details"
+              "type": "string",
+              "enum": [
+                "relevance",
+                "best_selling",
+                "recent",
+                "price_asc",
+                "price_desc"
+              ],
+              "default": "relevance",
+              "description": "Result order, using Temu's own sort: relevance (default), best_selling (top sales), recent (most recent), price_asc (price low to high) or price_desc (price high to low).",
+              "title": "Sort"
             },
-            "description": "If true, also resolve the top `details_limit` urls to full product objects (each is an extra fetch and counts toward the rate limit)."
-          },
-          {
-            "name": "details_limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 20,
-              "minimum": 1,
-              "description": "How many results to resolve to full products when `details=true`.",
-              "default": 8,
-              "title": "Details Limit"
-            },
-            "description": "How many results to resolve to full products when `details=true`."
+            "description": "Result order, using Temu's own sort: relevance (default), best_selling (top sales), recent (most recent), price_asc (price low to high) or price_desc (price high to low)."
           }
         ],
         "responses": {

@@ -107,9 +107,10 @@ POST /goods/temu-search
 | --- | --- | --- |
 | `keyword` | yes | Search phrase, e.g. `kids toys` or `phone case`. |
 | `limit` | no | Max product URLs to return, default `40`, max `100`. One search page carries ~40. |
+| `sort` | no | Result order, using Temu's own sort. One of `relevance` (default), `best_selling`, `recent`, `price_asc` (price low to high) or `price_desc` (price high to low). Server-side, so the whole result set is sorted, not just a re-order of the page. |
 
 ```bash cURL
-curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20toys&limit=40" \
+curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20toys&limit=40&sort=price_asc" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
@@ -118,6 +119,7 @@ curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20t
 ```json
 {
   "keyword": "kids toys",
+  "sort": "price_asc",
   "resultsCollected": 40,
   "urls": [
     "https://www.temu.com/lt-en/kids-educational-building-blocks-set-g-601099613072998.html",
