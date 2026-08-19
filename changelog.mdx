@@ -3,6 +3,24 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-08-19" description="API v3 - Google SERP on su_browser, proxy_country fallback, getPageSource redirects Google search">
+  **API v3 - Google SERP overhaul.** [`/serpApi`](/guides/serp-scraping) is now
+  served by our own **su_browser** engine over the ISP proxy pool. Callers use
+  it exactly as before, with two user-facing changes:
+
+  - **`proxy_country` falls back instead of erroring.** It is matched against the
+    countries we can serve (`BE`, `CA`, `CH`, `CN`, `DE`, `DK`, `ES`, `FR`, `GB`,
+    `HK`, `HR`, `IE`, `IT`, `JP`, `KR`, `LT`, `NL`, `NO`, `PL`, `RO`, `SE`, `SG`,
+    `TW`, `US`). Ask for a country we do not have an exit for and the request
+    still succeeds from an available exit, with two extra response fields:
+    `requestedCountry` (the ISO2 you asked for) and `note` (a human-readable
+    explanation of the fallback).
+  - **[`getPageSource`](/guides/page-source) now redirects Google search URLs.** A
+    `google.<tld>/search` path, or a `google.<tld>` homepage with a `q=` query,
+    returns **HTTP 400** pointing you to `POST /serpApi?keyword=<term>`. Other
+    Google URLs (Maps, etc.) are unaffected.
+</Update>
+
 <Update label="2026-08-17" description="Temu search sort - relevance, sales, recent, price">
   **[Temu search](/plugins/temu#search) takes a `sort`.** `POST
   /goods/temu-search?keyword=...&sort=...` now orders results using Temu's own

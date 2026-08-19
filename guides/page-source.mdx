@@ -63,6 +63,17 @@ ScrapeUnblocker keeps a per-domain success history and picks the cheapest path t
 
 You don't pick the route. It's chosen automatically per request based on what has worked for that domain.
 
+<Warning>
+  **Google search URLs are not accepted here.** A `getPageSource` request whose
+  URL is a Google search - a `google.<tld>/search` path, or a `google.<tld>`
+  homepage carrying a `q=` query - returns **HTTP 400** with a plain-text body
+  directing you to the dedicated SERP endpoint: `POST
+  /serpApi?keyword=<term>` (optionally `&proxy_country=<ISO2>`). Google search
+  moved to its own endpoint, which returns structured JSON instead of raw HTML -
+  see [Google SERP scraping](/guides/serp-scraping). Other Google URLs (Maps,
+  etc.) still pass through `getPageSource` normally.
+</Warning>
+
 ## Useful parameters
 
 ### `method` and `value`
@@ -101,7 +112,7 @@ When you add `parsed_data=true` or `get_cookies=true`, the response becomes JSON
 
 | Code | Meaning |
 | --- | --- |
-| `400` | Invalid URL or unsupported scheme |
+| `400` | Invalid URL, unsupported scheme, or a Google search URL - use [`/serpApi`](/guides/serp-scraping) instead |
 | `403` | Every bypass path was blocked - try `proxy_country` or wait |
 | `503` | Target site is serving a server-side outage page |
 | `422` | One of your parameters failed validation |

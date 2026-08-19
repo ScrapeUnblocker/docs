@@ -44,8 +44,12 @@ const data = await res.json();
 ```json
 {
   "keyword": "best running shoes",
-  "proxy_country": "us",
+  "proxyCountry": "us",
   "totalResults": 458000000,
+  "topAdsCount": 1,
+  "bottomAdsCount": 0,
+  "organicResultsCount": 1,
+  "resultsCollected": 1,
   "topAds": [
     {
       "title": "Nike Run Club - Free Shipping",
@@ -71,6 +75,12 @@ const data = await res.json();
   }
 }
 ```
+
+Every response carries `keyword`, `proxyCountry`, `totalResults`, the count
+fields (`topAdsCount`, `bottomAdsCount`, `organicResultsCount`,
+`resultsCollected`), the three result lists (`topAds`, `bottomAds`, `organic`)
+and `aiOverview`. On a country fallback it also carries `requestedCountry` and
+`note` (see [`proxy_country`](#proxy_country) below).
 
 ### `aiOverview`
 
@@ -112,7 +122,34 @@ curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=pizza&proxy_countr
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
-If the proxy pool for that country is exhausted or unavailable, the response includes the country we actually fell back to in the `proxy_country` field.
+**Available countries (ISO2):** `BE`, `CA`, `CH`, `CN`, `DE`, `DK`, `ES`, `FR`,
+`GB`, `HK`, `HR`, `IE`, `IT`, `JP`, `KR`, `LT`, `NL`, `NO`, `PL`, `RO`, `SE`,
+`SG`, `TW`, `US`.
+
+**Country fallback.** If you request a country we do not have an exit for, the
+request does **not** error. The results are served from an available exit, and
+the JSON response carries two extra fields so you know it happened:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `requestedCountry` | string | The ISO2 country you asked for. |
+| `note` | string | Human-readable explanation of the fallback. |
+
+```json
+{
+  "keyword": "pizza",
+  "proxyCountry": "de",
+  "requestedCountry": "il",
+  "note": "Country 'IL' is not available. Results were served from 'DE'. Available countries: BE, CA, CH, CN, DE, DK, ES, FR, GB, HK, HR, IE, IT, JP, KR, LT, NL, NO, PL, RO, SE, SG, TW, US.",
+  "organic": [ ... ]
+}
+```
+
+<Note>
+  `requestedCountry` and `note` appear **only** on a country fallback. On a
+  normal request where your `proxy_country` is available, neither field is
+  present and `proxyCountry` echoes the country you asked for.
+</Note>
 
 ### `wait_after_load`
 
