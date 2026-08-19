@@ -3,7 +3,7 @@
   "info": {
     "title": "ScrapeUnblocker API",
     "description": "Public API for the ScrapeUnblocker proxy/anti-bot service. Authenticate every request with the `x-scrapeunblocker-key` header. Three endpoints are documented here: page-source extraction, Google SERP scraping, and image fetch. All other paths exist for internal operations and are intentionally hidden from this spec.",
-    "version": "1.0.0"
+    "version": "3.0.0"
   },
   "paths": {
     "/getPageSource": {
