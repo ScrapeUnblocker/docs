@@ -1,9 +1,9 @@
 ---
 title: "Country targeting"
-description: "Force requests through a specific country's residential proxy pool."
+description: "Force requests through a specific country's proxy pool."
 ---
 
-The `proxy_country` parameter forces ScrapeUnblocker to use a residential IP from a specific country. It's accepted by all three public endpoints.
+The `proxy_country` parameter forces ScrapeUnblocker to use an exit IP from a specific country. It's accepted by all three public endpoints.
 
 ## When you need it
 
@@ -30,27 +30,44 @@ The `proxy_country` parameter forces ScrapeUnblocker to use a residential IP fro
 
 | Country | Code |
 | --- | --- |
+| Austria | `at` |
 | Belgium | `be` |
+| Brazil | `br` |
+| Bulgaria | `bg` |
 | Canada | `ca` |
 | China | `cn` |
 | Croatia | `hr` |
 | Denmark | `dk` |
-| Finland | `fi` |
+| Estonia | `ee` |
 | France | `fr` |
 | Germany | `de` |
+| Greece | `gr` |
+| Hong Kong | `hk` |
+| Ireland | `ie` |
 | Israel | `il` |
 | Italy | `it` |
 | Japan | `jp` |
+| Latvia | `lv` |
 | Lithuania | `lt` |
+| Luxembourg | `lu` |
+| Moldova | `md` |
 | Netherlands | `nl` |
+| Norway | `no` |
 | Poland | `pl` |
+| Romania | `ro` |
+| Serbia | `rs` |
+| Singapore | `sg` |
+| South Korea | `kr` |
 | Spain | `es` |
 | Sweden | `se` |
+| Switzerland | `ch` |
 | Taiwan | `tw` |
+| Thailand | `th` |
+| Turkey | `tr` |
 | United Kingdom | `gb` |
 | United States | `us` |
 
-If you request a country outside this list, the request still completes but uses our default routing. Check the `proxy_country` field in the response (on `/serpApi`) or use `get_cookies=true` (on `/getPageSource`) to see which country was actually used.
+If you request a country we don't have proxies for, the request fails with `HTTP 400` and the response body lists the countries that are available. Smaller pools (some countries have only a handful of IPs) still work, just with slower rotation. To confirm which country actually served a successful request, check the `proxy_country` field in the response (on `/serpApi`) or use `get_cookies=true` (on `/getPageSource`).
 
 ## Examples
 
