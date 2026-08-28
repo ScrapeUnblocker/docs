@@ -92,6 +92,23 @@ with open("photo.jpg", "wb") as f:
     f.write(data)
 ```
 
+## Amazon
+
+Product and search data as JSON, priced in the marketplace's own currency:
+
+```python
+# One product by ASIN (or url="https://www.amazon.de/dp/B0BSHF7WHW")
+product = su.amazon_product(asin="B0BSHF7WHW", marketplace="amazon.com")
+print(product["title"], product["price"], product["currency"], product["rating"])
+
+# Keyword search
+results = su.amazon_search("wireless headphones", sort="price_asc")
+for item in results["results"]:
+    print(item["title"], item["price"], item["currency"], item["asin"])
+```
+
+`proxy_country` defaults to the marketplace's home country (`amazon.com` -> US, `amazon.de` -> DE), so prices come back in the right currency with no configuration. Full field list on the [Amazon plugin page](/plugins/amazon).
+
 ## eBay search
 
 Listings from any of the 19 regional eBay marketplaces as JSON:

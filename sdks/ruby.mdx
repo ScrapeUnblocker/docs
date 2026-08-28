@@ -74,6 +74,20 @@ bytes = su.get_image("https://example.com/photo.jpg")
 File.binwrite("photo.jpg", bytes)
 ```
 
+## Amazon
+
+Product and search data as JSON, priced in the marketplace's own currency:
+
+```ruby
+product = su.amazon_product(asin: "B0BSHF7WHW", marketplace: "amazon.com")
+puts [product["title"], product["price"], product["currency"], product["rating"]].join(" | ")
+
+results = su.amazon_search("wireless headphones", sort: "price_asc")
+results["results"].each { |item| puts [item["title"], item["price"], item["currency"], item["asin"]].join(" | ") }
+```
+
+`proxy_country` defaults to the marketplace's home country (`amazon.com` -> US, `amazon.de` -> DE), so Amazon prices come back in the right currency. Full field list on the [Amazon plugin page](/plugins/amazon).
+
 ## eBay search
 
 Listings from any of the 19 regional eBay marketplaces as JSON:

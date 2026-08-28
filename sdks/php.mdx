@@ -77,6 +77,24 @@ $bytes = $su->getImage('https://example.com/photo.jpg');
 file_put_contents('photo.jpg', $bytes);
 ```
 
+## Amazon
+
+Product and search data as an array, priced in the marketplace's own currency:
+
+```php
+// One product by ASIN (or ['url' => 'https://www.amazon.de/dp/B0BSHF7WHW'])
+$product = $su->amazonProduct(['asin' => 'B0BSHF7WHW', 'marketplace' => 'amazon.com']);
+echo $product['title'], ' ', $product['price'], ' ', $product['currency'], PHP_EOL;
+
+// Keyword search
+$results = $su->amazonSearch('wireless headphones', ['sort' => 'price_asc']);
+foreach ($results['results'] as $item) {
+    echo $item['title'], ' ', $item['price'], ' ', $item['currency'], ' ', $item['asin'], PHP_EOL;
+}
+```
+
+`proxy_country` defaults to the marketplace's home country (`amazon.com` -> US, `amazon.de` -> DE), so prices come back in the right currency with no configuration. Full field list on the [Amazon plugin page](/plugins/amazon).
+
 ## eBay search
 
 Listings from any of the 19 regional eBay marketplaces as JSON:
