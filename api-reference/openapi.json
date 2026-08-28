@@ -1334,7 +1334,7 @@
           "Plugins"
         ],
         "summary": "Search Temu by keyword",
-        "description": "Searches Temu for `keyword` and returns product urls taken from Temu's own search page. With `details=true` it also resolves the top `details_limit` urls to full product objects (name, price, rating, images, ...). Product data comes from Temu's crawler SEO document, so this needs no browser render.",
+        "description": "Searches Temu for `keyword` and returns the matching product urls (~40 per page). This is discovery only - fetch each url's data (name, price, rating, reviews, images) through `POST /goods/temu-product`. Use `sort` to pick Temu's own result order (relevance, best_selling, recent, price_asc, price_desc). Response time is typically ~2s.",
         "operationId": "temu_search_goods_temu_search_post",
         "parameters": [
           {
@@ -1367,24 +1367,16 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string",
-              "enum": [
-                "relevance",
-                "best_selling",
-                "recent",
-                "price_asc",
-                "price_desc"
-              ],
-              "default": "relevance",
-              "description": "Result order, using Temu's own sort: relevance (default), best_selling (top sales), recent (most recent), price_asc (price low to high) or price_desc (price high to low).",
-              "title": "Sort"
+              "$ref": "#/components/schemas/TemuSort",
+              "description": "Result order, using Temu's own sort: `relevance` (default), `best_selling` (top sales), `recent` (most recent), `price_asc` (price low to high) or `price_desc` (price high to low).",
+              "default": "relevance"
             },
-            "description": "Result order, using Temu's own sort: relevance (default), best_selling (top sales), recent (most recent), price_asc (price low to high) or price_desc (price high to low)."
+            "description": "Result order, using Temu's own sort: `relevance` (default), `best_selling` (top sales), `recent` (most recent), `price_asc` (price low to high) or `price_desc` (price high to low)."
           }
         ],
         "responses": {
           "200": {
-            "description": "Search succeeded (may carry `products` when `details=true`).",
+            "description": "Search succeeded - `urls` carries the product urls.",
             "content": {
               "application/json": {
                 "schema": {}
@@ -1395,10 +1387,272 @@
             "description": "Temu fleet rate limit reached - retry shortly."
           },
           "502": {
-            "description": "Search returned no product urls (block or empty)."
+            "description": "Search returned no urls (block or empty)."
           },
           "504": {
             "description": "Search timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/amazon-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape an Amazon product page",
+        "description": "Fetches a single Amazon product and returns it as JSON: `title`, `brand`, `price` + `currency`, `listPrice` and `savingsPercent`, `availability` (+ a boolean `inStock`), `rating`, `reviewCount`, `seller`, `features` (bullet points), `categories` (breadcrumb) and `images`. Identify the product with either `asin` (plus `marketplace`) or a full product `url`.\n\nAmazon prices each page in the currency of the delivery location it infers from the exit IP, so `proxy_country` defaults to the marketplace's home country (amazon.com -> US) and the call is routed through the Oxylabs ISP + iProyal ISP pool for that country. The exit that served the request is returned as `exitCountry` / `exitProvider`.",
+        "operationId": "amazon_product_marketplace_amazon_product_post",
+        "parameters": [
+          {
+            "name": "asin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Amazon product id (10-char ASIN, e.g. 'B0BSHF7WHW'; books use their ISBN-10). Give either `asin` (with `marketplace`) or a full `url`.",
+              "title": "Asin"
+            },
+            "description": "Amazon product id (10-char ASIN, e.g. 'B0BSHF7WHW'; books use their ISBN-10). Give either `asin` (with `marketplace`) or a full `url`."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Full Amazon product url, e.g. 'https://www.amazon.de/dp/B0BSHF7WHW'. The ASIN and marketplace are read from it, so `asin`/`marketplace` are not needed when a url is given.",
+              "title": "Url"
+            },
+            "description": "Full Amazon product url, e.g. 'https://www.amazon.de/dp/B0BSHF7WHW'. The ASIN and marketplace are read from it, so `asin`/`marketplace` are not needed when a url is given."
+          },
+          {
+            "name": "marketplace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Regional Amazon site the ASIN belongs to. Prices and currency differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au.",
+              "default": "amazon.com",
+              "title": "Marketplace"
+            },
+            "description": "Regional Amazon site the ASIN belongs to. Prices and currency differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so the price comes back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so the price comes back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product found and parsed.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "No/invalid ASIN or url, or unsupported marketplace."
+          },
+          "502": {
+            "description": "Blocked by Amazon or the product page could not be fetched."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/amazon-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Amazon search listings",
+        "description": "Searches any regional Amazon marketplace for `keyword` and returns the result cards as JSON: `asin`, `title`, `price` + `currency`, `listPrice`, `rating`, `reviewCount`, a clean product `url`, `image`, and the `sponsored` / `prime` flags. Filter with `min_price` / `max_price`, order with `sort` (featured, price_asc, price_desc, avg_review, newest), and page with `page`.\n\nFetch each result's full detail (all fields above plus features and images) through `POST /marketplace/amazon-product`. Some cards show no price on the search page (Amazon defers it, or the item has buying options); those return `price: null` and are kept in the list rather than dropped. `proxy_country` defaults to the marketplace's home country (Oxylabs ISP + iProyal ISP pool) so prices are in the expected currency.",
+        "operationId": "amazon_search_marketplace_amazon_search_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Search phrase, e.g. 'wireless headphones' or a brand + model.",
+              "title": "Keyword"
+            },
+            "description": "Search phrase, e.g. 'wireless headphones' or a brand + model."
+          },
+          {
+            "name": "marketplace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Regional Amazon site to search. Prices and currency differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au.",
+              "default": "amazon.com",
+              "title": "Marketplace"
+            },
+            "description": "Regional Amazon site to search. Prices and currency differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based page number.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based page number."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Result order: featured, price_asc, price_desc, avg_review, newest. Default 'featured'.",
+              "default": "featured",
+              "title": "Sort"
+            },
+            "description": "Result order: featured, price_asc, price_desc, avg_review, newest. Default 'featured'."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price to include, in the marketplace's currency.",
+              "title": "Min Price"
+            },
+            "description": "Lowest price to include, in the marketplace's currency."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price to include, in the marketplace's currency.",
+              "title": "Max Price"
+            },
+            "description": "Highest price to include, in the marketplace's currency."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2). Defaults to the marketplace's home country so prices come back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2). Defaults to the marketplace's home country so prices come back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `results` array of product cards.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid search parameters."
+          },
+          "502": {
+            "description": "Blocked by Amazon or no results page returned."
+          },
+          "504": {
+            "description": "Fetch timed out."
           },
           "422": {
             "description": "Validation Error",
@@ -1449,6 +1703,18 @@
           "urls"
         ],
         "title": "MobileDeLiquidityQuery"
+      },
+      "TemuSort": {
+        "type": "string",
+        "enum": [
+          "relevance",
+          "best_selling",
+          "recent",
+          "price_asc",
+          "price_desc"
+        ],
+        "title": "TemuSort",
+        "description": "Temu's own search sort order (maps to Temu's native `filter_items`)."
       },
       "ValidationError": {
         "properties": {

@@ -1,0 +1,165 @@
+---
+title: "Amazon plugin"
+description: "Amazon product and search data as clean JSON - price, currency, list price, rating, reviews, availability, images and ASINs, on any regional marketplace."
+sidebarTitle: "Amazon"
+---
+
+The **Amazon** plugin turns any Amazon product page or keyword search into structured JSON. It is two endpoints:
+
+- **`/marketplace/amazon-product`** - one product by ASIN or URL: title, brand, **price + currency**, list price and savings, availability, rating, review count, seller, feature bullets, categories and images.
+- **`/marketplace/amazon-search`** - a keyword search: the result cards with ASIN, title, **price**, rating, review count, a clean product URL and the sponsored / Prime flags.
+
+It runs on the same Amazon-specific path that already serves Amazon requests through our API, so you get the data without touching Amazon's bot wall, and without a Selling Partner / Product Advertising API account, its approvals or its quotas.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Prices come back in the right currency
+
+Amazon prices every page in the currency of the delivery location it infers from the visitor's IP. Scrape `amazon.com` from a random exit and you get DKK or KRW prices, or a "cannot be shipped" page with no price at all.
+
+This plugin solves that for you: `proxy_country` defaults to the marketplace's home country (`amazon.com` -> US, `amazon.co.uk` -> GB, `amazon.de` -> DE, ...) and the request is routed through our Oxylabs ISP + iProyal ISP pool in that country. So `amazon.com` returns USD, `amazon.de` returns EUR, without you configuring anything. Override `proxy_country` only if you want a different delivery region. The exit that served the call is returned as `exitCountry` / `exitProvider`.
+
+## Product endpoint
+
+```
+POST /marketplace/amazon-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `asin` | one of `asin` / `url` | 10-char product id, e.g. `B0BSHF7WHW` (books use their ISBN-10). Pair with `marketplace`. |
+| `url` | one of `asin` / `url` | Full product URL, e.g. `https://www.amazon.de/dp/B0BSHF7WHW`. The ASIN and marketplace are read from it. |
+| `marketplace` | no | Regional Amazon site the ASIN belongs to. Default `amazon.com`. See the list below. |
+| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to the marketplace's home country. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/marketplace/amazon-product?asin=B0BSHF7WHW&marketplace=amazon.com" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Product response
+
+```json
+{
+  "asin": "B0BSHF7WHW",
+  "marketplace": "amazon.com",
+  "url": "https://www.amazon.com/dp/B0BSHF7WHW",
+  "title": "Apple 2023 MacBook Pro Laptop M2 Pro chip",
+  "brand": "Apple",
+  "price": 1999.00,
+  "currency": "USD",
+  "priceRaw": "$1,999.00",
+  "listPrice": 2499.00,
+  "listPriceRaw": "$2,499.00",
+  "savingsPercent": 20,
+  "availability": "In Stock",
+  "inStock": true,
+  "rating": 4.7,
+  "reviewCount": 386,
+  "seller": "Sold by Amazon.com and Fulfilled by Amazon.",
+  "features": ["SUPERCHARGED BY M2 PRO OR M2 MAX ...", "UP TO 22 HOURS OF BATTERY LIFE ..."],
+  "categories": ["Electronics", "Computers & Accessories", "Laptops"],
+  "image": "https://m.media-amazon.com/images/I/61fd2oCrvyL.jpg",
+  "images": ["https://m.media-amazon.com/images/I/61fd2oCrvyL.jpg", "..."],
+  "proxyCountry": "US",
+  "exitCountry": "us",
+  "exitProvider": "oxylabs"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `price` / `currency` | Numeric price and ISO currency, parsed from Amazon's own format. `null` when the item shows no price (out of stock / buying options only). |
+| `priceRaw` | Price exactly as Amazon printed it. |
+| `listPrice` / `savingsPercent` | The struck-through original price and the discount, when the page shows a deal. |
+| `availability` / `inStock` | Amazon's availability line and a boolean derived from it. |
+| `rating` / `reviewCount` | Star rating (out of 5) and number of ratings. |
+| `seller` | The "Sold by ... Fulfilled by ..." line. |
+| `features` | The bullet points from the product page. |
+| `categories` | The breadcrumb category path. |
+| `images` | All main-image URLs; `image` is the primary one. |
+| `exitCountry` / `exitProvider` | The country and proxy provider of the exit that served the call. |
+
+## Search endpoint
+
+```
+POST /marketplace/amazon-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keyword` | yes | Search phrase, e.g. `wireless headphones`. |
+| `marketplace` | no | Regional Amazon site. Default `amazon.com`. |
+| `page` | no | 1-based page number. Default `1`. |
+| `sort` | no | `featured` (default), `price_asc`, `price_desc`, `avg_review`, `newest`. |
+| `min_price` / `max_price` | no | Price range in the marketplace's own currency. |
+| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to the marketplace's home country. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/marketplace/amazon-search?keyword=wireless%20headphones&sort=price_asc" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Search response
+
+```json
+{
+  "keyword": "wireless headphones",
+  "marketplace": "amazon.com",
+  "page": 1,
+  "sort": "price_asc",
+  "searchUrl": "https://www.amazon.com/s?k=wireless+headphones&s=price-asc-rank",
+  "totalResults": 100000,
+  "totalResultsRaw": "1-16 of over 100,000 results for \"wireless headphones\"",
+  "resultsCollected": 16,
+  "results": [
+    {
+      "position": 1,
+      "asin": "B0GY16ZXZV",
+      "title": "JBL Tune 520BT Wireless On-Ear Headphones",
+      "url": "https://www.amazon.com/dp/B0GY16ZXZV",
+      "image": "https://m.media-amazon.com/images/I/81+BAtgj4EL.jpg",
+      "price": 39.95,
+      "currency": "USD",
+      "priceRaw": "$39.95",
+      "listPrice": 49.95,
+      "rating": 4.3,
+      "reviewCount": 199,
+      "sponsored": false,
+      "prime": true
+    }
+  ]
+}
+```
+
+Fetch each result's full detail through `POST /marketplace/amazon-product` using its `asin`. Some cards show no price on the search page (Amazon defers it, or the item only has buying options); those return `price: null` and are kept in the list rather than dropped.
+
+### Supported marketplaces
+
+`amazon.com` `amazon.co.uk` `amazon.de` `amazon.fr` `amazon.it` `amazon.es` `amazon.nl` `amazon.se` `amazon.pl` `amazon.com.be` `amazon.com.tr` `amazon.ca` `amazon.com.mx` `amazon.com.br` `amazon.co.jp` `amazon.in` `amazon.ae` `amazon.sa` `amazon.sg` `amazon.com.au`
+
+Prices, currency and availability differ per marketplace, so pick the one you actually sell or buy in.
+
+## What you can build
+
+- **Price and buy-box monitoring** - track a product's real selling price, list price and discount over time, per marketplace.
+- **Competitor and catalog research** - pull whole result pages for a keyword, with ratings and review counts as demand signals.
+- **Repricing and arbitrage** - compare the same ASIN on `amazon.de` and `amazon.com` to spot price gaps in the right currencies.
+- **Review and rating tracking** - watch `rating` and `reviewCount` move on the products you care about.
+
+## Amazon's own APIs
+
+Amazon's Product Advertising API and Selling Partner API both need an approved account, tie you to affiliate or seller programs, and expose a different, restricted subset of catalog data. This plugin needs none of that: it reads the same product and search pages a shopper sees, with your ScrapeUnblocker key and nothing else.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Amazon search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

@@ -3,6 +3,22 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-08-28" description="New Amazon plugin - product + search, prices in the right currency">
+  **[Amazon plugin](/plugins/amazon).** Two new endpoints: `POST
+  /marketplace/amazon-product` returns one product by ASIN or URL (title, brand,
+  **price + currency**, list price and savings, availability, rating, review
+  count, seller, feature bullets, categories and images), and `POST
+  /marketplace/amazon-search` returns a keyword search's result cards (ASIN,
+  title, price, rating, review count, clean product URL, sponsored / Prime
+  flags) on any of 20 regional marketplaces.
+
+  Prices come back in the **right currency automatically**: `proxy_country`
+  defaults to the marketplace's home country (`amazon.com` -> US, `amazon.de` ->
+  DE, ...) and the request is routed through our Oxylabs ISP + iProyal ISP pool
+  in that country, so `amazon.com` returns USD and `amazon.de` returns EUR with
+  no configuration. No Selling Partner / Product Advertising API account needed.
+</Update>
+
 <Update label="2026-08-19" description="API v3 - Google SERP on su_browser, proxy_country fallback, getPageSource redirects Google search">
   **API v3 - Google SERP overhaul.** [`/serpApi`](/guides/serp-scraping) is now
   served by our own **su_browser** engine over the ISP proxy pool. Callers use

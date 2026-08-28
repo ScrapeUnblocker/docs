@@ -67,6 +67,7 @@
               "plugins/google-local",
               "plugins/oopbuy-search",
               "plugins/ebay",
+              "plugins/amazon",
               "plugins/temu"
             ]
           },
