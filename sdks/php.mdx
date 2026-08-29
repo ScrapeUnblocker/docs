@@ -77,6 +77,35 @@ $bytes = $su->getImage('https://example.com/photo.jpg');
 file_put_contents('photo.jpg', $bytes);
 ```
 
+## Drive the browser with steps
+
+Pass a native array of actions to run in a real browser after the page loads. You
+get back the HTML of the resulting state.
+
+```php
+$html = $su->getPageSource('https://example.com', [
+    'steps' => [
+        ['action' => 'type', 'selector' => 'input[name=q]', 'value' => 'wireless headphones'],
+        ['action' => 'press_key', 'value' => 'Enter'],
+        ['action' => 'wait_for', 'selector' => '.search-results', 'timeout_ms' => 10000],
+    ],
+]);
+```
+
+Discover the selectors first with `listElements()`, which returns the page's
+interactive elements as an array:
+
+```php
+$page = $su->listElements('https://example.com');
+
+foreach ($page['elements'] as $el) {
+    echo $el['tag'], ' ', $el['selector'], ' ', $el['text'], PHP_EOL;
+}
+```
+
+Each element's `selector` drops straight into a `steps` action. Full action
+reference in the [browser steps guide](/guides/browser-steps).
+
 ## Amazon
 
 Product and search data as an array, priced in the marketplace's own currency:

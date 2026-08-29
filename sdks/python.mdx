@@ -92,6 +92,35 @@ with open("photo.jpg", "wb") as f:
     f.write(data)
 ```
 
+## Drive the browser with steps
+
+Pass a native list of actions to run in a real browser after the page loads. You
+get back the HTML of the resulting state.
+
+```python
+html = su.get_page_source(
+    "https://example.com",
+    steps=[
+        {"action": "type", "selector": "input[name=q]", "value": "wireless headphones"},
+        {"action": "press_key", "value": "Enter"},
+        {"action": "wait_for", "selector": ".search-results", "timeout_ms": 10000},
+    ],
+)
+```
+
+Discover the selectors first with `list_elements()`, which returns the page's
+interactive elements as parsed JSON:
+
+```python
+page = su.list_elements("https://example.com")
+
+for el in page["elements"]:
+    print(el["tag"], el["selector"], el["text"])
+```
+
+Each element's `selector` drops straight into a `steps` action. Full action
+reference in the [browser steps guide](/guides/browser-steps).
+
 ## Amazon
 
 Product and search data as JSON, priced in the marketplace's own currency:

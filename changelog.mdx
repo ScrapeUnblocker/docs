@@ -3,6 +3,31 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-08-29" description="Browser steps and element discovery on getPageSource">
+  **Drive a real browser after the page loads.**
+  [`getPageSource`](/guides/page-source) takes two new parameters, documented in
+  [browser steps and element discovery](/guides/browser-steps):
+
+  - **`steps`** - a JSON array of actions the API runs in a real browser once the
+    page has loaded, before returning the resulting HTML: `wait_for`,
+    `wait_for_text`, `wait`, `click`, `type` (human-like keystrokes), `select`,
+    `press_key` and `scroll`. Fill a search form and read the results, click a
+    "load more" button, scroll an infinite list. Bounded to ~10 steps and a
+    ~30-second total budget; a failed step returns **HTTP 422** with `step_index`,
+    `action`, `reason`, `selector` and the page `html` at the point of failure.
+    Steps have side effects and are not idempotent - treat the call like a POST.
+  - **`list_elements=true`** - the discovery half. Returns the page's interactive
+    elements as JSON (`{ url, count, elements }`) instead of HTML, each element
+    carrying `tag`, `text`, `id`, `name`, `type`, `placeholder`, `aria_label`,
+    `href` and a ready-to-use `selector` you can drop straight into a `steps`
+    action. List the elements, build the steps, run them - a clean loop for AI
+    agents. Read-only and idempotent.
+
+  Both land in the official [Python](/sdks/python), [Node.js](/sdks/nodejs),
+  [PHP](/sdks/php) and [Ruby](/sdks/ruby) clients: pass a native array/list for
+  `steps` and a boolean for `list_elements`.
+</Update>
+
 <Update label="2026-08-28" description="New Amazon plugin - product + search, prices in the right currency">
   **[Amazon plugin](/plugins/amazon).** Two new endpoints: `POST
   /marketplace/amazon-product` returns one product by ASIN or URL (title, brand,

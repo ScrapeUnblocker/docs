@@ -102,6 +102,29 @@ Hard cap on how long ScrapeUnblocker will spend on a single bypass attempt befor
 
 Two-letter ISO country code forcing the request through that country's proxy pool. See [country targeting](/guides/country-targeting).
 
+### `steps` and `list_elements`
+
+Some pages need interaction before the HTML you want exists - a search box to
+type into, a "load more" button to click, content that appears only after
+scrolling. Pass `steps` (a JSON array of browser actions - `click`, `type`,
+`scroll`, `wait_for`, `press_key`, ...) and ScrapeUnblocker runs them in a real
+browser after the page loads, then returns the resulting HTML.
+
+To discover the selectors those actions need, add `list_elements=true`: instead
+of HTML you get back the page's interactive elements as JSON, each with a
+ready-to-use `selector`. List the elements, build your steps, run them.
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  -G \
+  --data-urlencode "url=https://example.com" \
+  --data-urlencode 'steps=[{"action":"type","selector":"input[name=q]","value":"headphones"},{"action":"press_key","value":"Enter"},{"action":"wait_for","selector":".results"}]'
+```
+
+Full action reference, limits and the `422` failure shape are in
+[browser steps and element discovery](/guides/browser-steps).
+
 ## Response
 
 By default, the response body is the prettified HTML of the page. Content-Type is `text/html`.

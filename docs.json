@@ -82,6 +82,7 @@
             "group": "Guides",
             "pages": [
               "guides/page-source",
+              "guides/browser-steps",
               "guides/parsed-data",
               "guides/serp-scraping",
               "guides/image-fetching",

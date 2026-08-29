@@ -87,6 +87,35 @@ const bytes = await su.getImage("https://example.com/photo.jpg");
 await writeFile("photo.jpg", bytes);
 ```
 
+## Drive the browser with steps
+
+Pass a native array of actions to run in a real browser after the page loads. You
+get back the HTML of the resulting state.
+
+```ts
+const html = await su.getPageSource("https://example.com", {
+  steps: [
+    { action: "type", selector: "input[name=q]", value: "wireless headphones" },
+    { action: "press_key", value: "Enter" },
+    { action: "wait_for", selector: ".search-results", timeout_ms: 10000 },
+  ],
+});
+```
+
+Discover the selectors first with `listElements()`, which returns the page's
+interactive elements as parsed JSON:
+
+```ts
+const page = await su.listElements("https://example.com");
+
+for (const el of page.elements) {
+  console.log(el.tag, el.selector, el.text);
+}
+```
+
+Each element's `selector` drops straight into a `steps` action. Full action
+reference in the [browser steps guide](/guides/browser-steps).
+
 ## Amazon
 
 Product and search data as JSON, priced in the marketplace's own currency:

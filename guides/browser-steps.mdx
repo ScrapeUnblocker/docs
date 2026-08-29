@@ -1,0 +1,264 @@
+---
+title: "Browser steps and element discovery"
+description: "Drive a real browser after the page loads - click, type, scroll, wait - then get the resulting HTML. Discover the selectors first with list_elements."
+---
+
+Some pages don't hand you what you need on first load. A search box has to be typed
+into and submitted; a "load more" button has to be clicked; content only appears
+after you scroll. The `steps` parameter lets you script those interactions: you
+pass a JSON array of actions, ScrapeUnblocker runs them in a real browser **after
+the page loads**, and returns the HTML of whatever state the page ends up in.
+
+Its companion, `list_elements=true`, is the discovery half - it returns the page's
+interactive elements as JSON, each with a ready-to-use selector, so you know
+exactly what to put in your `steps`.
+
+## Browser steps
+
+Pass `steps` as a URL-encoded JSON array. Each entry is one action.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  -G \
+  --data-urlencode "url=https://example.com" \
+  --data-urlencode 'steps=[{"action":"click","selector":"#load-more"},{"action":"wait_for","selector":".results .item"}]'
+```
+
+```python Python
+import json, requests
+
+steps = [
+    {"action": "click", "selector": "#load-more"},
+    {"action": "wait_for", "selector": ".results .item"},
+]
+
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://example.com", "steps": json.dumps(steps)},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=120,
+)
+html = r.text
+```
+
+```javascript Node.js
+const steps = [
+  { action: "click", selector: "#load-more" },
+  { action: "wait_for", selector: ".results .item" },
+];
+
+const qs = new URLSearchParams({
+  url: "https://example.com",
+  steps: JSON.stringify(steps),
+});
+
+const res = await fetch(`https://api.scrapeunblocker.com/getPageSource?${qs}`, {
+  method: "POST",
+  headers: { "x-scrapeunblocker-key": "YOUR_API_KEY" },
+});
+const html = await res.text();
+```
+
+</CodeGroup>
+
+The response is the page's HTML **after every step has run** - the same
+`text/html` body a plain `getPageSource` returns, just from the post-interaction
+DOM. Add `parsed_data=true` and you get [parsed JSON](/guides/parsed-data) of that
+final state instead.
+
+### Actions
+
+Every action has an `action` field. Most target an element with a `selector`,
+and each of those accepts an optional `selector_type` and `timeout_ms`.
+
+| Action | Fields | What it does |
+| --- | --- | --- |
+| `wait_for` | `selector`, `selector_type?`, `timeout_ms?` | Wait until the element appears in the DOM. |
+| `wait_for_text` | `value`, `timeout_ms?` | Wait until the given text appears anywhere on the page. |
+| `wait` | `value` (ms, int) | Sleep a fixed number of milliseconds. |
+| `click` | `selector`, `selector_type?`, `timeout_ms?` | Click the element. |
+| `type` | `selector`, `value`, `clear?`, `selector_type?`, `timeout_ms?` | Type text into a field, with human-like keystrokes. `clear` (default `true`) empties the field first. |
+| `select` | `selector`, `value`, `selector_type?`, `timeout_ms?` | Choose an option in a `<select>` dropdown by its value. |
+| `press_key` | `value` | Press a single key (see list below). |
+| `scroll` | `value` (`"bottom"` or int pixels) | Scroll to the bottom, or down by N pixels. |
+
+**`selector_type`** picks how `selector` is interpreted. It defaults to `css`;
+the other values are `xPath`, `className`, `tagName`.
+
+**`press_key`** accepts exactly one of: `Enter`, `Tab`, `Escape`, `Backspace`,
+`Delete`, `Space`, `ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`, `Home`,
+`End`, `PageUp`, `PageDown`.
+
+### Example: fill a search form and read the results
+
+Type a query, submit it with Enter, and wait for the results to render before the
+HTML comes back:
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  -G \
+  --data-urlencode "url=https://example.com" \
+  --data-urlencode 'steps=[
+    {"action":"type","selector":"input[name=q]","value":"wireless headphones"},
+    {"action":"press_key","value":"Enter"},
+    {"action":"wait_for","selector":".search-results","timeout_ms":10000}
+  ]'
+```
+
+### Example: infinite scroll
+
+Scroll to the bottom, wait for the next batch to load, repeat:
+
+```json
+[
+  { "action": "scroll", "value": "bottom" },
+  { "action": "wait", "value": 1500 },
+  { "action": "scroll", "value": "bottom" },
+  { "action": "wait_for_text", "value": "You've reached the end" }
+]
+```
+
+## Limits and timing
+
+<Warning>
+  **Steps run once, and they are not idempotent.** A `click` that submits a form,
+  a `type` that posts a comment - these have side effects on the target site.
+  Retrying a failed `steps` request re-runs the whole sequence from the top. Treat
+  a `steps` call the way you'd treat a POST, not a GET.
+</Warning>
+
+- **Maximum ~10 steps** per request.
+- **A ~30-second total budget** covers all actions combined (the exact ceiling is
+  server-configurable). When the budget runs out mid-sequence, the request fails
+  on the step it was on.
+- **A single `type` action is capped at ~4 seconds** of typing, so very long
+  strings into a slow field will be cut short.
+- Per-step `timeout_ms` bounds how long an individual `wait_for` / `click` / etc.
+  waits for its element, within the overall budget.
+
+## When a step fails
+
+If any step can't complete - the selector never appears, a click has no target,
+the budget runs out - the request returns **HTTP 422** with a JSON body that tells
+you exactly which step broke and what the page looked like at that moment:
+
+```json
+{
+  "error": "step_failed",
+  "step_index": 1,
+  "action": "click",
+  "reason": "selector not found within timeout",
+  "selector": "#load-more",
+  "html": "<!doctype html>..."
+}
+```
+
+- **`step_index`** - zero-based position in your array of the step that failed.
+- **`action`** / **`selector`** - the offending step, echoed back.
+- **`reason`** - a human-readable explanation.
+- **`html`** - the page state at the point of failure, so you can see what was
+  actually on the page (often the selector was just slightly off, or an overlay
+  was in the way).
+
+The most common cause is a selector that doesn't match. That's exactly what
+`list_elements` is for.
+
+## Discover with `list_elements`, then act with `steps`
+
+Instead of guessing selectors from a page you can't see, ask the API for them.
+Add `list_elements=true` and `getPageSource` returns the page's interactive
+elements as JSON instead of HTML:
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com&list_elements=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://example.com", "list_elements": True},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=120,
+)
+elements = r.json()["elements"]
+```
+
+```javascript Node.js
+const res = await fetch(
+  "https://api.scrapeunblocker.com/getPageSource?url=https://example.com&list_elements=true",
+  { method: "POST", headers: { "x-scrapeunblocker-key": "YOUR_API_KEY" } }
+);
+const { elements } = await res.json();
+```
+
+</CodeGroup>
+
+### Response shape
+
+```json
+{
+  "url": "https://example.com",
+  "count": 2,
+  "elements": [
+    {
+      "tag": "input",
+      "selector": "input[name=q]",
+      "text": "",
+      "name": "q",
+      "id": "search-box",
+      "type": "search",
+      "placeholder": "Search products...",
+      "aria_label": "Search",
+      "href": null
+    },
+    {
+      "tag": "button",
+      "selector": "#search-submit",
+      "text": "Search",
+      "name": null,
+      "id": "search-submit",
+      "type": "submit",
+      "placeholder": null,
+      "aria_label": null,
+      "href": null
+    }
+  ]
+}
+```
+
+Each element carries its `tag`, the visible `text`, and the identifying
+attributes (`name`, `id`, `type`, `placeholder`, `aria_label`, `href`, and more).
+The **`selector`** field is the important one: it's ready to drop straight into a
+`steps` action.
+
+### The two-step loop
+
+This pairing is what makes the browser controllable without ever seeing the page -
+ideal for AI agents that decide what to do from structured data:
+
+<Steps>
+  <Step title="List the elements">
+    Call `getPageSource` with `list_elements=true`. You get back every input,
+    button, link and dropdown, each with a working `selector`.
+  </Step>
+  <Step title="Build the steps">
+    Pick the elements you need and copy their `selector` values straight into a
+    `steps` array - `type` into the search input, `click` the submit button.
+  </Step>
+  <Step title="Run and read">
+    Call `getPageSource` again with `steps`. The response is the HTML (or parsed
+    JSON) of the page after your interactions.
+  </Step>
+</Steps>
+
+<Note>
+  `list_elements` is read-only and idempotent - it inspects the page and returns,
+  with no side effects. Only `steps` acts on the page.
+</Note>
