@@ -52,6 +52,34 @@
               "default": false,
               "title": "Get Cookies"
             }
+          },
+          {
+            "name": "list_elements",
+            "in": "query",
+            "required": false,
+            "description": "Return the page's interactive elements (buttons, inputs, selects, links, forms) with ready-to-use selectors instead of HTML, to help build steps.",
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "List Elements"
+            }
+          },
+          {
+            "name": "steps",
+            "in": "query",
+            "required": false,
+            "description": "JSON array of browser actions to run after the page loads (wait_for, wait_for_text, wait, click, type, select, press_key, scroll). The request is rendered in a real browser and runs once.",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Steps"
+            }
           }
         ],
         "responses": {
