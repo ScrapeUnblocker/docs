@@ -51,6 +51,7 @@ curl -X POST "https://api.scrapeunblocker.com/ads/meta-ad-library?advertiser=Nik
       "ended": null,
       "platforms": ["FACEBOOK", "INSTAGRAM", "MESSENGER", "THREADS"],
       "display_format": "VIDEO",
+      "is_dynamic": false,
       "ad_text": "Made to move. The new season is here.",
       "title": "Shop the latest",
       "caption": "nike.com",
@@ -91,7 +92,8 @@ curl -X POST "https://api.scrapeunblocker.com/ads/meta-ad-library?advertiser=Nik
 | `started_running` / `ended` | Run dates (ISO `YYYY-MM-DD`, UTC). `ended` is `null` while the ad is still active. |
 | `platforms` | Where the ad runs: `FACEBOOK`, `INSTAGRAM`, `MESSENGER`, `AUDIENCE_NETWORK`, `THREADS`. |
 | `display_format` | Meta's creative format: `IMAGE`, `VIDEO`, `DCO` (dynamic), `CAROUSEL`, `DPA`. |
-| `ad_text` | The primary ad copy. For dynamic (DCO) ads this can be a template like `{{product.brand}}` - that is the ad as Meta serves it. |
+| `is_dynamic` | `true` for dynamic-creative ads (DCO/DPA) whose copy is a catalog template. Meta fills placeholders like `{{product.name}}` per viewer from the advertiser's product feed, so `ad_text`/`title` come back as the raw template - `is_dynamic` lets you flag those instead of treating the template as literal ad text. |
+| `ad_text` | The primary ad copy. For dynamic (DCO) ads this can be a template like `{{product.brand}}` - that is the ad as Meta serves it (see `is_dynamic`). |
 | `title` / `caption` | The headline and the display link/caption. |
 | `cta_text` / `cta_type` | The button label (`Shop now`) and its type (`SHOP_NOW`, `LEARN_MORE`, `SIGN_UP`, ...). |
 | `link_url` | The landing page the ad sends the click to. |
