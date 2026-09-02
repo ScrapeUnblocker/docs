@@ -68,7 +68,8 @@
               "plugins/oopbuy-search",
               "plugins/ebay",
               "plugins/amazon",
-              "plugins/temu"
+              "plugins/temu",
+              "plugins/meta-ad-library"
             ]
           },
           {

@@ -3,6 +3,23 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-02" description="New Meta Ad Library plugin - a competitor's live Facebook & Instagram ads as JSON">
+  **[Meta Ad Library plugin](/plugins/meta-ad-library).** A new endpoint, `POST
+  /ads/meta-ad-library`, returns a Facebook/Instagram advertiser's ads from Meta's
+  public Ad Library as structured JSON: `ad_text`, `title`, `cta_text`/`cta_type`,
+  `display_format` (image/video/DCO/carousel), `creatives` (image and video URLs),
+  `link_url` (the landing page), `platforms`, and `started_running`/`ended` dates.
+
+  Give it an advertiser - a Page name or a numeric Page ID - and a `country`;
+  filter with `active_status` and `media_type`, and bound the result with
+  `max_ads`. Unlike Meta's official Ad Library API - which returns full data only
+  for political and social-issue ads - this reads the same public library anyone
+  can open, so it covers ordinary commercial advertisers. A competitor-ads tool.
+
+  Available in the [Python](/sdks/python), [Node.js](/sdks/nodejs),
+  [PHP](/sdks/php) and [Ruby](/sdks/ruby) clients.
+</Update>
+
 <Update label="2026-08-29" description="Browser steps and element discovery on getPageSource">
   **Drive a real browser after the page loads.**
   [`getPageSource`](/guides/page-source) takes two new parameters, documented in

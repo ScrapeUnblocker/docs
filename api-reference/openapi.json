@@ -57,29 +57,24 @@
             "name": "list_elements",
             "in": "query",
             "required": false,
-            "description": "Return the page's interactive elements (buttons, inputs, selects, links, forms) with ready-to-use selectors instead of HTML, to help build steps.",
             "schema": {
               "type": "boolean",
+              "description": "Return the page's interactive elements (buttons, inputs, selects, links, forms) with ready-to-use selectors instead of HTML, to help build `steps`.",
               "default": false,
               "title": "List Elements"
-            }
+            },
+            "description": "Return the page's interactive elements (buttons, inputs, selects, links, forms) with ready-to-use selectors instead of HTML, to help build `steps`."
           },
           {
             "name": "steps",
             "in": "query",
             "required": false,
-            "description": "JSON array of browser actions to run after the page loads (wait_for, wait_for_text, wait, click, type, select, press_key, scroll). The request is rendered in a real browser and runs once.",
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
+              "type": "string",
+              "description": "JSON array of browser actions to run after the page loads (wait_for, wait_for_text, wait, click, type, select, press_key, scroll). The request is rendered in a real browser and runs once.",
               "title": "Steps"
-            }
+            },
+            "description": "JSON array of browser actions to run after the page loads (wait_for, wait_for_text, wait, click, type, select, press_key, scroll). The request is rendered in a real browser and runs once."
           }
         ],
         "responses": {
@@ -1678,6 +1673,113 @@
           },
           "502": {
             "description": "Blocked by Amazon or no results page returned."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/ads/meta-ad-library": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape an advertiser's Meta (Facebook) ads",
+        "description": "Pulls a Facebook/Instagram advertiser's ads from the Meta Ad Library and returns them as JSON for competitor analysis: `ad_text`, `title`, `cta_text`/`cta_type`, `display_format` (image/video/DCO/carousel), `creatives` (image and video URLs), `link_url` (the landing page), `platforms`, `started_running`/`ended`, and `is_active`. `advertiser` is a Page name (keyword search) or a numeric Page ID (that advertiser's whole set). Meta scopes the library by `country`. Use `active_status` ('active'/'inactive'/'all') and `media_type` to filter, and `max_ads` to bound the result.",
+        "operationId": "meta_ad_library_ads_meta_ad_library_post",
+        "parameters": [
+          {
+            "name": "advertiser",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Advertiser to pull ads for: a Facebook Page name (keyword search) or a numeric Page ID (that advertiser's whole set).",
+              "title": "Advertiser"
+            },
+            "description": "Advertiser to pull ads for: a Facebook Page name (keyword search) or a numeric Page ID (that advertiser's whole set)."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Ad Library country (ISO-2, e.g. 'US', 'GB', 'DE'). Meta scopes the library by country.",
+              "default": "US",
+              "title": "Country"
+            },
+            "description": "Ad Library country (ISO-2, e.g. 'US', 'GB', 'DE'). Meta scopes the library by country."
+          },
+          {
+            "name": "active_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Which ads to return: 'active', 'inactive', or 'all'.",
+              "default": "active",
+              "title": "Active Status"
+            },
+            "description": "Which ads to return: 'active', 'inactive', or 'all'."
+          },
+          {
+            "name": "media_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Creative type filter: 'all', 'image', 'video', or 'meme'.",
+              "default": "all",
+              "title": "Media Type"
+            },
+            "description": "Creative type filter: 'all', 'image', 'video', or 'meme'."
+          },
+          {
+            "name": "max_ads",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "Upper bound on ads returned (the scraper paginates until it reaches this or runs out).",
+              "default": 50,
+              "title": "Max Ads"
+            },
+            "description": "Upper bound on ads returned (the scraper paginates until it reaches this or runs out)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `results` array of ads (may be empty if the advertiser has no ads for the given filters).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameter (country/active_status/media_type)."
+          },
+          "502": {
+            "description": "Blocked by Meta or no ads collected (proxy/anti-bot failure)."
           },
           "504": {
             "description": "Fetch timed out."

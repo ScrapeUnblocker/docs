@@ -1,0 +1,134 @@
+---
+title: "Meta Ad Library plugin"
+description: "An advertiser's live Facebook & Instagram ads as clean JSON - ad copy, CTA, format, image and video creative URLs, landing page, platforms and run dates."
+sidebarTitle: "Meta Ad Library"
+---
+
+The **Meta Ad Library** plugin turns any Facebook/Instagram advertiser's public ads into structured JSON. Give it an advertiser - a Page name or a numeric Page ID - and it returns the ads Meta shows in its Ad Library: each with the ad copy, call-to-action, format, the image and video creative URLs, the landing page, the platforms it runs on, and its run dates.
+
+It runs a real browser on our own anti-bot fleet and reads the same Ad Library a person sees, then captures Meta's internal results directly - so you get an advertiser's whole active set without a Meta developer account, an access token, or the political-ads-only limits of Meta's official Ad Library API. This is a competitor-ads tool: see what your competitors are running, in which format, and where they send the click.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /ads/meta-ad-library
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `advertiser` | yes | A Facebook Page name (keyword search) or a numeric Page ID (that advertiser's whole set). A Page ID is the exact-advertiser match; a name can span several Pages sharing it. |
+| `country` | no | Ad Library country (ISO-2, e.g. `US`, `GB`, `DE`). Meta scopes the library by country. Default `US`. |
+| `active_status` | no | `active` (default), `inactive`, or `all`. |
+| `media_type` | no | Creative filter: `all` (default), `image`, `video`, or `meme`. |
+| `max_ads` | no | Upper bound on ads returned; the plugin paginates until it reaches this or runs out. Default `50`, max `500`. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/ads/meta-ad-library?advertiser=Nike&country=US&active_status=active&max_ads=30" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Response
+
+```json
+{
+  "advertiser": "Nike",
+  "resultsCollected": 30,
+  "has_more": true,
+  "results": [
+    {
+      "ad_archive_id": "1049210304776058",
+      "collation_id": "1065726462591268",
+      "page_id": "15087023444",
+      "page_name": "Nike",
+      "page_profile_uri": "https://www.facebook.com/nike/",
+      "page_like_count": 39281044,
+      "is_active": true,
+      "started_running": "2026-08-07",
+      "ended": null,
+      "platforms": ["FACEBOOK", "INSTAGRAM", "MESSENGER", "THREADS"],
+      "display_format": "VIDEO",
+      "ad_text": "Made to move. The new season is here.",
+      "title": "Shop the latest",
+      "caption": "nike.com",
+      "cta_text": "Shop now",
+      "cta_type": "SHOP_NOW",
+      "link_url": "https://www.nike.com/w/new-3n82y",
+      "link_description": "Free shipping for members",
+      "creatives": [
+        {
+          "type": "video",
+          "image_url": "https://scontent.xx.fbcdn.net/v/preview.jpg",
+          "video_url": "https://video.xx.fbcdn.net/v/hd.mp4"
+        }
+      ],
+      "categories": ["UNKNOWN"],
+      "currency": null,
+      "reach_estimate": null
+    }
+  ]
+}
+```
+
+### Result fields
+
+| Field | Notes |
+| --- | --- |
+| `resultsCollected` | Number of ads returned on this call (deduplicated by `ad_archive_id`). |
+| `has_more` | `true` when the advertiser has more ads than `max_ads` returned - raise `max_ads` for more. |
+| `ad_archive_id` | Meta's own Ad Library id for the ad. |
+
+### Ad fields
+
+| Field | Notes |
+| --- | --- |
+| `page_name` / `page_id` | The advertiser's Page name and id. |
+| `page_profile_uri` | Link to the advertiser's Facebook Page. |
+| `is_active` | Whether the ad is currently running. |
+| `started_running` / `ended` | Run dates (ISO `YYYY-MM-DD`, UTC). `ended` is `null` while the ad is still active. |
+| `platforms` | Where the ad runs: `FACEBOOK`, `INSTAGRAM`, `MESSENGER`, `AUDIENCE_NETWORK`, `THREADS`. |
+| `display_format` | Meta's creative format: `IMAGE`, `VIDEO`, `DCO` (dynamic), `CAROUSEL`, `DPA`. |
+| `ad_text` | The primary ad copy. For dynamic (DCO) ads this can be a template like `{{product.brand}}` - that is the ad as Meta serves it. |
+| `title` / `caption` | The headline and the display link/caption. |
+| `cta_text` / `cta_type` | The button label (`Shop now`) and its type (`SHOP_NOW`, `LEARN_MORE`, `SIGN_UP`, ...). |
+| `link_url` | The landing page the ad sends the click to. |
+| `creatives` | The ad's media: an array of `{ type, image_url, video_url }`. `type` is `image` or `video`; a video also carries its `image_url` preview. Carousel/DCO ads return one entry per card. |
+| `categories` | Meta's ad categories, `["UNKNOWN"]` for ordinary commercial ads. |
+
+## When an advertiser has no ads
+
+An advertiser with no ads for the given filters is a valid answer, not an error - the call returns `200` with an empty `results` array and `resultsCollected: 0`. Widen `active_status` to `all` or drop the `media_type` filter to see more.
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid `country` / `active_status` / `media_type`. |
+| `502` | Meta blocked the fetch or no ads could be collected (anti-bot or proxy failure) - retry. |
+| `504` | The fetch timed out. |
+
+## What you can build
+
+- **Competitor ad monitoring** - track exactly which ads a rival runs, in which format, and how often the creative changes.
+- **Creative research** - pull a brand's video and image creative URLs to study hooks, offers and CTAs at scale.
+- **Landing-page intel** - `link_url` shows where every ad sends the click - which offers and pages a competitor pushes.
+- **Format and platform mix** - see whether a competitor leans on video vs. image, and Facebook vs. Instagram vs. Threads.
+- **Market entry** - scope who is advertising in a `country` before you spend.
+
+## Meta's own Ad Library API
+
+Meta publishes an Ad Library API, but through it the full data is limited to **political and social-issue ads** - ordinary commercial "competitor ads" are not returned. This plugin reads the same public Ad Library page anyone can open, so it covers commercial advertisers too, with your ScrapeUnblocker key and nothing else.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Pull an advertiser's ads and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
