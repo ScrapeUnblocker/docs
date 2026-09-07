@@ -1,0 +1,113 @@
+---
+title: "ChatGPT (MCP)"
+description: "Connect ScrapeUnblocker to ChatGPT as a custom MCP connector so ChatGPT can fetch any web page through your own API key, past anti-bot protection."
+---
+
+ChatGPT reaches the same hosted [MCP server](/sdks/mcp) as a **custom connector**.
+Once it's added, ChatGPT can fetch any page's HTML, get AI-parsed JSON, run a
+Google search, or list a page's interactive elements - through ScrapeUnblocker,
+bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
+
+<Warning>
+  Set this up in **ChatGPT on the web** ([chatgpt.com](https://chatgpt.com)). The
+  connector screens are **not** available in the ChatGPT desktop app.
+</Warning>
+
+## What you need
+
+- A paid ChatGPT plan (**Plus, Pro, Business or Enterprise**) with **developer mode**.
+  All four ScrapeUnblocker tools are read-only, so a **Plus** plan is enough.
+- Your ScrapeUnblocker API key - grab it from the [dashboard](https://app.scrapeunblocker.com).
+
+## Add the connector
+
+<Steps>
+  <Step title="Turn on developer mode">
+    Open [chatgpt.com](https://chatgpt.com) in your browser, then go to
+    **Settings → Plugins** and turn on **Developer mode** (near the bottom of the
+    list; the toggle itself lives under **Security &amp; login**).
+
+    <Frame caption="Settings → Plugins → Developer mode">
+      <img src="/images/chatgpt/step-1-plugins-developer-mode.png" alt="ChatGPT Settings with Plugins selected and Developer mode at the bottom" />
+    </Frame>
+    <Frame caption="Developer mode turned on">
+      <img src="/images/chatgpt/step-2-developer-mode-on.png" alt="Developer mode toggle turned on" />
+    </Frame>
+  </Step>
+
+  <Step title="Open New Plugin">
+    Back in **Plugins**, click the **+** button (top right) to open **New Plugin**.
+
+    <Frame caption="The New Plugin dialog">
+      <img src="/images/chatgpt/step-3-new-plugin-form.png" alt="New Plugin dialog" />
+    </Frame>
+  </Step>
+
+  <Step title="Fill in the connector">
+    - **Name:** `ScrapeUnblocker`
+    - **Connection:** keep **Server URL**
+    - **Authentication:** **No Auth**
+    - Tick **I understand and want to continue**
+    - **MCP Server URL** (your key is already in it):
+
+    ```
+    https://mcp.scrapeunblocker.com/mcp?key=YOUR_API_KEY
+    ```
+
+    Then click **Create**.
+
+    <Frame caption="Name, Server URL, No Auth, and the URL with your key">
+      <img src="/images/chatgpt/step-4-connector-form.png" alt="Filled New Plugin form with No Auth" />
+    </Frame>
+  </Step>
+
+  <Step title="Use it in a chat">
+    Open the connector to confirm it lists the **four tools**, then use it in any
+    chat - just ask ChatGPT to fetch or search a page.
+
+    <Frame caption="ChatGPT calling the fetch_html tool">
+      <img src="/images/chatgpt/step-7-working-example.png" alt="ChatGPT calling the ScrapeUnblocker fetch_html tool in a chat" />
+    </Frame>
+  </Step>
+</Steps>
+
+## Tools
+
+| Tool | What it does |
+|------|--------------|
+| `fetch_html` | Fetch the fully rendered HTML of any URL. |
+| `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
+| `google_search` | Run a Google search and return organic results as JSON. |
+| `list_elements` | List a page's interactive elements (buttons, inputs, links, forms) with ready-to-use selectors. |
+
+## Example prompts
+
+- "This page keeps blocking me: `https://example-shop.com/product/123`. Fetch it and list the price."
+- "Fetch the parsed data for `https://www.amazon.com/dp/B08N5WRWNW` and summarise the product."
+- "Search Google for `best running shoes 2026` and give me the top 5 links, then fetch the first one."
+
+<Warning>
+  **Keep the connector URL private - it carries your API key.** Anyone who has it
+  can spend your quota. You can rotate the key any time in the
+  [dashboard](https://app.scrapeunblocker.com).
+</Warning>
+
+<Note>
+  ChatGPT connects with your **key in the URL** (No Auth). OAuth sign-in (no key
+  in the URL) is available on [claude.ai](/sdks/mcp).
+</Note>
+
+## Troubleshooting
+
+- **No "Plugins" or "Developer mode" in Settings** - you're likely in the ChatGPT
+  **desktop app**. Open [chatgpt.com](https://chatgpt.com) in a browser instead.
+  (OpenAI renamed "Connectors" to "Plugins" in 2026.)
+- **The connector shows fewer than four tools** - reopen it from **Plugins** and
+  check again; all four (`fetch_html`, `fetch_parsed`, `google_search`,
+  `list_elements`) should be listed.
+
+## Source
+
+- npm: [`scrapeunblocker-mcp`](https://www.npmjs.com/package/scrapeunblocker-mcp)
+- Hosted server: `https://mcp.scrapeunblocker.com/mcp`
+- Full MCP reference: [MCP Server](/sdks/mcp)

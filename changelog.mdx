@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-07" description="ChatGPT setup guide for the MCP server">
+  ChatGPT can now use the hosted [MCP server](/sdks/mcp) as a custom connector -
+  there's a dedicated, screenshot-by-screenshot [ChatGPT setup guide](/sdks/chatgpt).
+  It connects with your API key in the URL (No Auth) from **chatgpt.com** (web,
+  not the desktop app), under **Settings → Plugins → Developer mode**.
+
+  The MCP server exposes **four** tools: `fetch_html`, `fetch_parsed`,
+  `google_search` and `list_elements`.
+</Update>
+
 <Update label="2026-09-02" description="New Meta Ad Library plugin - a competitor's live Facebook & Instagram ads as JSON">
   **[Meta Ad Library plugin](/plugins/meta-ad-library).** A new endpoint, `POST
   /ads/meta-ad-library`, returns a Facebook/Instagram advertiser's ads from Meta's

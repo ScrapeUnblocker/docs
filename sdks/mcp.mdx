@@ -3,7 +3,7 @@ title: "MCP Server"
 description: "Connect ScrapeUnblocker to Claude, ChatGPT and any other MCP client so the assistant can fetch any web page through your own API key."
 ---
 
-The official **MCP server** lets [Claude](https://claude.ai) (Desktop, Code, and the web app) and any other [Model Context Protocol](https://modelcontextprotocol.io) client fetch **any web page's HTML** - or AI-parsed JSON, or Google results - through ScrapeUnblocker, bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
+The official **MCP server** lets [Claude](https://claude.ai) (Desktop, Code, and the web app), [ChatGPT](/sdks/chatgpt), and any other [Model Context Protocol](https://modelcontextprotocol.io) client fetch **any web page's HTML** - or AI-parsed JSON, or Google results - through ScrapeUnblocker, bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
 
 You bring your **own** API key. Nothing is proxied through a shared account.
 
@@ -26,6 +26,7 @@ Requires Node.js 18+. Published on npm as [`scrapeunblocker-mcp`](https://www.np
 | `fetch_html` | Fetch the fully rendered HTML of any URL. |
 | `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
 | `google_search` | Run a Google search and return organic results as JSON. |
+| `list_elements` | List a page's interactive elements (buttons, inputs, links, forms) with ready-to-use selectors. |
 
 ## Get an API key
 
@@ -68,7 +69,7 @@ Grab your key from the [dashboard](https://app.scrapeunblocker.com). The server 
   </Tab>
 </Tabs>
 
-Once connected, the three tools appear automatically and the assistant calls them when it needs to reach a page that would otherwise be blocked.
+Once connected, the four tools appear automatically and the assistant calls them when it needs to reach a page that would otherwise be blocked.
 
 ## Hosted connector (claude.ai web & mobile)
 
@@ -83,7 +84,7 @@ There are two ways to connect: **sign in with OAuth** (no key to copy) or put
 Connect with your ScrapeUnblocker login - no key to paste, and it bills your own
 account.
 
-1. On **claude.ai**: Settings → Connectors → **Add custom connector**.
+1. On **claude.ai**: Customize → Connectors → **+** → **Add custom connector**.
 2. **URL:** `https://mcp.scrapeunblocker.com/mcp` (no `?key=`).
 3. Open **Advanced settings** and set **OAuth Client ID** to:
    ```
@@ -104,7 +105,7 @@ Simplest for Claude Code and other MCP clients - your key goes in the URL:
 https://mcp.scrapeunblocker.com/mcp?key=YOUR_API_KEY
 ```
 
-**claude.ai:** Settings → Connectors → **Add custom connector**, paste the URL above
+**claude.ai:** Customize → Connectors → **+** → **Add custom connector**, paste the URL above
 (with your key), Save.
 
 **Claude Code:**
@@ -119,25 +120,11 @@ the query parameter.
 
 ## ChatGPT
 
-ChatGPT reaches the same hosted server as a **custom connector**. You need a ChatGPT
-**Plus, Pro, Business or Enterprise** plan with **developer mode** enabled. Your API key
-goes in the URL, so there is nothing to sign into.
+ChatGPT connects to the same hosted server as a custom connector, with your API key
+in the URL. Set it up in **ChatGPT on the web** ([chatgpt.com](https://chatgpt.com) -
+not the desktop app) under **Settings → Plugins → Developer mode**.
 
-1. In ChatGPT, open **Settings → Apps & Connectors → Advanced settings** and turn on
-   **Developer mode**.
-2. Back in **Apps & Connectors**, click **Create** (new connector).
-3. Give it a name (e.g. `ScrapeUnblocker`), set **Authentication** to **No authentication**,
-   and paste this as the **MCP Server URL** (your key is already in it):
-   ```
-   https://mcp.scrapeunblocker.com/mcp?key=YOUR_API_KEY
-   ```
-4. Click **Create** and confirm. In a new chat, open the **+** menu → **Developer mode**
-   and enable the connector - the three tools become available.
-
-<Warning>
-  The URL carries your key, so keep it private - anyone who has it can spend your quota.
-  Rotate the key any time from the [dashboard](https://app.scrapeunblocker.com).
-</Warning>
+See the full, screenshot-by-screenshot [ChatGPT setup guide](/sdks/chatgpt).
 
 ## Example prompts
 
