@@ -1,0 +1,208 @@
+---
+title: "TikTok plugin"
+description: "Public TikTok creators, videos and hashtags as clean JSON - exact follower, like and video counts, a creator's newest videos with plays, likes, comments, shares and saves, any video or photo post with music, hashtags, subtitles and download URLs, hashtag totals with videos. No login."
+sidebarTitle: "TikTok"
+---
+
+The **TikTok** plugin reads public TikTok data as structured JSON through three
+endpoints: a **creator profile** with its newest videos, a **single video or
+photo post**, and a **hashtag** with its totals and videos. TikTok renders
+nothing useful into the DOM - the page ships its state as one JSON blob - so
+the plugin reads that blob directly: no browser, no rendering wait, about two
+seconds a page. TikTok publishes every count twice, rounded for display
+(`1.6M`) and exact underneath (`1593675`); you get the exact one.
+
+Video lists are not in the HTML (TikTok loads its grids through signed
+requests), so the plugin reads TikTok's server-rendered embed widgets for the
+newest / top ten, and opens the real page in a browser session when you ask
+for more (up to 200), or when TikTok does not serve a hashtag through the
+widget. Every listed video carries the full video shape below.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins/tiktok](https://app.scrapeunblocker.com/dashboard/plugins/tiktok). You get a live preview plus a copy-paste snippet.
+</Note>
+
+<Warning>
+Only public data is read - no TikTok account, cookies or login. Private, deleted,
+banned or region-locked items answer `404` with TikTok's own reason. Media URLs
+(`playUrl`, `downloadUrl`, covers, music) are signed by TikTok and expire after
+a few hours, so download what you need in the same run.
+</Warning>
+
+## Creator profile
+
+Exact stats, bio, link, flags and the creator's newest videos.
+
+```
+POST /social/tiktok-profile
+```
+
+| Field | Required | Default | Notes |
+| --- | --- | --- | --- |
+| `username` | yes | - | Handle (`nasa`, `@nasa`) or a profile URL. |
+| `max_videos` | no | `10` | Newest videos to include, `0`-`200`. `0` = profile only (fastest). Up to `10` come from TikTok's widget in a couple of seconds; more opens the profile in a browser session and scrolls the real grid (about 35 a batch, 10-30 s). |
+| `video_details` | no | `true` | Read each widget-listed video's own page for exact engagement, hashtags, music, media URLs and timestamps. `false` = only id, caption, cover and play count. |
+| `proxy_country` | no | - | Exit-IP country (ISO-2). TikTok's public pages are the same worldwide; set it only for region-restricted items. |
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/social/tiktok-profile?username=nasa&max_videos=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Response
+
+```json
+{
+  "username": "nasa",
+  "userId": "7664638705177150477",
+  "secUid": "MS4wLjABAAAAU9BRVzC8oCaegVnia8Ibq...",
+  "nickname": "NASA",
+  "bio": "Making the seemingly impossible, possible.",
+  "bioLink": null,
+  "verified": true,
+  "privateAccount": false,
+  "isOrganization": true,
+  "language": "en",
+  "createdAt": "2026-07-20T15:55:49+00:00",
+  "avatar": { "thumb": "https://...", "medium": "https://...", "large": "https://..." },
+  "stats": { "followers": 1593675, "following": 23, "likes": 8063306, "videos": 41, "friends": 17, "diggs": 0 },
+  "commerce": { "commerceUser": false, "seller": false },
+  "settings": { "comments": 0, "duet": 0, "stitch": 0, "download": 0, "followingVisible": 1 },
+  "profileUrl": "https://www.tiktok.com/@nasa",
+  "videos": [ { "...": "full video objects, see below" } ],
+  "videosCollected": 5,
+  "videosSource": "embed",
+  "hasMore": null
+}
+```
+
+`videosSource` is `embed` (widget, newest ten) or `browser` (real grid); `hasMore`
+is set on the browser path when the grid had more than you asked for.
+
+## Video or photo post
+
+One post with exact engagement, media, music and captions.
+
+```
+POST /social/tiktok-video
+```
+
+| Field | Required | Default | Notes |
+| --- | --- | --- | --- |
+| `url` | yes | - | A video URL (`https://www.tiktok.com/@nasa/video/7665075736742530317`), a photo-post URL (`/photo/`), a bare video id, or a `vm.tiktok.com` / `tiktok.com/t/` short link. |
+| `include_transcript` | no | `false` | Also download the subtitle track (TikTok's own captions, mostly auto-generated) and return it as plain text in `transcript`, one line per cue. Adds about a second. |
+| `transcript_language` | no | first track | Preferred subtitle language when several exist (`eng-US`, `spa-ES`, or just `eng`). |
+| `proxy_country` | no | - | Exit-IP country (ISO-2). |
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/social/tiktok-video?url=https%3A%2F%2Fwww.tiktok.com%2F%40nasa%2Fvideo%2F7665075736742530317&include_transcript=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Response
+
+```json
+{
+  "id": "7665075736742530317",
+  "url": "https://www.tiktok.com/@nasa/video/7665075736742530317",
+  "type": "video",
+  "description": "Something big just landed on TikTok.",
+  "title": null,
+  "hashtags": [],
+  "mentions": [],
+  "language": "en",
+  "createdAt": "2026-07-21T20:09:02+00:00",
+  "createdTimestamp": 1784664542,
+  "stats": { "plays": 1200000, "likes": 84400, "comments": 2528, "shares": 2944, "saves": 6302, "reposts": 0 },
+  "author": {
+    "username": "nasa", "nickname": "NASA", "userId": "7664638705177150477", "secUid": "...",
+    "verified": true, "privateAccount": false, "bio": "...", "avatar": "https://...",
+    "profileUrl": "https://www.tiktok.com/@nasa",
+    "stats": { "followers": 1593675, "following": 23, "likes": 8063306, "videos": 41 }
+  },
+  "video": {
+    "duration": 25, "width": 720, "height": 1280, "ratio": "720p", "format": "mp4", "codec": "h264",
+    "bitrate": 1066942, "size": 3356735,
+    "cover": "https://...", "originCover": "https://...", "dynamicCover": "https://...",
+    "playUrl": "https://...", "downloadUrl": "https://...",
+    "qualities": [ { "name": "normal_720_0", "quality": "normal", "bitrate": 1066942, "codec": "h264", "width": 720, "height": 1280, "size": 3356735, "url": "https://..." } ],
+    "subtitles": [ { "language": "eng-US", "format": "webvtt", "source": "ASR", "url": "https://...", "expiresAt": "..." } ],
+    "hasOriginalAudio": true
+  },
+  "images": null,
+  "imageCount": null,
+  "music": { "id": "7665075815390645006", "title": "original sound", "author": "NASA", "album": null, "original": true, "duration": 25, "playUrl": "https://...", "cover": "https://...", "copyrighted": false },
+  "flags": { "isAd": false, "isAigc": false, "private": false, "duetEnabled": true, "stitchEnabled": true, "shareEnabled": true, "commentsEnabled": true, "originalItem": false, "scheduled": false },
+  "labels": ["Space", "Science & Education", "Aerospace & Astronomy"],
+  "suggestedWords": [],
+  "effects": [],
+  "stickerTexts": [],
+  "locationCreated": "US",
+  "aigcDescription": null,
+  "transcript": "We're going back to the Moon...",
+  "transcriptLanguage": "eng-US",
+  "detailed": true
+}
+```
+
+Photo posts come back with `type: "photo"`, a `title`, `images` (URL, width,
+height per image) and `imageCount`; `video` is `null` for them.
+
+## Hashtag
+
+Total views and videos under a tag, plus its videos.
+
+```
+POST /social/tiktok-hashtag
+```
+
+| Field | Required | Default | Notes |
+| --- | --- | --- | --- |
+| `hashtag` | yes | - | Name (`nasa`, `#nasa`) or a tag URL (`https://www.tiktok.com/tag/nasa`). |
+| `max_videos` | no | `10` | Videos to include, `0`-`200`. `0` = totals only. Up to `10` top videos come from TikTok's widget; more scrolls the real grid in a browser session. Hashtags TikTok does not serve through the widget (for example `#comedy`, `#gaming`) are read from the grid too. |
+| `video_details` | no | `true` | As for the profile. |
+| `proxy_country` | no | - | Exit-IP country (ISO-2). |
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/social/tiktok-hashtag?hashtag=nasa&max_videos=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Response
+
+```json
+{
+  "hashtag": "nasa",
+  "id": "3301",
+  "title": null,
+  "cover": null,
+  "url": "https://www.tiktok.com/tag/nasa",
+  "stats": { "views": 56442252172, "videos": 1916718 },
+  "videos": [ { "...": "full video objects" } ],
+  "videosCollected": 5,
+  "videosSource": "embed",
+  "hasMore": null
+}
+```
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Missing or malformed `username` / `url` / `hashtag`, or a bad `proxy_country`. |
+| `404` | The profile does not exist, was banned or is private; the post was deleted, is private or region-locked; the hashtag has no page. The message carries TikTok's status code. |
+| `502` | TikTok blocked every exit, or a browser grid did not arrive in time - retry, or try another `proxy_country`. |
+| `504` | The fetch timed out. |
+
+## What you can build
+
+- **Influencer discovery and vetting** - exact follower counts, engagement per video and posting cadence across a list of handles.
+- **Campaign and hashtag tracking** - total views and videos under a tag over time, and which creators and sounds are winning it right now.
+- **Engagement monitoring** - plays, likes, comments, shares and saves for your own or a competitor's posts, on a schedule.
+- **Content and trend analysis** - captions, hashtags, sounds, topic labels and transcripts for research, dashboards or LLM pipelines.
+
+## Next steps
+
+- [Plugins overview](/plugins/overview) - every dedicated endpoint.
+- [Threads plugin](/plugins/threads) - the same idea for Meta's Threads.
+- [Page source](/getpagesource) - fetch any other TikTok page yourself; `parsed_data=true` returns the profile / video counts as JSON too.

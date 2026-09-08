@@ -69,7 +69,8 @@
               "plugins/ebay",
               "plugins/amazon",
               "plugins/temu",
-              "plugins/meta-ad-library"
+              "plugins/meta-ad-library",
+              "plugins/tiktok"
             ]
           },
           {
@@ -111,7 +112,9 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": ["api-reference/introduction"]
+            "pages": [
+              "api-reference/introduction"
+            ]
           },
           {
             "group": "Scraping",
@@ -170,24 +173,48 @@
       {
         "header": "Product",
         "items": [
-          { "label": "Pricing", "href": "https://scrapeunblocker.com/pricing" },
-          { "label": "Get API key", "href": "https://scrapeunblocker.com/pricing" }
+          {
+            "label": "Pricing",
+            "href": "https://scrapeunblocker.com/pricing"
+          },
+          {
+            "label": "Get API key",
+            "href": "https://scrapeunblocker.com/pricing"
+          }
         ]
       },
       {
         "header": "Resources",
         "items": [
-          { "label": "Documentation", "href": "https://docs.scrapeunblocker.com" },
-          { "label": "API Reference", "href": "https://docs.scrapeunblocker.com/api-reference/introduction" },
-          { "label": "Blog", "href": "https://scrapeunblocker.com/blog" }
+          {
+            "label": "Documentation",
+            "href": "https://docs.scrapeunblocker.com"
+          },
+          {
+            "label": "API Reference",
+            "href": "https://docs.scrapeunblocker.com/api-reference/introduction"
+          },
+          {
+            "label": "Blog",
+            "href": "https://scrapeunblocker.com/blog"
+          }
         ]
       },
       {
         "header": "Company",
         "items": [
-          { "label": "Contact", "href": "https://scrapeunblocker.com/contact" },
-          { "label": "Privacy", "href": "https://scrapeunblocker.com/privacy-policy" },
-          { "label": "Terms", "href": "https://scrapeunblocker.com/terms-and-conditions" }
+          {
+            "label": "Contact",
+            "href": "https://scrapeunblocker.com/contact"
+          },
+          {
+            "label": "Privacy",
+            "href": "https://scrapeunblocker.com/privacy-policy"
+          },
+          {
+            "label": "Terms",
+            "href": "https://scrapeunblocker.com/terms-and-conditions"
+          }
         ]
       }
     ]
@@ -197,7 +224,11 @@
       "display": "none"
     },
     "examples": {
-      "languages": ["curl", "python", "javascript"]
+      "languages": [
+        "curl",
+        "python",
+        "javascript"
+      ]
     }
   },
   "search": {

@@ -3,6 +3,19 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-08" description="New TikTok plugin - creators, videos and hashtags as JSON">
+  **[TikTok plugin](/plugins/tiktok).** Three new endpoints read public TikTok
+  data with no login: `POST /social/tiktok-profile` (exact follower / like /
+  video counts, bio, link, flags and the creator's newest videos, up to 200),
+  `POST /social/tiktok-video` (one video or photo post - exact plays, likes,
+  comments, shares, saves and reposts, hashtags, mentions, author, music,
+  play / download / per-quality URLs, subtitle tracks and, with
+  `include_transcript=true`, the transcript as text) and `POST
+  /social/tiktok-hashtag` (total views and videos under a tag plus its videos,
+  up to 200). Measured over 750 production calls: 99.3% success, 5.9 s average
+  (single videos about 2 s).
+</Update>
+
 <Update label="2026-09-08" description="Documentation moved to docs.scrapeunblocker.com">
   This site now lives at **docs.scrapeunblocker.com**. Every page keeps its
   path: links to `developers.scrapeunblocker.com` redirect permanently (301) to
