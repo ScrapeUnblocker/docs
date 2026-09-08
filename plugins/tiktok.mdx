@@ -4,9 +4,10 @@ description: "Public TikTok creators, videos and hashtags as clean JSON - exact 
 sidebarTitle: "TikTok"
 ---
 
-The **TikTok** plugin reads public TikTok data as structured JSON through three
+The **TikTok** plugin reads public TikTok data as structured JSON through five
 endpoints: a **creator profile** with its newest videos, a **single video or
-photo post**, and a **hashtag** with its totals and videos. TikTok renders
+photo post**, a **hashtag** with its totals and videos, a **keyword search**,
+and the **comments** of a post. TikTok renders
 nothing useful into the DOM - the page ships its state as one JSON blob - so
 the plugin reads that blob directly: no browser, no rendering wait, about two
 seconds a page. TikTok publishes every count twice, rounded for display
@@ -17,6 +18,10 @@ requests), so the plugin reads TikTok's server-rendered embed widgets for the
 newest / top ten, and opens the real page in a browser session when you ask
 for more (up to 200), or when TikTok does not serve a hashtag through the
 widget. Every listed video carries the full video shape below.
+
+Keyword search and comments run in a browser session too: TikTok guards both
+behind its rotate-the-picture captcha, which the session solves on the fly, so
+they take 20-45 seconds a call.
 
 <Note>
 Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins/tiktok](https://app.scrapeunblocker.com/dashboard/plugins/tiktok). You get a live preview plus a copy-paste snippet.
@@ -185,13 +190,92 @@ curl -X POST "https://api.scrapeunblocker.com/social/tiktok-hashtag?hashtag=nasa
 }
 ```
 
+## Keyword search
+
+The videos TikTok ranks for a query, region selectable.
+
+```
+POST /social/tiktok-search
+```
+
+| Field | Required | Default | Notes |
+| --- | --- | --- | --- |
+| `query` | yes | - | Search keywords, e.g. `space telescope`. |
+| `max_results` | no | `20` | Videos to return, `1`-`200` (about 12 arrive per scroll). |
+| `proxy_country` | no | - | Exit-IP country (ISO-2). TikTok ranks search by region, so set it to get what a user in that country sees. |
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/social/tiktok-search?query=space%20telescope&max_results=25" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Response
+
+```json
+{
+  "query": "space telescope",
+  "url": "https://www.tiktok.com/search/video?q=space%20telescope",
+  "results": [ { "...": "full video objects, in TikTok's ranking" } ],
+  "resultsCollected": 25,
+  "hasMore": true
+}
+```
+
+## Comments
+
+The comments of a post, with author, likes, creator flags and preloaded replies.
+
+```
+POST /social/tiktok-comments
+```
+
+| Field | Required | Default | Notes |
+| --- | --- | --- | --- |
+| `url` | yes | - | Video / photo-post URL, bare id or short link (same forms as the video endpoint). |
+| `max_comments` | no | `50` | Top-level comments to return, `1`-`500` (20 arrive per scroll). |
+| `proxy_country` | no | - | Exit-IP country (ISO-2). |
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/social/tiktok-comments?url=https%3A%2F%2Fwww.tiktok.com%2F%40nasa%2Fvideo%2F7665075736742530317&max_comments=40" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Response
+
+```json
+{
+  "videoId": "7665075736742530317",
+  "url": "https://www.tiktok.com/@nasa/video/7665075736742530317",
+  "totalComments": 2532,
+  "comments": [
+    {
+      "id": "7665263325262201622",
+      "text": "Howdy partners!",
+      "createdAt": "2026-07-22T08:17:14+00:00",
+      "createdTimestamp": 1784708234,
+      "likes": 7101,
+      "replyCount": 67,
+      "language": "en",
+      "author": { "username": "europeanspaceagency", "nickname": "ESA", "userId": "7374008994362803233", "secUid": "...", "avatar": "https://...", "profileUrl": "https://www.tiktok.com/@europeanspaceagency" },
+      "isCreator": false,
+      "likedByCreator": true,
+      "replyToCommentId": null,
+      "replies": [],
+      "videoId": "7665075736742530317"
+    }
+  ],
+  "commentsCollected": 40,
+  "hasMore": true
+}
+```
+
 ## Errors
 
 | Status | Meaning |
 | --- | --- |
 | `400` | Missing or malformed `username` / `url` / `hashtag`, or a bad `proxy_country`. |
-| `404` | The profile does not exist, was banned or is private; the post was deleted, is private or region-locked; the hashtag has no page. The message carries TikTok's status code. |
-| `502` | TikTok blocked every exit, or a browser grid did not arrive in time - retry, or try another `proxy_country`. |
+| `404` | The profile does not exist, was banned or is private; the post was deleted, is private or region-locked; the hashtag has no page; a search or a post has no results / comments. The message carries TikTok's status code where TikTok gave one. |
+| `502` | TikTok blocked every exit, a browser grid did not arrive in time, or the captcha could not be solved - retry, or try another `proxy_country`. |
 | `504` | The fetch timed out. |
 
 ## What you can build

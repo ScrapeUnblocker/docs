@@ -12,8 +12,11 @@ description: "Notable changes to the ScrapeUnblocker API."
   play / download / per-quality URLs, subtitle tracks and, with
   `include_transcript=true`, the transcript as text) and `POST
   /social/tiktok-hashtag` (total views and videos under a tag plus its videos,
-  up to 200). Measured over 750 production calls: 99.3% success, 5.9 s average
-  (single videos about 2 s).
+  up to 200), plus `POST /social/tiktok-search` (the videos TikTok ranks for a
+  query, region selectable) and `POST /social/tiktok-comments` (a post's
+  comments with author, likes and replies) - both run in a browser session
+  that solves TikTok's captcha on the fly. Measured over 750 production calls
+  for the first three: 99.3% success, 5.9 s average (single videos about 2 s).
 </Update>
 
 <Update label="2026-09-08" description="Documentation moved to docs.scrapeunblocker.com">
