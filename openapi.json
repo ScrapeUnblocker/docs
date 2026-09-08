@@ -1,0 +1,1898 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ScrapeUnblocker API",
+    "description": "Public API for the ScrapeUnblocker proxy/anti-bot service. Authenticate every request with the `x-scrapeunblocker-key` header. Three endpoints are documented here: page-source extraction, Google SERP scraping, and image fetch. All other paths exist for internal operations and are intentionally hidden from this spec.",
+    "version": "3.0.0"
+  },
+  "paths": {
+    "/getPageSource": {
+      "post": {
+        "tags": [
+          "Scraping"
+        ],
+        "summary": "Fetch the HTML (or parsed JSON) for any URL",
+        "description": "Routes the URL through the appropriate anti-bot bypass chain (custom domain plugins, super-profile browser, residential proxies, Scrapfly fallback). Returns the prettified HTML by default. Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to additionally receive cookies and the proxy address that served the request.",
+        "operationId": "get_page_source_getPageSource_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Url"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          },
+          {
+            "name": "parsed_data",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Parsed Data"
+            }
+          },
+          {
+            "name": "get_cookies",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Get Cookies"
+            }
+          },
+          {
+            "name": "list_elements",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Return the page's interactive elements (buttons, inputs, selects, links, forms) with ready-to-use selectors instead of HTML, to help build `steps`.",
+              "default": false,
+              "title": "List Elements"
+            },
+            "description": "Return the page's interactive elements (buttons, inputs, selects, links, forms) with ready-to-use selectors instead of HTML, to help build `steps`."
+          },
+          {
+            "name": "steps",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "JSON array of browser actions to run after the page loads (wait_for, wait_for_text, wait, click, type, select, press_key, scroll). The request is rendered in a real browser and runs once.",
+              "title": "Steps"
+            },
+            "description": "JSON array of browser actions to run after the page loads (wait_for, wait_for_text, wait, click, type, select, press_key, scroll). The request is rendered in a real browser and runs once."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success — body is HTML (or JSON when `parsed_data=true` / `get_cookies=true`).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid URL or unsupported scheme."
+          },
+          "403": {
+            "description": "Blocked by bot protection on every available bypass path."
+          },
+          "503": {
+            "description": "Upstream origin returned a server-side outage page; not a bot block."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/serpApi": {
+      "post": {
+        "tags": [
+          "Scraping"
+        ],
+        "summary": "Scrape a Google search SERP for organic + ad results",
+        "description": "Runs a Google web search for `keyword` and returns a normalized JSON structure with `topAds`, `bottomAds`, `organic` results, `totalResults`, `aiOverview` (Google's AI-written summary and the hostnames it cites, or `null` when the search has none), and the proxy country actually used. Set `pages_to_check` 1-10 to paginate. `wait_after_load` adds a delay after the SERP loads (useful for sites where ads render late); `captcha_pause` lets you eyeball / solve a CAPTCHA when running interactively.",
+        "operationId": "run_serp_serpApi_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Keyword"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          },
+          {
+            "name": "pages_to_check",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10,
+              "minimum": 1,
+              "default": 1,
+              "title": "Pages To Check"
+            }
+          },
+          {
+            "name": "wait_after_load",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Wait After Load"
+            }
+          },
+          {
+            "name": "captcha_pause",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Captcha Pause"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with organic/ads/totals.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "403": {
+            "description": "Google CAPTCHA after retries with different proxies — try another `proxy_country`."
+          },
+          "504": {
+            "description": "SERP fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/carhire/skyscanner-quotes": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Skyscanner car hire quotes as JSON",
+        "description": "Live Skyscanner car-hire results for a pickup/dropoff and date range, returned as structured JSON. Resolves free-text place names for you and runs the search on a warm, anti-bot-cleared session. `market` / `locale` / `currency` drive real pricing.",
+        "operationId": "skyscanner_carhire_quotes_carhire_skyscanner_quotes_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Url"
+            }
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "www.skyscanner.net",
+              "title": "Host"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Market"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Currency"
+            }
+          },
+          {
+            "name": "driver_age",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "title": "Driver Age"
+            }
+          },
+          {
+            "name": "pickup_entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Pickup Entity"
+            }
+          },
+          {
+            "name": "dropoff_entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dropoff Entity"
+            }
+          },
+          {
+            "name": "pickup",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Pickup"
+            }
+          },
+          {
+            "name": "dropoff",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dropoff"
+            }
+          },
+          {
+            "name": "pickup_datetime",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Pickup Datetime"
+            }
+          },
+          {
+            "name": "dropoff_datetime",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dropoff Datetime"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          },
+          {
+            "name": "warmup_url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Warmup Url"
+            }
+          },
+          {
+            "name": "max_polls",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 8,
+              "title": "Max Polls"
+            }
+          },
+          {
+            "name": "poll_interval",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 10.0,
+              "minimum": 0.0,
+              "default": 2.0,
+              "title": "Poll Interval"
+            }
+          },
+          {
+            "name": "settle",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "maximum": 20.0,
+              "minimum": 0.0,
+              "default": 5.0,
+              "title": "Settle"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Car-hire quotes as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid search parameters."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/flights/skyscanner-quotes": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Skyscanner flight itineraries as JSON",
+        "description": "Live Skyscanner itineraries for a route and date. Each option returns price, airline, departure/arrival times, duration, stop count and a booking deep link to the exact fare. One-way or return, any cabin class, any passenger count. Place names are resolved for you and the search runs on a warm, anti-bot-cleared session.",
+        "operationId": "skyscanner_flights_flights_skyscanner_quotes_post",
+        "parameters": [
+          {
+            "name": "origin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Origin"
+            }
+          },
+          {
+            "name": "dest",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dest"
+            }
+          },
+          {
+            "name": "origin_entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Origin Entity"
+            }
+          },
+          {
+            "name": "dest_entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dest Entity"
+            }
+          },
+          {
+            "name": "origin_iata",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Origin Iata"
+            }
+          },
+          {
+            "name": "dest_iata",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Dest Iata"
+            }
+          },
+          {
+            "name": "depart_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Depart Date"
+            }
+          },
+          {
+            "name": "return_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Return Date"
+            }
+          },
+          {
+            "name": "adults",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 9,
+              "minimum": 1,
+              "default": 1,
+              "title": "Adults"
+            }
+          },
+          {
+            "name": "cabin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "economy",
+              "title": "Cabin"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "GBP",
+              "title": "Currency"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "UK",
+              "title": "Market"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "en-GB",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          },
+          {
+            "name": "max_polls",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 8,
+              "title": "Max Polls"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Itineraries as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid search parameters."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/hotels/skyscanner-quotes": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Skyscanner hotel offers as JSON",
+        "description": "Live Skyscanner hotel results for a destination and stay dates, returned as structured JSON. Resolves the destination for you and runs the search on a warm, anti-bot-cleared session. `market` / `locale` / `currency` drive real pricing.",
+        "operationId": "skyscanner_hotels_hotels_skyscanner_quotes_post",
+        "parameters": [
+          {
+            "name": "destination",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Destination"
+            }
+          },
+          {
+            "name": "destination_entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Destination Entity"
+            }
+          },
+          {
+            "name": "checkin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Checkin"
+            }
+          },
+          {
+            "name": "checkout",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Checkout"
+            }
+          },
+          {
+            "name": "adults",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 16,
+              "minimum": 1,
+              "default": 2,
+              "title": "Adults"
+            }
+          },
+          {
+            "name": "rooms",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 8,
+              "minimum": 1,
+              "default": 1,
+              "title": "Rooms"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "GBP",
+              "title": "Currency"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "UK",
+              "title": "Market"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "en-GB",
+              "title": "Locale"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          },
+          {
+            "name": "max_polls",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 8,
+              "title": "Max Polls"
+            }
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 300,
+              "minimum": 1,
+              "default": 30,
+              "title": "Max Results"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hotel offers as JSON.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid search parameters."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/getImage": {
+      "post": {
+        "tags": [
+          "Scraping"
+        ],
+        "summary": "Fetch a single image as raw PNG bytes",
+        "description": "Navigates to the given image URL via a real browser + residential proxy, draws the first `<img>` to a canvas, and returns the resulting PNG. Use this when a regular GET against the image returns a challenge page or a tiny tracking pixel because the host requires a real browser context.",
+        "operationId": "get_image_getImage_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Url"
+            }
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Proxy Country"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PNG bytes (`image/png`).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "No image element found on the target URL."
+          },
+          "403": {
+            "description": "Image-processing failure (e.g. canvas tainted by CORS) or upstream block."
+          },
+          "408": {
+            "description": "Browser run timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/maps/google-local": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Google Local business listings",
+        "description": "Runs a Google Local (`tbm=lcl`) search for `keyword` and returns up to ~20 businesses as JSON: `name`, `rating`, `reviews`, `price`, `category`, `address`, `phone`, `website`, `hours`, and a top `review_snippet`. `phone` and `website` are null when Google does not render them for that result - service businesses (plumbers, contractors) almost always carry both. Local results are location-sensitive - set `proxy_country` (and optionally `gl`/`hl`) to target a market.",
+        "operationId": "google_local_maps_google_local_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Search phrase, e.g. 'coffee shops in chicago' or 'plumbers near SW1A'.",
+              "title": "Keyword"
+            },
+            "description": "Search phrase, e.g. 'coffee shops in chicago' or 'plumbers near SW1A'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2, e.g. 'US', 'GB'). Local results are location-sensitive, so pick the country you want results for.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2, e.g. 'US', 'GB'). Local results are location-sensitive, so pick the country you want results for."
+          },
+          {
+            "name": "hl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Google UI language, e.g. 'en', 'de', 'fr'.",
+              "default": "en",
+              "title": "Hl"
+            },
+            "description": "Google UI language, e.g. 'en', 'de', 'fr'."
+          },
+          {
+            "name": "gl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Google country of search, ISO-2 lowercase, e.g. 'us', 'de'.",
+              "title": "Gl"
+            },
+            "description": "Google country of search, ISO-2 lowercase, e.g. 'us', 'de'."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `results` array of local businesses.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "403": {
+            "description": "Blocked by Google CAPTCHA after retries - try another proxy_country."
+          },
+          "502": {
+            "description": "No local results collected (upstream block or proxy failure)."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/goods/oopbuy-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape oopbuy.com product-search listings",
+        "description": "Searches oopbuy.com for `keyword` and returns product listings as JSON: `title`, `titleCn`, `price` (in USD), `priceCny`, `monthSold`, `image`, `spu`, `channel`, and a product `url`. Pick the source marketplace with `channel` ('1688', 'taobao', or 'official'), order with `sort`, and page with `page`/`page_size`. Note: oopbuy trademark-blocks brand-name keywords at its own backend. That block is oopbuy's own genuine answer (it returns it as an HTTP 200 too), so we mirror it: brand queries come back as HTTP 200 with `keywordRejected: true` and an empty `results` array, not an error.",
+        "operationId": "oopbuy_search_goods_oopbuy_search_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Search phrase, e.g. 'hoodie' or 'phone case'. oopbuy trademark-blocks brand names (nike, adidas) at its own backend; those come back as a successful HTTP 200 carrying `keywordRejected: true` and an empty `results` array, not an error.",
+              "title": "Keyword"
+            },
+            "description": "Search phrase, e.g. 'hoodie' or 'phone case'. oopbuy trademark-blocks brand names (nike, adidas) at its own backend; those come back as a successful HTTP 200 carrying `keywordRejected: true` and an empty `results` array, not an error."
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Source marketplace: '1688' (default), 'taobao', or 'official' (oopbuy's own curated storefront).",
+              "default": "1688",
+              "title": "Channel"
+            },
+            "description": "Source marketplace: '1688' (default), 'taobao', or 'official' (oopbuy's own curated storefront)."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based page number.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based page number."
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 60,
+              "minimum": 1,
+              "description": "Results per page (max 60).",
+              "default": 20,
+              "title": "Page Size"
+            },
+            "description": "Results per page (max 60)."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Ordering: 'default', 'price_asc', 'price_desc', or 'best_selling'.",
+              "default": "default",
+              "title": "Sort"
+            },
+            "description": "Ordering: 'default', 'price_asc', 'price_desc', or 'best_selling'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE').",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE')."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful scrape. Either a `results` array of listings, or - for a brand/trademark-blocked keyword - `keywordRejected: true` with an empty `results` array (oopbuy's own genuine response).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "502": {
+            "description": "Search failed (upstream block or proxy failure)."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/ebay-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape eBay search listings",
+        "description": "Searches any regional eBay marketplace for `keyword` and returns the listings as JSON: `title`, `price` + `currency`, `condition` (with a normalised `conditionCode`), `seller` (username, feedback percentage and score), `shippingCost`, `sold`, `watchers`, `bids`, `image` and a clean item `url`. Filter with `condition`, `listing_type`, `min_price`/`max_price`, `free_shipping`, `seller` or `category`, sort with `sort`, and page with `page`/`page_size` (60, 120 or 240 per page). Set `marketplace` to search a specific site - prices, currency and availability differ between ebay.com, ebay.de, ebay.co.uk and the rest.\n\nWhen eBay finds no exact match it still serves a full page of its own loosely-related suggestions. That case is reported honestly: `exactMatches` is `false` and a `notice` explains it, so those listings are never mistaken for real matches.",
+        "operationId": "ebay_search_marketplace_ebay_search_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Search phrase, e.g. 'iphone 13' or a part number like '1K0953519A'.",
+              "title": "Keyword"
+            },
+            "description": "Search phrase, e.g. 'iphone 13' or a part number like '1K0953519A'."
+          },
+          {
+            "name": "marketplace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Regional eBay site to search. Prices, currency and availability differ per marketplace. One of: ebay.com, ebay.co.uk, ebay.de, ebay.fr, ebay.it, ebay.es, ebay.nl, ebay.pl, ebay.at, ebay.ch, ebay.be, ebay.ie, ebay.ca, ebay.com.au, ebay.in, ebay.ph, ebay.com.sg, ebay.com.my, ebay.com.hk.",
+              "default": "ebay.com",
+              "title": "Marketplace"
+            },
+            "description": "Regional eBay site to search. Prices, currency and availability differ per marketplace. One of: ebay.com, ebay.co.uk, ebay.de, ebay.fr, ebay.it, ebay.es, ebay.nl, ebay.pl, ebay.at, ebay.ch, ebay.be, ebay.ie, ebay.ca, ebay.com.au, ebay.in, ebay.ph, ebay.com.sg, ebay.com.my, ebay.com.hk."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based page number.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based page number."
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Listings per page - eBay's own page sizes: 60, 120, 240.",
+              "default": 60,
+              "title": "Page Size"
+            },
+            "description": "Listings per page - eBay's own page sizes: 60, 120, 240."
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Item condition filter: new, open_box, refurbished, used, for_parts. Omit for every condition.",
+              "title": "Condition"
+            },
+            "description": "Item condition filter: new, open_box, refurbished, used, for_parts. Omit for every condition."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Ordering: best_match, newly_listed, ending_soon, price_asc, price_desc. Default 'best_match'.",
+              "default": "best_match",
+              "title": "Sort"
+            },
+            "description": "Ordering: best_match, newly_listed, ending_soon, price_asc, price_desc. Default 'best_match'."
+          },
+          {
+            "name": "listing_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Listing format: all, buy_it_now, auction. Default 'all'.",
+              "default": "all",
+              "title": "Listing Type"
+            },
+            "description": "Listing format: all, buy_it_now, auction. Default 'all'."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price to include, in the marketplace's currency.",
+              "title": "Min Price"
+            },
+            "description": "Lowest price to include, in the marketplace's currency."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price to include, in the marketplace's currency.",
+              "title": "Max Price"
+            },
+            "description": "Highest price to include, in the marketplace's currency."
+          },
+          {
+            "name": "free_shipping",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only listings eBay marks as free delivery.",
+              "default": false,
+              "title": "Free Shipping"
+            },
+            "description": "Only listings eBay marks as free delivery."
+          },
+          {
+            "name": "seller",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Restrict the search to one seller's username.",
+              "title": "Seller"
+            },
+            "description": "Restrict the search to one seller's username."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "eBay category id to search inside, e.g. '131090' for vehicle parts and accessories.",
+              "title": "Category"
+            },
+            "description": "eBay category id to search inside, e.g. '131090' for vehicle parts and accessories."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to an exit chosen for the marketplace.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to an exit chosen for the marketplace."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `results` array of listings. A search that genuinely matches nothing returns 200 with an empty array, and eBay's relaxed suggestions are flagged with `exactMatches: false`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid search parameters."
+          },
+          "502": {
+            "description": "Blocked by eBay or no results page returned."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/goods/temu-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a Temu product page",
+        "description": "Fetches a single Temu product and returns it as JSON: `name`, `description`, `brand`, `sku`, `price`, `priceCurrency`, `availability`, `itemCondition`, `rating`, `reviewCount`, `variantGroupId`, `images`, `reviews` (per-review rating and date; Temu masks the review text and author name in this document) and `video` (a `{contentUrl, thumbnailUrl, uploadDate}` object when the product ships one, else null). Temu serves product data only to search-engine crawlers, so this reads the ld+json SEO document rather than a browser render. The url must be a product page (path ends in `-g-<id>.html`).",
+        "operationId": "temu_product_goods_temu_product_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Full Temu product url, e.g. 'https://www.temu.com/xyz-g-601099512345678.html'. Must be a product page (its path ends in `-g-<id>.html`); search/category urls have no product data and are rejected.",
+              "title": "Url"
+            },
+            "description": "Full Temu product url, e.g. 'https://www.temu.com/xyz-g-601099512345678.html'. Must be a product page (its path ends in `-g-<id>.html`); search/category urls have no product data and are rejected."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product found and parsed.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Not a Temu product url."
+          },
+          "429": {
+            "description": "Temu fleet rate limit reached - retry shortly."
+          },
+          "502": {
+            "description": "Product document could not be fetched."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/goods/temu-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Search Temu by keyword",
+        "description": "Searches Temu for `keyword` and returns the matching product urls (~40 per page). This is discovery only - fetch each url's data (name, price, rating, reviews, images) through `POST /goods/temu-product`. Use `sort` to pick Temu's own result order (relevance, best_selling, recent, price_asc, price_desc). Response time is typically ~2s.",
+        "operationId": "temu_search_goods_temu_search_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Search phrase, e.g. 'kids toys' or 'phone case'.",
+              "title": "Keyword"
+            },
+            "description": "Search phrase, e.g. 'kids toys' or 'phone case'."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Max product urls to return (one search page carries ~40).",
+              "default": 40,
+              "title": "Limit"
+            },
+            "description": "Max product urls to return (one search page carries ~40)."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/TemuSort",
+              "description": "Result order, using Temu's own sort: `relevance` (default), `best_selling` (top sales), `recent` (most recent), `price_asc` (price low to high) or `price_desc` (price high to low).",
+              "default": "relevance"
+            },
+            "description": "Result order, using Temu's own sort: `relevance` (default), `best_selling` (top sales), `recent` (most recent), `price_asc` (price low to high) or `price_desc` (price high to low)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search succeeded - `urls` carries the product urls.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "429": {
+            "description": "Temu fleet rate limit reached - retry shortly."
+          },
+          "502": {
+            "description": "Search returned no urls (block or empty)."
+          },
+          "504": {
+            "description": "Search timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/amazon-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape an Amazon product page",
+        "description": "Fetches a single Amazon product and returns it as JSON: `title`, `brand`, `price` + `currency`, `listPrice` and `savingsPercent`, `availability` (+ a boolean `inStock`), `rating`, `reviewCount`, `seller`, `features` (bullet points), `categories` (breadcrumb) and `images`. Identify the product with either `asin` (plus `marketplace`) or a full product `url`.\n\nAmazon prices each page in the currency of the delivery location it infers from the exit IP, so `proxy_country` defaults to the marketplace's home country (amazon.com -> US) and the call is routed through the Oxylabs ISP + iProyal ISP pool for that country. The exit that served the request is returned as `exitCountry` / `exitProvider`.",
+        "operationId": "amazon_product_marketplace_amazon_product_post",
+        "parameters": [
+          {
+            "name": "asin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Amazon product id (10-char ASIN, e.g. 'B0BSHF7WHW'; books use their ISBN-10). Give either `asin` (with `marketplace`) or a full `url`.",
+              "title": "Asin"
+            },
+            "description": "Amazon product id (10-char ASIN, e.g. 'B0BSHF7WHW'; books use their ISBN-10). Give either `asin` (with `marketplace`) or a full `url`."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Full Amazon product url, e.g. 'https://www.amazon.de/dp/B0BSHF7WHW'. The ASIN and marketplace are read from it, so `asin`/`marketplace` are not needed when a url is given.",
+              "title": "Url"
+            },
+            "description": "Full Amazon product url, e.g. 'https://www.amazon.de/dp/B0BSHF7WHW'. The ASIN and marketplace are read from it, so `asin`/`marketplace` are not needed when a url is given."
+          },
+          {
+            "name": "marketplace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Regional Amazon site the ASIN belongs to. Prices and currency differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au.",
+              "default": "amazon.com",
+              "title": "Marketplace"
+            },
+            "description": "Regional Amazon site the ASIN belongs to. Prices and currency differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so the price comes back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so the price comes back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product found and parsed.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "No/invalid ASIN or url, or unsupported marketplace."
+          },
+          "502": {
+            "description": "Blocked by Amazon or the product page could not be fetched."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/amazon-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Amazon search listings",
+        "description": "Searches any regional Amazon marketplace for `keyword` and returns the result cards as JSON: `asin`, `title`, `price` + `currency`, `listPrice`, `rating`, `reviewCount`, a clean product `url`, `image`, and the `sponsored` / `prime` flags. Filter with `min_price` / `max_price`, order with `sort` (featured, price_asc, price_desc, avg_review, newest), and page with `page`.\n\nFetch each result's full detail (all fields above plus features and images) through `POST /marketplace/amazon-product`. Some cards show no price on the search page (Amazon defers it, or the item has buying options); those return `price: null` and are kept in the list rather than dropped. `proxy_country` defaults to the marketplace's home country (Oxylabs ISP + iProyal ISP pool) so prices are in the expected currency.",
+        "operationId": "amazon_search_marketplace_amazon_search_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Search phrase, e.g. 'wireless headphones' or a brand + model.",
+              "title": "Keyword"
+            },
+            "description": "Search phrase, e.g. 'wireless headphones' or a brand + model."
+          },
+          {
+            "name": "marketplace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Regional Amazon site to search. Prices and currency differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au.",
+              "default": "amazon.com",
+              "title": "Marketplace"
+            },
+            "description": "Regional Amazon site to search. Prices and currency differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based page number.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based page number."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Result order: featured, price_asc, price_desc, avg_review, newest. Default 'featured'.",
+              "default": "featured",
+              "title": "Sort"
+            },
+            "description": "Result order: featured, price_asc, price_desc, avg_review, newest. Default 'featured'."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price to include, in the marketplace's currency.",
+              "title": "Min Price"
+            },
+            "description": "Lowest price to include, in the marketplace's currency."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price to include, in the marketplace's currency.",
+              "title": "Max Price"
+            },
+            "description": "Highest price to include, in the marketplace's currency."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2). Defaults to the marketplace's home country so prices come back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2). Defaults to the marketplace's home country so prices come back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `results` array of product cards.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid search parameters."
+          },
+          "502": {
+            "description": "Blocked by Amazon or no results page returned."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/ads/meta-ad-library": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape an advertiser's Meta (Facebook) ads",
+        "description": "Pulls a Facebook/Instagram advertiser's ads from the Meta Ad Library and returns them as JSON for competitor analysis: `ad_text`, `title`, `cta_text`/`cta_type`, `display_format` (image/video/DCO/carousel), `creatives` (image and video URLs), `link_url` (the landing page), `platforms`, `started_running`/`ended`, and `is_active`. `advertiser` is a Page name (keyword search) or a numeric Page ID (that advertiser's whole set). Meta scopes the library by `country`. Use `active_status` ('active'/'inactive'/'all') and `media_type` to filter, and `max_ads` to bound the result.",
+        "operationId": "meta_ad_library_ads_meta_ad_library_post",
+        "parameters": [
+          {
+            "name": "advertiser",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Advertiser to pull ads for: a Facebook Page name (keyword search) or a numeric Page ID (that advertiser's whole set).",
+              "title": "Advertiser"
+            },
+            "description": "Advertiser to pull ads for: a Facebook Page name (keyword search) or a numeric Page ID (that advertiser's whole set)."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Ad Library country (ISO-2, e.g. 'US', 'GB', 'DE'). Meta scopes the library by country.",
+              "default": "US",
+              "title": "Country"
+            },
+            "description": "Ad Library country (ISO-2, e.g. 'US', 'GB', 'DE'). Meta scopes the library by country."
+          },
+          {
+            "name": "active_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Which ads to return: 'active', 'inactive', or 'all'.",
+              "default": "active",
+              "title": "Active Status"
+            },
+            "description": "Which ads to return: 'active', 'inactive', or 'all'."
+          },
+          {
+            "name": "media_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Creative type filter: 'all', 'image', 'video', or 'meme'.",
+              "default": "all",
+              "title": "Media Type"
+            },
+            "description": "Creative type filter: 'all', 'image', 'video', or 'meme'."
+          },
+          {
+            "name": "max_ads",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "Upper bound on ads returned (the scraper paginates until it reaches this or runs out).",
+              "default": 50,
+              "title": "Max Ads"
+            },
+            "description": "Upper bound on ads returned (the scraper paginates until it reaches this or runs out)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `results` array of ads (may be empty if the advertiser has no ads for the given filters).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameter (country/active_status/media_type)."
+          },
+          "502": {
+            "description": "Blocked by Meta or no ads collected (proxy/anti-bot failure)."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MobileDeLiquidityQuery": {
+        "properties": {
+          "urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Urls"
+          }
+        },
+        "type": "object",
+        "required": [
+          "urls"
+        ],
+        "title": "MobileDeLiquidityQuery"
+      },
+      "TemuSort": {
+        "type": "string",
+        "enum": [
+          "relevance",
+          "best_selling",
+          "recent",
+          "price_asc",
+          "price_desc"
+        ],
+        "title": "TemuSort",
+        "description": "Temu's own search sort order (maps to Temu's native `filter_items`)."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "ScrapeUnblockerKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-scrapeunblocker-key",
+        "description": "Your ScrapeUnblocker API key. Apply on every request."
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.scrapeunblocker.com",
+      "description": "Production"
+    }
+  ]
+}

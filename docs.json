@@ -203,12 +203,6 @@
   "search": {
     "prompt": "Search docs..."
   },
-  "redirects": [
-    {
-      "source": "/openapi.json",
-      "destination": "/api-reference/openapi.json"
-    }
-  ],
   "seo": {
     "metatags": {
       "og:site_name": "ScrapeUnblocker Docs",
