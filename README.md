@@ -1,6 +1,6 @@
 # ScrapeUnblocker Documentation
 
-Source for [developers.scrapeunblocker.com](https://developers.scrapeunblocker.com), hosted by [Mintlify](https://mintlify.com).
+Source for [docs.scrapeunblocker.com](https://docs.scrapeunblocker.com), hosted by [Mintlify](https://mintlify.com).
 
 ## Repo layout
 
@@ -59,7 +59,7 @@ git push -u origin main
 
 In Mintlify dashboard → **Settings** → **Custom domain**:
 
-1. Enter `developers.scrapeunblocker.com`.
+1. Enter `docs.scrapeunblocker.com`.
 2. Mintlify shows you a CNAME target (e.g. `cname.mintlify.app`).
 3. Add a DNS record at your domain registrar:
 
@@ -74,7 +74,7 @@ In Mintlify dashboard → **Settings** → **Custom domain**:
 
 ### 4. Done
 
-`https://developers.scrapeunblocker.com` is live. HTTPS cert is auto-provisioned by Mintlify.
+`https://docs.scrapeunblocker.com` is live. HTTPS cert is auto-provisioned by Mintlify.
 
 ## How to make changes
 

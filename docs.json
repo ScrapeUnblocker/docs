@@ -12,7 +12,7 @@
   "logo": {
     "light": "/logo/light.png",
     "dark": "/logo/dark.png",
-    "href": "https://developers.scrapeunblocker.com"
+    "href": "https://docs.scrapeunblocker.com"
   },
   "appearance": {
     "default": "dark"
@@ -177,8 +177,8 @@
       {
         "header": "Resources",
         "items": [
-          { "label": "Documentation", "href": "https://developers.scrapeunblocker.com" },
-          { "label": "API Reference", "href": "https://developers.scrapeunblocker.com/api-reference/introduction" },
+          { "label": "Documentation", "href": "https://docs.scrapeunblocker.com" },
+          { "label": "API Reference", "href": "https://docs.scrapeunblocker.com/api-reference/introduction" },
           { "label": "Blog", "href": "https://scrapeunblocker.com/blog" }
         ]
       },
@@ -203,18 +203,24 @@
   "search": {
     "prompt": "Search docs..."
   },
+  "redirects": [
+    {
+      "source": "/openapi.json",
+      "destination": "/api-reference/openapi.json"
+    }
+  ],
   "seo": {
     "metatags": {
       "og:site_name": "ScrapeUnblocker Docs",
       "og:type": "website",
       "og:title": "ScrapeUnblocker Documentation",
       "og:description": "Anti-bot bypass and proxy infrastructure for scraping any URL. API reference, guides, and code examples for getPageSource, serpApi, and getImage endpoints.",
-      "og:image": "https://developers.scrapeunblocker.com/logo/light.png",
-      "og:url": "https://developers.scrapeunblocker.com",
+      "og:image": "https://docs.scrapeunblocker.com/logo/light.png",
+      "og:url": "https://docs.scrapeunblocker.com",
       "twitter:card": "summary_large_image",
       "twitter:title": "ScrapeUnblocker Documentation",
       "twitter:description": "Anti-bot bypass and proxy infrastructure for scraping any URL. Three endpoints, one API key.",
-      "twitter:image": "https://developers.scrapeunblocker.com/logo/light.png",
+      "twitter:image": "https://docs.scrapeunblocker.com/logo/light.png",
       "description": "Documentation for the ScrapeUnblocker API. Web scraping with built-in anti-bot bypass, residential proxies, and structured data extraction.",
       "keywords": "web scraping API, anti-bot bypass, Cloudflare bypass, residential proxies, SERP scraping, page source API, data extraction, ScrapeUnblocker"
     },
