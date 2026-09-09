@@ -20,6 +20,13 @@ page - no third-party search in the loop).
 Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
 </Note>
 
+<Note>
+Calling `POST /getPageSource` on a Temu **search** (`/search_result.html`) or
+**product** (`-g-<id>.html`) URL returns `400` and points you here - those pages
+hydrate client-side and don't render through the generic browser path. Every
+other Temu page still works through `getPageSource`.
+</Note>
+
 <Warning>
 Temu meters the crawler view, so this plugin is built for **targeted** use (price
 checks, monitoring, comparison), not bulk crawling. It enforces its own

@@ -3,6 +3,18 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-09" description="getPageSource redirects Temu search and product URLs to the plugins">
+  **[`getPageSource`](/guides/page-source) now redirects Temu search and product
+  URLs.** A `POST /getPageSource` for a Temu search page (`/search_result.html`)
+  or a product page (a `-g-<id>.html` URL) returns `400` with the endpoint that
+  actually works - the [Temu plugin](/plugins/temu) (`/goods/temu-search`,
+  `/goods/temu-product`) - in the body and the `X-Recommended-Endpoint` header.
+  Those pages hydrate client-side and the generic browser path renders them
+  slowly and hands back an empty shell, while the plugin reads Temu's `ld+json`
+  directly. Every other Temu page (homepage, category pages) still works through
+  `getPageSource`.
+</Update>
+
 <Update label="2026-09-08" description="New TikTok plugin - creators, videos and hashtags as JSON">
   **[TikTok plugin](/plugins/tiktok).** Three new endpoints read public TikTok
   data with no login: `POST /social/tiktok-profile` (exact follower / like /
