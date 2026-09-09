@@ -12,7 +12,7 @@
           "Scraping"
         ],
         "summary": "Fetch the HTML (or parsed JSON) for any URL",
-        "description": "Routes the URL through the appropriate anti-bot bypass chain (custom domain plugins, super-profile browser, residential proxies, Scrapfly fallback). Returns the prettified HTML by default. Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to additionally receive cookies and the proxy address that served the request.",
+        "description": "Routes the URL through the appropriate anti-bot bypass chain (custom domain plugins, super-profile browser, residential proxies). Returns the prettified HTML by default. Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to additionally receive cookies and the proxy address that served the request.",
         "operationId": "get_page_source_getPageSource_post",
         "parameters": [
           {
