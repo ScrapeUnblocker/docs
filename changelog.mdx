@@ -3,6 +3,18 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-10" description="YouTube channel endpoint returns exact counts, duration and channel stats">
+  **`POST /content/youtube-channel` now returns richer data.** The endpoint
+  reads a channel's uploads through the YouTube Data API, so each video now
+  carries exact `viewCount`, `likeCount` and `commentCount`, `duration`
+  (ISO-8601 and `durationSeconds`), `description` and a `publishedAt`
+  timestamp, alongside the existing `views` / `published` text. The `channel`
+  summary gains `subscriberCount`, `videoCount`, total `viewCount` and the
+  handle. A new `limit` parameter (1-200) pages past the first batch of videos.
+  If the Data API is unavailable the endpoint falls back to the previous scrape,
+  so responses stay compatible.
+</Update>
+
 <Update label="2026-09-09" description="getPageSource redirects Temu search and product URLs to the plugins">
   **[`getPageSource`](/guides/page-source) now redirects Temu search and product
   URLs.** A `POST /getPageSource` for a Temu search page (`/search_result.html`)
