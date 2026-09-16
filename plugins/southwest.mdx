@@ -1,0 +1,64 @@
+---
+title: "Southwest Airlines plugin"
+description: "Live Southwest Airlines fares as clean JSON - from the dashboard or the API. No partner application, no scraping the Akamai-protected site yourself."
+sidebarTitle: "Southwest"
+---
+
+Southwest Airlines does not sell its fares through the global distribution systems or the usual flight-search APIs, and its site (`southwest.com`) sits behind Akamai Bot Manager - so its prices are notoriously hard to get programmatically. This plugin turns a live Southwest search into structured JSON: dollar **and** Rapid Rewards points fares, every flight on the route, for one-way or return trips.
+
+The search runs on a warm, anti-bot-cleared browser session. You never touch Akamai, cookies or the internal `x-api-key` - just send your ScrapeUnblocker key and the route.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). The plugin shows a live results view plus a copy-paste code snippet.
+</Note>
+
+## Flights
+
+Live Southwest fares for a route and date. Every flight comes back with its flight numbers, departure and arrival times, total duration and stop count, plus a price for each **fare product** - Wanna Get Away, Wanna Get Away Plus, Anytime and Business Select - in either US dollars or Rapid Rewards points.
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `origin` | yes | 3-letter IATA airport code (e.g. `DAL`, `LAS`). |
+| `dest` | yes | 3-letter IATA airport code (e.g. `HOU`, `MDW`). |
+| `depart_date` | yes | `YYYY-MM-DD`. |
+| `return_date` | no | Omit for a one-way search. |
+| `adults` | no | Passenger count `1`-`8` (default `1`). |
+| `fare_type` | no | `dollars` (USD, default) or `points` (Rapid Rewards). |
+| `proxy_country` | no | Exit country (default `US`). |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/flights/southwest-quotes?origin=DAL&dest=HOU&depart_date=2026-10-20&return_date=2026-10-27&fare_type=dollars&adults=1" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+The response is Southwest's own `booking/shopping` payload, passed through untouched:
+
+- `data.searchResults.airProducts[]` - one entry per bound (outbound, then return). Each has `lowestFare` and a `details[]` list of flights.
+- `data.searchResults.airProducts[].details[]` - each flight with `flightNumbers`, `originationAirportCode`, `destinationAirportCode`, `departureTime` / `arrivalTime` (and full `departureDateTime` / `arrivalDateTime`), `totalDuration` (minutes), `stopsNumber`, `segments[]`, and `fareProducts.ADULT.{WGA,PLU,ANY,BUS}` - each with `fare.totalFare`, `fare.baseFare`, `fare.totalTaxesAndFees`, `fare.accrualPoints` and `availabilityStatus`.
+- `data.searchResults.fareSummary[]` - the minimum fare per fare family (`WGA`, `PLU`, `ANY`, `BUS`; the `*RED` families when `fare_type=points`).
+
+<Note>
+Dollar and points fares are separate searches. Pass `fare_type=dollars` for USD prices or `fare_type=points` for Rapid Rewards redemption fares - one call returns one dimension.
+</Note>
+
+## What you can build
+
+- **Fare monitoring and alerts** - poll a route daily and notify when a Wanna Get Away price or points redemption drops.
+- **Points vs cash comparison** - pull both dimensions for a route and show which is the better value.
+- **Route research** - track how Southwest fares for a city pair move over weeks.
+- **Travel content** - keep "cheapest Southwest flights from X" pages fresh.
+
+## Why a plugin
+
+Southwest has no public fare API and no aggregator feed - it deliberately keeps its prices off third-party search sites, and the booking site is protected by Akamai Bot Manager. This plugin is the shortcut: sign up, add your API key, and pull Southwest fares the same day, from the dashboard or from code, without solving anti-bot yourself.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Southwest fare search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

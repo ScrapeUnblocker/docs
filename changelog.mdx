@@ -3,6 +3,17 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-16" description="Southwest Airlines fares plugin">
+  **New plugin: [`POST /flights/southwest-quotes`](/plugins/southwest).** Live
+  Southwest Airlines fares as clean JSON - dollar and Rapid Rewards points
+  prices for every flight on a route, one-way or return. Southwest sells no
+  public fare API and fronts its site with Akamai Bot Manager; the plugin runs
+  the search on a warm, anti-bot-cleared session and returns Southwest's own
+  `booking/shopping` payload (fare products Wanna Get Away / Wanna Get Away Plus
+  / Anytime / Business Select, with taxes and Rapid Rewards points). Origin and
+  destination are IATA airport codes; `fare_type` is `dollars` or `points`.
+</Update>
+
 <Update label="2026-09-10" description="YouTube channel endpoint returns exact counts, duration and channel stats">
   **`POST /content/youtube-channel` now returns richer data.** The endpoint
   reads a channel's uploads through the YouTube Data API, so each video now
