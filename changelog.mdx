@@ -3,6 +3,17 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-17" description="Google Images plugin">
+  **New plugin: [`POST /images/google-search`](/plugins/google-images).** Google
+  Images results for a keyword as clean JSON - the **full-resolution original
+  image URL** and **source domain** for every result, plus the source page URL,
+  title, site name, thumbnail and dimensions. The current Google Images page
+  carries every result's origin image URL inline, so `imageUrl` is the real
+  image on the publisher's site, not a Google thumbnail. Runs on the same warm,
+  anti-bot-cleared Google sessions as our SERP endpoint. Pass `q`, and
+  optionally `proxy_country` / `gl` / `max_results` (1-100).
+</Update>
+
 <Update label="2026-09-17" description="HTTP 523 for an unreachable origin (not a block)">
   **`getPageSource` now answers `523` when the target origin itself is
   unreachable** - down, refusing connections, or flapping (brief outages, then

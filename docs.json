@@ -66,6 +66,7 @@
               "plugins/skyscanner",
               "plugins/southwest",
               "plugins/google-local",
+              "plugins/google-images",
               "plugins/oopbuy-search",
               "plugins/ebay",
               "plugins/amazon",
