@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-17" description="HTTP 523 for an unreachable origin (not a block)">
+  **`getPageSource` now answers `523` when the target origin itself is
+  unreachable** - down, refusing connections, or flapping (brief outages, then
+  fine) - instead of a `403 Blocked by bot protection.`. A 523 is not a bot
+  block and is never billed; it means the site did not answer over any of our
+  exits, so the right move is to retry later. `403` stays reserved for a real
+  anti-bot block we could not clear. If your client keyed retries on `403`
+  only, treat `523` the same way (retry after a short pause).
+</Update>
+
 <Update label="2026-09-16" description="Southwest Airlines fares plugin">
   **New plugin: [`POST /flights/southwest-quotes`](/plugins/southwest).** Live
   Southwest Airlines fares as clean JSON - dollar and Rapid Rewards points

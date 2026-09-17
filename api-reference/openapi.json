@@ -95,6 +95,9 @@
           "503": {
             "description": "Upstream origin returned a server-side outage page; not a bot block."
           },
+          "523": {
+            "description": "Origin unreachable (target down or flapping, or our origin breaker is open); not a bot block, not billed - retry later."
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -5299,11 +5302,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
+              "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
               "default": "segments",
               "title": "Format"
             },
-            "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext."
+            "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext."
           },
           {
             "name": "proxy_country",
