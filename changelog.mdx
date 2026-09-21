@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-21" description="Car Hire: target a location by ID + clearer resolution">
+  **[`POST /carhire/skyscanner-quotes`](/plugins/skyscanner#car-hire) now takes
+  `pickup_entity` / `dropoff_entity`** - Skyscanner's own location IDs. Pass one
+  to skip the name lookup and search that exact place, useful for a town the
+  autosuggest can't reach or a name that resolves ambiguously. A place **name**
+  that can't be resolved now returns an **error instead of silently searching a
+  different location**, and the `X-Pickup-Entity` / `X-Pickup-Name` (and
+  `X-Dropoff-*`) response headers report the location that was actually searched.
+</Update>
+
 <Update label="2026-09-17" description="Google Images plugin">
   **New plugin: [`POST /images/google-search`](/plugins/google-images).** Google
   Images results for a keyword as clean JSON - the **full-resolution original

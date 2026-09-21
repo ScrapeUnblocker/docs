@@ -60,23 +60,29 @@ The response contains a `hotels[]` list with `name`, per-night and total price, 
 
 ## Car Hire
 
-Rental quotes for a pickup location and dates, with vendor, car model, seats, bags, fuel policy, pickup type, and a **book link** per quote.
+Rental quotes for a pickup location and dates, with the rental company, booking provider, car model, seats, bags, fuel policy, mileage allowance, cancellation/insurance flags, pickup type, and a **book link** per quote.
+
+Give the location either as a **name** (`pickup`, resolved via autosuggest) or as a **Skyscanner location ID** (`pickup_entity`) - one of the two is required.
 
 | Field | Required | Notes |
 | --- | --- | --- |
-| `pickup` | yes | Pickup place or airport name. Resolved via autosuggest. |
-| `dropoff` | no | Defaults to the pickup location. |
+| `pickup` | yes\* | Pickup place or airport name, resolved via autosuggest. \*Optional when `pickup_entity` is given. |
+| `pickup_entity` | no | Skyscanner location ID for the pickup. Skips the name lookup and targets that exact place - use it when a name is ambiguous or a town the autosuggest can't reach. Overrides `pickup`. |
+| `dropoff` | no | Return place name. Defaults to the pickup location. |
+| `dropoff_entity` | no | Skyscanner location ID for the dropoff. Skips the name lookup. Overrides `dropoff`. |
 | `pickup_datetime` | yes | `YYYY-MM-DDTHH:MM`. |
 | `dropoff_datetime` | yes | `YYYY-MM-DDTHH:MM`. |
 | `driver_age` | no | Default `30`. |
 | `market` / `locale` / `currency` | no | See above. |
+
+A place name that can't be resolved returns an error instead of silently searching a different location - pass `pickup_entity` / `dropoff_entity` to target a location exactly. The `X-Pickup-Entity` / `X-Pickup-Name` (and `X-Dropoff-Entity` / `X-Dropoff-Name`) response headers report the location that was actually searched.
 
 ```bash
 curl -X POST "https://api.scrapeunblocker.com/carhire/skyscanner-quotes?pickup=Madrid&pickup_datetime=2026-09-11T10:00&dropoff_datetime=2026-09-13T10:00&market=UK&locale=en-GB&currency=EUR&driver_age=30" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
-The response contains a `quotes[]` list with `car`, `vendor`, `price`, `seats`, `bags`, `fuelPolicy`, `sipp`, `pickupType` and a `bookUrl`.
+The response is Skyscanner's raw car-hire JSON: a `quotes[]` list plus a `providers` map and a `query` echo. Each quote includes `car_name`, `vndr` (rental company), `price`, `seat`, `bags`, `fuel_pol`, `sipp`, `pickup_type`, `dplnk` (booking deeplink path - prefix with `https://www.skyscanner.net`), `prv_id` (booking-provider code, resolved to a name via the top-level `providers` map) and an `adds` object of extras (`unlim_mlg`, `incl_mlg`, `free_cancel`, `excess_insr`, and other coverage flags).
 
 ## What you can build
 
