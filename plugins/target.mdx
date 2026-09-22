@@ -1,0 +1,86 @@
+---
+title: "Target Search plugin"
+description: "Target product search as clean JSON - tcin, title, brand, price, formatted price, currency, image and a direct product link."
+sidebarTitle: "Target Search"
+---
+
+The **Target Search** plugin turns any Target search into structured JSON. Give it a keyword, and it returns the products Target shows - each with a `tcin`, title, brand, price and formatted price, currency, image and a clean product URL. Sort, filter by price and collect up to `max_results`.
+
+It runs on the same fetch chain that serves `getPageSource`. target.com is an empty client-rendered shell, so the plugin reads the products straight from Target's own Redsky JSON API (`plp_search_v2`) - no Target developer account needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /marketplace/target-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search, e.g. `coffee maker` or `tv`. |
+| `sort` | no | `relevance` (default), `newest`, `price_low` or `price_high`. |
+| `min_price` / `max_price` | no | Price range in USD. |
+| `max_results` | no | How many products to collect across pages. Default `24`, max `500`. |
+| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to a US exit (required by Target). |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/marketplace/target-search?query=coffee%20maker&sort=price_low&max_results=48" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Response
+
+```json
+{
+  "query": "coffee maker",
+  "resultsCollected": 48,
+  "products": [
+    {
+      "tcin": "80130149",
+      "title": "Keurig K-Mini Single-Serve K-Cup Pod Coffee Maker",
+      "brand": "Keurig",
+      "price": 79.99,
+      "formattedPrice": "$79.99",
+      "currency": "USD",
+      "image": "https://target.scene7.com/is/image/Target/....jpeg",
+      "url": "https://www.target.com/p/-/A-80130149"
+    }
+  ]
+}
+```
+
+### Product fields
+
+| Field | Notes |
+| --- | --- |
+| `tcin` | Target's own product id, used in the `/p/-/A-<tcin>` URL. |
+| `price` / `formattedPrice` | Numeric current price and the same price as Target prints it (e.g. `$79.99`). |
+| `currency` | ISO currency (USD). |
+| `brand` | Product brand. |
+| `image` | Product image URL. |
+| `url` | Clean `/p/-/A-<tcin>` product URL. |
+
+<Note>
+Any field with no value is omitted from a product, so each item carries only the fields Target's search returned (e.g. `brand` or `image` may be absent).
+</Note>
+
+## What you can build
+
+- **Price monitoring and repricing** - track `price` for a product over time.
+- **Catalog and assortment research** - pull a whole category with brands.
+- **Competitor tracking** - compare the same keyword against your own listings.
+- **Availability and pricing feeds** - build a live Target price feed keyed by `tcin`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Target search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

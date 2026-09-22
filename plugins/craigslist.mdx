@@ -1,0 +1,92 @@
+---
+title: "Craigslist Search plugin"
+description: "Craigslist classifieds as clean JSON - pid, title, price, currency, location, image and a direct listing link, in any US metro."
+sidebarTitle: "Craigslist Search"
+---
+
+The **Craigslist Search** plugin turns any Craigslist search into structured JSON. Give it a keyword, a metro and a section, and it returns the listings Craigslist shows - each with a posting id, title, numeric price and currency, location, image and a clean listing URL. Filter by price and cap the count with `max_results`.
+
+It runs on the same fetch chain that serves `getPageSource`. One fetch returns Craigslist's full gallery (~200 listings), which the plugin merges from the gallery DOM and Craigslist's own embedded JSON-LD - no Craigslist account needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /marketplace/craigslist-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search, e.g. `bicycle` or `sofa`. |
+| `site` | no | Metro subdomain, e.g. `newyork`, `sfbay`, `losangeles`, `chicago`. Default `newyork`. |
+| `category` | no | Craigslist section code. Default `sss` (for sale). See the list below. |
+| `min_price` / `max_price` | no | Price range in USD. |
+| `max_results` | no | How many listings to return. Default `120`, max `500`. |
+| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to a US exit. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/marketplace/craigslist-search?query=bicycle&site=sfbay&max_price=500&max_results=200" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Section codes
+
+`sss` for sale (all, default) · `cta` cars & trucks · `apa` apts / housing · `jjj` jobs
+
+Any Craigslist category code is accepted; the list above is just the common ones. `site` accepts any metro subdomain too, so an unlisted metro is passed straight through.
+
+## Response
+
+```json
+{
+  "query": "bicycle",
+  "site": "sfbay",
+  "resultsCollected": 120,
+  "listings": [
+    {
+      "pid": "7712345678",
+      "title": "Specialized Rockhopper Mountain Bike",
+      "url": "https://sfbay.craigslist.org/eby/bik/d/....html",
+      "price": 350.0,
+      "currency": "USD",
+      "location": "oakland",
+      "image": "https://images.craigslist.org/....jpg"
+    }
+  ]
+}
+```
+
+### Listing fields
+
+| Field | Notes |
+| --- | --- |
+| `pid` | Craigslist's own posting id. |
+| `price` / `currency` | Numeric price and ISO currency (USD), read from the card or the JSON-LD. |
+| `location` | Neighbourhood / city the poster set, when present. |
+| `image` | Listing thumbnail URL. |
+| `url` | Direct listing URL. |
+
+<Note>
+Any field with no value is omitted from a listing, so each item carries only the fields Craigslist actually showed (e.g. `price`, `location` or `image` may be absent - many classifieds carry no price).
+</Note>
+
+## What you can build
+
+- **Local marketplace monitoring** - watch a category in one metro for new deals.
+- **Price research** - pull a whole category's price distribution across metros.
+- **Lead and inventory sourcing** - find sellers and stock in `cta` (cars) or `sss` (for sale).
+- **Deal alerts** - filter with `max_price` and re-run to catch fresh listings.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Craigslist search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

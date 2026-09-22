@@ -1,0 +1,93 @@
+---
+title: "Zalando Search plugin"
+description: "Zalando fashion product search as clean JSON - sku, brand, name, price, currency, image and a direct product link, on any European storefront."
+sidebarTitle: "Zalando Search"
+---
+
+The **Zalando Search** plugin turns any Zalando search into structured JSON. Give it a keyword, and it returns the products Zalando shows - each with a `sku`, brand, product name, price and currency, image and a clean product URL. Choose the storefront with `domain` and page through to `max_results`.
+
+It runs on the same fetch chain that serves `getPageSource` (Zalando sits behind Akamai). Zalando renders no product cards into the DOM, so the plugin reads the products from Zalando's own client-hydration data blob - no Zalando account needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /marketplace/zalando-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search, e.g. `nike sneakers` or `winter jacket`. |
+| `domain` | no | Zalando storefront. Default `en.zalando.de`. See the list below. |
+| `page` | no | 1-based page to start from (~48 per page). Default `1`. |
+| `max_results` | no | How many products to collect across pages. Default `48`, max `500`. |
+| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to an EU exit. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/marketplace/zalando-search?query=nike%20sneakers&domain=en.zalando.de&max_results=96" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Supported storefronts
+
+`en.zalando.de` (English, default) `www.zalando.co.uk` `www.zalando.fr` `www.zalando.it` `www.zalando.es` `www.zalando.nl` `www.zalando.pl` `www.zalando.de`
+
+Prices come back in each storefront's own currency, so pick the market you sell or buy in.
+
+## Response
+
+```json
+{
+  "query": "nike sneakers",
+  "domain": "en.zalando.de",
+  "resultsCollected": 48,
+  "products": [
+    {
+      "sku": "NI114D0AB-A11",
+      "brand": "Nike Sportswear",
+      "name": "AIR MAX 90 - Trainers",
+      "url": "https://en.zalando.de/nike-sportswear-air-max-90-....html",
+      "price": 95.95,
+      "currency": "EUR",
+      "image": "https://img01.ztat.net/article/....jpg"
+    }
+  ]
+}
+```
+
+### Product fields
+
+| Field | Notes |
+| --- | --- |
+| `sku` | Zalando's own product sku. |
+| `brand` | Product brand (e.g. `Nike Sportswear`). |
+| `name` | Product name / model. |
+| `price` | Numeric price the customer pays - the sale price when the item is discounted, otherwise the list price. |
+| `currency` | ISO currency, read from Zalando's data (never inferred from the storefront). |
+| `image` | Product image URL. |
+| `url` | Direct product URL. |
+
+<Note>
+Any field with no value is omitted from a product, so each item carries only the fields Zalando's search returned (e.g. `image` or `brand` may be absent).
+</Note>
+
+## What you can build
+
+- **Fashion price monitoring** - track a model's price and discounts over time.
+- **Assortment and brand research** - pull a brand or category across storefronts.
+- **Cross-market pricing** - compare the same query on `en.zalando.de` and `www.zalando.co.uk`.
+- **Competitor tracking** - watch what a brand lists and at what price.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Zalando search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

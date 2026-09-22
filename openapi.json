@@ -4888,6 +4888,107 @@
         ]
       }
     },
+    "/images/google-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Google Images results",
+        "description": "Runs the Google Images vertical (`udm=2`) for `q` and returns the image results as JSON. Every result carries `imageUrl` (the full-resolution origin image, not a Google thumbnail), `sourceDomain` and `googleImagesUrl` (the Google Images viewer link, i.e. the `/imgres?...` URL a browser copies from the result tile), plus `sourcePageUrl`, `title`, `sourceName`, `thumbnailUrl`, `width`, `height` and `fileSize` where available. Set `proxy_country`/`gl` to target a market (image ranking is region-specific). One render returns the first page of results (v1).",
+        "operationId": "google_images_images_google_search_post",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Image search term, e.g. 'eiffel tower'.",
+              "title": "Q"
+            },
+            "description": "Image search term, e.g. 'eiffel tower'."
+          },
+          {
+            "name": "gl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Market of search, ISO-2, e.g. 'us', 'de'. Shifts which images rank.",
+              "default": "us",
+              "title": "Gl"
+            },
+            "description": "Market of search, ISO-2, e.g. 'us', 'de'. Shifts which images rank."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "How many image results to return (v1: first page).",
+              "default": 100,
+              "title": "Max Results"
+            },
+            "description": "How many image results to return (v1: first page)."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2). Image results are market-specific.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2). Image results are market-specific."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `results` array plus the query and count.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "403": {
+            "description": "Blocked by Google CAPTCHA after retries - try another proxy_country."
+          },
+          "502": {
+            "description": "No image results collected (upstream block or no matches)."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
     "/realestate/redfin": {
       "post": {
         "tags": [
@@ -7462,6 +7563,574 @@
           },
           "502": {
             "description": "Instagram login wall / gated - no public data returned."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/target-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Target product search",
+        "description": "Searches Target for `query` and returns the products as JSON: `tcin`, `title`, `brand`, `price` and `formattedPrice`, `currency`, `image` and a product `url`. Sort with `sort`, filter with `min_price`/`max_price`, and collect up to `max_results` across pages. Data comes from Target's Redsky API, since target.com itself is a client-rendered shell.",
+        "operationId": "target_search_marketplace_target_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "What to search, e.g. 'coffee maker' or 'tv'.",
+              "title": "Query"
+            },
+            "description": "What to search, e.g. 'coffee maker' or 'tv'."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Ordering: relevance, newest, price_low, price_high.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Ordering: relevance, newest, price_low, price_high."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price to include (USD).",
+              "title": "Min Price"
+            },
+            "description": "Lowest price to include (USD)."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price to include (USD).",
+              "title": "Max Price"
+            },
+            "description": "Highest price to include (USD)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "How many products to collect across pages.",
+              "default": 24,
+              "title": "Max Results"
+            },
+            "description": "How many products to collect across pages."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2). Defaults to a US exit.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2). Defaults to a US exit."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "502": {
+            "description": "Blocked by Target or no results page returned."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/vinted-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Vinted product search",
+        "description": "Searches Vinted for `query` and returns the listings as JSON: `title`, `price` and `currency`, `brand`, `size`, `condition`, `image` and an item `url`. Pick the marketplace with `domain`, sort with `order`, filter with `price_from`/`price_to`, and collect up to `max_results` across pages.",
+        "operationId": "vinted_search_marketplace_vinted_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "What to search, e.g. 'nike air max' or 'levis 501'.",
+              "title": "Query"
+            },
+            "description": "What to search, e.g. 'nike air max' or 'levis 501'."
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Marketplace TLD: co.uk, com, de, fr, it, es, nl, pl.",
+              "default": "co.uk",
+              "title": "Domain"
+            },
+            "description": "Marketplace TLD: co.uk, com, de, fr, it, es, nl, pl."
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Ordering: relevance, newest_first, price_low_to_high, price_high_to_low.",
+              "default": "relevance",
+              "title": "Order"
+            },
+            "description": "Ordering: relevance, newest_first, price_low_to_high, price_high_to_low."
+          },
+          {
+            "name": "price_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price to include.",
+              "title": "Price From"
+            },
+            "description": "Lowest price to include."
+          },
+          {
+            "name": "price_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price to include.",
+              "title": "Price To"
+            },
+            "description": "Highest price to include."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "How many listings to collect across pages.",
+              "default": 96,
+              "title": "Max Results"
+            },
+            "description": "How many listings to collect across pages."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based page to start from (~96 per page).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based page to start from (~96 per page)."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2). Defaults to an EU exit.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2). Defaults to an EU exit."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with an `items` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "502": {
+            "description": "Blocked by Vinted or no results page returned."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/craigslist-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Craigslist search",
+        "description": "Searches Craigslist for `query` in a given metro (`site`) and section (`category`) and returns the listings as JSON: `pid`, `title`, `url`, `price`, `currency`, `location` and `image`. Filter with `min_price`/`max_price` and cap the count with `max_results`. Results are merged from the gallery DOM and the embedded JSON-LD ItemList.",
+        "operationId": "craigslist_search_marketplace_craigslist_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "What to search, e.g. 'bicycle' or 'sofa'.",
+              "title": "Query"
+            },
+            "description": "What to search, e.g. 'bicycle' or 'sofa'."
+          },
+          {
+            "name": "site",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Metro subdomain, e.g. 'newyork', 'sfbay', 'chicago'.",
+              "default": "newyork",
+              "title": "Site"
+            },
+            "description": "Metro subdomain, e.g. 'newyork', 'sfbay', 'chicago'."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Craigslist code: sss=for sale, cta=cars+trucks, apa=housing, jjj=jobs.",
+              "default": "sss",
+              "title": "Category"
+            },
+            "description": "Craigslist code: sss=for sale, cta=cars+trucks, apa=housing, jjj=jobs."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price to include (USD).",
+              "title": "Min Price"
+            },
+            "description": "Lowest price to include (USD)."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price to include (USD).",
+              "title": "Max Price"
+            },
+            "description": "Highest price to include (USD)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "How many listings to return (1-500).",
+              "default": 120,
+              "title": "Max Results"
+            },
+            "description": "How many listings to return (1-500)."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2). Defaults to a US exit.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2). Defaults to a US exit."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `listings` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "502": {
+            "description": "Blocked by Craigslist or no results page returned."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/zalando-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Zalando product search",
+        "description": "Searches Zalando for `query` and returns the products as JSON: `sku`, `brand`, `name`, `price`, `currency`, `image` and a product `url`. Pick the storefront with `domain` and collect up to `max_results` across pages.",
+        "operationId": "zalando_search_marketplace_zalando_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "What to search, e.g. 'nike sneakers' or 'winter jacket'.",
+              "title": "Query"
+            },
+            "description": "What to search, e.g. 'nike sneakers' or 'winter jacket'."
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Zalando storefront: en.zalando.de, www.zalando.co.uk, www.zalando.fr, www.zalando.it, www.zalando.es, www.zalando.nl, www.zalando.pl, www.zalando.de.",
+              "default": "en.zalando.de",
+              "title": "Domain"
+            },
+            "description": "Zalando storefront: en.zalando.de, www.zalando.co.uk, www.zalando.fr, www.zalando.it, www.zalando.es, www.zalando.nl, www.zalando.pl, www.zalando.de."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based page to start from (~48 per page).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based page to start from (~48 per page)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "How many products to collect across pages.",
+              "default": 48,
+              "title": "Max Results"
+            },
+            "description": "How many products to collect across pages."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2). Defaults to an EU exit.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2). Defaults to an EU exit."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "502": {
+            "description": "Blocked by Zalando or no results page returned."
           },
           "504": {
             "description": "Fetch timed out."

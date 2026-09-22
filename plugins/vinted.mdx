@@ -1,0 +1,97 @@
+---
+title: "Vinted Search plugin"
+description: "Vinted resale listings as clean JSON - title, price, currency, brand, size, condition, image and a direct item link, on any regional marketplace."
+sidebarTitle: "Vinted Search"
+---
+
+The **Vinted Search** plugin turns any Vinted search into structured JSON. Give it a keyword and a marketplace, and it returns the second-hand listings Vinted shows - each with title, price and currency, brand, size, condition, image and a clean item URL. Sort with `order`, filter by price and page through to `max_results`.
+
+It runs on the same fetch chain that serves `getPageSource` (Vinted sits behind DataDome), and reads the listings straight from the rendered listing cards - no Vinted account or API needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /marketplace/vinted-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search, e.g. `nike air max` or `levis 501`. |
+| `domain` | no | Marketplace TLD. Default `co.uk`. See the list below. |
+| `order` | no | `relevance` (default), `newest_first`, `price_low_to_high` or `price_high_to_low`. |
+| `price_from` / `price_to` | no | Price range in the marketplace's own currency. |
+| `page` | no | 1-based page to start from (~96 per page). Default `1`. |
+| `max_results` | no | How many listings to collect across pages. Default `96`, max `500`. |
+| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to an EU exit. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/marketplace/vinted-search?query=nike%20air%20max&domain=de&order=newest_first&max_results=192" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Supported marketplaces
+
+`co.uk` `com` `de` `fr` `it` `es` `nl` `pl`
+
+Each marketplace prices in its own currency (`co.uk` -> GBP, `com` -> USD, `de` / `fr` / `it` / `es` / `nl` -> EUR, `pl` -> PLN), so pick the one you actually buy or sell in.
+
+## Response
+
+```json
+{
+  "query": "nike air max",
+  "domain": "de",
+  "resultsCollected": 96,
+  "items": [
+    {
+      "id": "4567891234",
+      "title": "Nike Air Max 90",
+      "url": "https://www.vinted.de/items/4567891234",
+      "price": 45.0,
+      "currency": "EUR",
+      "brand": "Nike",
+      "size": "42",
+      "condition": "Very good",
+      "image": "https://images1.vinted.net/....jpeg"
+    }
+  ]
+}
+```
+
+### Item fields
+
+| Field | Notes |
+| --- | --- |
+| `id` | Vinted's own listing id, used in the `/items/<id>` URL. |
+| `price` / `currency` | Numeric price and the marketplace's currency, stamped from the TLD (Vinted prints no ISO code per card). |
+| `brand` | Item brand, when the card shows it. |
+| `size` | Size label as the seller set it. |
+| `condition` | Seller's condition label (e.g. `New with tags`, `Very good`), in the marketplace's language. |
+| `image` | Listing thumbnail URL. |
+| `url` | Clean `/items/<id>` URL, with tracking parameters stripped. |
+
+<Note>
+Any field with no value is omitted from a listing, so each item carries only the fields the Vinted card actually showed (e.g. `brand`, `size` or `condition` may be absent).
+</Note>
+
+## What you can build
+
+- **Resale price research** - track what a model actually resells for by size and condition.
+- **Sourcing and arbitrage** - compare the same item on `de` and `co.uk` to spot price gaps.
+- **Brand and trend monitoring** - pull a brand's live second-hand supply across markets.
+- **Deal alerts** - watch `order=newest_first` under a `price_to` cap for fresh listings.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Vinted search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

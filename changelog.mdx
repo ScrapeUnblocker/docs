@@ -3,6 +3,21 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-22" description="Four marketplace plugins: Target, Vinted, Craigslist and Zalando">
+  **New plugin pages:** [`POST /marketplace/target-search`](/plugins/target),
+  [`POST /marketplace/vinted-search`](/plugins/vinted),
+  [`POST /marketplace/craigslist-search`](/plugins/craigslist) and
+  [`POST /marketplace/zalando-search`](/plugins/zalando). Each returns clean,
+  parsed JSON with pagination to `max_results`: **Target** US retail search
+  (tcin, title, brand, price, image, URL) via Target's own Redsky API;
+  **Vinted** EU resale listings on any regional marketplace (title, price and
+  currency, brand, size, condition, image); **Craigslist** US classifieds in any
+  metro (posting id, title, price, location, image); and **Zalando** EU fashion
+  search on any storefront (sku, brand, name, price and currency, image). All run
+  on the same anti-bot fetch chain as `getPageSource` - no per-site API key,
+  account or CAPTCHA setup.
+</Update>
+
 <Update label="2026-09-22" description="Google Images: googleImagesUrl (/imgres viewer link) per result">
   [`POST /images/google-search`](/plugins/google-images) now returns a
   **`googleImagesUrl`** on every result - the Google Images viewer link
