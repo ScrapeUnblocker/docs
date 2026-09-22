@@ -5403,11 +5403,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
+              "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
               "default": "segments",
               "title": "Format"
             },
-            "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext."
+            "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext."
           },
           {
             "name": "proxy_country",
@@ -7866,6 +7866,247 @@
           },
           "502": {
             "description": "Blocked by Vinted or no results page returned."
+          },
+          "504": {
+            "description": "Fetch timed out."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/vehicles/mobile-de": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape mobile.de car listings",
+        "description": "Searches mobile.de (Germany's largest car marketplace) and returns the result-list cards as JSON: `title`, `makeModel`, `price` (numeric EUR) plus `priceFormatted`, `firstRegistration`, `mileage`, `power` (`kw` + `ps`), `fuel`, and the detail `id` + `url`. Pass a friendly `make` name (or a raw `make_id`), and filter with `price_min`/`price_max`, `year_min`, `mileage_max` and `fuel`; collect up to `max_results` across pages. `model` is accepted as free text but is not used to filter (mobile.de needs a numeric model id we do not resolve).",
+        "operationId": "mobile_de_search_vehicles_mobile_de_post",
+        "parameters": [
+          {
+            "name": "make",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Make name, e.g. 'bmw', 'volkswagen', 'audi'. Required unless `make_id` is given.",
+              "title": "Make"
+            },
+            "description": "Make name, e.g. 'bmw', 'volkswagen', 'audi'. Required unless `make_id` is given."
+          },
+          {
+            "name": "make_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Raw mobile.de numeric make id, overrides `make` (e.g. 3500 = BMW).",
+              "title": "Make Id"
+            },
+            "description": "Raw mobile.de numeric make id, overrides `make` (e.g. 3500 = BMW)."
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Model name (free text). Model-id resolution is not available, so it is used only as a note; results are not filtered by model.",
+              "title": "Model"
+            },
+            "description": "Model name (free text). Model-id resolution is not available, so it is used only as a note; results are not filtered by model."
+          },
+          {
+            "name": "price_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Minimum price in EUR.",
+              "title": "Price Min"
+            },
+            "description": "Minimum price in EUR."
+          },
+          {
+            "name": "price_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Maximum price in EUR.",
+              "title": "Price Max"
+            },
+            "description": "Maximum price in EUR."
+          },
+          {
+            "name": "year_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1900
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Earliest first-registration year (YYYY).",
+              "title": "Year Min"
+            },
+            "description": "Earliest first-registration year (YYYY)."
+          },
+          {
+            "name": "mileage_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Maximum mileage in km.",
+              "title": "Mileage Max"
+            },
+            "description": "Maximum mileage in km."
+          },
+          {
+            "name": "fuel",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Fuel: petrol, diesel, electric, hybrid (or a raw mobile.de code).",
+              "title": "Fuel"
+            },
+            "description": "Fuel: petrol, diesel, electric, hybrid (or a raw mobile.de code)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "description": "How many listings to collect across pages (~20 per page).",
+              "default": 20,
+              "title": "Max Results"
+            },
+            "description": "How many listings to collect across pages (~20 per page)."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "description": "1-based results page to start from.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based results page to start from."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "title": "Proxy Country"
+            },
+            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `listings` array plus counts.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters (e.g. unknown make)."
+          },
+          "502": {
+            "description": "Blocked by mobile.de or no results page returned."
           },
           "504": {
             "description": "Fetch timed out."

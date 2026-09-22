@@ -78,6 +78,7 @@
               "plugins/vinted",
               "plugins/craigslist",
               "plugins/zalando",
+              "plugins/mobile-de",
               "plugins/temu",
               "plugins/indeed",
               "plugins/meta-ad-library",

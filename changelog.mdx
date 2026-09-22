@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-22" description="Mobile.de plugin">
+  **New plugin page:** [`POST /vehicles/mobile-de`](/plugins/mobile-de). Search
+  mobile.de, Germany's largest used-car marketplace, by make and get clean,
+  parsed JSON with pagination to `max_results`: title, make and model, price
+  (EUR), first registration, mileage, power (kW/PS), fuel and a direct listing
+  URL. Filter by `price_min`/`price_max`, `year_min`, `mileage_max` and `fuel`;
+  pass a friendly `make` name or a raw `make_id`. It runs on the same anti-bot
+  fetch chain as `getPageSource` - no per-site API key, account or CAPTCHA setup.
+</Update>
+
 <Update label="2026-09-22" description="Four marketplace plugins: Target, Vinted, Craigslist and Zalando">
   **New plugin pages:** [`POST /marketplace/target-search`](/plugins/target),
   [`POST /marketplace/vinted-search`](/plugins/vinted),

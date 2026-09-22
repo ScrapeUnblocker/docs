@@ -1,0 +1,126 @@
+---
+title: "Mobile.de Car plugin"
+description: "mobile.de car search as clean JSON - title, make and model, price, first registration, mileage, power (kW/PS), fuel and a direct listing link, on Germany's largest car marketplace."
+sidebarTitle: "Mobile.de Cars"
+---
+
+The **Mobile.de Car** plugin turns any mobile.de search into structured JSON. Give it a make (BMW, Volkswagen, Audi, ...) and it returns the cars mobile.de shows - each with title, make and model, price in EUR, first registration, mileage, power in kW and PS, fuel type and a clean listing URL. Filter by price, year, mileage and fuel, and page through to `max_results`.
+
+It runs on the same fetch chain that serves `getPageSource`. mobile.de is Germany's #1 used-car marketplace and sits behind a strong anti-bot wall, so the plugin renders the result list on a warm, challenge-cleared browser session and reads the cars from mobile.de's own result cards - no mobile.de developer account needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /vehicles/mobile-de
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `make` | yes | Make name, e.g. `bmw`, `volkswagen`, `audi`. Required unless `make_id` is given. |
+| `make_id` | no | Raw mobile.de numeric make id, overrides `make` (e.g. `3500` = BMW). |
+| `model` | no | Model name (free text). It is returned as a note only - mobile.de needs a numeric model id we do not resolve, so results are not filtered by model. |
+| `price_min` / `price_max` | no | Price range in EUR. |
+| `year_min` | no | Earliest first-registration year (`YYYY`). |
+| `mileage_max` | no | Maximum mileage in km. |
+| `fuel` | no | `petrol`, `diesel`, `electric` or `hybrid`. |
+| `max_results` | no | How many listings to collect across pages (~20 per page). Default `20`, max `500`. |
+| `proxy_country` | no | Exit-IP country (ISO-2). Leave blank for a smart exit. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/vehicles/mobile-de?make=bmw&price_max=30000&fuel=diesel&max_results=40" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+### Supported makes
+
+Pass a friendly `make` name and the plugin maps it to mobile.de's numeric id:
+
+`audi` `bmw` `citroen` `dacia` `fiat` `ford` `honda` `hyundai` `kia` `mazda` `mercedes-benz` `mini` `nissan` `opel` `peugeot` `porsche` `renault` `seat` `skoda` `suzuki` `toyota` `volkswagen` `volvo`
+
+For any make not on this list, pass its raw `make_id` instead.
+
+## Response
+
+```json
+{
+  "make": "bmw",
+  "makeId": 3500,
+  "model": null,
+  "modelNote": null,
+  "listings": [
+    {
+      "id": "419012345",
+      "url": "https://suchen.mobile.de/fahrzeuge/details.html?id=419012345",
+      "title": "BMW 320d Touring Sport Line Automatik AHK Navi",
+      "makeModel": "BMW 320",
+      "price": 22900,
+      "priceFormatted": "22.900 €",
+      "currency": "EUR",
+      "firstRegistration": "06/2019",
+      "mileage": 98500,
+      "power": { "kw": 140, "ps": 190 },
+      "fuel": "Diesel"
+    }
+  ],
+  "resultsCollected": 40,
+  "totalResults": 12483,
+  "query": {
+    "priceMin": null,
+    "priceMax": 30000,
+    "yearMin": null,
+    "mileageMax": null,
+    "fuel": "diesel"
+  }
+}
+```
+
+### Search fields
+
+| Field | Notes |
+| --- | --- |
+| `make` / `makeId` | The make you searched and the numeric mobile.de id it resolved to. |
+| `model` / `modelNote` | The `model` free text you passed and a note explaining it was not used to filter. Both `null` when no `model` was given. |
+| `resultsCollected` | Number of listings actually returned across pages. |
+| `totalResults` | mobile.de's own total-result count for the search, when the page shows it. |
+| `query` | The filters that were applied (price, year, mileage, fuel), echoed back. |
+
+### Listing fields
+
+| Field | Notes |
+| --- | --- |
+| `id` | mobile.de's own detail id. |
+| `url` | Clean `/fahrzeuge/details.html?id=...` listing URL. |
+| `title` | Full listing title as mobile.de shows it. |
+| `makeModel` | The make and model line, e.g. `BMW 320`. |
+| `price` | Numeric price in EUR. `priceFormatted` keeps mobile.de's own formatting, e.g. `22.900 €`. |
+| `currency` | ISO currency (EUR). |
+| `firstRegistration` | First-registration date as `MM/YYYY`. |
+| `mileage` | Mileage in km, as a number. |
+| `power` | Engine power as `{ "kw": ..., "ps": ... }`. `ps` is `null` when the card shows only kW. |
+| `fuel` | Normalised fuel label: `Petrol`, `Diesel`, `Electric`, `Hybrid`, `LPG`, `CNG`, ... |
+
+<Note>
+Any field with no value is `null`, so each item carries only what the mobile.de card actually showed (e.g. `power.ps` may be absent).
+</Note>
+
+## What you can build
+
+- **Used-car price monitoring** - track price against mileage and first registration for a make over time.
+- **Market and inventory research** - pull a whole make with `max_results` and see what is actually on offer.
+- **Pricing and valuation models** - combine price, year, mileage and power into a residual-value dataset.
+- **Competitor and dealer tracking** - watch a make and price band and spot new listings as they appear.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a mobile.de search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
