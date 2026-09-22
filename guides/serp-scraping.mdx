@@ -50,6 +50,7 @@ const data = await res.json();
   "bottomAdsCount": 0,
   "organicResultsCount": 1,
   "resultsCollected": 1,
+  "pagesFetched": 1,
   "topAds": [
     {
       "title": "Nike Run Club - Free Shipping",
@@ -78,8 +79,9 @@ const data = await res.json();
 
 Every response carries `keyword`, `proxyCountry`, `totalResults`, the count
 fields (`topAdsCount`, `bottomAdsCount`, `organicResultsCount`,
-`resultsCollected`), the three result lists (`topAds`, `bottomAds`, `organic`)
-and `aiOverview`. On a country fallback it also carries `requestedCountry` and
+`resultsCollected`), `pagesFetched` (how many result pages were rendered - this
+is how many API requests the call was billed, see [`pages_to_check`](#pages-to-check)),
+the three result lists (`topAds`, `bottomAds`, `organic`) and `aiOverview`. On a country fallback it also carries `requestedCountry` and
 `note` (see [`proxy_country`](#proxy_country) below).
 
 ### `aiOverview`
@@ -112,6 +114,8 @@ curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=running+shoes&page
 ```
 
 Results from all pages are concatenated into `topAds`, `bottomAds`, and `organic` with `position` reflecting cross-page ordering.
+
+**Billing:** each result page rendered is charged as one API request - a `pages_to_check=3` call that returns three pages counts as 3 requests, not 1. The `pagesFetched` field in the response tells you exactly how many were charged (it can be lower than `pages_to_check` when Google has fewer pages). This per-page charge is unique to `/serpApi`; every other endpoint bills a flat 1 per request regardless of how many results it returns.
 
 ### `proxy_country`
 
