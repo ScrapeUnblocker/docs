@@ -1,10 +1,10 @@
 ---
 title: "Airbnb Stays plugin"
-description: "Airbnb stay search as clean JSON - name, room type, nightly price, rating, review count, coordinates, badges, photo and a direct room link."
+description: "Airbnb stay search as clean JSON - name, room type, price, rating, review count, coordinates, badges, photo and a direct room link."
 sidebarTitle: "Airbnb Stays"
 ---
 
-The **Airbnb Stays** plugin turns any Airbnb search into structured JSON. Give it a location, and it returns the stays Airbnb shows - each with name, room type, nightly price (in USD by default), rating and review count, coordinates, badges (like Guest favourite), a photo and a clean room URL. Filter with dates, guests, price range and room type, and page through to `max_results`.
+The **Airbnb Stays** plugin turns any Airbnb search into structured JSON. Give it a location, and it returns the stays Airbnb shows - each with name, room type, price (in USD by default), rating and review count, coordinates, badges (like Guest favourite), a photo and a clean room URL. Filter with dates, guests, price range and room type, and page through to `max_results`.
 
 It runs on the same fetch chain that serves `getPageSource`, and reads the listings from Airbnb's embedded `data-deferred-state` JSON, so results come back even before the page's client-side app hydrates - no Airbnb API or login needed.
 
@@ -30,7 +30,7 @@ POST /travel/airbnb
 | `proxy_country` | no | Exit-IP country (ISO-2). Defaults to US so prices are in USD. |
 
 ```bash
-curl -X POST "https://api.scrapeunblocker.com/travel/airbnb?location=Paris%2C%20France&room_type=entire_home&max_results=72" \
+curl -X POST "https://api.scrapeunblocker.com/travel/airbnb?location=Paris%2C%20France&checkin=2026-10-19&checkout=2026-10-22&room_type=entire_home&max_results=72" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
@@ -40,25 +40,23 @@ curl -X POST "https://api.scrapeunblocker.com/travel/airbnb?location=Paris%2C%20
 {
   "location": "Paris, France",
   "resultsCollected": 72,
-  "query": { "checkin": null, "checkout": null, "adults": null, "room_type": "entire_home", "min_price": null, "max_price": null },
+  "query": { "checkin": "2026-10-19", "checkout": "2026-10-22", "adults": null, "room_type": "entire_home", "min_price": null, "max_price": null },
   "listings": [
     {
-      "id": "1234567890",
-      "name": "Cozy studio near the Eiffel Tower",
-      "roomType": "Entire rental unit",
-      "subtitle": "Studio in Paris",
-      "url": "https://www.airbnb.com/rooms/1234567890",
-      "price": {
-        "amount": 142,
-        "priceText": "$142",
-        "originalPriceText": "$180",
-        "qualifier": "night"
-      },
-      "rating": 4.86,
-      "reviewCount": 214,
-      "latitude": 48.8566,
-      "longitude": 2.3522,
-      "badges": ["Guest favourite"],
+      "id": "35283352",
+      "name": "Cozy studio close to Champs Elysées & Eiffel tower",
+      "roomType": "Apartment in Paris",
+      "subtitle": "Studio",
+      "url": "https://www.airbnb.com/rooms/35283352",
+      "price": 621,
+      "priceText": "$621",
+      "originalPriceText": "$720",
+      "priceQualifier": "for 3 nights",
+      "rating": 4.9,
+      "reviewCount": 174,
+      "latitude": 48.872,
+      "longitude": 2.2885,
+      "badges": ["Guest favorite"],
       "image": "https://a0.muscache.com/im/pictures/....jpg"
     }
   ]
@@ -69,20 +67,21 @@ curl -X POST "https://api.scrapeunblocker.com/travel/airbnb?location=Paris%2C%20
 
 | Field | Notes |
 | --- | --- |
-| `roomType` | Airbnb's own room-type label, e.g. `Entire rental unit`, `Private room`. |
-| `price` | `amount` (numeric, per night), `priceText`, any `originalPriceText` (struck-through) and the `qualifier` (e.g. `night`). Currency follows `proxy_country`. |
+| `roomType` | Airbnb's own room-type label, e.g. `Apartment in Paris`, `Private room`. |
+| `price` | Numeric price. With dates it is the **total for the stay**; `priceQualifier` (e.g. `for 3 nights`) says what it covers. Currency follows `proxy_country`. |
+| `priceText` / `originalPriceText` | Airbnb's own price wording, and any struck-through original. |
 | `rating` / `reviewCount` | Average rating and number of reviews. |
 | `latitude` / `longitude` | Listing coordinates. |
-| `badges` | Labels Airbnb prints on the card, e.g. `Guest favourite`. |
+| `badges` | Labels Airbnb prints on the card, e.g. `Guest favorite`. |
 | `url` | Clean `/rooms/` URL. |
 
 <Note>
-Prices follow the exit country, so the plugin pins a US exit by default for USD. Pass `proxy_country` to price in another market's currency.
+Any field with no value is omitted from a listing. Prices follow the exit country, so the plugin pins a US exit by default for USD - pass `proxy_country` to price in another market's currency.
 </Note>
 
 ## What you can build
 
-- **Rate and availability monitoring** - track nightly prices for a market and date range.
+- **Rate and availability monitoring** - track prices for a market and date range.
 - **Short-let market research** - pull every listing in a city with room type and rating.
 - **Location analysis** - map listings by coordinates and price band.
 - **Competitor benchmarking** - compare a set of listings by price and `reviewCount`.

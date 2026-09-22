@@ -48,17 +48,18 @@ curl -X POST "https://api.scrapeunblocker.com/travel/booking?location=Paris&chec
   "query": { "checkin": "2026-10-19", "checkout": "2026-10-21", "adults": 2, "currency": "EUR" },
   "properties": [
     {
-      "id": "citizenm-paris-champs-elysees",
+      "id": 1666630,
       "name": "citizenM Paris Champs-Élysées",
       "url": "https://www.booking.com/hotel/fr/citizenm-paris-champs-elysees.html",
-      "price": { "amount": 402, "amountText": "€ 402", "currency": "EUR" },
+      "price": 402.0,
       "priceText": "€ 402",
+      "currency": "EUR",
       "chargesInfo": "Includes taxes and charges",
       "reviewScore": 8.9,
       "reviewCount": 4028,
       "address": "8th arr., Paris",
       "city": "Paris",
-      "country": "France",
+      "country": "fr",
       "latitude": 48.8721,
       "longitude": 2.3009,
       "badges": ["Breakfast included"],
@@ -72,7 +73,7 @@ curl -X POST "https://api.scrapeunblocker.com/travel/booking?location=Paris&chec
 
 | Field | Notes |
 | --- | --- |
-| `price` | `amount` (numeric), `amountText` (Booking's own wording) and `currency`. `null` when no dates were given. |
+| `price` / `priceText` / `currency` | Numeric price, Booking's own price wording, and the currency. Present only when check-in/check-out dates were given. |
 | `chargesInfo` | Whether taxes and charges are included, as Booking states it. |
 | `reviewScore` / `reviewCount` | Guest review score (out of 10) and number of reviews. |
 | `latitude` / `longitude` | Property coordinates, when Booking exposes them. |
@@ -80,7 +81,7 @@ curl -X POST "https://api.scrapeunblocker.com/travel/booking?location=Paris&chec
 | `url` | Clean property URL, tracking parameters stripped. |
 
 <Note>
-Prices are only returned when both `checkin` and `checkout` are supplied, and they come back in `currency` (default USD). Without dates you still get the property list, review scores and location.
+Any field with no value is omitted from a property, so each item carries only the fields Booking actually showed. Prices are only returned when both `checkin` and `checkout` are supplied, in `currency` (default USD); without dates you still get the property list, review scores and location.
 </Note>
 
 ## What you can build

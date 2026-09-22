@@ -70,6 +70,10 @@ curl -X POST "https://api.scrapeunblocker.com/marketplace/walmart-search?query=l
 | `availability` | Stock state as Walmart words it. |
 | `url` | Clean `/ip/` product URL. |
 
+<Note>
+Any field with no value is omitted from a product, so each item carries only the fields Walmart's search tile actually showed (e.g. `wasPrice` or `brand` may be absent).
+</Note>
+
 ## What you can build
 
 - **Price monitoring and repricing** - track price and `wasPrice` for a product over time.

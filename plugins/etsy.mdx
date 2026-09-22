@@ -1,10 +1,10 @@
 ---
 title: "Etsy Search plugin"
-description: "Etsy product search as clean JSON - title, price, currency, shop, image and a direct listing link."
+description: "Etsy product search as clean JSON - title, price, shop, image and a direct listing link."
 sidebarTitle: "Etsy Search"
 ---
 
-The **Etsy Search** plugin turns any Etsy search into structured JSON. Give it a keyword, and it returns the listings Etsy shows - each with title, price and currency, shop name, image and a clean listing URL. Sort, filter by price and page through to `max_results`.
+The **Etsy Search** plugin turns any Etsy search into structured JSON. Give it a keyword, and it returns the listings Etsy shows - each with title, price, shop name, image and a clean listing URL. Sort, filter by price and page through to `max_results`.
 
 It runs on the same fetch chain that serves `getPageSource`, and reads the cards straight from Etsy's server-rendered HTML - no Etsy API key or OAuth app needed.
 
@@ -44,7 +44,7 @@ curl -X POST "https://api.scrapeunblocker.com/marketplace/etsy-search?query=hand
       "title": "Personalized Name Necklace, Custom Gold Jewelry",
       "url": "https://www.etsy.com/listing/1502837465",
       "price": 28.5,
-      "currency": "USD",
+      "currency": "$",
       "shop": "GoldenLeafStudio",
       "image": "https://i.etsystatic.com/....jpg"
     }
@@ -56,13 +56,14 @@ curl -X POST "https://api.scrapeunblocker.com/marketplace/etsy-search?query=hand
 
 | Field | Notes |
 | --- | --- |
-| `price` / `currency` | Numeric price and ISO currency (USD by default). |
-| `shop` | The Etsy shop selling the item. |
+| `price` | Numeric price. |
+| `currency` | The currency **symbol** as Etsy shows it (e.g. `$`, `€`), not an ISO code. Follows `proxy_country` (USD by default). |
+| `shop` | The Etsy shop selling the item. On a sponsored card it may carry Etsy's own promoted-listing prefix (e.g. `Ad ・ By ...`). |
 | `image` | Listing thumbnail URL. |
 | `url` | Clean `/listing/` URL. |
 
 <Note>
-Prices come back in the exit country's currency, so the plugin pins a US exit by default. Pass `proxy_country` to price in another market.
+Any field with no value is omitted from a product. Prices come back in the exit country's currency, so the plugin pins a US exit by default - pass `proxy_country` to price in another market.
 </Note>
 
 ## What you can build

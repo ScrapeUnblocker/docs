@@ -64,7 +64,7 @@ curl -X POST "https://api.scrapeunblocker.com/jobs/indeed?query=software%20engin
         "max": 190000,
         "currency": "USD",
         "text": "$150,000 - $190,000 a year",
-        "type": "yearly"
+        "type": "YEARLY"
       },
       "jobTypes": ["Full-time"],
       "snippet": "You will build and own frontend systems across the product...",
@@ -82,11 +82,15 @@ curl -X POST "https://api.scrapeunblocker.com/jobs/indeed?query=software%20engin
 | `totalResults` | Indeed's own result count for the search, as an integer. |
 | `resultsCollected` | Number of unique jobs collected across pages. |
 | `jobs[].jobkey` | Indeed's own job id, stable across pages (used for de-duplication). |
-| `jobs[].salary` | Parsed `min`/`max` with `currency` and `type` (`yearly`/`hourly`), plus Indeed's raw `text`. `null` when the listing shows no pay. |
+| `jobs[].salary` | Parsed `min`/`max` with `currency` and `type` (`YEARLY`/`HOURLY`), plus Indeed's raw `text`. Absent when the listing shows no pay. |
 | `jobs[].companyRating` | Company star rating and `companyReviewCount`, when Indeed shows them. |
 | `jobs[].jobTypes` | Employment types Indeed tags on the card. |
 | `jobs[].snippet` | The short description Indeed prints under the title. |
 | `jobs[].url` | Clean `viewjob` URL for the listing. |
+
+<Note>
+Any field with no value is omitted from a job, so each item carries only the fields Indeed actually showed (e.g. `salary` or `companyRating` may be absent).
+</Note>
 
 ## What you can build
 
