@@ -1057,7 +1057,7 @@
      "Plugins"
     ],
     "summary": "Scrape Google Images results",
-    "description": "Runs the Google Images vertical (`udm=2`) for `q` and returns the image results as JSON. Every result carries `imageUrl` (the full-resolution origin image, not a Google thumbnail) and `sourceDomain`, plus `sourcePageUrl`, `title`, `sourceName`, `thumbnailUrl`, `width`, `height` and `fileSize` where available. Set `proxy_country`/`gl` to target a market (image ranking is region-specific). One render returns the first page of results (v1).",
+    "description": "Runs the Google Images vertical (`udm=2`) for `q` and returns the image results as JSON. Every result carries `imageUrl` (the full-resolution origin image, not a Google thumbnail), `sourceDomain` and `googleImagesUrl` (the Google Images viewer link, i.e. the `/imgres?...` URL a browser copies from the result tile), plus `sourcePageUrl`, `title`, `sourceName`, `thumbnailUrl`, `width`, `height` and `fileSize` where available. Set `proxy_country`/`gl` to target a market (image ranking is region-specific). One render returns the first page of results (v1).",
     "operationId": "google_images_images_google_search_post",
     "parameters": [
      {

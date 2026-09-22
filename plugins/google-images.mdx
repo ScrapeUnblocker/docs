@@ -51,7 +51,8 @@ A JSON object with a `results` array plus counts:
       "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9Gc...",
       "width": 1600,
       "height": 1067,
-      "fileSize": "418KB"
+      "fileSize": "418KB",
+      "googleImagesUrl": "https://www.google.com/imgres?q=eiffel%20tower&imgurl=https%3A%2F%2Fcdn.britannica.com%2F31%2F255531-050-B7E07090%2Feiffel-tower-paris-france.jpg&imgrefurl=https%3A%2F%2Fwww.britannica.com%2Ftopic%2FEiffel-Tower-Paris-France&docid=kZ9Xr2mFqL8AbM&w=1600&h=1067"
     }
   ]
 }
@@ -67,9 +68,10 @@ A JSON object with a `results` array plus counts:
 | `thumbnailUrl` | A Google-hosted thumbnail (fast to load), when present. |
 | `width` / `height` | Original image dimensions in pixels. |
 | `fileSize` | Google's reported file size (e.g. `418KB`, `1.4MB`), when present. |
+| `googleImagesUrl` | The Google Images viewer link (`/imgres?...`) for this result - the same URL a desktop browser copies from the result tile ("Copy link address"). Reconstructed from the result data; returned for every result. |
 
 <Note>
-  `imageUrl` and `sourceDomain` are returned for every result. `sourcePageUrl`,
+  `imageUrl`, `sourceDomain` and `googleImagesUrl` are returned for every result. `sourcePageUrl`,
   `title`, dimensions and file size are present for essentially all results;
   `sourceName` and `thumbnailUrl` are best-effort. A given origin host may still
   refuse to serve its image to an arbitrary client (hotlink protection) - the

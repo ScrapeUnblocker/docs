@@ -3,6 +3,13 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-22" description="Google Images: googleImagesUrl (/imgres viewer link) per result">
+  [`POST /images/google-search`](/plugins/google-images) now returns a
+  **`googleImagesUrl`** on every result - the Google Images viewer link
+  (the `/imgres?...` URL a browser copies from a result tile), reconstructed
+  from the result data. Existing fields are unchanged; this is purely additive.
+</Update>
+
 <Update label="2026-09-22" description="Five marketplace, travel and jobs plugins documented">
   **New plugin pages:** [`POST /marketplace/walmart-search`](/plugins/walmart),
   [`POST /marketplace/etsy-search`](/plugins/etsy),
