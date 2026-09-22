@@ -1,0 +1,84 @@
+---
+title: "Etsy Search plugin"
+description: "Etsy product search as clean JSON - title, price, currency, shop, image and a direct listing link."
+sidebarTitle: "Etsy Search"
+---
+
+The **Etsy Search** plugin turns any Etsy search into structured JSON. Give it a keyword, and it returns the listings Etsy shows - each with title, price and currency, shop name, image and a clean listing URL. Sort, filter by price and page through to `max_results`.
+
+It runs on the same fetch chain that serves `getPageSource`, and reads the cards straight from Etsy's server-rendered HTML - no Etsy API key or OAuth app needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /marketplace/etsy-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search, e.g. `handmade jewelry`. |
+| `sort` | no | `relevancy` (default), `price_asc`, `price_desc`, `newest` or `top_reviews`. |
+| `min_price` / `max_price` | no | Price range. |
+| `page` | no | 1-based page to start from (~48 per page). Default `1`. |
+| `max_results` | no | How many products to collect across pages. Default `48`, max `500`. |
+| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to US (USD prices). |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/marketplace/etsy-search?query=handmade%20necklace&sort=top_reviews&max_results=96" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Response
+
+```json
+{
+  "query": "handmade necklace",
+  "resultsCollected": 96,
+  "products": [
+    {
+      "id": "1502837465",
+      "title": "Personalized Name Necklace, Custom Gold Jewelry",
+      "url": "https://www.etsy.com/listing/1502837465",
+      "price": 28.5,
+      "currency": "USD",
+      "shop": "GoldenLeafStudio",
+      "image": "https://i.etsystatic.com/....jpg"
+    }
+  ]
+}
+```
+
+### Product fields
+
+| Field | Notes |
+| --- | --- |
+| `price` / `currency` | Numeric price and ISO currency (USD by default). |
+| `shop` | The Etsy shop selling the item. |
+| `image` | Listing thumbnail URL. |
+| `url` | Clean `/listing/` URL. |
+
+<Note>
+Prices come back in the exit country's currency, so the plugin pins a US exit by default. Pass `proxy_country` to price in another market.
+</Note>
+
+## What you can build
+
+- **Price and assortment research** - pull a whole niche with shops and prices.
+- **Trend spotting** - `sort=newest` surfaces what sellers are listing now.
+- **Shop monitoring** - track a category's price distribution over time.
+- **Sourcing** - find makers and compare pricing across shops.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Etsy search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

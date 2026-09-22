@@ -1,0 +1,99 @@
+---
+title: "Airbnb Stays plugin"
+description: "Airbnb stay search as clean JSON - name, room type, nightly price, rating, review count, coordinates, badges, photo and a direct room link."
+sidebarTitle: "Airbnb Stays"
+---
+
+The **Airbnb Stays** plugin turns any Airbnb search into structured JSON. Give it a location, and it returns the stays Airbnb shows - each with name, room type, nightly price (in USD by default), rating and review count, coordinates, badges (like Guest favourite), a photo and a clean room URL. Filter with dates, guests, price range and room type, and page through to `max_results`.
+
+It runs on the same fetch chain that serves `getPageSource`, and reads the listings from Airbnb's embedded `data-deferred-state` JSON, so results come back even before the page's client-side app hydrates - no Airbnb API or login needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /travel/airbnb
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `location` | yes | City to search, e.g. `Paris, France` or `Austin, TX`. |
+| `checkin` | no | Check-in date `YYYY-MM-DD` (pair with `checkout`). |
+| `checkout` | no | Check-out date `YYYY-MM-DD` (pair with `checkin`). |
+| `adults` | no | Number of adult guests. |
+| `room_type` | no | `entire_home`, `private_room`, `hotel_room` or `shared_room`. Omit for all. |
+| `min_price` / `max_price` | no | Nightly price range. |
+| `max_results` | no | How many listings to collect across pages. Default `48`, max `720`. |
+| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to US so prices are in USD. |
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/travel/airbnb?location=Paris%2C%20France&room_type=entire_home&max_results=72" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Response
+
+```json
+{
+  "location": "Paris, France",
+  "resultsCollected": 72,
+  "query": { "checkin": null, "checkout": null, "adults": null, "room_type": "entire_home", "min_price": null, "max_price": null },
+  "listings": [
+    {
+      "id": "1234567890",
+      "name": "Cozy studio near the Eiffel Tower",
+      "roomType": "Entire rental unit",
+      "subtitle": "Studio in Paris",
+      "url": "https://www.airbnb.com/rooms/1234567890",
+      "price": {
+        "amount": 142,
+        "priceText": "$142",
+        "originalPriceText": "$180",
+        "qualifier": "night"
+      },
+      "rating": 4.86,
+      "reviewCount": 214,
+      "latitude": 48.8566,
+      "longitude": 2.3522,
+      "badges": ["Guest favourite"],
+      "image": "https://a0.muscache.com/im/pictures/....jpg"
+    }
+  ]
+}
+```
+
+### Listing fields
+
+| Field | Notes |
+| --- | --- |
+| `roomType` | Airbnb's own room-type label, e.g. `Entire rental unit`, `Private room`. |
+| `price` | `amount` (numeric, per night), `priceText`, any `originalPriceText` (struck-through) and the `qualifier` (e.g. `night`). Currency follows `proxy_country`. |
+| `rating` / `reviewCount` | Average rating and number of reviews. |
+| `latitude` / `longitude` | Listing coordinates. |
+| `badges` | Labels Airbnb prints on the card, e.g. `Guest favourite`. |
+| `url` | Clean `/rooms/` URL. |
+
+<Note>
+Prices follow the exit country, so the plugin pins a US exit by default for USD. Pass `proxy_country` to price in another market's currency.
+</Note>
+
+## What you can build
+
+- **Rate and availability monitoring** - track nightly prices for a market and date range.
+- **Short-let market research** - pull every listing in a city with room type and rating.
+- **Location analysis** - map listings by coordinates and price band.
+- **Competitor benchmarking** - compare a set of listings by price and `reviewCount`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Airbnb search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

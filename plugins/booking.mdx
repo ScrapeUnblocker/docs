@@ -1,0 +1,102 @@
+---
+title: "Booking.com Hotels plugin"
+description: "Booking.com hotel search as clean JSON - name, price for your dates, review score, address, coordinates, photo and a direct property link."
+sidebarTitle: "Booking.com Hotels"
+---
+
+The **Booking.com Hotels** plugin turns any Booking.com search into structured JSON. Give it a city and your dates, and it returns the properties Booking shows - each with name, total price for the stay, review score and count, address, coordinates, a photo and a clean property URL. Set guests and rooms, pick a currency, and page through to `max_results`.
+
+It runs on the same fetch chain that serves `getPageSource`, so you get the results without touching Booking's bot wall (DataDome) and without a Booking affiliate account.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /travel/booking
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `location` | yes | City or place to search, e.g. `Paris` or `Austin`. |
+| `checkin` | no | Check-in date `YYYY-MM-DD`. **Prices only appear with dates.** |
+| `checkout` | no | Check-out date `YYYY-MM-DD`. |
+| `adults` | no | Number of adults. |
+| `children` | no | Number of children. |
+| `rooms` | no | Number of rooms. |
+| `currency` | no | Price currency. Default `USD`. See the list below. |
+| `max_results` | no | How many properties to collect across pages. Default `25`, max `500`. |
+| `proxy_country` | no | Exit-IP country (ISO-2). |
+
+### Supported currencies
+
+`USD` `EUR` `GBP` `AUD` `CAD` `CHF` `JPY` `CNY` `INR` `BRL` `MXN` `PLN` `SEK` `NOK` `DKK` `AED` `SGD` `ZAR` `TRY` `RUB`
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/travel/booking?location=Paris&checkin=2026-10-19&checkout=2026-10-21&adults=2&currency=EUR" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Response
+
+```json
+{
+  "location": "Paris",
+  "resultsCollected": 25,
+  "query": { "checkin": "2026-10-19", "checkout": "2026-10-21", "adults": 2, "currency": "EUR" },
+  "properties": [
+    {
+      "id": "citizenm-paris-champs-elysees",
+      "name": "citizenM Paris Champs-Élysées",
+      "url": "https://www.booking.com/hotel/fr/citizenm-paris-champs-elysees.html",
+      "price": { "amount": 402, "amountText": "€ 402", "currency": "EUR" },
+      "priceText": "€ 402",
+      "chargesInfo": "Includes taxes and charges",
+      "reviewScore": 8.9,
+      "reviewCount": 4028,
+      "address": "8th arr., Paris",
+      "city": "Paris",
+      "country": "France",
+      "latitude": 48.8721,
+      "longitude": 2.3009,
+      "badges": ["Breakfast included"],
+      "image": "https://cf.bstatic.com/xdata/images/hotel/square240/...jpg"
+    }
+  ]
+}
+```
+
+### Property fields
+
+| Field | Notes |
+| --- | --- |
+| `price` | `amount` (numeric), `amountText` (Booking's own wording) and `currency`. `null` when no dates were given. |
+| `chargesInfo` | Whether taxes and charges are included, as Booking states it. |
+| `reviewScore` / `reviewCount` | Guest review score (out of 10) and number of reviews. |
+| `latitude` / `longitude` | Property coordinates, when Booking exposes them. |
+| `badges` | Any labels Booking prints on the card (breakfast, free cancellation, deals). |
+| `url` | Clean property URL, tracking parameters stripped. |
+
+<Note>
+Prices are only returned when both `checkin` and `checkout` are supplied, and they come back in `currency` (default USD). Without dates you still get the property list, review scores and location.
+</Note>
+
+## What you can build
+
+- **Rate monitoring** - track a hotel's nightly price for a date range over time.
+- **Market and competitor research** - pull every property in a city with review scores.
+- **Travel apps** - power a hotel-search view without a Booking affiliate contract.
+- **Location analysis** - map properties by coordinates and price band.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Booking.com search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

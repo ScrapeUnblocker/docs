@@ -1,0 +1,107 @@
+---
+title: "Indeed Jobs plugin"
+description: "Indeed job listings as clean JSON - title, company, location, parsed salary, job types, company rating, a snippet and a direct job link, on any Indeed country site."
+sidebarTitle: "Indeed Jobs"
+---
+
+The **Indeed Jobs** plugin turns any Indeed search into structured JSON. Give it a search term and a location, and it returns the listings Indeed shows - each with title, company, location, parsed salary range, job types, company rating, a snippet and a clean job URL. Filter by country, job type, posting age and remote, sort by date, and page through to `max_results`.
+
+It runs on the same fetch chain that serves `getPageSource`, so you get the listings without touching Indeed's bot wall (Cloudflare + PerimeterX) and without an Indeed publisher account or API key.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /jobs/indeed
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search, e.g. `software engineer` or `nurse`. |
+| `location` | no | Where, e.g. `Austin, TX` or `London`. |
+| `country` | no | Indeed country site. Default `us`. See the list below. |
+| `radius` | no | Search radius (miles/km) around the location. |
+| `job_type` | no | `fulltime`, `parttime`, `contract`, `internship` or `temporary`. |
+| `days` | no | Max posting age in days: `1`, `3`, `7` or `14`. |
+| `remote` | no | `true` to keep only remote jobs. |
+| `sort` | no | `relevance` (default) or `date`. |
+| `max_results` | no | How many jobs to collect across pages. Default `30`, max `500`. |
+| `start` | no | 0-based result offset to start from. Default `0`. |
+| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to the country's own site. |
+
+### Supported country sites
+
+`us` `uk` `ca` `au` `in` `ie` `de` `fr` `nl` `es` `it` `at` `ch` `be` `pl` `se` `sg` `za` `nz` `mx`
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/jobs/indeed?query=software%20engineer&location=New%20York&job_type=fulltime&max_results=50" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Response
+
+```json
+{
+  "query": "software engineer",
+  "location": "New York",
+  "country": "us",
+  "totalResults": 12450,
+  "resultsCollected": 50,
+  "jobs": [
+    {
+      "jobkey": "a1b2c3d4e5f6",
+      "title": "Software Engineer, Frontend",
+      "company": "Ramp",
+      "companyRating": 4.1,
+      "companyReviewCount": 320,
+      "location": "New York, NY (Hybrid)",
+      "remote": false,
+      "salary": {
+        "min": 150000,
+        "max": 190000,
+        "currency": "USD",
+        "text": "$150,000 - $190,000 a year",
+        "type": "yearly"
+      },
+      "jobTypes": ["Full-time"],
+      "snippet": "You will build and own frontend systems across the product...",
+      "posted": "3 days ago",
+      "url": "https://www.indeed.com/viewjob?jk=a1b2c3d4e5f6"
+    }
+  ]
+}
+```
+
+### Response fields
+
+| Field | Notes |
+| --- | --- |
+| `totalResults` | Indeed's own result count for the search, as an integer. |
+| `resultsCollected` | Number of unique jobs collected across pages. |
+| `jobs[].jobkey` | Indeed's own job id, stable across pages (used for de-duplication). |
+| `jobs[].salary` | Parsed `min`/`max` with `currency` and `type` (`yearly`/`hourly`), plus Indeed's raw `text`. `null` when the listing shows no pay. |
+| `jobs[].companyRating` | Company star rating and `companyReviewCount`, when Indeed shows them. |
+| `jobs[].jobTypes` | Employment types Indeed tags on the card. |
+| `jobs[].snippet` | The short description Indeed prints under the title. |
+| `jobs[].url` | Clean `viewjob` URL for the listing. |
+
+## What you can build
+
+- **Job-market monitoring** - track roles, pay and volume for a title in a city over time.
+- **Salary benchmarking** - aggregate the parsed `salary.min`/`max` across a query.
+- **ATS and aggregator feeds** - pull fresh postings by `days` and `sort=date`.
+- **Employer research** - combine `company`, `companyRating` and `snippet` per role.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Indeed search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

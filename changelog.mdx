@@ -3,6 +3,21 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-22" description="Five marketplace, travel and jobs plugins documented">
+  **New plugin pages:** [`POST /marketplace/walmart-search`](/plugins/walmart),
+  [`POST /marketplace/etsy-search`](/plugins/etsy),
+  [`POST /travel/booking`](/plugins/booking),
+  [`POST /travel/airbnb`](/plugins/airbnb) and
+  [`POST /jobs/indeed`](/plugins/indeed). Each returns clean, parsed JSON with
+  pagination to `max_results`: **Walmart** and **Etsy** product search (title,
+  price, rating, shop/seller, image, URL); **Booking.com** hotels (name, price
+  for your dates, review score, address, coordinates); **Airbnb** stays (name,
+  room type, nightly price, rating, coordinates, badges); and **Indeed** jobs
+  (title, company, parsed salary min/max, job types, company rating, snippet).
+  All run on the same anti-bot fetch chain as `getPageSource` - no per-site API
+  key, account or CAPTCHA setup.
+</Update>
+
 <Update label="2026-09-21" description="Car Hire: target a location by ID + clearer resolution">
   **[`POST /carhire/skyscanner-quotes`](/plugins/skyscanner#car-hire) now takes
   `pickup_entity` / `dropoff_entity`** - Skyscanner's own location IDs. Pass one

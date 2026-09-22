@@ -65,12 +65,17 @@
               "plugins/overview",
               "plugins/skyscanner",
               "plugins/southwest",
+              "plugins/booking",
+              "plugins/airbnb",
               "plugins/google-local",
               "plugins/google-images",
               "plugins/oopbuy-search",
               "plugins/ebay",
               "plugins/amazon",
+              "plugins/walmart",
+              "plugins/etsy",
               "plugins/temu",
+              "plugins/indeed",
               "plugins/meta-ad-library",
               "plugins/tiktok"
             ]
