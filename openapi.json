@@ -79,7 +79,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success — body is HTML (or JSON when `parsed_data=true` / `get_cookies=true`).",
+            "description": "Success — body is HTML (or JSON when `parsed_data=true` / `get_cookies=true`). Also the target's own not-found page (404/410) or dead-origin 5xx page, as served (can be empty): then the `X-Origin-Status` header carries the target's status. Billed.",
             "content": {
               "application/json": {
                 "schema": {}
@@ -87,13 +87,19 @@
             }
           },
           "400": {
-            "description": "Invalid URL or unsupported scheme."
+            "description": "Invalid URL, unsupported scheme or `proxy_country`, or `Hostname cannot be resolved` - the domain does not exist (billed)."
           },
           "403": {
             "description": "Blocked by bot protection on every available bypass path."
           },
+          "415": {
+            "description": "The URL is not an HTML document (image, PDF, file); use /getImage for images. Not billed."
+          },
           "503": {
-            "description": "Upstream origin returned a server-side outage page; not a bot block."
+            "description": "No render capacity on our side right now; not the target's fault, not billed - retry with backoff."
+          },
+          "504": {
+            "description": "Request timed out: the call reached its time cap (60 s, 90 s with `steps`). Not billed."
           },
           "523": {
             "description": "Origin unreachable (target down or flapping, or our origin breaker is open); not a bot block, not billed - retry later."
