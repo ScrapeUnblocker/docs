@@ -3,6 +3,21 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-23" description="Dead URLs: X-Origin-Status, billing and a complete error reference">
+  When the target site answers that a page **does not exist** (`404` / `410`),
+  `getPageSource` now always returns it as a `200` with the page as served and
+  an **`X-Origin-Status`** header carrying the target's status - the same
+  header a dead origin's own `5xx` page already had. Previously some of these
+  came back as `403 Blocked by bot protection.`, which read as a block. These
+  calls are billed like any delivered page; a URL whose domain does not exist
+  returns `400 Hostname cannot be resolved` and is billed too. Responses our
+  load balancer generates itself (`502` / `503` / `504`) are never billed.
+  [Errors](/errors) now lists every status with whether it is billed, and
+  explains how to tell a target problem from an outage on our side;
+  [Handling failures](/guides/handling-failures) covers `503`, `504`, `523` and
+  dead URLs.
+</Update>
+
 <Update label="2026-09-22" description="Mobile.de plugin">
   **New plugin page:** [`POST /vehicles/mobile-de`](/plugins/mobile-de). Search
   mobile.de, Germany's largest used-car marketplace, by make and get clean,

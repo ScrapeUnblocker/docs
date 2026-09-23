@@ -1,6 +1,6 @@
 ---
 title: "Handling failures"
-description: "What 403, 503, 504, and 422 actually mean - and how to recover from each."
+description: "What 403, 503, 504, 523, 422 and a dead URL actually mean - and how to recover from each."
 ---
 
 ScrapeUnblocker tries every available bypass route before giving up. When it does return a non-2xx, the status code tells you exactly what went wrong. This guide covers the playbook for each.
@@ -28,9 +28,9 @@ We tried every bypass we have for this domain - direct, residential, stealth bro
   `403` is never an auth problem. Invalid API keys return `401`. If you're seeing `401`, see [Authentication](/authentication).
 </Warning>
 
-## 503 - upstream is down
+## 503 - no capacity on our side
 
-The target site itself returned a server-side outage page (maintenance, 5xx from origin, capacity issues). This is not a bot block - we successfully reached the origin, the origin is just broken right now.
+We had no API capacity for the request right now: every node was busy past the queue limit, or none was up (`No server is available to handle this request`), or the render path was unavailable (`Render unavailable.`). This is a problem on our side, not the target's - and it is not billed.
 
 **Recovery:** wait and retry. Exponential backoff is appropriate:
 
@@ -44,23 +44,37 @@ def get_with_backoff(url, key, max_attempts=5):
             "https://api.scrapeunblocker.com/getPageSource",
             params={"url": url},
             headers={"x-scrapeunblocker-key": key},
-            timeout=120,
+            timeout=125,
         )
-        if r.status_code != 503:
+        if r.status_code not in (500, 502, 503):
             return r
         time.sleep(min(60, 2 ** i))
     return r
 ```
 
-## 504 - SERP timeout
+`500` (internal error) and `502` with an HTML body (our load balancer lost the node) are the same class - ours, free, retry with backoff.
 
-Only returned by `/serpApi`. Means we couldn't load Google's results page within the time budget for that request.
+## 523 - the target is unreachable
+
+The target site answered nobody over any of our exits: it is down, or it refuses connections in bursts. This is not a bot block, and it is not billed.
+
+**Recovery:** retry after a pause (tens of seconds to minutes). Rotating `proxy_country` rarely helps - the site itself is not answering.
+
+## Dead URLs - `200` with `X-Origin-Status`
+
+If the target says the page does not exist (`404` / `410`), or its origin returns its own `5xx` error page, you get a `200` with that page as the body (it can be empty) and an `X-Origin-Status` header carrying the target's status. We reached the site; the URL is dead. It is billed like any delivered page, and **retrying will not change it** - check the header and drop or fix the URL. A URL whose domain does not exist returns `400 Hostname cannot be resolved` (also billed). See [Errors](/errors#dead-urls-x-origin-status).
+
+## 504 - timeout
+
+The request reached its time cap: `Request timed out.` on `/getPageSource` (60 s, 90 s with `steps`), or the SERP / plugin time budget on `/serpApi` and the dedicated plugin endpoints. Usually the target is slow for this URL.
 
 **Recovery:**
 
-1. **Lower `pages_to_check`.** Each additional page extends the timeout window.
+1. **Retry.** Transient network issues account for most `504`s.
 2. **Pick a different `proxy_country`.** Some country pools are slower or under heavier rotation.
-3. **Retry.** Transient network issues account for most `504`s.
+3. **On `/serpApi`, lower `pages_to_check`.** Each additional page extends the time needed.
+
+A `504` with an HTML body comes from our load balancer - that one is on our side. If `504`s hit many different domains at once, treat it like a `503`.
 
 ## 408 - browser timeout
 
@@ -88,13 +102,13 @@ You sent a bad parameter. The response body pinpoints the field:
 
 ## Retry policy that works
 
-For most production workloads, this policy handles all four error classes correctly:
+For most production workloads, this policy handles these error classes correctly:
 
 ```python
 import time
 import requests
 
-RETRYABLE = {408, 503, 504}
+RETRYABLE = {408, 500, 502, 503, 504, 523}
 
 def scrape(url, key, max_attempts=4):
     last = None
@@ -103,7 +117,7 @@ def scrape(url, key, max_attempts=4):
             "https://api.scrapeunblocker.com/getPageSource",
             params={"url": url},
             headers={"x-scrapeunblocker-key": key},
-            timeout=180,
+            timeout=125,
         )
         if r.status_code == 200:
             return r
@@ -114,7 +128,7 @@ def scrape(url, key, max_attempts=4):
                 "https://api.scrapeunblocker.com/getPageSource",
                 params={"url": url, "proxy_country": "us"},
                 headers={"x-scrapeunblocker-key": key},
-                timeout=180,
+                timeout=125,
             )
             if r.status_code == 200:
                 return r
@@ -128,6 +142,6 @@ def scrape(url, key, max_attempts=4):
 
 This:
 
-- Retries `408`/`503`/`504` with exponential backoff.
+- Retries `408`/`500`/`502`/`503`/`504`/`523` with exponential backoff (failed calls are free).
 - Tries one country rotation on `403`.
 - Fails fast on `401`, `422`, and other terminal errors.

@@ -3,22 +3,59 @@ title: "Errors"
 description: "HTTP status codes returned by ScrapeUnblocker and what they mean."
 ---
 
-ScrapeUnblocker uses standard HTTP status codes. Status codes in the `2xx` range indicate success. Codes in the `4xx` range indicate an issue with the request (bad parameters, blocked by the target site, etc.). Codes in the `5xx` range indicate either an upstream issue at the target site or, rarely, a problem on our side.
+ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delivered, `4xx` points at the request or at the target site, and `5xx` means a problem on our side or a request that ran out of time. Only a few responses are **billed** - they are marked in the table; everything else is free.
 
 ## Status codes
 
-| Code | Meaning | Where to look |
-| --- | --- | --- |
-| `200` | Success | Response body contains the requested content |
-| `400` | Invalid URL or unsupported scheme, or the `x-scrapeunblocker-key` header is missing entirely | Check your `url` parameter is well-formed and uses `http`/`https`, and that you send the key header |
-| `401` | Authentication problem - the key is not recognised, or the account behind it has no valid subscription | See [401 unauthorized](#401-unauthorized) below and [Authentication](/authentication) |
-| `402` | Billing problem - quota exceeded, credit limit exceeded, or repeated payment failures | See [402 payment required](#402-payment-required) below |
-| `403` | Blocked by target site's bot protection on every available bypass path | Try a different `proxy_country`, or see [handling failures](/guides/handling-failures) |
-| `404` | No image element found (only on `/getImage`) | The page loaded but contained no `<img>` tag |
-| `408` | Browser run timed out (only on `/getImage`) | Retry, or increase `method_timeout` if applicable |
-| `422` | Validation error - missing required field or wrong type | The response body contains a `detail` array pinpointing the problem field |
-| `503` | Upstream origin returned a server-side outage page | The target site is down. Not a bot block. Retry later. |
-| `504` | SERP fetch timed out (only on `/serpApi`) | Retry. If persistent, lower `pages_to_check` or pick a different `proxy_country` |
+| Code | Meaning | Billed | Where to look |
+| --- | --- | --- | --- |
+| `200` | The page was delivered. Also used for the target's own "page does not exist" answer (`404` / `410`) and a dead origin's own `5xx` error page - then the `X-Origin-Status` header carries the target's status. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Response body; `X-Origin-Status` if present |
+| `400` | Bad request: the `x-scrapeunblocker-key` header is missing, the URL is malformed or not `http`/`https`, an unsupported `proxy_country`, or `Hostname cannot be resolved` (the domain does not exist) | Only `Hostname cannot be resolved` | Check the URL and the key header |
+| `401` | Authentication problem - the key is not recognised, or the account behind it has no valid subscription | No | See [401 unauthorized](#401-unauthorized) below and [Authentication](/authentication) |
+| `402` | Billing problem - quota exceeded, credit limit exceeded, or repeated payment failures | No | See [402 payment required](#402-payment-required) below |
+| `403` | Blocked by the target site's bot protection on every available bypass path | No | Try a different `proxy_country`, or see [handling failures](/guides/handling-failures) |
+| `404` | No image element found (only on `/getImage`) | No | The page loaded but contained no `<img>` tag |
+| `408` | Browser run timed out (only on `/getImage`) | No | Retry |
+| `415` | The URL is not an HTML document (an image, PDF or file download) | No | Use `/getImage` for images |
+| `422` | Validation error - missing required field or wrong type. With `steps`, also `step_failed` when an action could not run | Only `step_failed` (the page was rendered) | The response body pinpoints the problem field or step |
+| `429` | Rate or concurrency limit exceeded | No | See [rate limits](/rate-limits) |
+| `500` | Internal error on our side | No | Retry with backoff |
+| `502` | Our load balancer lost the connection to an API node (HTML body). Dedicated plugin endpoints also return `502` with a plain-text message when the target returned no usable results | No | Retry with backoff |
+| `503` | No API capacity right now (`No server is available to handle this request`, or `Render unavailable.`) - a problem on our side, not the target's | No | Retry with backoff |
+| `504` | The request reached its time cap: `Request timed out.` (60 s on `/getPageSource`, 90 s with `steps`) or a SERP / plugin timeout. Usually a slow target | No | Retry. If persistent for one domain, contact support |
+| `523` | `Origin unreachable` - the target answered nobody over any of our exits (down, or refusing connections in bursts). Not a bot block | No | Retry after a pause |
+
+## Dead URLs: `X-Origin-Status`
+
+When the target site itself answers that the page does not exist (`404` or `410`), or its origin server returns its own `5xx` error page, that answer **is** the result for your URL - we reached the site, the URL is just dead. ScrapeUnblocker returns it as a `200` with the page exactly as the target served it (the body can be empty) and adds:
+
+| Header | Value |
+| --- | --- |
+| `X-Origin-Status` | The target's own status, e.g. `404`, `410`, `502` |
+| `X-ScrapeUnblocker-Note` | A short human-readable explanation |
+
+These calls are billed like any delivered page. Branch on the header, not the body:
+
+```python
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": url},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=125,
+)
+if r.status_code == 200 and r.headers.get("X-Origin-Status") in ("404", "410"):
+    mark_as_dead(url)  # the page no longer exists on the target site
+```
+
+A URL whose **domain** does not exist gets `400 Hostname cannot be resolved` instead, also billed.
+
+## Is it the target, or is ScrapeUnblocker down?
+
+If you run failover to another provider, only these mean a problem on our side: connection errors, read timeouts, `500`, `502`, `503`, and `504` when it hits many different domains at the same time. All other codes above describe the target site or the request.
+
+- A call never hangs indefinitely: if our load balancer is unreachable you get a connection error, and if no API node is up you get an immediate `503`. A healthy call takes at most its time cap plus up to 60 s of queueing when the whole fleet is busy. Use a connect timeout of about 10 s and a read timeout of about 125 s.
+- Decide on a rate, not on a single response - one failed call is often one difficult domain. For example, switch over when at least half of the calls in the last minute (at least 20 calls, across at least 3 domains) end with one of those signals, and switch back once probe calls succeed.
+- Responses our load balancer generates itself (`502`, `503`, `504`) are never billed.
 
 ## 401 unauthorized
 
@@ -175,7 +212,7 @@ More detail in the [handling failures guide](/guides/handling-failures).
 
 ## Retries and idempotency
 
-All three endpoints are safe to retry. Requests are idempotent in the sense that retrying with the same parameters does not double-charge or create duplicate state on your account. We recommend exponential backoff for transient `5xx` errors:
+All three endpoints are safe to retry. Requests are idempotent in the sense that retrying with the same parameters does not double-charge or create duplicate state on your account. We recommend exponential backoff for transient `5xx` errors and `523` (failed calls are free, so a retry costs nothing extra):
 
 ```python
 import time
@@ -187,11 +224,11 @@ def fetch_with_retry(url, max_attempts=3):
             "https://api.scrapeunblocker.com/getPageSource",
             params={"url": url},
             headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
-            timeout=120,
+            timeout=125,
         )
         if r.status_code == 200:
             return r
-        if r.status_code in (503, 504) and attempt < max_attempts - 1:
+        if r.status_code in (500, 502, 503, 504, 523) and attempt < max_attempts - 1:
             time.sleep(2 ** attempt)
             continue
         r.raise_for_status()
