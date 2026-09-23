@@ -63,26 +63,68 @@
             "group": "Plugins",
             "pages": [
               "plugins/overview",
-              "plugins/skyscanner",
-              "plugins/southwest",
-              "plugins/booking",
-              "plugins/airbnb",
-              "plugins/google-local",
-              "plugins/google-images",
-              "plugins/oopbuy-search",
-              "plugins/ebay",
-              "plugins/amazon",
-              "plugins/walmart",
-              "plugins/etsy",
-              "plugins/target",
-              "plugins/vinted",
-              "plugins/craigslist",
-              "plugins/zalando",
-              "plugins/mobile-de",
-              "plugins/temu",
-              "plugins/indeed",
-              "plugins/meta-ad-library",
-              "plugins/tiktok"
+              {
+                "group": "Travel",
+                "icon": "plane",
+                "expanded": false,
+                "pages": [
+                  "plugins/skyscanner",
+                  "plugins/southwest",
+                  "plugins/booking",
+                  "plugins/airbnb"
+                ]
+              },
+              {
+                "group": "Google",
+                "icon": "google",
+                "expanded": false,
+                "pages": [
+                  "plugins/google-local",
+                  "plugins/google-images"
+                ]
+              },
+              {
+                "group": "E-commerce",
+                "icon": "cart-shopping",
+                "expanded": false,
+                "pages": [
+                  "plugins/amazon",
+                  "plugins/ebay",
+                  "plugins/walmart",
+                  "plugins/target",
+                  "plugins/etsy",
+                  "plugins/temu",
+                  "plugins/zalando",
+                  "plugins/oopbuy-search"
+                ]
+              },
+              {
+                "group": "Classifieds & Resale",
+                "icon": "store",
+                "expanded": false,
+                "pages": [
+                  "plugins/vinted",
+                  "plugins/craigslist",
+                  "plugins/mobile-de"
+                ]
+              },
+              {
+                "group": "Jobs",
+                "icon": "briefcase",
+                "expanded": false,
+                "pages": [
+                  "plugins/indeed"
+                ]
+              },
+              {
+                "group": "Social & Ads",
+                "icon": "hashtag",
+                "expanded": false,
+                "pages": [
+                  "plugins/tiktok",
+                  "plugins/meta-ad-library"
+                ]
+              }
             ]
           },
           {

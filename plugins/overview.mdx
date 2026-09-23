@@ -27,6 +27,8 @@ Both paths hit the same engine and share one plan. Start with whichever fits the
 
 ## Available plugins
 
+### Travel
+
 <CardGroup cols={3}>
   <Card title="Skyscanner Flights" icon="plane" href="/plugins/skyscanner">
     Live flight itineraries for a route and date - price, airline, times, stops, and a booking deep link per fare.
@@ -46,30 +48,51 @@ Both paths hit the same engine and share one plan. Start with whichever fits the
   <Card title="Airbnb Stays" icon="house" href="/plugins/airbnb">
     Airbnb stay listings for a location - name, room type, nightly price, rating, review count, coordinates, badges and a clean room link.
   </Card>
+</CardGroup>
+
+### Google
+
+<CardGroup cols={3}>
   <Card title="Google Local" icon="location-dot" href="/plugins/google-local">
     Google Maps / Local business listings for a search and market - name, rating, reviews, category, address, and hours.
   </Card>
   <Card title="Google Images" icon="image" href="/plugins/google-images">
     Google Images results for a keyword - the full-resolution image URL and source domain for every result, plus source page, title, thumbnail and dimensions.
   </Card>
-  <Card title="oopbuy Search" icon="bag-shopping" href="/plugins/oopbuy-search">
-    oopbuy.com product-search listings for a keyword - title, USD and CNY price, monthly sales, image, and product link.
+</CardGroup>
+
+### E-commerce
+
+<CardGroup cols={3}>
+  <Card title="Amazon" icon="amazon" href="/plugins/amazon">
+    Amazon product and search data - price, currency, list price, rating, reviews, availability, images and ASINs, in the right currency per marketplace.
   </Card>
   <Card title="eBay Search" icon="tag" href="/plugins/ebay">
     eBay listings for a keyword on any regional marketplace - price, condition, seller feedback, shipping, sold counts and a direct item link.
   </Card>
-  <Card title="Amazon" icon="amazon" href="/plugins/amazon">
-    Amazon product and search data - price, currency, list price, rating, reviews, availability, images and ASINs, in the right currency per marketplace.
-  </Card>
   <Card title="Walmart Search" icon="cart-shopping" href="/plugins/walmart">
     Walmart product search - title, price and was-price, rating, review count, brand, seller, availability, image and a direct product link.
-  </Card>
-  <Card title="Etsy Search" icon="gift" href="/plugins/etsy">
-    Etsy product search - title, price and currency, shop, image and a direct listing link, sorted and price-filtered.
   </Card>
   <Card title="Target Search" icon="bullseye" href="/plugins/target">
     Target product search - tcin, title, brand, price and formatted price, currency, image and a direct product link, via Target's own Redsky API.
   </Card>
+  <Card title="Etsy Search" icon="gift" href="/plugins/etsy">
+    Etsy product search - title, price and currency, shop, image and a direct listing link, sorted and price-filtered.
+  </Card>
+  <Card title="Temu" icon="cart-shopping" href="/plugins/temu">
+    Temu product data as clean JSON - name, price, availability, rating, review count and images - plus keyword search that returns product URLs straight from Temu.
+  </Card>
+  <Card title="Zalando Search" icon="bag-shopping" href="/plugins/zalando">
+    Zalando fashion product search on any European storefront - sku, brand, name, price and currency, image and a direct product link.
+  </Card>
+  <Card title="oopbuy Search" icon="bag-shopping" href="/plugins/oopbuy-search">
+    oopbuy.com product-search listings for a keyword - title, USD and CNY price, monthly sales, image, and product link.
+  </Card>
+</CardGroup>
+
+### Classifieds & Resale
+
+<CardGroup cols={3}>
   <Card title="Vinted Search" icon="shirt" href="/plugins/vinted">
     Vinted resale listings on any regional marketplace - title, price and currency, brand, size, condition, image and a direct item link.
   </Card>
@@ -79,15 +102,19 @@ Both paths hit the same engine and share one plan. Start with whichever fits the
   <Card title="Mobile.de Cars" icon="car" href="/plugins/mobile-de">
     mobile.de car listings on Germany's largest marketplace - title, make and model, price, first registration, mileage, power (kW/PS), fuel and a direct listing link. Filter by price, year, mileage and fuel.
   </Card>
-  <Card title="Zalando Search" icon="bag-shopping" href="/plugins/zalando">
-    Zalando fashion product search on any European storefront - sku, brand, name, price and currency, image and a direct product link.
-  </Card>
+</CardGroup>
+
+### Jobs
+
+<CardGroup cols={3}>
   <Card title="Indeed Jobs" icon="briefcase" href="/plugins/indeed">
     Indeed job listings for a search and location - title, company, parsed salary, job types, company rating, a snippet and a direct job link.
   </Card>
-  <Card title="Temu" icon="cart-shopping" href="/plugins/temu">
-    Temu product data as clean JSON - name, price, availability, rating, review count and images - plus keyword search that returns product URLs straight from Temu.
-  </Card>
+</CardGroup>
+
+### Social & Ads
+
+<CardGroup cols={3}>
   <Card title="TikTok" icon="music" href="/plugins/tiktok">
     Public TikTok creators, videos and hashtags as JSON - exact follower, like and video counts, newest videos with full engagement, any post with music, hashtags, subtitles, transcripts and download URLs, hashtag totals with videos, keyword search and comments. No login.
   </Card>
