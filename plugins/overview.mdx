@@ -27,103 +27,59 @@ Both paths hit the same engine and share one plan. Start with whichever fits the
 
 ## Available plugins
 
+Every plugin has its own page with the exact fields, response shape and API examples.
+
 ### Travel
 
-<CardGroup cols={3}>
-  <Card title="Skyscanner Flights" icon="plane" href="/plugins/skyscanner">
-    Live flight itineraries for a route and date - price, airline, times, stops, and a booking deep link per fare.
-  </Card>
-  <Card title="Skyscanner Hotels" icon="hotel" href="/plugins/skyscanner">
-    Every hotel for a city and dates - nightly and total price, stars, review score, distance, and image.
-  </Card>
-  <Card title="Skyscanner Car Hire" icon="car" href="/plugins/skyscanner">
-    Rental quotes for a pickup location and dates - vendor, car, seats, bags, fuel policy, and a book link.
-  </Card>
-  <Card title="Southwest Airlines" icon="plane-departure" href="/plugins/southwest">
-    Live Southwest fares as JSON - dollar and Rapid Rewards points prices, every flight on the route, one-way or return. No public fare API, no Akamai to solve.
-  </Card>
-  <Card title="Booking.com Hotels" icon="bed" href="/plugins/booking">
-    Booking.com hotels for a city and dates - name, price for your stay, review score, address, coordinates, photo and a direct property link.
-  </Card>
-  <Card title="Airbnb Stays" icon="house" href="/plugins/airbnb">
-    Airbnb stay listings for a location - name, room type, nightly price, rating, review count, coordinates, badges and a clean room link.
-  </Card>
-</CardGroup>
+| Plugin | What you get |
+| --- | --- |
+| [Skyscanner](/plugins/skyscanner) | Flights, hotels and car hire from live Skyscanner results - fares with airline, times, stops and a booking deep link; every hotel for a city and dates; rental quotes with vendor, car and fuel policy. |
+| [Southwest Airlines](/plugins/southwest) | Live Southwest fares as JSON - dollar and Rapid Rewards points prices, every flight on the route, one-way or return. No public fare API, no Akamai to solve. |
+| [Booking.com Hotels](/plugins/booking) | Booking.com hotels for a city and dates - name, price for your stay, review score, address, coordinates, photo and a direct property link. |
+| [Airbnb Stays](/plugins/airbnb) | Airbnb stay listings for a location - name, room type, nightly price, rating, review count, coordinates, badges and a clean room link. |
 
 ### Google
 
-<CardGroup cols={3}>
-  <Card title="Google Local" icon="location-dot" href="/plugins/google-local">
-    Google Maps / Local business listings for a search and market - name, rating, reviews, category, address, and hours.
-  </Card>
-  <Card title="Google Images" icon="image" href="/plugins/google-images">
-    Google Images results for a keyword - the full-resolution image URL and source domain for every result, plus source page, title, thumbnail and dimensions.
-  </Card>
-</CardGroup>
+| Plugin | What you get |
+| --- | --- |
+| [Google Local](/plugins/google-local) | Google Maps / Local business listings for a search and market - name, rating, reviews, category, address, and hours. |
+| [Google Images](/plugins/google-images) | Google Images results for a keyword - the full-resolution image URL and source domain for every result, plus source page, title, thumbnail and dimensions. |
 
 ### E-commerce
 
-<CardGroup cols={3}>
-  <Card title="Amazon" icon="amazon" href="/plugins/amazon">
-    Amazon product and search data - price, currency, list price, rating, reviews, availability, images and ASINs, in the right currency per marketplace.
-  </Card>
-  <Card title="eBay Search" icon="tag" href="/plugins/ebay">
-    eBay listings for a keyword on any regional marketplace - price, condition, seller feedback, shipping, sold counts and a direct item link.
-  </Card>
-  <Card title="Walmart Search" icon="cart-shopping" href="/plugins/walmart">
-    Walmart product search - title, price and was-price, rating, review count, brand, seller, availability, image and a direct product link.
-  </Card>
-  <Card title="Target Search" icon="bullseye" href="/plugins/target">
-    Target product search - tcin, title, brand, price and formatted price, currency, image and a direct product link, via Target's own Redsky API.
-  </Card>
-  <Card title="Etsy Search" icon="gift" href="/plugins/etsy">
-    Etsy product search - title, price and currency, shop, image and a direct listing link, sorted and price-filtered.
-  </Card>
-  <Card title="Temu" icon="cart-shopping" href="/plugins/temu">
-    Temu product data as clean JSON - name, price, availability, rating, review count and images - plus keyword search that returns product URLs straight from Temu.
-  </Card>
-  <Card title="Zalando Search" icon="bag-shopping" href="/plugins/zalando">
-    Zalando fashion product search on any European storefront - sku, brand, name, price and currency, image and a direct product link.
-  </Card>
-  <Card title="oopbuy Search" icon="bag-shopping" href="/plugins/oopbuy-search">
-    oopbuy.com product-search listings for a keyword - title, USD and CNY price, monthly sales, image, and product link.
-  </Card>
-</CardGroup>
+| Plugin | What you get |
+| --- | --- |
+| [Amazon](/plugins/amazon) | Amazon product and search data - price, currency, list price, rating, reviews, availability, images and ASINs, in the right currency per marketplace. |
+| [eBay Search](/plugins/ebay) | eBay listings for a keyword on any regional marketplace - price, condition, seller feedback, shipping, sold counts and a direct item link. |
+| [Walmart Search](/plugins/walmart) | Walmart product search - title, price and was-price, rating, review count, brand, seller, availability, image and a direct product link. |
+| [Target Search](/plugins/target) | Target product search - tcin, title, brand, price and formatted price, currency, image and a direct product link, via Target's own Redsky API. |
+| [Etsy Search](/plugins/etsy) | Etsy product search - title, price and currency, shop, image and a direct listing link, sorted and price-filtered. |
+| [Temu](/plugins/temu) | Temu product data as clean JSON - name, price, availability, rating, review count and images - plus keyword search that returns product URLs straight from Temu. |
+| [Zalando Search](/plugins/zalando) | Zalando fashion product search on any European storefront - sku, brand, name, price and currency, image and a direct product link. |
+| [oopbuy Search](/plugins/oopbuy-search) | oopbuy.com product-search listings for a keyword - title, USD and CNY price, monthly sales, image, and product link. |
 
 ### Classifieds & Resale
 
-<CardGroup cols={3}>
-  <Card title="Vinted Search" icon="shirt" href="/plugins/vinted">
-    Vinted resale listings on any regional marketplace - title, price and currency, brand, size, condition, image and a direct item link.
-  </Card>
-  <Card title="Craigslist Search" icon="newspaper" href="/plugins/craigslist">
-    Craigslist classifieds in any US metro - posting id, title, price, currency, location, image and a direct listing link.
-  </Card>
-  <Card title="Mobile.de Cars" icon="car" href="/plugins/mobile-de">
-    mobile.de car listings on Germany's largest marketplace - title, make and model, price, first registration, mileage, power (kW/PS), fuel and a direct listing link. Filter by price, year, mileage and fuel.
-  </Card>
-</CardGroup>
+| Plugin | What you get |
+| --- | --- |
+| [Vinted Search](/plugins/vinted) | Vinted resale listings on any regional marketplace - title, price and currency, brand, size, condition, image and a direct item link. |
+| [Craigslist Search](/plugins/craigslist) | Craigslist classifieds in any US metro - posting id, title, price, currency, location, image and a direct listing link. |
+| [Mobile.de Cars](/plugins/mobile-de) | mobile.de car listings on Germany's largest marketplace - title, make and model, price, first registration, mileage, power (kW/PS), fuel and a direct listing link. Filter by price, year, mileage and fuel. |
 
 ### Jobs
 
-<CardGroup cols={3}>
-  <Card title="Indeed Jobs" icon="briefcase" href="/plugins/indeed">
-    Indeed job listings for a search and location - title, company, parsed salary, job types, company rating, a snippet and a direct job link.
-  </Card>
-</CardGroup>
+| Plugin | What you get |
+| --- | --- |
+| [Indeed Jobs](/plugins/indeed) | Indeed job listings for a search and location - title, company, parsed salary, job types, company rating, a snippet and a direct job link. |
 
 ### Social & Ads
 
-<CardGroup cols={3}>
-  <Card title="TikTok" icon="music" href="/plugins/tiktok">
-    Public TikTok creators, videos and hashtags as JSON - exact follower, like and video counts, newest videos with full engagement, any post with music, hashtags, subtitles, transcripts and download URLs, hashtag totals with videos, keyword search and comments. No login.
-  </Card>
-  <Card title="Meta Ad Library" icon="rectangle-ad" href="/plugins/meta-ad-library">
-    An advertiser's live Facebook & Instagram ads - ad copy, CTA, format, image and video creative URLs, landing page, platforms and run dates. A competitor-ads tool.
-  </Card>
-</CardGroup>
+| Plugin | What you get |
+| --- | --- |
+| [TikTok](/plugins/tiktok) | Public TikTok creators, videos and hashtags as JSON - exact follower, like and video counts, newest videos with full engagement, any post with music, hashtags, subtitles, transcripts and download URLs, hashtag totals with videos, keyword search and comments. No login. |
+| [Meta Ad Library](/plugins/meta-ad-library) | An advertiser's live Facebook & Instagram ads - ad copy, CTA, format, image and video creative URLs, landing page, platforms and run dates. A competitor-ads tool. |
 
-More plugins are added over time. Each one is documented on its own page with the exact fields, response shape, and examples.
+More plugins are added over time.
 
 ## Cost and quota
 
