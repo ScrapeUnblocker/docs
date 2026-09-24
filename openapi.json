@@ -4900,7 +4900,7 @@
           "Plugins"
         ],
         "summary": "Scrape Google Images results",
-        "description": "Runs the Google Images vertical (`udm=2`) for `q` and returns the image results as JSON. Every result carries `imageUrl` (the full-resolution origin image, not a Google thumbnail), `sourceDomain` and `googleImagesUrl` (the Google Images viewer link, i.e. the `/imgres?...` URL a browser copies from the result tile), plus `sourcePageUrl`, `title`, `sourceName`, `thumbnailUrl`, `width`, `height` and `fileSize` where available. Set `proxy_country`/`gl` to target a market (image ranking is region-specific). One render returns the first page of results (v1).",
+        "description": "Runs the Google Images vertical (`udm=2`) for `q` and returns the image results as JSON. Every result carries `imageUrl` (the full-resolution origin image, not a Google thumbnail), `sourceDomain` and `googleImagesUrl` (the Google Images viewer link, i.e. the `/imgres?...` URL a browser copies from the result tile), plus `sourcePageUrl`, `title`, `sourceName`, `thumbnailUrl`, `width`, `height` and `fileSize` where available. Set `proxy_country` to target a market: the Google market (`gl`) follows it automatically, and `gl` is only an optional override. `pages` fetches up to 5 result pages of ~100 each; every page fetched is billed as one request.",
         "operationId": "google_images_images_google_search_post",
         "parameters": [
           {
@@ -4919,26 +4919,52 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string",
-              "description": "Market of search, ISO-2, e.g. 'us', 'de'. Shifts which images rank.",
-              "default": "us",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional Google market override (ISO-2, e.g. 'us', 'de'). Leave empty and the market follows `proxy_country` ('us' when neither is set). The market, not the exit IP, is what decides which images rank.",
               "title": "Gl"
             },
-            "description": "Market of search, ISO-2, e.g. 'us', 'de'. Shifts which images rank."
+            "description": "Optional Google market override (ISO-2, e.g. 'us', 'de'). Leave empty and the market follows `proxy_country` ('us' when neither is set). The market, not the exit IP, is what decides which images rank."
+          },
+          {
+            "name": "pages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 5,
+              "minimum": 1,
+              "description": "How many Google Images result pages to fetch (1-5, ~100 results each; Google stops at ~400-500 per query). Each page fetched is billed as one request.",
+              "default": 1,
+              "title": "Pages"
+            },
+            "description": "How many Google Images result pages to fetch (1-5, ~100 results each; Google stops at ~400-500 per query). Each page fetched is billed as one request."
           },
           {
             "name": "max_results",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "description": "How many image results to return (v1: first page).",
-              "default": 100,
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 500,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional cap on the number of results returned (default: all results of the fetched pages).",
               "title": "Max Results"
             },
-            "description": "How many image results to return (v1: first page)."
+            "description": "Optional cap on the number of results returned (default: all results of the fetched pages)."
           },
           {
             "name": "proxy_country",

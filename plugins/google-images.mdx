@@ -21,12 +21,13 @@ POST /images/google-search
 | Field | Required | Notes |
 | --- | --- | --- |
 | `q` | yes | Image search term, e.g. `eiffel tower` or `red running shoes`. |
-| `proxy_country` | no | Exit-IP country (ISO-2, e.g. `US`, `GB`). Image ranking is location-sensitive - set the market you want. |
-| `gl` | no | Google country of search (ISO-2 lowercase, e.g. `us`, `de`). |
-| `max_results` | no | How many results to return, `1`-`100`. One render returns the first page (~100 results). Default `100`. |
+| `proxy_country` | no | Country to search from (ISO-2, e.g. `US`, `DE`). The Google market (which images rank) follows it automatically. Without it you get US-market results. |
+| `pages` | no | How many result pages to fetch, `1`-`5`. Each page has ~100 results; Google stops at roughly 400-500 per query. **Each page fetched is billed as one request** (see `pagesFetched`). Default `1`. |
+| `gl` | no | Optional Google market override (ISO-2 lowercase, e.g. `de`). Leave it empty to follow `proxy_country`; set it only for a different market than the IP country. |
+| `max_results` | no | Optional cap on the number of results returned, `1`-`500`. Default: everything the fetched pages return. |
 
 ```bash
-curl -X POST "https://api.scrapeunblocker.com/images/google-search?q=eiffel%20tower&proxy_country=US&gl=us&max_results=30" \
+curl -X POST "https://api.scrapeunblocker.com/images/google-search?q=eiffel%20tower&proxy_country=US&pages=3" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
@@ -40,7 +41,8 @@ A JSON object with a `results` array plus counts:
   "hl": "en",
   "gl": "us",
   "proxyCountry": "US",
-  "resultsCollected": 30,
+  "resultsCollected": 300,
+  "pagesFetched": 3,
   "results": [
     {
       "imageUrl": "https://cdn.britannica.com/31/255531-050-B7E07090/eiffel-tower-paris-france.jpg",
