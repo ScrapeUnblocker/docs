@@ -87,6 +87,8 @@ curl -X POST "https://api.scrapeunblocker.com/jobs/indeed?query=software%20engin
 | `jobs[].jobTypes` | Employment types Indeed tags on the card. |
 | `jobs[].snippet` | The short description Indeed prints under the title. |
 | `jobs[].url` | Clean `viewjob` URL for the listing. |
+| `jobs[].datePosted` | Posting date (`YYYY-MM-DD`, UTC). With `sort=date` the jobs are returned newest first by this date. |
+| `jobs[].sponsored` | `true` for Indeed's sponsored (paid) listings. |
 
 <Note>
 Any field with no value is omitted from a job, so each item carries only the fields Indeed actually showed (e.g. `salary` or `companyRating` may be absent).

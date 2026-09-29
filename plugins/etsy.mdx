@@ -44,9 +44,11 @@ curl -X POST "https://api.scrapeunblocker.com/marketplace/etsy-search?query=hand
       "title": "Personalized Name Necklace, Custom Gold Jewelry",
       "url": "https://www.etsy.com/listing/1502837465",
       "price": 28.5,
-      "currency": "$",
+      "currency": "USD",
+      "currencySymbol": "$",
       "shop": "GoldenLeafStudio",
-      "image": "https://i.etsystatic.com/....jpg"
+      "image": "https://i.etsystatic.com/....jpg",
+      "sponsored": false
     }
   ]
 }
@@ -57,7 +59,9 @@ curl -X POST "https://api.scrapeunblocker.com/marketplace/etsy-search?query=hand
 | Field | Notes |
 | --- | --- |
 | `price` | Numeric price. |
-| `currency` | The currency **symbol** as Etsy shows it (e.g. `$`, `€`), not an ISO code. Follows `proxy_country` (USD by default). |
+| `currency` | ISO currency code of the price (e.g. `USD`, `EUR`). Follows `proxy_country` (USD by default). |
+| `currencySymbol` | The currency symbol as Etsy shows it (e.g. `$`, `€`). |
+| `sponsored` | `true` for Etsy's promoted listings (ads), `false` for organic results. Ads are returned in the order Etsy shows them and do not follow `sort`. |
 | `shop` | The Etsy shop selling the item. On a sponsored card it may carry Etsy's own promoted-listing prefix (e.g. `Ad ・ By ...`). |
 | `image` | Listing thumbnail URL. |
 | `url` | Clean `/listing/` URL. |

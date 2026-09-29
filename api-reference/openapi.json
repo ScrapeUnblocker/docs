@@ -2739,7 +2739,7 @@
           "Plugins"
         ],
         "summary": "Scrape Zillow real-estate listings",
-        "description": "Searches Zillow for `location` (a city/state or ZIP) and returns the listings as JSON: `price`, `beds`, `baths`, `area`, `address`, `homeType`, `zestimate`, `rentZestimate`, `daysOnZillow`, coordinates, broker and a clean `url`. Filter with `status` (for_sale / for_rent / sold), `min_price`/`max_price`, `beds`, `baths` and `home_type`, sort with `sort`, and collect up to `max_results` across pages.",
+        "description": "Searches Zillow for `location` (a city/state or ZIP) and returns the listings as JSON: `price`, `beds`, `baths`, `area`, `address`, `homeType`, `zestimate`, `rentZestimate`, `daysOnZillow`, coordinates, broker and a clean `url`. Filter with `status` (for_sale / for_rent / sold), `min_price`/`max_price`, `beds`, `baths` and `home_type`, sort with `sort`, and collect up to `max_results` across pages. Rental results can include apartment buildings (`isBuilding: true`): they have no `zpid` and carry `lotId`, `buildingName`, a rent range (`price` to `maxPrice`), `units` and `availableUnits` instead.",
         "operationId": "zillow_search_realestate_zillow_post",
         "parameters": [
           {
@@ -3159,7 +3159,7 @@
           "Plugins"
         ],
         "summary": "Scrape Indeed job listings",
-        "description": "Searches Indeed for `query` in `location` and returns the job listings as JSON: `title`, `company`, `location`, `salary` (with parsed `min`/`max`), `jobTypes`, `companyRating`, a `snippet` and a clean job `url`. Filter with `country`, `job_type`, `days` (posting age), `remote`, sort with `sort`, and collect up to `max_results` across pages. Indeed sits behind Cloudflare + PerimeterX - handled for you.",
+        "description": "Searches Indeed for `query` in `location` and returns the job listings as JSON: `title`, `company`, `location`, `salary` (with parsed `min`/`max`), `jobTypes`, `companyRating`, a `snippet`, `datePosted` (YYYY-MM-DD), `sponsored` (Indeed's paid placement) and a clean job `url`. Filter with `country`, `job_type`, `days` (posting age), `remote`, sort with `sort` (`date` returns the collected jobs newest first, sponsored ones included), and collect up to `max_results` across pages. Indeed sits behind Cloudflare + PerimeterX - handled for you.",
         "operationId": "indeed_search_jobs_indeed_post",
         "parameters": [
           {
@@ -3817,7 +3817,7 @@
           "Plugins"
         ],
         "summary": "Scrape Etsy product search",
-        "description": "Searches Etsy for `query` and returns the products as JSON: `title`, `price` + `currency`, `shop`, `image` and a listing `url`. Sort with `sort`, filter with `min_price`/`max_price`, and collect up to `max_results` across pages. Prices are in USD by default.",
+        "description": "Searches Etsy for `query` and returns the products as JSON: `title`, `price` + `currency` (ISO code) + `currencySymbol`, `shop`, `image`, a listing `url` and `sponsored` (true for paid ad placements, which Etsy mixes in regardless of `sort`). Sort with `sort`, filter with `min_price`/`max_price`, and collect up to `max_results` across pages. Prices are in USD by default.",
         "operationId": "etsy_search_marketplace_etsy_search_post",
         "parameters": [
           {
@@ -4287,10 +4287,10 @@
             "required": false,
             "schema": {
               "type": "string",
-              "description": "Location name to filter by, e.g. 'New York, NY'. Resolved to Glassdoor's location id automatically; pass loc_id to skip resolution.",
+              "description": "Location name to filter by, e.g. 'New York, NY'. Resolved to Glassdoor's location id automatically; pass loc_id to skip resolution. A name Glassdoor does not know is a 400.",
               "title": "Location"
             },
-            "description": "Location name to filter by, e.g. 'New York, NY'. Resolved to Glassdoor's location id automatically; pass loc_id to skip resolution."
+            "description": "Location name to filter by, e.g. 'New York, NY'. Resolved to Glassdoor's location id automatically; pass loc_id to skip resolution. A name Glassdoor does not know is a 400."
           },
           {
             "name": "loc_id",
@@ -4500,10 +4500,10 @@
             }
           },
           "400": {
-            "description": "Invalid parameters."
+            "description": "Invalid parameters, or `location` matches no Glassdoor location."
           },
           "502": {
-            "description": "Blocked by Glassdoor or no results island returned."
+            "description": "Blocked by Glassdoor, the location lookup failed, or no results island returned."
           },
           "504": {
             "description": "Fetch timed out."
@@ -5253,10 +5253,10 @@
             }
           },
           "400": {
-            "description": "Invalid parameters."
+            "description": "Invalid parameters, or the location could not be resolved."
           },
           "502": {
-            "description": "Blocked by Redfin, or the location could not be resolved."
+            "description": "Blocked by Redfin or no results page returned."
           },
           "504": {
             "description": "Fetch timed out."
@@ -8167,7 +8167,7 @@
           "Plugins"
         ],
         "summary": "Scrape Craigslist search",
-        "description": "Searches Craigslist for `query` in a given metro (`site`) and section (`category`) and returns the listings as JSON: `pid`, `title`, `url`, `price`, `currency`, `location` and `image`. Filter with `min_price`/`max_price` and cap the count with `max_results`. Results are merged from the gallery DOM and the embedded JSON-LD ItemList.",
+        "description": "Searches Craigslist for `query` in a given metro (`site`) and section (`category`) and returns the listings as JSON: `id`, `pid`, `title`, `url`, `price`, `currency`, `location` and `image`. Filter with `min_price`/`max_price` and cap the count with `max_results`. Results are merged from the gallery DOM and the embedded JSON-LD ItemList.",
         "operationId": "craigslist_search_marketplace_craigslist_search_post",
         "parameters": [
           {

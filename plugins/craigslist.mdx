@@ -47,6 +47,7 @@ Any Craigslist category code is accepted; the list above is just the common ones
   "resultsCollected": 120,
   "listings": [
     {
+      "id": "7712345678",
       "pid": "7712345678",
       "title": "Specialized Rockhopper Mountain Bike",
       "url": "https://sfbay.craigslist.org/eby/bik/d/....html",
@@ -63,7 +64,8 @@ Any Craigslist category code is accepted; the list above is just the common ones
 
 | Field | Notes |
 | --- | --- |
-| `pid` | Craigslist's own posting id. |
+| `id` | Stable listing id: the posting id when Craigslist shows one, otherwise the token from the listing URL. Always present. |
+| `pid` | Craigslist's own posting id, when the card carries one. |
 | `price` / `currency` | Numeric price and ISO currency (USD), read from the card or the JSON-LD. |
 | `location` | Neighbourhood / city the poster set, when present. |
 | `image` | Listing thumbnail URL. |

@@ -3,6 +3,23 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-29" description="Plugin fixes: Etsy, Indeed, Craigslist, Target, Booking, Skyscanner">
+  - [Etsy](/plugins/etsy): each listing comes back **once** (before, most came
+    back twice). **`currency` is now the ISO code** (`USD`, `EUR`); the symbol
+    moved to the new **`currencySymbol`**. New **`sponsored`** flag marks Etsy's
+    ads. Price-sorted searches that Etsy rate-limits are retried instead of
+    failing.
+  - [Indeed](/plugins/indeed): new **`datePosted`** and **`sponsored`** per job;
+    `sort=date` returns jobs newest first; `totalResults` is filled again.
+  - [Craigslist](/plugins/craigslist): every listing has a stable **`id`**, also
+    when Craigslist shows no posting id.
+  - [Target](/plugins/target): `sort` (`price_low`, `price_high`, ...) is applied
+    again.
+  - [Booking](/plugins/booking): prices are rounded to cents.
+  - [Skyscanner](/plugins/skyscanner) flights: an exact airport code (`JFK`)
+    searches that airport, not the whole city.
+</Update>
+
 <Update label="2026-09-29" description="Concurrent requests limit per plan, clearer 429s">
   Every plan now has a **concurrent requests** limit next to its rate limit:
   how many of your requests can be in flight at once (Pay as you go 10,
