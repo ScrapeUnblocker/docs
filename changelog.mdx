@@ -3,6 +3,17 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-29" description="Concurrent requests limit per plan, clearer 429s">
+  Every plan now has a **concurrent requests** limit next to its rate limit:
+  how many of your requests can be in flight at once (Pay as you go 10,
+  Starter 25, Pro 50, Business 100, Scale 200, Ultimate 400). Both limits
+  apply together; the plan card in the dashboard shows the ones on your key.
+  A request over either limit gets `429 Too Many Requests` right away, and the
+  new **`X-SU-Deny-Reason`** header says which limit it hit: `rate` or
+  `concurrency`. `429` responses are not billed. See
+  [Rate limits](/rate-limits) for the table and the recommended retry loop.
+</Update>
+
 <Update label="2026-09-24" description="Google Images: up to 5 result pages, market follows proxy_country">
   [`POST /images/google-search`](/plugins/google-images) takes a new **`pages`**
   parameter (`1`-`5`, ~100 results per page, Google stops at roughly 400-500 per

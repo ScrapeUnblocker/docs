@@ -3,21 +3,39 @@ title: "Rate limits"
 description: "Concurrency and throughput limits per plan, plus how to handle them."
 ---
 
-ScrapeUnblocker rate-limits per-account, not per-IP. Your plan determines:
+ScrapeUnblocker limits traffic per API key, not per IP. Your plan sets two independent limits, and both apply at the same time:
 
-- **Concurrent requests** - how many in-flight requests we'll accept at once.
-- **Monthly request quota** - total calls per billing period.
+- **Concurrent requests** - how many of your requests can be in flight at once. A request counts from the moment it reaches us until its response is sent, so slow targets hold a slot longer. Idle keep-alive connections do not count, and each HTTP/2 stream counts separately.
+- **Rate limit** - how many new requests you can start per second.
 
-Free trial accounts start with a small concurrency limit. Paid plans scale up. Exact numbers for each tier are on the [pricing page](https://scrapeunblocker.com/pricing).
+| Plan | Concurrent requests | Rate limit |
+| --- | --- | --- |
+| Pay as you go | 10 | 2 requests/second |
+| Starter | 25 | 5 requests/second |
+| Pro | 50 | 10 requests/second |
+| Business | 100 | 20 requests/second |
+| Scale | 200 | 30 requests/second |
+| Ultimate | 400 | 50 requests/second |
 
-## When you hit the limit
+Custom plans have their own limits, and some custom plans have no rate limit at all. The plan card in the [dashboard](https://app.scrapeunblocker.com) shows the limits that apply to your key right now.
 
-If you exceed your concurrency cap, additional requests queue briefly on our side rather than failing immediately. If queuing would exceed a reasonable wait, you'll get a `429 Too Many Requests` response.
+Your monthly request quota is separate - see [Monthly quota](#monthly-quota) below.
+
+## When you hit a limit
+
+A request over either limit is refused immediately with `429 Too Many Requests` - it is not queued. The `X-SU-Deny-Reason` response header tells you which limit it hit:
+
+| `X-SU-Deny-Reason` | Meaning | What to do |
+| --- | --- | --- |
+| `concurrency` | You already have as many requests in flight as your plan allows | Wait for one of your running requests to finish, then send the next |
+| `rate` | You started more requests this second than your plan allows | Spread requests out over time |
+
+`429` responses are not billed.
 
 The recommended client behavior:
 
-1. Run a fixed worker pool sized to your concurrency limit.
-2. On `429`, back off for the duration in the `Retry-After` header (if present), otherwise 5 seconds.
+1. Run a fixed worker pool no larger than your concurrent requests limit.
+2. On `429`, back off (for example 1-5 seconds) and retry. Use the `Retry-After` header if it is present.
 3. Resume.
 
 ```python
@@ -33,7 +51,7 @@ def call(url, key):
             timeout=120,
         )
         if r.status_code == 429:
-            wait = int(r.headers.get("Retry-After", "5"))
+            wait = int(r.headers.get("Retry-After", "2"))
             time.sleep(wait)
             continue
         return r
