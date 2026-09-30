@@ -111,7 +111,7 @@
             "description": "Origin unreachable (target down or flapping, or our origin breaker is open); not a bot block, not billed - retry later."
           },
           "422": {
-            "description": "Validation Error",
+            "description": "Validation error, or `no_data_extracted`: with `parsed_data=true` the page rendered but no structured data could be extracted (no HTML returned). Not billed.",
             "content": {
               "application/json": {
                 "schema": {

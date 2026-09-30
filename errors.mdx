@@ -18,7 +18,7 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 | `408` | Browser run timed out (only on `/getImage`) | No | Retry |
 | `410` | The target site itself says the page is gone (`X-Origin-Status: 410`); the body is the target's page. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Drop the URL |
 | `415` | The URL is not an HTML document (an image, PDF or file download) | No | Use `/getImage` for images |
-| `422` | Validation error - missing required field or wrong type. With `steps`, also `step_failed` when an action could not run | Only `step_failed` (the page was rendered) | The response body pinpoints the problem field or step |
+| `422` | Validation error - missing required field or wrong type. With `steps`, also `step_failed` when an action could not run. With `parsed_data=true`, also `no_data_extracted`: the page rendered but no structured data could be extracted from it (no HTML in the response) | Only `step_failed` (the page was rendered); `no_data_extracted` is free | The response body pinpoints the problem field or step. For `no_data_extracted`, call without `parsed_data` to get the HTML |
 | `429` | Concurrent requests limit exceeded (body `Concurrency limit exceeded`, header `X-SU-Deny-Reason: concurrency`) | No | Wait for a running request to finish, then retry. See [concurrency limits](/rate-limits) |
 | `500` | Internal error on our side | No | Retry with backoff |
 | `502` | Our load balancer lost the connection to an API node (HTML body). Dedicated plugin endpoints also return `502` with a plain-text message when the target returned no usable results | No | Retry with backoff |
@@ -28,7 +28,7 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 
 ## Dead URLs: `X-Origin-Status`
 
-When the target site itself answers that the page does not exist (`404` or `410`), that answer **is** the result for your URL - we reached the site, the URL is just dead. ScrapeUnblocker returns the target's own status (`404` or `410`) with the page exactly as the target served it (the body can be empty; with `get_cookies=true` or `parsed_data=true` it is the usual JSON) and adds:
+When the target site itself answers that the page does not exist (`404` or `410`), that answer **is** the result for your URL - we reached the site, the URL is just dead. ScrapeUnblocker returns the target's own status (`404` or `410`) with the page exactly as the target served it (the body can be empty; with `get_cookies=true` it is the usual JSON, and with `parsed_data=true` the body is `{"data": {"page_type": "not_found", "data": {}}}` - there is nothing to extract from a not-found page) and adds:
 
 | Header | Value |
 | --- | --- |

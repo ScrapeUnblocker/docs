@@ -3,6 +3,18 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-30" description="parsed_data: an empty result is no longer billed">
+  With `parsed_data=true`, a page that rendered but gave no structured data
+  used to come back as a billed `200` with `{"page_type": "unknown", "data": {}}`.
+  It now returns **`422`** with `{"error": "no_data_extracted"}` and **is not
+  billed**; the response carries no HTML - call without `parsed_data` to get
+  the page. We also fixed the cause of most of these empty results: a field
+  mapping could break on product specs whose labels contain quotation marks,
+  so the same URL sometimes parsed and sometimes did not. A dead URL with
+  `parsed_data=true` returns `404` / `410` with
+  `{"data": {"page_type": "not_found", "data": {}}}`.
+</Update>
+
 <Update label="2026-09-30" description="A target's 404 / 410 now comes back as 404 / 410">
   When the target site says the page does not exist, `getPageSource` now
   returns the target's own **`404`** or **`410`** with its page as the body
