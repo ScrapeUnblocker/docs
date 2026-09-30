@@ -18,7 +18,7 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 | `408` | Browser run timed out (only on `/getImage`) | No | Retry |
 | `415` | The URL is not an HTML document (an image, PDF or file download) | No | Use `/getImage` for images |
 | `422` | Validation error - missing required field or wrong type. With `steps`, also `step_failed` when an action could not run | Only `step_failed` (the page was rendered) | The response body pinpoints the problem field or step |
-| `429` | Rate or concurrency limit exceeded. The `X-SU-Deny-Reason` header says which: `rate` or `concurrency` | No | Back off and retry. See [rate limits](/rate-limits) |
+| `429` | Concurrent requests limit exceeded (body `Concurrency limit exceeded`, header `X-SU-Deny-Reason: concurrency`) | No | Wait for a running request to finish, then retry. See [concurrency limits](/rate-limits) |
 | `500` | Internal error on our side | No | Retry with backoff |
 | `502` | Our load balancer lost the connection to an API node (HTML body). Dedicated plugin endpoints also return `502` with a plain-text message when the target returned no usable results | No | Retry with backoff |
 | `503` | No API capacity right now (`No server is available to handle this request`, or `Render unavailable.`) - a problem on our side, not the target's | No | Retry with backoff |
@@ -178,7 +178,7 @@ Update your payment method in the [dashboard](https://app.scrapeunblocker.com) a
 | --- | --- |
 | `401` | We do not accept your credentials - unknown key, or no subscription at all. See [401 unauthorized](#401-unauthorized) |
 | `402` | We accept your credentials; the account owes money or is out of quota |
-| `429` | Nothing is wrong with the account - you are sending requests faster than your plan's rate limit, or have more in flight at once than its concurrent requests limit (`X-SU-Deny-Reason` says which). See [rate limits](/rate-limits) |
+| `429` | Nothing is wrong with the account - you have more requests in flight at once than your plan's concurrent requests limit. See [concurrency limits](/rate-limits) |
 
 ## 422 validation error shape
 

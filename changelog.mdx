@@ -3,6 +3,15 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-30" description="Plans are limited by concurrent requests only">
+  Plans no longer have a per-second limit. The only limit on your key is
+  **concurrent requests** - how many of your requests can be in flight at once:
+  Pay as you go 10, Starter 25, Pro 50, Business 100, Scale 150, Ultimate 200.
+  A request over it gets `429 Too Many Requests` right away (header
+  `X-SU-Deny-Reason: concurrency`), and `429` responses are not billed. See
+  [Concurrency limits](/rate-limits).
+</Update>
+
 <Update label="2026-09-29" description="Plugin fixes: Etsy, Indeed, Craigslist, Target, Booking, Skyscanner">
   - [Etsy](/plugins/etsy): each listing comes back **once** (before, most came
     back twice). **`currency` is now the ISO code** (`USD`, `EUR`); the symbol

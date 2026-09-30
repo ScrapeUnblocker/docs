@@ -129,7 +129,7 @@ The middleware counts its own decisions into the crawl's Scrapy stats, which are
 | `su_cloud/direct_requests` | Requests that went out from the spider itself. |
 | `su_cloud/robotstxt_direct` | `robots.txt` fetches, always direct. |
 | `su_cloud/unblock_auth_errors` | The API rejected the key (`401`). |
-| `su_cloud/unblock_rate_limited` | The API rate-limited the run (`429`). |
+| `su_cloud/unblock_rate_limited` | The API refused requests of the run with `429` (concurrent requests limit reached). |
 
 A `401` also writes a line into the log naming the likely cause: a key that does not match the host it is being used against. If the ratio of `unblocked_requests` to `direct_requests` is not what you expected, the mode is the first thing to check and the spider's `meta` the second.
 

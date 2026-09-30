@@ -1,34 +1,26 @@
 ---
-title: "Rate limits"
-description: "Concurrency and throughput limits per plan, plus how to handle them."
+title: "Concurrency limits"
+description: "Concurrent requests per plan, plus how to handle the limit."
 ---
 
-ScrapeUnblocker limits traffic per API key, not per IP. Your plan sets two independent limits, and both apply at the same time:
+ScrapeUnblocker limits traffic per API key, not per IP. Your plan sets one limit: **concurrent requests** - how many of your requests can be in flight at once. A request counts from the moment it reaches us until its response is sent, so slow targets hold a slot longer. Idle keep-alive connections do not count, and each HTTP/2 stream counts separately.
 
-- **Concurrent requests** - how many of your requests can be in flight at once. A request counts from the moment it reaches us until its response is sent, so slow targets hold a slot longer. Idle keep-alive connections do not count, and each HTTP/2 stream counts separately.
-- **Rate limit** - how many new requests you can start per second.
+| Plan | Concurrent requests |
+| --- | --- |
+| Pay as you go | 10 |
+| Starter | 25 |
+| Pro | 50 |
+| Business | 100 |
+| Scale | 150 |
+| Ultimate | 200 |
 
-| Plan | Concurrent requests | Rate limit |
-| --- | --- | --- |
-| Pay as you go | 10 | 2 requests/second |
-| Starter | 25 | 5 requests/second |
-| Pro | 50 | 10 requests/second |
-| Business | 100 | 20 requests/second |
-| Scale | 200 | 30 requests/second |
-| Ultimate | 400 | 50 requests/second |
-
-Custom plans have their own limits, and some custom plans have no rate limit at all. The plan card in the [dashboard](https://app.scrapeunblocker.com) shows the limits that apply to your key right now.
+Custom plans have their own limits. The plan card in the [dashboard](https://app.scrapeunblocker.com) shows the limit that applies to your key right now.
 
 Your monthly request quota is separate - see [Monthly quota](#monthly-quota) below.
 
-## When you hit a limit
+## When you hit the limit
 
-A request over either limit is refused immediately with `429 Too Many Requests` - it is not queued. The `X-SU-Deny-Reason` response header tells you which limit it hit:
-
-| `X-SU-Deny-Reason` | Meaning | What to do |
-| --- | --- | --- |
-| `concurrency` | You already have as many requests in flight as your plan allows | Wait for one of your running requests to finish, then send the next |
-| `rate` | You started more requests this second than your plan allows | Spread requests out over time |
+A request over the limit is refused immediately with `429 Too Many Requests` (body `Concurrency limit exceeded`, header `X-SU-Deny-Reason: concurrency`) - it is not queued. Wait for one of your running requests to finish, then send the next.
 
 `429` responses are not billed.
 
