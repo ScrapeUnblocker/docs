@@ -62,7 +62,7 @@ A JSON object with a `results` array plus counts:
 
 | Field | Notes |
 | --- | --- |
-| `imageUrl` | The full-resolution **original** image URL on the source site (not a Google thumbnail). Present for every result. |
+| `imageUrl` | The full-resolution **original** image URL on the source site (not a Google thumbnail). Present for every result. Exception: an image Google found inside a document such as a PDF has no URL of its own - there `imageUrl` is Google's thumbnail and `sourcePageUrl` is the document. |
 | `sourceDomain` | The domain Google attributes the image to (the site displaying it), e.g. `britannica.com`. Present for every result. |
 | `sourcePageUrl` | The page that displays the image. |
 | `title` | The result's title / page title. |

@@ -4915,7 +4915,7 @@
           "Plugins"
         ],
         "summary": "Scrape Google Images results",
-        "description": "Runs the Google Images vertical (`udm=2`) for `q` and returns the image results as JSON. Every result carries `imageUrl` (the full-resolution origin image, not a Google thumbnail), `sourceDomain` and `googleImagesUrl` (the Google Images viewer link, i.e. the `/imgres?...` URL a browser copies from the result tile), plus `sourcePageUrl`, `title`, `sourceName`, `thumbnailUrl`, `width`, `height` and `fileSize` where available. Set `proxy_country` to target a market: the Google market (`gl`) follows it automatically, and `gl` is only an optional override. `pages` fetches up to 5 result pages of ~100 each; every page fetched is billed as one request.",
+        "description": "Runs the Google Images vertical (`udm=2`) for `q` and returns the image results as JSON. Every result carries `imageUrl` (the full-resolution origin image, not a Google thumbnail; for an image found inside a document such as a PDF, which has no URL of its own, it is Google's thumbnail and `sourcePageUrl` is the document), `sourceDomain` and `googleImagesUrl` (the Google Images viewer link, i.e. the `/imgres?...` URL a browser copies from the result tile), plus `sourcePageUrl`, `title`, `sourceName`, `thumbnailUrl`, `width`, `height` and `fileSize` where available. Set `proxy_country` to target a market: the Google market (`gl`) follows it automatically, and `gl` is only an optional override. `pages` fetches up to 5 result pages of ~100 each; every page fetched is billed as one request.",
         "operationId": "google_images_images_google_search_post",
         "parameters": [
           {
