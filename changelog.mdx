@@ -3,6 +3,19 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-30" description="A target's 404 / 410 now comes back as 404 / 410">
+  When the target site says the page does not exist, `getPageSource` now
+  returns the target's own **`404`** or **`410`** with its page as the body
+  and **`X-Origin-Status`** set. Before, the same answer came back as a `200`
+  with the header. Billing is unchanged: these calls are billed, and retrying
+  them returns the same answer. A `404` without `X-Origin-Status` is ours (a
+  wrong API path, or `/getImage` finding no image). A dead origin's own `5xx`
+  error page still comes back as a `200` with `X-Origin-Status`. If your code
+  treats every non-`200` as a failure to retry, handle `404` / `410` with the
+  header as a dead URL instead. The SDKs raise `TargetNotFoundError` for it.
+  See [Errors](/errors#dead-urls-x-origin-status).
+</Update>
+
 <Update label="2026-09-30" description="proxy_country: a country we cannot serve fails fast">
   - A `proxy_country` that is not an ISO 3166-1 alpha-2 code (for example `ZZ`
     or `germany`) now returns **`400`** right away. `uk` keeps working as `GB`.

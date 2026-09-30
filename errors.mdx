@@ -9,13 +9,14 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 
 | Code | Meaning | Billed | Where to look |
 | --- | --- | --- | --- |
-| `200` | The page was delivered. Also used for the target's own "page does not exist" answer (`404` / `410`) and a dead origin's own `5xx` error page - then the `X-Origin-Status` header carries the target's status. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Response body; `X-Origin-Status` if present |
+| `200` | The page was delivered. Also used for a dead origin's own `5xx` error page - then the `X-Origin-Status` header carries the target's status. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Response body; `X-Origin-Status` if present |
 | `400` | Bad request: the `x-scrapeunblocker-key` header is missing, the URL is malformed or not `http`/`https`, an unsupported `proxy_country`, or `Hostname cannot be resolved` (the domain does not exist) | Only `Hostname cannot be resolved` | Check the URL and the key header |
 | `401` | Authentication problem - the key is not recognised, or the account behind it has no valid subscription | No | See [401 unauthorized](#401-unauthorized) below and [Authentication](/authentication) |
 | `402` | Billing problem - quota exceeded, credit limit exceeded, or repeated payment failures | No | See [402 payment required](#402-payment-required) below |
 | `403` | Blocked by the target site's bot protection on every available bypass path | No | Try a different `proxy_country`, or see [handling failures](/guides/handling-failures) |
-| `404` | No image element found (only on `/getImage`) | No | The page loaded but contained no `<img>` tag |
+| `404` | With `X-Origin-Status: 404`: the target site itself says the page does not exist; the body is the target's page. See [Dead URLs](#dead-urls-x-origin-status). Without the header: no image element found (only on `/getImage`), a plugin found no such item, or the API path is wrong | Only with `X-Origin-Status` | `X-Origin-Status` header, then the body |
 | `408` | Browser run timed out (only on `/getImage`) | No | Retry |
+| `410` | The target site itself says the page is gone (`X-Origin-Status: 410`); the body is the target's page. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Drop the URL |
 | `415` | The URL is not an HTML document (an image, PDF or file download) | No | Use `/getImage` for images |
 | `422` | Validation error - missing required field or wrong type. With `steps`, also `step_failed` when an action could not run | Only `step_failed` (the page was rendered) | The response body pinpoints the problem field or step |
 | `429` | Concurrent requests limit exceeded (body `Concurrency limit exceeded`, header `X-SU-Deny-Reason: concurrency`) | No | Wait for a running request to finish, then retry. See [concurrency limits](/rate-limits) |
@@ -27,14 +28,14 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 
 ## Dead URLs: `X-Origin-Status`
 
-When the target site itself answers that the page does not exist (`404` or `410`), or its origin server returns its own `5xx` error page, that answer **is** the result for your URL - we reached the site, the URL is just dead. ScrapeUnblocker returns it as a `200` with the page exactly as the target served it (the body can be empty) and adds:
+When the target site itself answers that the page does not exist (`404` or `410`), that answer **is** the result for your URL - we reached the site, the URL is just dead. ScrapeUnblocker returns the target's own status (`404` or `410`) with the page exactly as the target served it (the body can be empty; with `get_cookies=true` or `parsed_data=true` it is the usual JSON) and adds:
 
 | Header | Value |
 | --- | --- |
 | `X-Origin-Status` | The target's own status, e.g. `404`, `410`, `502` |
 | `X-ScrapeUnblocker-Note` | A short human-readable explanation |
 
-These calls are billed like any delivered page. Branch on the header, not the body:
+These calls are billed like any delivered page, and **retrying will not change the answer**. `X-Origin-Status` is what tells the target's `404` apart from a `404` of our own (a wrong API path, or `/getImage` finding no image) - branch on it:
 
 ```python
 r = requests.post(
@@ -43,9 +44,15 @@ r = requests.post(
     headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
     timeout=125,
 )
-if r.status_code == 200 and r.headers.get("X-Origin-Status") in ("404", "410"):
+if r.status_code in (404, 410) and r.headers.get("X-Origin-Status"):
     mark_as_dead(url)  # the page no longer exists on the target site
 ```
+
+When the target's origin server returns its own `5xx` error page (for example nginx `502 Bad Gateway`), you get a `200` with that page, `X-Origin-Status` carrying the origin's status and `X-Upstream-Unavailable: true`, also billed. It stays a `200` on purpose: most HTTP clients retry `5xx` automatically, and every retry would be billed.
+
+<Note>
+Until 2026-09-30 a target's `404` / `410` also came back as a `200` with `X-Origin-Status`. Code that checks `r.status_code == 200` first should now handle `404` / `410` with the header as a dead URL, not as an error to retry.
+</Note>
 
 A URL whose **domain** does not exist gets `400 Hostname cannot be resolved` instead, also billed.
 

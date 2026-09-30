@@ -79,7 +79,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success — body is HTML (or JSON when `parsed_data=true` / `get_cookies=true`). Also the target's own not-found page (404/410) or dead-origin 5xx page, as served (can be empty): then the `X-Origin-Status` header carries the target's status. Billed.",
+            "description": "Success — body is HTML (or JSON when `parsed_data=true` / `get_cookies=true`). Also a dead-origin 5xx page, as served (can be empty): then the `X-Origin-Status` header carries the target's status. Billed.",
             "content": {
               "application/json": {
                 "schema": {}
@@ -91,6 +91,12 @@
           },
           "403": {
             "description": "Blocked by bot protection on every available bypass path."
+          },
+          "404": {
+            "description": "The target itself answered 404 (the page does not exist). The body is the target's own page, as served (can be empty), and `X-Origin-Status: 404` tells it apart from a wrong API path. Billed - retrying returns the same answer."
+          },
+          "410": {
+            "description": "The target itself answered 410 (the page is gone). Same shape as 404: the target's page with `X-Origin-Status: 410`. Billed."
           },
           "415": {
             "description": "The URL is not an HTML document (image, PDF, file); use /getImage for images. Not billed."

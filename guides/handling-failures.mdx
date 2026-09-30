@@ -60,9 +60,9 @@ The target site answered nobody over any of our exits: it is down, or it refuses
 
 **Recovery:** retry after a pause (tens of seconds to minutes). Rotating `proxy_country` rarely helps - the site itself is not answering.
 
-## Dead URLs - `200` with `X-Origin-Status`
+## Dead URLs - `X-Origin-Status`
 
-If the target says the page does not exist (`404` / `410`), or its origin returns its own `5xx` error page, you get a `200` with that page as the body (it can be empty) and an `X-Origin-Status` header carrying the target's status. We reached the site; the URL is dead. It is billed like any delivered page, and **retrying will not change it** - check the header and drop or fix the URL. A URL whose domain does not exist returns `400 Hostname cannot be resolved` (also billed). See [Errors](/errors#dead-urls-x-origin-status).
+If the target says the page does not exist, you get the target's own `404` or `410` with its page as the body (it can be empty) and an `X-Origin-Status` header carrying that status. If its origin returns its own `5xx` error page, you get a `200` with that page and the same header. Either way we reached the site; the URL is dead. It is billed like any delivered page, and **retrying will not change it** - check the header and drop or fix the URL. A `404` without `X-Origin-Status` is ours (a wrong API path, or `/getImage` finding no image), not the target's. A URL whose domain does not exist returns `400 Hostname cannot be resolved` (also billed). See [Errors](/errors#dead-urls-x-origin-status).
 
 ## 504 - timeout
 
