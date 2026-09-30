@@ -1650,6 +1650,9 @@
           "400": {
             "description": "No/invalid ASIN or url, or unsupported marketplace."
           },
+          "404": {
+            "description": "Amazon has no product with this ASIN on this marketplace."
+          },
           "502": {
             "description": "Blocked by Amazon or the product page could not be fetched."
           },

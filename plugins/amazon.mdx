@@ -39,6 +39,8 @@ curl -X POST "https://api.scrapeunblocker.com/marketplace/amazon-product?asin=B0
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
+An ASIN that Amazon does not have on that marketplace (a removed product, a typo, or a product sold only on another regional site) returns `404` with a plain-text message. Retrying it will not help; check the ASIN or pass the `marketplace` that sells it.
+
 ### Product response
 
 ```json
