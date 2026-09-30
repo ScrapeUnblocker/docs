@@ -193,6 +193,7 @@ try {
 | `BlockedException` | 403 | Blocked by bot protection on every path |
 | `NotFoundException` | 404 | Page loaded but held no image (`getImage` only) |
 | `TargetNotFoundException` | 404 / 410 | The target site says the page does not exist (`X-Origin-Status` set). Billed; carries the origin status, the target's page and the destination URL. Subclass of `NotFoundException`, never retried |
+| `NoDataExtractedException` | 422 | `getParsed()` rendered the page but no structured data could be extracted. Not billed; no HTML - call `getPageSource()` to get the page. Subclass of `ValidationException`, never retried |
 | `BrowserTimeoutException` | 408 | Our browser run timed out before the page was ready |
 | `UnsupportedContentException` | 415 | The URL serves something other than HTML |
 | `ValidationException` | 422 | Missing or wrong-typed parameter; `$body` holds the `detail` array |

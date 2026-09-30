@@ -178,6 +178,7 @@ end
 | `BlockedError` | 403 | Blocked by bot protection on every path |
 | `NotFoundError` | 404 | Page loaded but held no image (`get_image` only) |
 | `TargetNotFoundError` | 404 / 410 | The target site says the page does not exist (`X-Origin-Status` set). Billed; carries `origin_status`, `html` and `destination_url`. Subclass of `NotFoundError`, never retried |
+| `NoDataExtractedError` | 422 | `get_parsed()` rendered the page but no structured data could be extracted. Not billed; no HTML - call `get_page_source()` to get the page. Subclass of `ValidationError`, never retried |
 | `BrowserTimeoutError` | 408 | Our browser run timed out before the page was ready |
 | `UnsupportedContentError` | 415 | The URL serves something other than HTML |
 | `ValidationError` | 422 | Missing or wrong-typed parameter; `body` holds the `detail` array |
