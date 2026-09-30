@@ -3928,6 +3928,18 @@
               "title": "Proxy Country"
             },
             "description": "Exit-IP country (ISO-2). Defaults to US (USD prices)."
+          },
+          {
+            "name": "include_sponsored",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Also return Etsy's paid ad placements (`sponsored: true`). Off by default: ads ignore the search order and `sort`.",
+              "default": false,
+              "title": "Include Sponsored"
+            },
+            "description": "Also return Etsy's paid ad placements (`sponsored: true`). Off by default: ads ignore the search order and `sort`."
           }
         ],
         "responses": {

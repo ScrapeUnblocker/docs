@@ -26,6 +26,7 @@ POST /marketplace/etsy-search
 | `page` | no | 1-based page to start from (~48 per page). Default `1`. |
 | `max_results` | no | How many products to collect across pages. Default `48`, max `500`. |
 | `proxy_country` | no | Exit-IP country (ISO-2). Defaults to US (USD prices). |
+| `include_sponsored` | no | `true` to also return Etsy's paid ad placements. Default `false`: ads are left out, since Etsy mixes them into every page regardless of the search order and `sort`. |
 
 ```bash
 curl -X POST "https://api.scrapeunblocker.com/marketplace/etsy-search?query=handmade%20necklace&sort=top_reviews&max_results=96" \
@@ -61,7 +62,7 @@ curl -X POST "https://api.scrapeunblocker.com/marketplace/etsy-search?query=hand
 | `price` | Numeric price. |
 | `currency` | ISO currency code of the price (e.g. `USD`, `EUR`). Follows `proxy_country` (USD by default). |
 | `currencySymbol` | The currency symbol as Etsy shows it (e.g. `$`, `€`). |
-| `sponsored` | `true` for Etsy's promoted listings (ads), `false` for organic results. Ads are returned in the order Etsy shows them and do not follow `sort`. |
+| `sponsored` | `true` for Etsy's promoted listings (ads), `false` for organic results. Ads come back only with `include_sponsored=true`, in the order Etsy shows them, and do not follow `sort`. |
 | `shop` | The Etsy shop selling the item. On a sponsored card it may carry Etsy's own promoted-listing prefix (e.g. `Ad ・ By ...`). |
 | `image` | Listing thumbnail URL. |
 | `url` | Clean `/listing/` URL. |

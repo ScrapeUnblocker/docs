@@ -3,12 +3,14 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
-<Update label="2026-09-30" description="Plugin fixes: Amazon product, mobile.de">
+<Update label="2026-09-30" description="Plugin fixes: Amazon product, mobile.de, Etsy">
   - [Amazon](/plugins/amazon) product: an ASIN Amazon does not have on that
     marketplace now returns **`404`** in a few seconds. Before, it failed after
     about a minute with `502` ("bot wall") and asked you to retry.
   - [mobile.de](/plugins/mobile-de): searches work again. Since 2026-09-23 every
     call failed with `502`.
+  - [Etsy](/plugins/etsy): paid ad placements are **left out by default**. Pass
+    `include_sponsored=true` to get them back (marked `sponsored: true`).
 </Update>
 
 <Update label="2026-09-30" description="Plans are limited by concurrent requests only">
