@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-09-30" description="proxy_country: a country we cannot serve fails fast">
+  - A `proxy_country` that is not an ISO 3166-1 alpha-2 code (for example `ZZ`
+    or `germany`) now returns **`400`** right away. `uk` keeps working as `GB`.
+  - A real country we hold no exits in: plain pages are still fetched through a
+    residential exit in that country; a page that needs a browser now returns
+    **`400`** with the list of countries we can serve, in seconds. Before, both
+    cases could wait up to 3 minutes and end in `500` / `504`.
+  - `400` responses are not billed.
+</Update>
+
 <Update label="2026-09-30" description="Plugin fixes: Amazon product, mobile.de, Etsy">
   - [Amazon](/plugins/amazon) product: an ASIN Amazon does not have on that
     marketplace now returns **`404`** in a few seconds. Before, it failed after
