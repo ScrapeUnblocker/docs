@@ -12,7 +12,7 @@ description: "Notable changes to the ScrapeUnblocker API."
   wrong API path, or `/getImage` finding no image). A dead origin's own `5xx`
   error page still comes back as a `200` with `X-Origin-Status`. If your code
   treats every non-`200` as a failure to retry, handle `404` / `410` with the
-  header as a dead URL instead. The SDKs raise `TargetNotFoundError` for it.
+  header as a dead URL instead. The SDKs (0.7.0 and later) raise `TargetNotFoundError` for it (`TargetNotFoundException` in PHP).
   See [Errors](/errors#dead-urls-x-origin-status).
 </Update>
 

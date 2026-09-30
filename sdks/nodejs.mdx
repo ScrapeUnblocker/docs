@@ -232,6 +232,7 @@ try {
 | `PaymentFailedError` | 402 | A card payment was declined three times |
 | `BlockedError` | 403 | Blocked by bot protection on every path |
 | `NotFoundError` | 404 | Page loaded but held no image (`getImage` only) |
+| `TargetNotFoundError` | 404 / 410 | The target site says the page does not exist (`X-Origin-Status` set). Billed; carries `originStatus`, `html` and `destinationUrl`. Subclass of `NotFoundError`, never retried |
 | `BrowserTimeoutError` | 408 | Our browser run timed out before the page was ready |
 | `UnsupportedContentError` | 415 | The URL serves something other than HTML |
 | `ValidationError` | 422 | Missing or wrong-typed parameter; `body` holds the `detail` array |
