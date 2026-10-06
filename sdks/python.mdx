@@ -40,7 +40,6 @@ The killer feature: `get_parsed()` returns structured data extracted using Schem
 result = su.get_parsed("https://www.amazon.com/dp/B08N5WRWNW")
 
 print(result.page_type)         # "product"
-print(result.source)            # how it was extracted
 print(result.data["title"])
 print(result.data["price"])
 ```

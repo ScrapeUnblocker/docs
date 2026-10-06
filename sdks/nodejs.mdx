@@ -42,7 +42,6 @@ CommonJS works too: `const { ScrapeUnblockerClient } = require("scrapeunblocker"
 const product = await su.getParsed("https://www.amazon.com/dp/B08N5WRWNW");
 
 console.log(product.pageType); // "product"
-console.log(product.source);   // how it was extracted
 console.log(product.data);     // the fields
 ```
 

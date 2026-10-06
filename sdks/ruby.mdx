@@ -33,7 +33,6 @@ html = su.get_page_source("https://example.com")
 product = su.get_parsed("https://www.amazon.com/dp/B08N5WRWNW")
 
 puts product.page_type # "product"
-puts product.source    # how it was extracted
 p product.data         # the fields
 
 # If a parse ever comes back wrong, force a fresh set of rules:

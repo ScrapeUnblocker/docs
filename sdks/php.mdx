@@ -36,7 +36,6 @@ $html = $su->getPageSource('https://example.com');
 $product = $su->getParsed('https://www.amazon.com/dp/B08N5WRWNW');
 
 echo $product->pageType;   // "product"
-echo $product->source;     // how it was extracted
 print_r($product->data);   // the fields
 
 // If a parse ever comes back wrong, force a fresh set of rules:
