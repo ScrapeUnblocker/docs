@@ -43,6 +43,8 @@ print_r($product->data);   // the fields
 $fresh = $su->getParsed($url, ['refresh_rules' => true, 'rules_hint' => 'price is missing']);
 ```
 
+When the page loads but nothing can be extracted from it, `getParsed()` does not raise: it returns a result with page type `unknown` and empty data, together with the rendered HTML (the API's `data_extracted: false` and `html` fields). The call is billed like a page-source call. See [when nothing can be extracted](/guides/parsed-data#when-nothing-can-be-extracted).
+
 See the [parsed data guide](/guides/parsed-data) for response shapes.
 
 ## Scrape a Google SERP
@@ -193,7 +195,6 @@ try {
 | `BlockedException` | 403 | Blocked by bot protection on every path |
 | `NotFoundException` | 404 | Page loaded but held no image (`getImage` only) |
 | `TargetNotFoundException` | 404 / 410 | The target site says the page does not exist (`X-Origin-Status` set). Billed; carries the origin status, the target's page and the destination URL. Subclass of `NotFoundException`, never retried |
-| `NoDataExtractedException` | 422 | `getParsed()` rendered the page but no structured data could be extracted. Not billed; no HTML - call `getPageSource()` to get the page. Subclass of `ValidationException`, never retried |
 | `BrowserTimeoutException` | 408 | Our browser run timed out before the page was ready |
 | `UnsupportedContentException` | 415 | The URL serves something other than HTML |
 | `ValidationException` | 422 | Missing or wrong-typed parameter; `$body` holds the `detail` array |

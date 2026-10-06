@@ -3,6 +3,19 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-06" description="parsed_data: a page with nothing to extract is a 200 again, now with its HTML">
+  With `parsed_data=true`, a page that exists and renders now always comes back
+  as **`200`**, also when no structured data can be extracted from it. Instead
+  of the `422 no_data_extracted` introduced on 2026-09-30, the body is
+  `{"data": {"page_type": "unknown", "data": {}}, "data_extracted": false,
+  "detail": "...", "html": "..."}` - it says that nothing was extracted and
+  carries the rendered HTML, so you can parse the page yourself without a
+  second call. It is billed like a call without `parsed_data`. A parser error
+  on our side now gives the same `200` instead of a `500`. Successful parses
+  and dead URLs (`404` / `410` with `page_type: "not_found"`) are unchanged.
+  See [parsed data](/guides/parsed-data#when-nothing-can-be-extracted).
+</Update>
+
 <Update label="2026-09-30" description="parsed_data: an empty result is no longer billed">
   With `parsed_data=true`, a page that rendered but gave no structured data
   used to come back as a billed `200` with `{"page_type": "unknown", "data": {}}`.

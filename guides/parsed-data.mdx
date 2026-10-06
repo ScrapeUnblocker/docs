@@ -91,6 +91,26 @@ Which extraction strategy produced the data:
 
 The extracted fields. Schema depends on `page_type`. Field names are normalized across sources - a `product` always has `title` and `price` regardless of whether `source` is `schema_org` or `ai_rule`.
 
+## When nothing can be extracted
+
+If the page exists and renders (a call without `parsed_data` would return `200` with its HTML) but no structured data can be extracted from it, the answer is still **`200`**. The body keeps the usual `data` envelope with an empty `data`, says that nothing was extracted, and carries the rendered HTML so you can parse it yourself:
+
+```json
+{
+  "data": {
+    "page_type": "unknown",
+    "data": {}
+  },
+  "data_extracted": false,
+  "detail": "The page was rendered, but no structured data could be extracted from it. The rendered HTML is in `html`.",
+  "html": "<html>\n <head>\n  <title>\n   Example Domain\n  </title>\n ..."
+}
+```
+
+Check `data_extracted` (present only in this case) or an empty `data.data`. The call is billed like a call without `parsed_data`, since you receive the same page. Retrying returns the same result; if you expected data from this page, retry once with `refresh_rules=true` and a `rules_hint`.
+
+A dead URL is different: when the target itself answers `404` / `410`, you get that status with `{"data": {"page_type": "not_found", "data": {}}}` - see [Dead URLs](/errors#dead-urls-x-origin-status).
+
 ## Social pages: TikTok and Instagram
 
 TikTok and Instagram build their pages in the browser from a JSON payload

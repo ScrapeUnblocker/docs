@@ -52,6 +52,8 @@ If a parse ever comes back wrong, force a fresh set of rules:
 const fresh = await su.getParsed(url, { refreshRules: true, rulesHint: "price is missing" });
 ```
 
+When the page loads but nothing can be extracted from it, `getParsed()` does not raise: it returns a result with page type `unknown` and empty data, together with the rendered HTML (the API's `data_extracted: false` and `html` fields). The call is billed like a page-source call. See [when nothing can be extracted](/guides/parsed-data#when-nothing-can-be-extracted).
+
 See the [parsed data guide](/guides/parsed-data) for response shapes.
 
 ## Scrape a Google SERP
@@ -233,7 +235,6 @@ try {
 | `BlockedError` | 403 | Blocked by bot protection on every path |
 | `NotFoundError` | 404 | Page loaded but held no image (`getImage` only) |
 | `TargetNotFoundError` | 404 / 410 | The target site says the page does not exist (`X-Origin-Status` set). Billed; carries `originStatus`, `html` and `destinationUrl`. Subclass of `NotFoundError`, never retried |
-| `NoDataExtractedError` | 422 | `getParsed()` rendered the page but no structured data could be extracted. Not billed; no HTML - call `getPageSource()` to get the page. Subclass of `ValidationError`, never retried |
 | `BrowserTimeoutError` | 408 | Our browser run timed out before the page was ready |
 | `UnsupportedContentError` | 415 | The URL serves something other than HTML |
 | `ValidationError` | 422 | Missing or wrong-typed parameter; `body` holds the `detail` array |
