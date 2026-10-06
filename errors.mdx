@@ -21,9 +21,9 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 | `422` | Validation error - missing required field or wrong type. With `steps`, also `step_failed` when an action could not run. (With `parsed_data=true`, a page that rendered but held no structured data is not an error: it is a `200` with `data_extracted: false` and the page's `html` - see [parsed data](/guides/parsed-data#when-nothing-can-be-extracted)) | Only `step_failed` (the page was rendered) | The response body pinpoints the problem field or step |
 | `429` | Concurrent requests limit exceeded (body `Concurrency limit exceeded`, header `X-SU-Deny-Reason: concurrency`) | No | Wait for a running request to finish, then retry. See [concurrency limits](/rate-limits) |
 | `500` | Internal error on our side | No | Retry with backoff |
-| `502` | Our load balancer lost the connection to an API node (HTML body). Dedicated plugin endpoints also return `502` with a plain-text message when the target returned no usable results | No | Retry with backoff |
+| `502` | Our load balancer lost the connection to an API node (HTML body). Dedicated plugin endpoints also return `502` with a plain-text message when the target returned no usable results or the call did not finish in time (`... timed out.`) | No | Retry with backoff |
 | `503` | No API capacity right now (`No server is available to handle this request`, or `Render unavailable.`) - a problem on our side, not the target's | No | Retry with backoff |
-| `504` | The request reached its time cap: `Request timed out.` (60 s on `/getPageSource`, 90 s with `steps`) or a SERP / plugin timeout. Usually a slow target | No | Retry. If persistent for one domain, contact support |
+| `504` | The request reached its time cap: `Request timed out.` (60 s on `/getPageSource`, 90 s with `steps`) or a SERP timeout. Usually a slow target | No | Retry. If persistent for one domain, contact support |
 | `523` | `Origin unreachable` - the target answered nobody over any of our exits (down, or refusing connections in bursts). Not a bot block | No | Retry after a pause |
 
 ## Dead URLs: `X-Origin-Status`

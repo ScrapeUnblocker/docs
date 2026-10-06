@@ -144,8 +144,7 @@ Each entry is a clean product URL ending in `-g-<id>.html` - pass it to
 | --- | --- |
 | `400` | The `url` is not a Temu product page (path must end in `-g-<id>.html`). Product endpoint only. |
 | `429` | The plugin's fleet-wide Temu rate budget is spent. Retry shortly. |
-| `502` | The product/search document could not be fetched (block or empty result). |
-| `504` | The fetch timed out. |
+| `502` | The product/search document could not be fetched (block, empty result, or timeout). |
 
 ## What you can build
 

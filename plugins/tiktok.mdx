@@ -275,8 +275,7 @@ curl -X POST "https://api.scrapeunblocker.com/social/tiktok-comments?url=https%3
 | --- | --- |
 | `400` | Missing or malformed `username` / `url` / `hashtag`, or a bad `proxy_country`. |
 | `404` | The profile does not exist, was banned or is private; the post was deleted, is private or region-locked; the hashtag has no page; a search or a post has no results / comments. The message carries TikTok's status code where TikTok gave one. |
-| `502` | TikTok blocked every exit, a browser grid did not arrive in time, or the captcha could not be solved - retry, or try another `proxy_country`. |
-| `504` | The fetch timed out. |
+| `502` | TikTok blocked every proxy we tried, a browser grid did not arrive in time, the captcha could not be solved, or the fetch timed out - retry, or try another `proxy_country`. |
 
 ## What you can build
 

@@ -3,6 +3,25 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-06" description="Plugins: timeouts are a 502, Threads counts are numbers, Amazon exitProvider is a proxy type">
+  - **Plugin timeouts:** a dedicated plugin call that does not finish within its
+    time limit now returns **`502`** with a plain-text `... timed out.` message.
+    Some plugins (for example Walmart search) used to answer a timeout with a
+    `500`. Not billed; retry with backoff. `/getPageSource` and `/serpApi` keep
+    their `504`.
+  - **Threads profile:** `likes`, `comments`, `reposts` and `shares` are now
+    always integers (`0` when the post has none, `null` when Threads does not
+    publish the number). They could contain button labels such as `"Comment"`.
+    Each post's `url` is now the post's own link and `text` is the full post
+    text instead of a shortened one.
+  - **Skyscanner car hire:** `market`, `locale`, `currency` and `driver_age` are
+    optional, with the defaults `UK`, `en-GB`, `GBP` and `30` (the same as
+    flights and hotels). A request without dates or a pickup gets an immediate
+    `400` naming the missing parameters.
+  - **Amazon:** `exitProvider` now reports the proxy type (`isp`,
+    `residential` or `datacenter`) instead of a provider name.
+</Update>
+
 <Update label="2026-10-06" description="parsed_data: a page with nothing to extract is a 200 again, now with its HTML">
   With `parsed_data=true`, a page that exists and renders now always comes back
   as **`200`**, also when no structured data can be extracted from it. Instead
@@ -325,8 +344,7 @@ description: "Notable changes to the ScrapeUnblocker API."
 
   Prices come back in the **right currency automatically**: `proxy_country`
   defaults to the marketplace's home country (`amazon.com` -> US, `amazon.de` ->
-  DE, ...) and the request is routed through our Oxylabs ISP + iProyal ISP pool
-  in that country, so `amazon.com` returns USD and `amazon.de` returns EUR with
+  DE, ...) and the request is routed through ISP proxies in that country, so `amazon.com` returns USD and `amazon.de` returns EUR with
   no configuration. No Selling Partner / Product Advertising API account needed.
 </Update>
 

@@ -12,7 +12,7 @@
           "Scraping"
         ],
         "summary": "Fetch the HTML (or parsed JSON) for any URL",
-        "description": "Routes the URL through the appropriate anti-bot bypass chain (custom domain plugins, super-profile browser, residential proxies). Returns the prettified HTML by default. Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to additionally receive cookies and the proxy address that served the request.",
+        "description": "Routes the URL through the appropriate anti-bot bypass chain (site-specific handlers, real-browser rendering, rotating proxies). Returns the prettified HTML by default. Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to additionally receive cookies and the proxy address that served the request.",
         "operationId": "get_page_source_getPageSource_post",
         "parameters": [
           {
@@ -231,8 +231,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Full Skyscanner `/g/carhire-quotes/...` URL. When given, every other search param is ignored.",
               "title": "Url"
-            }
+            },
+            "description": "Full Skyscanner `/g/carhire-quotes/...` URL. When given, every other search param is ignored."
           },
           {
             "name": "host",
@@ -250,8 +252,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Skyscanner market (country code), e.g. UK, US, ES. Ignored when `url` is given.",
+              "default": "UK",
               "title": "Market"
-            }
+            },
+            "description": "Skyscanner market (country code), e.g. UK, US, ES. Ignored when `url` is given."
           },
           {
             "name": "locale",
@@ -259,8 +264,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Result language, e.g. en-GB, es-ES. Ignored when `url` is given.",
+              "default": "en-GB",
               "title": "Locale"
-            }
+            },
+            "description": "Result language, e.g. en-GB, es-ES. Ignored when `url` is given."
           },
           {
             "name": "currency",
@@ -268,8 +276,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Price currency, e.g. GBP, EUR, USD. Ignored when `url` is given.",
+              "default": "GBP",
               "title": "Currency"
-            }
+            },
+            "description": "Price currency, e.g. GBP, EUR, USD. Ignored when `url` is given."
           },
           {
             "name": "driver_age",
@@ -277,8 +288,13 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 99,
+              "minimum": 18,
+              "description": "Driver age in years. Ignored when `url` is given.",
+              "default": 30,
               "title": "Driver Age"
-            }
+            },
+            "description": "Driver age in years. Ignored when `url` is given."
           },
           {
             "name": "pickup_entity",
@@ -286,8 +302,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Skyscanner pickup entity ID. Give this or `pickup` unless `url` is given.",
               "title": "Pickup Entity"
-            }
+            },
+            "description": "Skyscanner pickup entity ID. Give this or `pickup` unless `url` is given."
           },
           {
             "name": "dropoff_entity",
@@ -304,8 +322,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Pickup place name, e.g. Madrid. Give this or `pickup_entity` unless `url` is given.",
               "title": "Pickup"
-            }
+            },
+            "description": "Pickup place name, e.g. Madrid. Give this or `pickup_entity` unless `url` is given."
           },
           {
             "name": "dropoff",
@@ -322,8 +342,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Pickup date and time, YYYY-MM-DDTHH:MM. Required unless `url` is given.",
               "title": "Pickup Datetime"
-            }
+            },
+            "description": "Pickup date and time, YYYY-MM-DDTHH:MM. Required unless `url` is given."
           },
           {
             "name": "dropoff_datetime",
@@ -331,8 +353,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Dropoff date and time, YYYY-MM-DDTHH:MM. Required unless `url` is given.",
               "title": "Dropoff Datetime"
-            }
+            },
+            "description": "Dropoff date and time, YYYY-MM-DDTHH:MM. Required unless `url` is given."
           },
           {
             "name": "proxy_country",
@@ -893,7 +917,7 @@
           "Scraping"
         ],
         "summary": "Fetch a single image as raw PNG bytes",
-        "description": "Navigates to the given image URL via a real browser + residential proxy, draws the first `<img>` to a canvas, and returns the resulting PNG. Use this when a regular GET against the image returns a challenge page or a tiny tracking pixel because the host requires a real browser context.",
+        "description": "Navigates to the given image URL via a real browser and a proxy, draws the first `<img>` to a canvas, and returns the resulting PNG. Use this when a regular GET against the image returns a challenge page or a tiny tracking pixel because the host requires a real browser context.",
         "operationId": "get_image_getImage_post",
         "parameters": [
           {
@@ -984,10 +1008,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'GB'). Local results are location-sensitive, so pick the country you want results for.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB'). Local results are location-sensitive, so pick the country you want results for.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'GB'). Local results are location-sensitive, so pick the country you want results for."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB'). Local results are location-sensitive, so pick the country you want results for."
           },
           {
             "name": "hl",
@@ -1033,10 +1057,7 @@
             "description": "Blocked by Google CAPTCHA after retries - try another proxy_country."
           },
           "502": {
-            "description": "No local results collected (upstream block or proxy failure)."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "No local results collected (upstream block or proxy failure), or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -1140,10 +1161,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE').",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE').",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE')."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE')."
           }
         ],
         "responses": {
@@ -1156,10 +1177,7 @@
             }
           },
           "502": {
-            "description": "Search failed (upstream block or proxy failure)."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Search failed (upstream block or proxy failure), or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -1377,10 +1395,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to an exit chosen for the marketplace.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to a country chosen for the marketplace.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to an exit chosen for the marketplace."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to a country chosen for the marketplace."
           }
         ],
         "responses": {
@@ -1396,10 +1414,7 @@
             "description": "Invalid search parameters."
           },
           "502": {
-            "description": "Blocked by eBay or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by eBay, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -1453,13 +1468,10 @@
             "description": "Not a Temu product url."
           },
           "429": {
-            "description": "Temu fleet rate limit reached - retry shortly."
+            "description": "Temu rate limit reached - retry shortly."
           },
           "502": {
-            "description": "Product document could not be fetched."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Product document could not be fetched, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -1535,13 +1547,10 @@
             }
           },
           "429": {
-            "description": "Temu fleet rate limit reached - retry shortly."
+            "description": "Temu rate limit reached - retry shortly."
           },
           "502": {
-            "description": "Search returned no urls (block or empty)."
-          },
-          "504": {
-            "description": "Search timed out."
+            "description": "Search returned no urls (block or empty), or the search did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -1567,7 +1576,7 @@
           "Plugins"
         ],
         "summary": "Scrape an Amazon product page",
-        "description": "Fetches a single Amazon product and returns it as JSON: `title`, `brand`, `price` + `currency`, `listPrice` and `savingsPercent`, `availability` (+ a boolean `inStock`), `rating`, `reviewCount`, `seller`, `features` (bullet points), `categories` (breadcrumb) and `images`. Identify the product with either `asin` (plus `marketplace`) or a full product `url`.\n\nAmazon prices each page in the currency of the delivery location it infers from the exit IP, so `proxy_country` defaults to the marketplace's home country (amazon.com -> US) and the call is routed through the Oxylabs ISP + iProyal ISP pool for that country. The exit that served the request is returned as `exitCountry` / `exitProvider`.",
+        "description": "Fetches a single Amazon product and returns it as JSON: `title`, `brand`, `price` + `currency`, `listPrice` and `savingsPercent`, `availability` (+ a boolean `inStock`), `rating`, `reviewCount`, `seller`, `features` (bullet points), `categories` (breadcrumb) and `images`. Identify the product with either `asin` (plus `marketplace`) or a full product `url`.\n\nAmazon prices each page in the currency of the delivery location it infers from the visitor's IP address, so `proxy_country` defaults to the marketplace's home country (amazon.com -> US) and the call is routed through ISP proxies in that country. The proxy that served the request is reported as `exitCountry` (its country) and `exitProvider` (its type: `isp`, `residential` or `datacenter`).",
         "operationId": "amazon_product_marketplace_amazon_product_post",
         "parameters": [
           {
@@ -1631,10 +1640,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so the price comes back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so the price comes back in the expected currency.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so the price comes back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so the price comes back in the expected currency."
           }
         ],
         "responses": {
@@ -1653,10 +1662,7 @@
             "description": "Amazon has no product with this ASIN on this marketplace."
           },
           "502": {
-            "description": "Blocked by Amazon or the product page could not be fetched."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Amazon, the product page could not be fetched, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -1682,7 +1688,7 @@
           "Plugins"
         ],
         "summary": "Scrape Amazon search listings",
-        "description": "Searches any regional Amazon marketplace for `keyword` and returns the result cards as JSON: `asin`, `title`, `price` + `currency`, `listPrice`, `rating`, `reviewCount`, a clean product `url`, `image`, and the `sponsored` / `prime` flags. Filter with `min_price` / `max_price`, order with `sort` (featured, price_asc, price_desc, avg_review, newest), and page with `page`.\n\nFetch each result's full detail (all fields above plus features and images) through `POST /marketplace/amazon-product`. Some cards show no price on the search page (Amazon defers it, or the item has buying options); those return `price: null` and are kept in the list rather than dropped. `proxy_country` defaults to the marketplace's home country (Oxylabs ISP + iProyal ISP pool) so prices are in the expected currency.",
+        "description": "Searches any regional Amazon marketplace for `keyword` and returns the result cards as JSON: `asin`, `title`, `price` + `currency`, `listPrice`, `rating`, `reviewCount`, a clean product `url`, `image`, and the `sponsored` / `prime` flags. Filter with `min_price` / `max_price`, order with `sort` (featured, price_asc, price_desc, avg_review, newest), and page with `page`.\n\nFetch each result's full detail (all fields above plus features and images) through `POST /marketplace/amazon-product`. Some cards show no price on the search page (Amazon defers it, or the item has buying options); those return `price: null` and are kept in the list rather than dropped. `proxy_country` defaults to the marketplace's home country so prices are in the expected currency.",
         "operationId": "amazon_search_marketplace_amazon_search_post",
         "parameters": [
           {
@@ -1784,10 +1790,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to the marketplace's home country so prices come back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so prices come back in the expected currency.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to the marketplace's home country so prices come back in the expected currency; routed through the Oxylabs ISP + iProyal ISP pool."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so prices come back in the expected currency."
           }
         ],
         "responses": {
@@ -1803,10 +1809,7 @@
             "description": "Invalid search parameters."
           },
           "502": {
-            "description": "Blocked by Amazon or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Amazon, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -1904,10 +1907,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to the marketplace's home country so prices come back in the store's currency.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so prices come back in the store's currency.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to the marketplace's home country so prices come back in the store's currency."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country so prices come back in the store's currency."
           }
         ],
         "responses": {
@@ -1923,10 +1926,7 @@
             "description": "Invalid or unknown category, list type or marketplace."
           },
           "502": {
-            "description": "Blocked by Amazon or no list page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Amazon, no list page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -2030,10 +2030,7 @@
             "description": "Invalid query parameter (country/active_status/media_type)."
           },
           "502": {
-            "description": "Blocked by Meta or no ads collected (proxy/anti-bot failure)."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Meta, no ads collected (proxy/anti-bot failure), or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -2059,7 +2056,7 @@
           "Plugins"
         ],
         "summary": "Scrape a public Threads profile",
-        "description": "Fetches a public Threads (Meta) profile for `username` and returns it as JSON: `username`, `fullName`, `bio`, `followers`, `threadsCount`, `profileUrl`, `avatar`, and a `posts` array of the recent posts - each with `text`, `url`, `age`, and `likes`, `comments`, `reposts`, `shares` engagement counts. `username` accepts a bare handle, an `@handle`, or a full profile URL. No login or cookies are required - only public profiles are read.",
+        "description": "Fetches a public Threads (Meta) profile for `username` and returns it as JSON: `username`, `fullName`, `bio`, `followers`, `threadsCount`, `profileUrl`, `avatar`, and a `posts` array of the recent posts - each with `text`, `url`, `age`, and the integer engagement counts `likes`, `comments`, `reposts` (reposts plus quote posts, as on the Threads repost button) and `shares`. A count is `0` when the post has none and `null` when Threads does not publish it (for example hidden like counts) or it cannot be read. `username` accepts a bare handle, an `@handle`, or a full profile URL. No login or cookies are required - only public profiles are read.",
         "operationId": "threads_profile_social_threads_profile_post",
         "parameters": [
           {
@@ -2100,10 +2097,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to an exit chosen for Threads.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to a country chosen for Threads.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to an exit chosen for Threads."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to a country chosen for Threads."
           }
         ],
         "responses": {
@@ -2119,10 +2116,7 @@
             "description": "Missing or malformed username."
           },
           "502": {
-            "description": "Blocked by Threads or no profile returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Threads, no profile returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -2201,10 +2195,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
           }
         ],
         "responses": {
@@ -2223,10 +2217,7 @@
             "description": "Profile does not exist, was banned, or is private."
           },
           "502": {
-            "description": "Blocked by TikTok or no profile returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by TikTok, no profile returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -2309,10 +2300,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
           }
         ],
         "responses": {
@@ -2331,10 +2322,7 @@
             "description": "Post was deleted, is private, or is region-locked."
           },
           "502": {
-            "description": "Blocked by TikTok or no post returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by TikTok, no post returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -2413,10 +2401,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
           }
         ],
         "responses": {
@@ -2435,10 +2423,7 @@
             "description": "Hashtag has no page on TikTok."
           },
           "502": {
-            "description": "Blocked by TikTok or no hashtag returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by TikTok, no hashtag returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -2505,10 +2490,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). TikTok ranks search by region, so set it to get the results a user in that country sees.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). TikTok ranks search by region, so set it to get the results a user in that country sees.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). TikTok ranks search by region, so set it to get the results a user in that country sees."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). TikTok ranks search by region, so set it to get the results a user in that country sees."
           }
         ],
         "responses": {
@@ -2527,13 +2512,10 @@
             "description": "TikTok returned no results for the query."
           },
           "502": {
-            "description": "Blocked by TikTok on every exit."
+            "description": "Blocked by TikTok on every proxy tried, or the call did not finish in time."
           },
           "503": {
-            "description": "Browser engine unavailable on this node - retry."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Browser engine temporarily unavailable - retry."
           },
           "422": {
             "description": "Validation Error",
@@ -2600,10 +2582,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
           }
         ],
         "responses": {
@@ -2622,13 +2604,10 @@
             "description": "Post has no comments, or is deleted / private."
           },
           "502": {
-            "description": "Blocked by TikTok on every exit."
+            "description": "Blocked by TikTok on every proxy tried, or the call did not finish in time."
           },
           "503": {
-            "description": "Browser engine unavailable on this node - retry."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Browser engine temporarily unavailable - retry."
           },
           "422": {
             "description": "Validation Error",
@@ -2813,10 +2792,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to an exit chosen for the domain.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to a country chosen for the site.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to an exit chosen for the domain."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to a country chosen for the site."
           }
         ],
         "responses": {
@@ -2832,10 +2811,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Trustpilot or no review page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Trustpilot, no review page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -3033,10 +3009,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to a US exit for Zillow.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to a US exit for Zillow."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US."
           }
         ],
         "responses": {
@@ -3052,10 +3028,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Zillow or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Zillow, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -3233,10 +3206,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to US so prices are in USD.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US so prices are in USD.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to US so prices are in USD."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US so prices are in USD."
           }
         ],
         "responses": {
@@ -3252,10 +3225,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Airbnb or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Airbnb, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -3462,10 +3432,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to US.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to US."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US."
           }
         ],
         "responses": {
@@ -3484,10 +3454,7 @@
             "description": "No such listing (removed, private or wrong id)."
           },
           "502": {
-            "description": "Blocked by Airbnb or no listing data returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Airbnb, no listing data returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -3636,10 +3603,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2).",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE').",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2)."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE')."
           }
         ],
         "responses": {
@@ -3658,10 +3625,7 @@
             "description": "No such listing (removed, private or wrong id)."
           },
           "502": {
-            "description": "Blocked by Airbnb or no review data returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Airbnb, no review data returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -3850,10 +3814,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to the country's site.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the country's site.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to the country's site."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the country's site."
           }
         ],
         "responses": {
@@ -3869,10 +3833,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Indeed or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Indeed, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -4044,10 +4005,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2).",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE').",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2)."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE')."
           }
         ],
         "responses": {
@@ -4063,10 +4024,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Booking or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Booking, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -4196,10 +4154,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to a US exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to a US exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US."
           }
         ],
         "responses": {
@@ -4215,10 +4173,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Walmart or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Walmart, no results page returned, or the search did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -4283,10 +4238,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2).",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE').",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2)."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE')."
           },
           {
             "name": "limit",
@@ -4316,10 +4271,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by YouTube or no channel page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by YouTube, no channel page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -4449,10 +4401,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to US (USD prices).",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US (USD prices).",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to US (USD prices)."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US (USD prices)."
           },
           {
             "name": "include_sponsored",
@@ -4480,10 +4432,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Etsy or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Etsy, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -4611,10 +4560,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Blank lets us pick the exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Blank lets us pick the exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -4630,10 +4579,7 @@
             "description": "Invalid parameters, or mode=reviews (not available yet)."
           },
           "502": {
-            "description": "Blocked by Google Play or app not found."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Google Play, app not found, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -4795,10 +4741,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Blank lets us pick the exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Blank lets us pick the exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -4817,10 +4763,7 @@
             "description": "No App Store app with that id / bundle id in that country."
           },
           "502": {
-            "description": "Blocked, or Apple returned no usable data."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked, Apple returned no usable data, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -5000,10 +4943,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for the exit chosen for the domain.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank for the country chosen for the site.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for the exit chosen for the domain."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank for the country chosen for the site."
           }
         ],
         "responses": {
@@ -5160,10 +5103,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for the exit chosen for the domain.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank for the country chosen for the site.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for the exit chosen for the domain."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank for the country chosen for the site."
           }
         ],
         "responses": {
@@ -5182,10 +5125,7 @@
             "description": "Capterra has no product with that id."
           },
           "502": {
-            "description": "Blocked by Capterra on every attempt, or no review page returned."
-          },
-          "504": {
-            "description": "Capterra did not answer in time."
+            "description": "Blocked by Capterra on every attempt, no review page returned, or Capterra did not answer in time."
           },
           "422": {
             "description": "Validation Error",
@@ -5286,10 +5226,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2).",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE').",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2)."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE')."
           }
         ],
         "responses": {
@@ -5308,10 +5248,7 @@
             "description": "Booking has no hotel at that URL."
           },
           "502": {
-            "description": "Blocked by Booking or no review list returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Booking, no review list returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -5461,10 +5398,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -5480,10 +5417,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Alibaba on every attempt, or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Alibaba on every attempt, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -5509,7 +5443,7 @@
           "Plugins"
         ],
         "summary": "Scrape one Alibaba.com product's full detail",
-        "description": "Fetches one Alibaba.com product (by `product_id` or `url`) and returns it as JSON: `title`, `categories`, `images`, `videos`, price summary (`priceText`, `priceMin`/`priceMax` in the local `currency` of the exit, which varies by exit country, and `priceMinUsd`/`priceMaxUsd` in USD, the same on every exit), `priceTiers` (price per quantity range, local `price` and `priceUsd`), `moq` + `unit`, SKU `variants` (`skuPricing` is `sku` when SKUs carry their own prices, `tiers` when every SKU is priced by `priceTiers` and the SKU prices are null), `attributes`, `leadTimes` (days per quantity range), `packaging`, `shippingMethods`, `shipFrom`, `tradeAssurance`, and the `supplier` (name, store/profile URL, country, location, years on Alibaba, business type, `goldSupplier`, `verified` + `verifiedBy`, rating, reviews, response time, on-time delivery rate). Companion to `/marketplace/alibaba-search`.",
+        "description": "Fetches one Alibaba.com product (by `product_id` or `url`) and returns it as JSON: `title`, `categories`, `images`, `videos`, price summary (`priceText`, `priceMin`/`priceMax` in the local `currency` of the proxy country, which varies by country, and `priceMinUsd`/`priceMaxUsd` in USD, the same for every country), `priceTiers` (price per quantity range, local `price` and `priceUsd`), `moq` + `unit`, SKU `variants` (`skuPricing` is `sku` when SKUs carry their own prices, `tiers` when every SKU is priced by `priceTiers` and the SKU prices are null), `attributes`, `leadTimes` (days per quantity range), `packaging`, `shippingMethods`, `shipFrom`, `tradeAssurance`, and the `supplier` (name, store/profile URL, country, location, years on Alibaba, business type, `goldSupplier`, `verified` + `verifiedBy`, rating, reviews, response time, on-time delivery rate). Companion to `/marketplace/alibaba-search`.",
         "operationId": "alibaba_product_marketplace_alibaba_product_post",
         "parameters": [
           {
@@ -5561,10 +5495,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Alibaba prices in the exit's currency; USD figures are always included. Blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Alibaba prices in that country's currency; USD figures are always included. Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Alibaba prices in the exit's currency; USD figures are always included. Blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Alibaba prices in that country's currency; USD figures are always included. Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -5583,10 +5517,7 @@
             "description": "No such product, or it is not available any more."
           },
           "502": {
-            "description": "Blocked by Alibaba on every attempt, or no product data returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Alibaba on every attempt, no product data returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -5754,10 +5685,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Blank lets us pick the exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Blank lets us pick the exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -5776,10 +5707,7 @@
             "description": "No public channel preview under that name, or no such post."
           },
           "502": {
-            "description": "Telegram returned no usable page."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Telegram returned no usable page, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -5861,10 +5789,7 @@
             "description": "No such product in the US TikTok Shop (or it was removed)."
           },
           "502": {
-            "description": "Blocked by TikTok on every exit tried - retry."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by TikTok on every proxy tried, or the call did not finish in time - retry."
           },
           "422": {
             "description": "Validation Error",
@@ -5960,10 +5885,7 @@
             "description": "TikTok has no listing for that keyword or category."
           },
           "502": {
-            "description": "Blocked by TikTok on every exit tried - retry."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by TikTok on every proxy tried, or the call did not finish in time - retry."
           },
           "422": {
             "description": "Validation Error",
@@ -6034,10 +5956,7 @@
             "description": "No such store in the US TikTok Shop (its store page has no shop)."
           },
           "502": {
-            "description": "Blocked by TikTok on every exit tried, or its verification puzzle could not be passed - retry."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by TikTok on every proxy tried, its verification puzzle could not be passed, or the call did not finish in time - retry."
           },
           "422": {
             "description": "Validation Error",
@@ -6207,10 +6126,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Optional - by default an ISP exit outside the US and Europe is used; results follow `geo`, not the exit IP.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - by default a country outside the US and Europe is used; results follow `geo`, not the proxy country.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Optional - by default an ISP exit outside the US and Europe is used; results follow `geo`, not the exit IP."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - by default a country outside the US and Europe is used; results follow `geo`, not the proxy country."
           }
         ],
         "responses": {
@@ -6226,10 +6145,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Google Trends refused or returned no data."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Google Trends refused, returned no data, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -6282,10 +6198,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Optional.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Optional."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional."
           }
         ],
         "responses": {
@@ -6301,10 +6217,7 @@
             "description": "Missing or malformed domain / proxy_country."
           },
           "502": {
-            "description": "Blocked by Similarweb, or its free-view allowance was exhausted on every exit tried - retry."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Similarweb, its free-view allowance was exhausted on every proxy tried, or the call did not finish in time - retry."
           },
           "422": {
             "description": "Validation Error",
@@ -6330,7 +6243,7 @@
           "Plugins"
         ],
         "summary": "Scrape Google Maps place details",
-        "description": "Returns the full data for one Google Maps place as JSON: `name`, `address` (+ `addressLines`), `phone`, `website`, `rating`, `categories`, `latitude`/`longitude`, `plusCode`, `hours` + `openNow`, `description`, `photo`, `cid`, `featureId`, `googleMapsUrl` and `relatedPlaces`. Identify the place with `place_id` (ChIJ...), a Maps `url`, or a raw `feature_id` (0xHEX:0xHEX). Location-neutral - the feature id resolves the place directly; `proxy_country` defaults to a US exit to clear Google's consent wall.",
+        "description": "Returns the full data for one Google Maps place as JSON: `name`, `address` (+ `addressLines`), `phone`, `website`, `rating`, `categories`, `latitude`/`longitude`, `plusCode`, `hours` + `openNow`, `description`, `photo`, `cid`, `featureId`, `googleMapsUrl` and `relatedPlaces`. Identify the place with `place_id` (ChIJ...), a Maps `url`, or a raw `feature_id` (0xHEX:0xHEX). Location-neutral - the feature id resolves the place directly; `proxy_country` defaults to a US proxy to clear Google's consent wall.",
         "operationId": "maps_place_details_maps_place_details_post",
         "parameters": [
           {
@@ -6417,11 +6330,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "description": "Exit-IP country (ISO-2). Defaults to a US exit - an EU exit hits Google's consent wall.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US - an EU country hits Google's consent wall.",
               "default": "us",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to a US exit - an EU exit hits Google's consent wall."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US - an EU country hits Google's consent wall."
           },
           {
             "name": "raw",
@@ -6449,10 +6362,7 @@
             "description": "No/invalid place identifier."
           },
           "502": {
-            "description": "Blocked by Google or no place data returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Google, no place data returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -6695,10 +6605,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to a US exit for Glassdoor.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to a US exit for Glassdoor."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US."
           }
         ],
         "responses": {
@@ -6714,10 +6624,7 @@
             "description": "Invalid parameters, or `location` matches no Glassdoor location."
           },
           "502": {
-            "description": "Blocked by Glassdoor, the location lookup failed, or no results island returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Glassdoor, the location lookup failed, no results island returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -6802,10 +6709,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to a US exit, so pay is reported for the US market in USD.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US, so pay is reported for the US market in USD.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to a US exit, so pay is reported for the US market in USD."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US, so pay is reported for the US market in USD."
           }
         ],
         "responses": {
@@ -6824,10 +6731,7 @@
             "description": "No Glassdoor company matches the id, URL or name."
           },
           "502": {
-            "description": "Blocked by Glassdoor on every attempt."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Glassdoor on every attempt, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -6853,7 +6757,7 @@
           "Plugins"
         ],
         "summary": "Scrape Glassdoor company reviews",
-        "description": "Returns a company's Glassdoor employee reviews as JSON. Each review has `id`, `url`, `title`, `rating` (1-5), `subratings` (work/life balance, culture and values, diversity and inclusion, career opportunities, compensation and benefits, senior management), `recommendToFriend`, `ceoApproval`, `businessOutlook`, `pros`, `cons`, `advice`, `jobTitle`, `employmentStatus`, `isCurrentEmployee`, `yearsOfEmployment`, `location`, `date`, `helpfulCount`, `notHelpfulCount`, `featured`, `employerResponse` and `view` (the sort / filter view it came from). The response also carries `summary` (overall rating, review counts, recommend / CEO approval / business outlook percentages, the CEO, sub-rating averages, star distribution, reviews in the last 7 and 30 days), `companyMeta` (name, logo, website, industry, sector, headquarters, size) and `totalReviews`. The counts are Glassdoor's own and measure different sets: `totalReviews` is the number of reviews matching every filter of the call (`rating`, `job_title`, `keyword`, `topic`, `employment_status`, `language`, `current_only`; the default view is English reviews by full-time and part-time employees), the set the views read from. `summary.allReviewsCount` is every review Glassdoor holds for the employer, rated or not, in any language and employment status; no filter changes it. `summary.reviewCount` is the number of ratings behind `summary.overallRating`, and `summary.ratedReviewsCount` the number of reviews that carry a star rating; Glassdoor counts the two separately, so they can differ by a few. Both follow `rating` but not the language or employment filters, so they are usually above `totalReviews`. `summary.ratingDistribution` holds the star counts Glassdoor sends for its rating bars (`overall`, each sub-rating, and `recommendToFriend`); for employers with many reviews they cover only part of them (Google: 18,643 overall against a `reviewCount` of 52,845), so read them as proportions, not totals, and with `rating` set only that star is counted. `summary.reviewsLast7Days` and `reviewsLast30Days` count reviews matching the filters. Give `company` as a Glassdoor employer id, a Glassdoor company URL or a company name. Only US exits are used (`proxy_country` accepts US or blank): Glassdoor redirects other countries to their local site, where these pages do not exist. Glassdoor shows anonymous visitors only the first page (3 reviews) of each sort / filter view and redirects deeper pages to sign-in, so there is no page parameter: use `sort`, `rating` and the filters to reach other reviews, or raise `max_results` to read several views in one call. `hasMore` is always false and `nextPage` null; `publicLimitReached` is true when fewer reviews came back than asked because the views anonymous visitors may read ran out. Every field is always present and is `null` when Glassdoor does not show it. Billed per review view fetched (`pagesFetched`).",
+        "description": "Returns a company's Glassdoor employee reviews as JSON. Each review has `id`, `url`, `title`, `rating` (1-5), `subratings` (work/life balance, culture and values, diversity and inclusion, career opportunities, compensation and benefits, senior management), `recommendToFriend`, `ceoApproval`, `businessOutlook`, `pros`, `cons`, `advice`, `jobTitle`, `employmentStatus`, `isCurrentEmployee`, `yearsOfEmployment`, `location`, `date`, `helpfulCount`, `notHelpfulCount`, `featured`, `employerResponse` and `view` (the sort / filter view it came from). The response also carries `summary` (overall rating, review counts, recommend / CEO approval / business outlook percentages, the CEO, sub-rating averages, star distribution, reviews in the last 7 and 30 days), `companyMeta` (name, logo, website, industry, sector, headquarters, size) and `totalReviews`. The counts are Glassdoor's own and measure different sets: `totalReviews` is the number of reviews matching every filter of the call (`rating`, `job_title`, `keyword`, `topic`, `employment_status`, `language`, `current_only`; the default view is English reviews by full-time and part-time employees), the set the views read from. `summary.allReviewsCount` is every review Glassdoor holds for the employer, rated or not, in any language and employment status; no filter changes it. `summary.reviewCount` is the number of ratings behind `summary.overallRating`, and `summary.ratedReviewsCount` the number of reviews that carry a star rating; Glassdoor counts the two separately, so they can differ by a few. Both follow `rating` but not the language or employment filters, so they are usually above `totalReviews`. `summary.ratingDistribution` holds the star counts Glassdoor sends for its rating bars (`overall`, each sub-rating, and `recommendToFriend`); for employers with many reviews they cover only part of them (Google: 18,643 overall against a `reviewCount` of 52,845), so read them as proportions, not totals, and with `rating` set only that star is counted. `summary.reviewsLast7Days` and `reviewsLast30Days` count reviews matching the filters. Give `company` as a Glassdoor employer id, a Glassdoor company URL or a company name. Only US proxies are used (`proxy_country` accepts US or blank): Glassdoor redirects other countries to their local site, where these pages do not exist. Glassdoor shows anonymous visitors only the first page (3 reviews) of each sort / filter view and redirects deeper pages to sign-in, so there is no page parameter: use `sort`, `rating` and the filters to reach other reviews, or raise `max_results` to read several views in one call. `hasMore` is always false and `nextPage` null; `publicLimitReached` is true when fewer reviews came back than asked because the views anonymous visitors may read ran out. Every field is always present and is `null` when Glassdoor does not show it. Billed per review view fetched (`pagesFetched`).",
         "operationId": "glassdoor_reviews_reviews_glassdoor_post",
         "parameters": [
           {
@@ -7028,10 +6932,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country. Only US (or blank, the default) is accepted: Glassdoor redirects visitors from other countries to their local site, where the English reviews pages do not exist.",
+              "description": "Proxy country the request is sent from. Only US (or blank, the default) is accepted: Glassdoor redirects visitors from other countries to their local site, where the English reviews pages do not exist.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country. Only US (or blank, the default) is accepted: Glassdoor redirects visitors from other countries to their local site, where the English reviews pages do not exist."
+            "description": "Proxy country the request is sent from. Only US (or blank, the default) is accepted: Glassdoor redirects visitors from other countries to their local site, where the English reviews pages do not exist."
           }
         ],
         "responses": {
@@ -7050,10 +6954,7 @@
             "description": "No Glassdoor company matches the id, URL or name."
           },
           "502": {
-            "description": "Blocked by Glassdoor on every attempt."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Glassdoor on every attempt, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -7162,10 +7063,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Jobs are location-sensitive; pick the market you want.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Jobs are location-sensitive; pick the market you want.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Jobs are location-sensitive; pick the market you want."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Jobs are location-sensitive; pick the market you want."
           }
         ],
         "responses": {
@@ -7181,10 +7082,7 @@
             "description": "Blocked by Google CAPTCHA after retries - try another proxy_country."
           },
           "502": {
-            "description": "No jobs collected (upstream block or no matches)."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "No jobs collected (upstream block or no matches), or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -7299,10 +7197,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Prices/merchants are market-specific.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Prices/merchants are market-specific.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Prices/merchants are market-specific."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Prices/merchants are market-specific."
           }
         ],
         "responses": {
@@ -7318,10 +7216,7 @@
             "description": "Blocked by Google CAPTCHA after retries - try another proxy_country."
           },
           "502": {
-            "description": "No products collected (upstream block or no matches)."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "No products collected (upstream block or no matches), or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -7374,10 +7269,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Optional Google market override (ISO-2, e.g. 'us', 'de'). Leave empty and the market follows `proxy_country` ('us' when neither is set). The market, not the exit IP, is what decides which images rank.",
+              "description": "Optional Google market override (ISO-2, e.g. 'us', 'de'). Leave empty and the market follows `proxy_country` ('us' when neither is set). The market, not the proxy country, is what decides which images rank.",
               "title": "Gl"
             },
-            "description": "Optional Google market override (ISO-2, e.g. 'us', 'de'). Leave empty and the market follows `proxy_country` ('us' when neither is set). The market, not the exit IP, is what decides which images rank."
+            "description": "Optional Google market override (ISO-2, e.g. 'us', 'de'). Leave empty and the market follows `proxy_country` ('us' when neither is set). The market, not the proxy country, is what decides which images rank."
           },
           {
             "name": "pages",
@@ -7426,10 +7321,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Image results are market-specific.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Image results are market-specific.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Image results are market-specific."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Image results are market-specific."
           }
         ],
         "responses": {
@@ -7445,10 +7340,7 @@
             "description": "Blocked by Google CAPTCHA after retries - try another proxy_country."
           },
           "502": {
-            "description": "No image results collected (upstream block or an unusable page)."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "No image results collected (upstream block or an unusable page), or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -7684,10 +7576,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to a US exit for Redfin.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to a US exit for Redfin."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US."
           }
         ],
         "responses": {
@@ -7703,10 +7595,7 @@
             "description": "Invalid parameters, or the location could not be resolved."
           },
           "502": {
-            "description": "Blocked by Redfin or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Redfin, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -7732,7 +7621,7 @@
           "Plugins"
         ],
         "summary": "Scrape the reviews on an Amazon product page",
-        "description": "Returns the review data an Amazon product page shows to a signed-out visitor, as JSON: the overall `rating`, total `reviewCount` (global ratings), the 5..1-star `histogram` (percent per star), the AI `customersSay` summary (overall text plus per-aspect `sentiment`, `mentions`, `positive`, `negative`, `summary` and the quoted review `excerpts` Amazon shows for the aspect) and the top `reviews` (each with `id`, `url`, `author`, `rating`, `title`, `body`, `date`, `country`, `fromOtherCountry`, `verified`, `helpfulVotes`, `variant` and `images`). Identify the product with `asin` (plus `marketplace`) or a product `url`.\n\nScope: Amazon only shows its full review list to signed-in customers, so this endpoint returns the public slice on the product page - typically 5 to 13 top reviews, local ones first and then reviews from other countries - not a complete review export. When Amazon hides the top reviews behind a sign-in prompt (common on amazon.com), `reviewsGated` is `true` and `reviews` is empty; the rating, histogram and customers-say data, including its review excerpts, are still returned. Every field is always present and is `null` when the page does not show it. `proxy_country` defaults to the marketplace's home country; the exit that served the request is returned as `exitCountry` / `exitProvider`.",
+        "description": "Returns the review data an Amazon product page shows to a signed-out visitor, as JSON: the overall `rating`, total `reviewCount` (global ratings), the 5..1-star `histogram` (percent per star), the AI `customersSay` summary (overall text plus per-aspect `sentiment`, `mentions`, `positive`, `negative`, `summary` and the quoted review `excerpts` Amazon shows for the aspect) and the top `reviews` (each with `id`, `url`, `author`, `rating`, `title`, `body`, `date`, `country`, `fromOtherCountry`, `verified`, `helpfulVotes`, `variant` and `images`). Identify the product with `asin` (plus `marketplace`) or a product `url`.\n\nScope: Amazon only shows its full review list to signed-in customers, so this endpoint returns the public slice on the product page - typically 5 to 13 top reviews, local ones first and then reviews from other countries - not a complete review export. When Amazon hides the top reviews behind a sign-in prompt (common on amazon.com), `reviewsGated` is `true` and `reviews` is empty; the rating, histogram and customers-say data, including its review excerpts, are still returned. Every field is always present and is `null` when the page does not show it. `proxy_country` defaults to the marketplace's home country; the proxy that served the request is reported as `exitCountry` (its country) and `exitProvider` (its type: `isp`, `residential` or `datacenter`).",
         "operationId": "amazon_reviews_marketplace_amazon_reviews_post",
         "parameters": [
           {
@@ -7796,10 +7685,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country. The reviews come from the marketplace itself, so any exit country returns the same reviews.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country. The reviews come from the marketplace itself, so any proxy country returns the same reviews.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country. The reviews come from the marketplace itself, so any exit country returns the same reviews."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country. The reviews come from the marketplace itself, so any proxy country returns the same reviews."
           }
         ],
         "responses": {
@@ -7818,10 +7707,7 @@
             "description": "Amazon has no product page for that ASIN on that marketplace."
           },
           "502": {
-            "description": "Blocked by Amazon on every attempt, or no review section returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Amazon on every attempt, no review section returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -7904,10 +7790,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2) for the watch page. Default US.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE') for the watch page. Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2) for the watch page. Default US."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE') for the watch page. Defaults to US."
           }
         ],
         "responses": {
@@ -7926,10 +7812,7 @@
             "description": "This video has no captions."
           },
           "502": {
-            "description": "Blocked by YouTube, or captions could not be fetched."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by YouTube, captions could not be fetched, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -8020,10 +7903,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to a US exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to a US exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US."
           }
         ],
         "responses": {
@@ -8039,10 +7922,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by YouTube or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by YouTube, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -8068,7 +7948,7 @@
           "Plugins"
         ],
         "summary": "Search Bing",
-        "description": "Searches Bing for `keyword` in a real browser and returns the results page as JSON: `topAds`, `bottomAds`, `organic` (each with `position`, `title`, `url`, `displayedUrl`, `domain`, `description`), `relatedSearches` and `totalResults`. Same parameters and response shape as `/serpApi`. `proxy_country` sets both the market and the exit IP, which decides the ads.",
+        "description": "Searches Bing for `keyword` in a real browser and returns the results page as JSON: `topAds`, `bottomAds`, `organic` (each with `position`, `title`, `url`, `displayedUrl`, `domain`, `description`), `relatedSearches` and `totalResults`. Same parameters and response shape as `/serpApi`. `proxy_country` sets both the market and the location the search is sent from, which decides the ads.",
         "operationId": "bing_search_search_bing_post",
         "parameters": [
           {
@@ -8109,10 +7989,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Country to search from (ISO-2). Sets the result market and the exit IP, which decides the ads. Defaults to US.",
+              "description": "Country to search from (ISO-2). Sets the result market and the location the search is sent from, which decides the ads. Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Country to search from (ISO-2). Sets the result market and the exit IP, which decides the ads. Defaults to US."
+            "description": "Country to search from (ISO-2). Sets the result market and the location the search is sent from, which decides the ads. Defaults to US."
           },
           {
             "name": "language",
@@ -8146,10 +8026,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by the search engine or no results page returned."
-          },
-          "504": {
-            "description": "Search timed out."
+            "description": "Blocked by the search engine, no results page returned, or the search did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -8216,10 +8093,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Country to search from (ISO-2). Sets the result market and the exit IP, which decides the ads. Defaults to US.",
+              "description": "Country to search from (ISO-2). Sets the result market and the location the search is sent from, which decides the ads. Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Country to search from (ISO-2). Sets the result market and the exit IP, which decides the ads. Defaults to US."
+            "description": "Country to search from (ISO-2). Sets the result market and the location the search is sent from, which decides the ads. Defaults to US."
           },
           {
             "name": "language",
@@ -8253,10 +8130,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by the search engine or no results page returned."
-          },
-          "504": {
-            "description": "Search timed out."
+            "description": "Blocked by the search engine, no results page returned, or the search did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -8380,10 +8254,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Bing or no image results returned."
-          },
-          "504": {
-            "description": "Search timed out."
+            "description": "Blocked by Bing, no image results returned, or the search did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -8409,7 +8280,7 @@
           "Plugins"
         ],
         "summary": "Search Yahoo",
-        "description": "Searches Yahoo for `keyword` in a real browser and returns the results page as JSON: `topAds`, `bottomAds`, `organic` (each with `position`, `title`, `url`, `displayedUrl`, `domain`, `description`) and `relatedSearches`. Same parameters and response shape as `/serpApi`. `proxy_country` picks Yahoo's regional site and the exit IP, which decides the ads; `language`, when set, restricts results to that language.",
+        "description": "Searches Yahoo for `keyword` in a real browser and returns the results page as JSON: `topAds`, `bottomAds`, `organic` (each with `position`, `title`, `url`, `displayedUrl`, `domain`, `description`) and `relatedSearches`. Same parameters and response shape as `/serpApi`. `proxy_country` picks Yahoo's regional site and the location the search is sent from, which decides the ads; `language`, when set, restricts results to that language.",
         "operationId": "yahoo_search_search_yahoo_post",
         "parameters": [
           {
@@ -8450,10 +8321,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Country to search from (ISO-2). Sets the result market and the exit IP, which decides the ads. Defaults to US.",
+              "description": "Country to search from (ISO-2). Sets the result market and the location the search is sent from, which decides the ads. Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Country to search from (ISO-2). Sets the result market and the exit IP, which decides the ads. Defaults to US."
+            "description": "Country to search from (ISO-2). Sets the result market and the location the search is sent from, which decides the ads. Defaults to US."
           },
           {
             "name": "language",
@@ -8487,10 +8358,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by the search engine or no results page returned."
-          },
-          "504": {
-            "description": "Search timed out."
+            "description": "Blocked by the search engine, no results page returned, or the search did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -8516,7 +8384,7 @@
           "Plugins"
         ],
         "summary": "Search Brave",
-        "description": "Searches Brave Search for `keyword` in a real browser and returns the results as JSON: `topAds`, `bottomAds`, `organic` (each with `position`, `title`, `url`, `displayedUrl`, `domain`, `description`) and `relatedSearches`. Same parameters and response shape as `/serpApi`; ~20 organic results per page. Brave picks the result region from the searcher's location, so `proxy_country` sets it through the exit IP.",
+        "description": "Searches Brave Search for `keyword` in a real browser and returns the results as JSON: `topAds`, `bottomAds`, `organic` (each with `position`, `title`, `url`, `displayedUrl`, `domain`, `description`) and `relatedSearches`. Same parameters and response shape as `/serpApi`; ~20 organic results per page. Brave picks the result region from the searcher's location, so `proxy_country` sets it through the proxy's location.",
         "operationId": "brave_search_search_brave_post",
         "parameters": [
           {
@@ -8557,10 +8425,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Country to search from (ISO-2). Sets the result market and the exit IP, which decides the ads. Defaults to US.",
+              "description": "Country to search from (ISO-2). Sets the result market and the location the search is sent from, which decides the ads. Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Country to search from (ISO-2). Sets the result market and the exit IP, which decides the ads. Defaults to US."
+            "description": "Country to search from (ISO-2). Sets the result market and the location the search is sent from, which decides the ads. Defaults to US."
           },
           {
             "name": "language",
@@ -8594,10 +8462,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by the search engine or no results page returned."
-          },
-          "504": {
-            "description": "Search timed out."
+            "description": "Blocked by the search engine, no results page returned, or the search did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -8703,10 +8568,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Yahoo or no image results returned."
-          },
-          "504": {
-            "description": "Search timed out."
+            "description": "Blocked by Yahoo, no image results returned, or the search did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -8798,10 +8660,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Brave or no image results returned."
-          },
-          "504": {
-            "description": "Search timed out."
+            "description": "Blocked by Brave, no image results returned, or the search did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -8880,10 +8739,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2) for the watch page. Default US.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE') for the watch page. Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2) for the watch page. Default US."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE') for the watch page. Defaults to US."
           }
         ],
         "responses": {
@@ -8902,10 +8761,7 @@
             "description": "Comments are disabled on this video."
           },
           "502": {
-            "description": "Blocked by YouTube or comments could not be fetched."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by YouTube, comments could not be fetched, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -9185,10 +9041,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank to let the API pick.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank to let the API pick."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -9204,10 +9060,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by LinkedIn or no data returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by LinkedIn, no data returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -9260,10 +9113,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank to let the API pick.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank to let the API pick."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -9282,10 +9135,7 @@
             "description": "LinkedIn has no company page for that slug."
           },
           "502": {
-            "description": "Blocked by LinkedIn on every attempt."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by LinkedIn on every attempt, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -9375,10 +9225,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank to let the API pick.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank to let the API pick."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -9397,10 +9247,7 @@
             "description": "Crunchbase has no organization with that slug."
           },
           "502": {
-            "description": "Blocked by Crunchbase on every attempt, or no data returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Crunchbase on every attempt, no data returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -9478,10 +9325,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank to let the API pick.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank to let the API pick."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -9497,10 +9344,7 @@
             "description": "Invalid or missing url/zpid."
           },
           "502": {
-            "description": "Zillow refused every attempt, or the zpid has no public listing page."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Zillow refused every attempt, the zpid has no public listing page, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -9677,10 +9521,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to a US exit for Yelp.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to a US exit for Yelp."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US."
           }
         ],
         "responses": {
@@ -9696,10 +9540,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Yelp or no data returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Yelp, no data returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -9885,10 +9726,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank: Yelp serves reviews the same to every country.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank: Yelp serves reviews the same to every country.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank: Yelp serves reviews the same to every country."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank: Yelp serves reviews the same to every country."
           }
         ],
         "responses": {
@@ -9907,10 +9748,7 @@
             "description": "Yelp has no business with that id, URL or alias."
           },
           "502": {
-            "description": "Blocked by Yelp or no review feed returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Yelp, no review feed returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -10070,10 +9908,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -10089,10 +9927,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Naukri or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Naukri, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -10232,10 +10067,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank - Product Hunt is global and a forced country only hurts.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank - Product Hunt is global and a forced country only hurts.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank - Product Hunt is global and a forced country only hurts."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank - Product Hunt is global and a forced country only hurts."
           }
         ],
         "responses": {
@@ -10251,10 +10086,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Product Hunt or nothing found."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Product Hunt, nothing found, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -10571,10 +10403,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -10590,10 +10422,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by AutoScout24 or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by AutoScout24, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -10619,7 +10448,7 @@
           "Plugins"
         ],
         "summary": "Scrape AliExpress search results",
-        "description": "Searches AliExpress for `keyword` and returns the products as JSON: `title`, product `url`, `price` (numeric) + `priceFormatted` + `currency`/`currencySymbol`, `originalPrice`, `rating`, `orders` (sold count) and `images`. Sort with `sort` (relevance / orders / price_asc / price_desc / newest) and collect up to `max_results` across pages. AliExpress localises price by region, so the currency follows the exit IP; pass `proxy_country` to pin it.",
+        "description": "Searches AliExpress for `keyword` and returns the products as JSON: `title`, product `url`, `price` (numeric) + `priceFormatted` + `currency`/`currencySymbol`, `originalPrice`, `rating`, `orders` (sold count) and `images`. Sort with `sort` (relevance / orders / price_asc / price_desc / newest) and collect up to `max_results` across pages. AliExpress localises price by region, so the currency follows the proxy country; pass `proxy_country` to pin it.",
         "operationId": "aliexpress_search_goods_aliexpress_search_post",
         "parameters": [
           {
@@ -10686,10 +10515,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2); also pins AliExpress price currency. Blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'); also pins AliExpress price currency. Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2); also pins AliExpress price currency. Blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'); also pins AliExpress price currency. Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -10705,10 +10534,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by AliExpress or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by AliExpress, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -10907,10 +10733,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -10929,10 +10755,7 @@
             "description": "Location not found / no results page for it."
           },
           "502": {
-            "description": "Blocked by Rightmove."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Rightmove, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -11013,10 +10836,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -11032,10 +10855,7 @@
             "description": "Invalid parameters / not a TripAdvisor list URL."
           },
           "502": {
-            "description": "Blocked by TripAdvisor or no list found on the page."
-          },
-          "504": {
-            "description": "Fetch timed out (TripAdvisor renders slowly)."
+            "description": "Blocked by TripAdvisor, no list found on the page, or the call did not finish in time (TripAdvisor renders slowly)."
           },
           "422": {
             "description": "Validation Error",
@@ -11178,10 +10998,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank: a pinned country cannot use the warm browser windows and is much slower.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank: pinning a country makes the call much slower.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank: a pinned country cannot use the warm browser windows and is much slower."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank: pinning a country makes the call much slower."
           }
         ],
         "responses": {
@@ -11200,10 +11020,7 @@
             "description": "TripAdvisor has no place at that URL / location id."
           },
           "502": {
-            "description": "Blocked by TripAdvisor or no review list on the page."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by TripAdvisor, no review list on the page, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -11281,10 +11098,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -11300,10 +11117,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Instagram login wall / gated - no public data returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Instagram login wall / gated - no public data returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -11420,10 +11234,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -11439,10 +11253,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Target or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Target, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -11584,10 +11395,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to an EU exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to an EU country.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to an EU exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to an EU country."
           }
         ],
         "responses": {
@@ -11603,10 +11414,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Vinted or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Vinted, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -11825,10 +11633,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -11844,10 +11652,7 @@
             "description": "Invalid parameters (e.g. unknown make)."
           },
           "502": {
-            "description": "Blocked by mobile.de or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by mobile.de, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -11976,10 +11781,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to a US exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to a US exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US."
           }
         ],
         "responses": {
@@ -11995,10 +11800,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Craigslist or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Craigslist, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -12090,10 +11892,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Defaults to an EU exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to an EU country.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Defaults to an EU exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to an EU country."
           }
         ],
         "responses": {
@@ -12109,10 +11911,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Zalando or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Zalando, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -12242,10 +12041,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -12261,10 +12060,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Best Buy or no results returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Best Buy, no results returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -12394,10 +12190,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -12413,10 +12209,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Home Depot or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Home Depot, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -12625,10 +12418,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Leave blank for a smart exit.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Leave blank for a smart exit."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
           }
         ],
         "responses": {
@@ -12647,10 +12440,7 @@
             "description": "ImmobilienScout24 has no results page for this location."
           },
           "502": {
-            "description": "Blocked by ImmobilienScout24 or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by ImmobilienScout24, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -12817,10 +12607,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Optional.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Optional."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional."
           },
           {
             "name": "include_sponsored",
@@ -12848,10 +12638,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by Leboncoin or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by Leboncoin, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -12981,10 +12768,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Exit-IP country (ISO-2). Optional.",
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional.",
               "title": "Proxy Country"
             },
-            "description": "Exit-IP country (ISO-2). Optional."
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional."
           }
         ],
         "responses": {
@@ -13000,10 +12787,7 @@
             "description": "Invalid parameters."
           },
           "502": {
-            "description": "Blocked by SHEIN or no results page returned."
-          },
-          "504": {
-            "description": "Fetch timed out."
+            "description": "Blocked by SHEIN, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -13026,68 +12810,6 @@
   },
   "components": {
     "schemas": {
-      "CreateAccountBody": {
-        "properties": {
-          "email": {
-            "type": "string",
-            "title": "Email",
-            "description": "Google account that will sign the notices"
-          },
-          "password": {
-            "type": "string",
-            "title": "Password",
-            "description": "Account password (stored encrypted)"
-          },
-          "country": {
-            "type": "string",
-            "title": "Country",
-            "description": "ISO-2 country the account normally signs in from; picks the sticky exit"
-          },
-          "phone_country": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone Country",
-            "description": "Dialing code, e.g. +1, if a phone challenge is expected"
-          },
-          "phone_number": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone Number",
-            "description": "Full phone number for the account, without the country code"
-          },
-          "totp_secret": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Totp Secret",
-            "description": "Authenticator (TOTP) secret, if 2FA is an app; lets re-login run unattended"
-          }
-        },
-        "type": "object",
-        "required": [
-          "email",
-          "password",
-          "country"
-        ],
-        "title": "CreateAccountBody"
-      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -13100,160 +12822,6 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
-      },
-      "MobileDeLiquidityQuery": {
-        "properties": {
-          "urls": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Urls"
-          }
-        },
-        "type": "object",
-        "required": [
-          "urls"
-        ],
-        "title": "MobileDeLiquidityQuery"
-      },
-      "NoticeBody": {
-        "properties": {
-          "account_id": {
-            "type": "string",
-            "title": "Account Id",
-            "description": "Which registered account signs and submits this notice"
-          },
-          "idempotency_key": {
-            "type": "string",
-            "title": "Idempotency Key",
-            "description": "Your unique id for this notice; a repeat never submits twice"
-          },
-          "dry_run": {
-            "type": "boolean",
-            "title": "Dry Run",
-            "description": "Fill the form and stop before Submit (nothing is filed)",
-            "default": false
-          },
-          "first_name": {
-            "type": "string",
-            "title": "First Name",
-            "description": "Requester first name; must match the signature"
-          },
-          "last_name": {
-            "type": "string",
-            "title": "Last Name",
-            "description": "Requester last name; must match the signature"
-          },
-          "company": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Company",
-            "description": "Company, if acting as the authorized representative"
-          },
-          "copyright_holder": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Copyright Holder",
-            "description": "Name of the represented rights holder; empty means 'Myself'"
-          },
-          "country": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Country",
-            "description": "Requester country/region shown on the form"
-          },
-          "signature": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Signature",
-            "description": "Typed signature; defaults to 'First Last'"
-          },
-          "sworn_statements_accepted": {
-            "type": "boolean",
-            "title": "Sworn Statements Accepted",
-            "description": "Must be true: you accept the form's three sworn statements"
-          },
-          "groups": {
-            "items": {
-              "$ref": "#/components/schemas/NoticeGroup"
-            },
-            "type": "array",
-            "title": "Groups",
-            "description": "One or more works, each with its infringing image URLs"
-          }
-        },
-        "type": "object",
-        "required": [
-          "account_id",
-          "idempotency_key",
-          "first_name",
-          "last_name",
-          "sworn_statements_accepted",
-          "groups"
-        ],
-        "title": "NoticeBody"
-      },
-      "NoticeGroup": {
-        "properties": {
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "description": "What the copyrighted work is (one work per group)"
-          },
-          "example_urls": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Example Urls",
-            "description": "URL(s) where an authorized copy of the work can be seen"
-          },
-          "search_terms": {
-            "type": "string",
-            "title": "Search Terms",
-            "description": "The term(s) used to find the infringing images"
-          },
-          "imgres_urls": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Imgres Urls",
-            "description": "Google Images landing-page (imgres) URLs to remove; up to 1000 per group"
-          }
-        },
-        "type": "object",
-        "required": [
-          "description",
-          "search_terms",
-          "imgres_urls"
-        ],
-        "title": "NoticeGroup"
       },
       "TemuSort": {
         "type": "string",
@@ -13299,48 +12867,6 @@
           "type"
         ],
         "title": "ValidationError"
-      },
-      "VerifyBody": {
-        "properties": {
-          "code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Code",
-            "description": "The verification code Google sent to the account phone"
-          },
-          "phone_country": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone Country",
-            "description": "If Google first asks to confirm the number: dialing code"
-          },
-          "phone_number": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone Number",
-            "description": "If Google first asks to confirm the number: the number"
-          }
-        },
-        "type": "object",
-        "title": "VerifyBody"
       }
     },
     "securitySchemes": {
