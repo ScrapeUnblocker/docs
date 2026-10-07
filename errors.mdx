@@ -12,7 +12,7 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 | `200` | The page was delivered. Also used for a dead origin's own `5xx` error page - then the `X-Origin-Status` header carries the target's status. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Response body; `X-Origin-Status` if present |
 | `400` | Bad request: the `x-scrapeunblocker-key` header is missing, the URL is malformed or not `http`/`https`, an unsupported `proxy_country`, or `Hostname cannot be resolved` (the domain does not exist) | Only `Hostname cannot be resolved` | Check the URL and the key header |
 | `401` | Authentication problem - the key is not recognised, or the account behind it has no valid subscription | No | See [401 unauthorized](#401-unauthorized) below and [Authentication](/authentication) |
-| `402` | Billing problem - quota exceeded, credit limit exceeded, or repeated payment failures | No | See [402 payment required](#402-payment-required) below |
+| `402` | Billing problem - quota exceeded, credit limit exceeded, repeated payment failures, or your own monthly budget limit reached | No | See [402 payment required](#402-payment-required) below |
 | `403` | Blocked by the target site's bot protection on every available bypass path | No | Try a different `proxy_country`, or see [handling failures](/guides/handling-failures) |
 | `404` | With `X-Origin-Status: 404`: the target site itself says the page does not exist; the body is the target's page. See [Dead URLs](#dead-urls-x-origin-status). Without the header: no image element found (only on `/getImage`), a plugin found no such item, or the API path is wrong | Only with `X-Origin-Status` | `X-Origin-Status` header, then the body |
 | `408` | Browser run timed out (only on `/getImage`) | No | Retry |
@@ -122,18 +122,19 @@ Missing x-scrapeunblocker-key
 
 A `402` means your key and account are recognised and in good standing as credentials - the request was stopped for a **billing** reason. Like `401`, it is refused at our edge before anything is scraped, so a `402` consumes no quota and is never billed.
 
-The body is plain text (`Content-Type: text/plain`), not JSON. There are three messages:
+The body is plain text (`Content-Type: text/plain`), not JSON. There are four messages:
 
 | Response body | Meaning | Fix |
 | --- | --- | --- |
 | `Quota exceeded` | You have used every request your plan allows this billing period | Upgrade your plan, or wait for the period to reset |
 | `Credit limit exceeded` | Your unpaid balance has grown past your account's credit limit | Pay the outstanding invoice |
+| `User set budget exceeded` | This billing period's spend has reached the monthly budget limit you set | Raise or remove the limit in your profile, or wait for the next billing period |
 | `Payment failed - update payment method` | A card payment for an open invoice has failed three times in a row | Update your card, then pay the invoice |
 
-If more than one applies, the most serious wins: payment failure outranks credit limit, which outranks quota.
+If more than one applies, the most serious wins: payment failure outranks credit limit, which outranks quota, which outranks your own budget limit.
 
 <Note>
-  All three clear themselves. Our load balancer refreshes key statuses about once a minute, so once you upgrade or the invoice is paid, access comes back within roughly a minute - no key change, no support ticket, no redeploy.
+  All four clear themselves. Our load balancer refreshes key statuses about once a minute, so once you upgrade, the invoice is paid or you raise your budget limit, access comes back within roughly a minute - no key change, no support ticket, no redeploy.
 </Note>
 
 ### `Quota exceeded`
@@ -162,6 +163,21 @@ This applies to accounts that accrue usage-based charges. We add up what you cur
 
 When this triggers we also finalise and attempt payment on the outstanding invoices automatically, so in the common case where your card is good it settles itself and access returns within about a minute. If payment does not go through, pay the invoice from the [dashboard](https://app.scrapeunblocker.com). A higher credit limit can be arranged through [support](https://scrapeunblocker.com/contact).
 
+### `User set budget exceeded`
+
+```
+HTTP/1.1 402 Payment Required
+Content-Type: text/plain
+
+User set budget exceeded
+```
+
+You set a **monthly budget limit** in your [profile](https://app.scrapeunblocker.com/dashboard/profile), and this billing period's spend has reached it. Spend is counted the way your invoice is: your plan's fixed monthly fee, if it has one, plus the requests billed on top of it, excluding VAT. Requests paid from coupon credit do not count. We also email you once when the limit is reached.
+
+On a plan with a fixed monthly fee the limit cannot be lower than that fee, and the requests the fee already includes are never blocked - a limit equal to the fee simply stops the key where overage billing would begin. Leave the field empty or set it to `0` for no limit.
+
+The key works again at the start of your next billing period, or within about a minute after you raise or remove the limit. Usage is counted with a delay of a few minutes, so the period's spend can end up slightly above the limit.
+
 ### `Payment failed - update payment method`
 
 ```
@@ -184,7 +200,7 @@ Update your payment method in the [dashboard](https://app.scrapeunblocker.com) a
 | Code | It means |
 | --- | --- |
 | `401` | We do not accept your credentials - unknown key, or no subscription at all. See [401 unauthorized](#401-unauthorized) |
-| `402` | We accept your credentials; the account owes money or is out of quota |
+| `402` | We accept your credentials; the account owes money, is out of quota, or hit the budget limit you set |
 | `429` | Nothing is wrong with the account - you have more requests in flight at once than your plan's concurrent requests limit. See [concurrency limits](/rate-limits) |
 
 ## 422 validation error shape

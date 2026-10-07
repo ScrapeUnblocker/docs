@@ -3,6 +3,17 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-07" description="Monthly budget limit: a new 402 User set budget exceeded">
+  You can now set a **monthly budget limit** (EUR, excluding VAT) in your
+  [profile](https://app.scrapeunblocker.com/dashboard/profile). Once this
+  billing period's spend - your plan's fixed fee, if any, plus billed usage -
+  reaches it, API calls return **`402`** with the plain-text body
+  `User set budget exceeded` until the next billing period or until you raise
+  or remove the limit. Empty or `0` means no limit; on a plan with a fixed
+  monthly fee the limit cannot be lower than that fee. Not billed. See
+  [402 payment required](/errors#user-set-budget-exceeded).
+</Update>
+
 <Update label="2026-10-06" description="Plugins: timeouts are a 502, Threads counts are numbers, Amazon exitProvider is a proxy type">
   - **Plugin timeouts:** a dedicated plugin call that does not finish within its
     time limit now returns **`502`** with a plain-text `... timed out.` message.
