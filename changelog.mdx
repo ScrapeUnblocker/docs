@@ -3,6 +3,17 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-09" description="Skyscanner: a failed place lookup is a 502; oopbuy: Taobao page size">
+  - **Skyscanner flights and hotels:** when the place lookup for `origin`,
+    `dest` or `destination` fails on our side, the call now returns **`502`**
+    (`Could not look up ... - please retry.`) instead of `404 No airport/city
+    match`. A `404` now always means Skyscanner has no such place. Not billed;
+    retry with backoff.
+  - **oopbuy search:** `page_size` is capped to what the source serves - at
+    most 50 for `1688` and 20 for `taobao`. A Taobao search with a larger
+    `page_size` used to return `502 No listings collected`.
+</Update>
+
 <Update label="2026-10-07" description="Monthly budget limit: a new 402 User set budget exceeded">
   You can now set a **monthly budget limit** (EUR, excluding VAT) in your
   [profile](https://app.scrapeunblocker.com/dashboard/profile). Once this

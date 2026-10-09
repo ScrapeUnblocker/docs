@@ -1130,11 +1130,11 @@
               "type": "integer",
               "maximum": 60,
               "minimum": 1,
-              "description": "Results per page (max 60).",
+              "description": "Results per page (max 60). The 1688 channel serves at most 50 and Taobao at most 20 per page; a larger value is capped to that.",
               "default": 20,
               "title": "Page Size"
             },
-            "description": "Results per page (max 60)."
+            "description": "Results per page (max 60). The 1688 channel serves at most 50 and Taobao at most 20 per page; a larger value is capped to that."
           },
           {
             "name": "sort",

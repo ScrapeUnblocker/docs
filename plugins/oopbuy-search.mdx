@@ -23,7 +23,7 @@ POST /goods/oopbuy-search
 | `keyword` | yes | Generic product term, e.g. `hoodie` or `phone case`. Brand names (`nike`, `adidas`) are trademark-blocked by oopbuy itself; those come back as a successful `200` with `keywordRejected: true` and an empty `results` array (see below), not an error. |
 | `channel` | no | Source marketplace: `1688` (default), `taobao`, or `official` (oopbuy's own curated storefront). |
 | `page` | no | Page number, default `1`. |
-| `page_size` | no | Results per page, default `20`, max `60`. |
+| `page_size` | no | Results per page, default `20`, max `60`. The `1688` channel serves at most 50 and `taobao` at most 20 per page; a larger value is capped to that. |
 | `sort` | no | `default`, `price_asc`, `price_desc`, or `best_selling`. |
 | `proxy_country` | no | Exit-IP country (ISO-2, e.g. `US`, `DE`). |
 
