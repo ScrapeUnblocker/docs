@@ -2056,7 +2056,7 @@
           "Plugins"
         ],
         "summary": "Scrape a public Threads profile",
-        "description": "Fetches a public Threads (Meta) profile for `username` and returns it as JSON: `username`, `fullName`, `bio`, `followers`, `threadsCount`, `profileUrl`, `avatar`, and a `posts` array of the recent posts - each with `text`, `url`, `age`, and the integer engagement counts `likes`, `comments`, `reposts` (reposts plus quote posts, as on the Threads repost button) and `shares`. A count is `0` when the post has none and `null` when Threads does not publish it (for example hidden like counts) or it cannot be read. `username` accepts a bare handle, an `@handle`, or a full profile URL. No login or cookies are required - only public profiles are read.",
+        "description": "Fetches a public Threads (Meta) profile for `username` and returns it as JSON: `username`, `fullName`, `bio`, `followers`, `threadsCount`, `profileUrl`, `avatar`, and a `posts` array of the recent posts - each with `text`, `url`, `age`, and the integer engagement counts `likes`, `comments`, `reposts` (reposts plus quote posts, as on the Threads repost button) and `shares`. A count is `0` when the post has none and `null` when Threads does not publish it (for example hidden like counts) or it cannot be read. `username` accepts a bare handle, an `@handle`, or a full profile URL. No login or cookies are required - only public profiles are read. A username with no Threads profile returns 404.",
         "operationId": "threads_profile_social_threads_profile_post",
         "parameters": [
           {
@@ -2114,6 +2114,9 @@
           },
           "400": {
             "description": "Missing or malformed username."
+          },
+          "404": {
+            "description": "Threads has no profile for that username."
           },
           "502": {
             "description": "Blocked by Threads, no profile returned, or the call did not finish in time."
