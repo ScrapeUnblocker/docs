@@ -76,37 +76,66 @@ Once connected, the four tools appear automatically and the assistant calls them
 Don't want to run anything locally? Use the hosted server. It works across
 **claude.ai** (web and mobile), Claude Desktop, and Claude Code - no install.
 
-There are two ways to connect: **sign in with OAuth** (no key to copy) or put
-**your API key in the URL**.
+There are two ways to connect: **sign in with OAuth** (no key to copy) or use
+**your API key**. On claude.ai both start the same way: **Customize → Connectors →
+Add → Add custom connector**, name `ScrapeUnblocker`, URL
+`https://mcp.scrapeunblocker.com/mcp`.
+
+<Note>
+  claude.ai pre-selects **No sign-in** under **Authentication** for this server,
+  because it can list the tools without credentials. Keep it only for the API-key
+  setup. For OAuth, switch it to **Sign in now** - otherwise the connector is added
+  and shows its tools, but every call fails with `missing token`.
+</Note>
 
 ### Sign in with OAuth (recommended on claude.ai)
 
 Connect with your ScrapeUnblocker login - no key to paste, and it bills your own
 account.
 
-1. On **claude.ai**: Customize → Connectors → **+** → **Add custom connector**.
+1. On **claude.ai**: Customize → Connectors → **Add** → **Add custom connector**.
 2. **URL:** `https://mcp.scrapeunblocker.com/mcp` (no `?key=`).
-3. Open **Advanced settings** and set **OAuth Client ID** to:
+3. **Authentication:** choose **Sign in now**.
+4. Open **Advanced** and set **OAuth Client ID** to:
    ```
    5BM5Wk2dE4ABkDITmuKfemPLnn3QQ8jd
    ```
    Leave **OAuth Client Secret** empty.
-4. **Add**, then sign in with your ScrapeUnblocker account and **Authorize**.
+5. **Add**, then sign in with your ScrapeUnblocker account and **Authorize**.
 
 The tools then appear everywhere you use Claude. You need a ScrapeUnblocker
 account for the email you sign in with - [create a free one](https://app.scrapeunblocker.com)
 first if you don't have it.
 
-### Or use your API key in the URL
+### Or use your API key
 
-Simplest for Claude Code and other MCP clients - your key goes in the URL:
+**claude.ai:**
 
-```
-https://mcp.scrapeunblocker.com/mcp?key=YOUR_API_KEY
-```
+1. Customize → Connectors → **Add** → **Add custom connector**.
+2. **URL:** `https://mcp.scrapeunblocker.com/mcp`.
+3. **Authentication:** leave **No sign-in**.
+4. Under **Request headers** click **Add header**, pick **Authorization** from the
+   dropdown and enter the value:
+   ```
+   Bearer YOUR_API_KEY
+   ```
+   Type the word `Bearer`, a space, then your key - claude.ai does not add `Bearer`
+   for you.
+5. **Add**.
 
-**claude.ai:** Customize → Connectors → **+** → **Add custom connector**, paste the URL above
-(with your key), Save.
+<Warning>
+  Don't use **Custom header** with `x-scrapeunblocker-key`. claude.ai only accepts
+  approved header names and rejects the connector with "The header name ... isn't
+  approved". Use **Authorization** as above.
+</Warning>
+
+claude.ai warns that without sign-in anyone with the server URL can use the
+connector. That is fine here: the tools only run with a valid API key, and the key
+you enter in the header is stored by claude.ai and never shown again.
+
+If you prefer, you can skip the header and put the key in the URL instead:
+`https://mcp.scrapeunblocker.com/mcp?key=YOUR_API_KEY` (the key is then visible to
+anyone who opens the connector's settings).
 
 **Claude Code:**
 
