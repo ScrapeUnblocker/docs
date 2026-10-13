@@ -1,0 +1,171 @@
+---
+title: "Tripadvisor Reviews plugin"
+description: "Tripadvisor reviews for any hotel, restaurant or attraction as clean JSON - title, text, rating, dates, trip type, language, reviewer and owner response, plus the place's rating, histogram and sub-ratings."
+sidebarTitle: "Tripadvisor Reviews"
+---
+
+The **Tripadvisor Reviews** plugin returns the reviews of a hotel, restaurant or attraction as structured JSON. Give it the place's review page URL from any Tripadvisor site (Hotel_Review, Restaurant_Review, Attraction_Review or AttractionProductReview) or its bare location id, and it returns each review's title, full text, rating, published date and date of stay, trip type, language, helpful votes, the reviewer, sub-ratings, photos and the owner's response.
+
+The place comes with them: name, type, overall rating, review count, the 1-5 star histogram, sub-ratings such as cleanliness or value, the ranking, address, coordinates, phone and website. Reviews come newest first, 10 per page (15 for restaurants), and one call collects up to 200. Pick the review language with `language`, stop at a date with `since`, and continue from `nextPage`. Each review page read is one billed unit (`pagesFetched`).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Place reviews
+
+```
+POST /travel/tripadvisor-reviews
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `url` | one of `url` / `location_id` | The place's review page on any Tripadvisor site, e.g. `https://www.tripadvisor.com/Hotel_Review-g60763-d93589-Reviews-The_Michelangelo_New_York-New_York_City_New_York.html`. |
+| `location_id` | one of `url` / `location_id` | Tripadvisor location id - the digits after `-d` in a place URL, e.g. `93589`. |
+| `max_reviews` | no | How many reviews to collect across pages, `1`-`200`. Default `20`. Each page is one billed unit. |
+| `page` | no | 1-based review page to start from (10 reviews per page, 15 for restaurants), `1`-`500`. Default `1`. Pass a previous response's `nextPage` to continue. |
+| `language` | no | Review language, which Tripadvisor ties to its site: `en`, `de`, `fr`, `it`, `es`, `pt`, `nl`, `ja`, `ko`, `ru`, `sv`, `tr`, `da`. Default: the language of the URL's site (tripadvisor.com is `en`), or the place's most-reviewed of these languages when that site lists none. |
+| `since` | no | Only reviews published on or after this date (`YYYY-MM-DD`). Paging stops once older reviews start, so it also saves pages. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). Leave blank; pinning a country makes the call slower. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/travel/tripadvisor-reviews?url=https%3A%2F%2Fwww.tripadvisor.com%2FHotel_Review-g60763-d93589-Reviews-The_Michelangelo_New_York-New_York_City_New_York.html&max_reviews=10" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.tripadvisor_reviews("https://www.tripadvisor.com/Hotel_Review-g60763-d93589-Reviews-The_Michelangelo_New_York-New_York_City_New_York.html", max_reviews=10)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.tripadvisorReviews("https://www.tripadvisor.com/Hotel_Review-g60763-d93589-Reviews-The_Michelangelo_New_York-New_York_City_New_York.html", { maxReviews: 10 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->tripadvisorReviews('https://www.tripadvisor.com/Hotel_Review-g60763-d93589-Reviews-The_Michelangelo_New_York-New_York_City_New_York.html', ['max_reviews' => 10]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.tripadvisor_reviews("https://www.tripadvisor.com/Hotel_Review-g60763-d93589-Reviews-The_Michelangelo_New_York-New_York_City_New_York.html", max_reviews: 10)
+```
+
+</CodeGroup>
+
+To pass a location id instead, leave the URL out: `su.tripadvisor_reviews(location_id=93589)` in Python, `su.tripadvisorReviews(undefined, { locationId: 93589 })` in Node.js.
+
+### Response
+
+```json
+{
+  "url": "https://www.tripadvisor.com/Hotel_Review-g60763-d93589-Reviews-The_Michelangelo_New_York-New_York_City_New_York.html",
+  "locationId": 93589,
+  "language": "en",
+  "place": {
+    "locationId": 93589,
+    "name": "The Michelangelo New York",
+    "type": "hotel",
+    "rating": 4.5,
+    "reviewsCount": 5213,
+    "ratingHistogram": { "1": 81, "2": 109, "3": 293, "4": 1127, "5": 3603 },
+    "subratings": {
+      "cleanliness": 4.7,
+      "location": 4.9,
+      "rooms": 4.6,
+      "service": 4.6,
+      "sleepQuality": 4.7,
+      "value": 4.3
+    },
+    "ranking": "#116 of 526 hotels in New York City",
+    "address": "152 W 51st St, New York City, NY 10019",
+    "phone": "00 1 212-765-1900",
+    "website": "https://www.michelangelohotel.com/",
+    "coordinates": { "lat": 40.761528, "lng": -73.98261 }
+  },
+  "reviews": [
+    {
+      "id": 1078193437,
+      "title": "Consistent Excellence and Value in NYC!",
+      "text": "My partner and I have been happily staying at the Michelangelo for over 30 years. It's a calm oasis in the craziness of the Times...",
+      "rating": 5,
+      "publishedDate": "2026-09-17",
+      "travelDate": "2026-05",
+      "tripType": "couples",
+      "language": "en",
+      "isMachineTranslated": false,
+      "helpfulVotes": 0,
+      "user": { "name": "Peter F.", "username": "...", "location": "Toronto, Canada", "contributions": 11 },
+      "subratings": { "value": 5, "rooms": 5, "location": 5, "cleanliness": 5, "service": 5, "sleepQuality": 5 },
+      "ownerResponse": {
+        "text": "After more than 30 years of visits, your loyalty to Michelangelo Hotel New York means a...",
+        "publishedDate": "2026-09-19",
+        "authorRole": "Guest Services / Front Office"
+      }
+    }
+  ],
+  "resultsCollected": 10,
+  "totalResults": 4831,
+  "page": 1,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2
+}
+```
+
+### Review fields
+
+| Field | Notes |
+| --- | --- |
+| `id` / `title` / `text` | Review id, title and the full review text. |
+| `rating` | Star rating (1-5). |
+| `publishedDate` / `travelDate` | When the review was published (`YYYY-MM-DD`) and the month of the visit (`YYYY-MM`). |
+| `tripType` | The kind of trip the reviewer took, e.g. `couples`. |
+| `language` / `isMachineTranslated` | Review language; reviews written in another language appear machine-translated, flagged here with their `originalLanguage`. |
+| `helpfulVotes` | Helpful votes from other readers. |
+| `user` | Reviewer display `name`, `location` and number of `contributions`. |
+| `subratings` | The reviewer's per-aspect ratings, when given. |
+| `photos` | Photos attached to the review, when there are any. |
+| `ownerResponse` | The owner's reply: `text`, `publishedDate` and `authorRole`. `null` when there is none. |
+
+### Place and paging
+
+| Field | Notes |
+| --- | --- |
+| `place` | `name`, `type` (`hotel`, `restaurant`, `attraction`), `rating`, `reviewsCount`, the 1-5 `ratingHistogram`, `subratings`, `ranking`, `address`, `coordinates`, `phone` and `website`. |
+| `totalResults` | Reviews in the chosen language. |
+| `hasMore` / `nextPage` | Whether more reviews remain, and the page to pass as `page` to continue. |
+
+## What you can build
+
+- **Reputation monitoring** - poll a hotel or restaurant with `since` and alert on new low ratings.
+- **Owner response tracking** - see which reviews get a reply, and from which role.
+- **Competitive benchmarking** - compare ratings, histograms and sub-ratings across competing places in a city.
+- **Review analytics at scale** - list places with [Tripadvisor Places](/plugins/tripadvisor), then read each one's reviews.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Tripadvisor reviews lookup and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

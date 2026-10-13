@@ -6,7 +6,7 @@ sidebarTitle: "Google Images"
 
 The **Google Images** plugin turns a Google Images search into structured JSON. Give it a keyword, and it returns the image results Google shows - each with the **full-resolution original image URL**, the **source domain**, the source page URL, a title, a thumbnail and the image dimensions.
 
-Unlike the old Google Images layout (where the original was hidden behind a click), the current results page carries every result's origin image URL inline, so `imageUrl` is the real original image on the publisher's site - not a Google thumbnail. It runs on the same warm, anti-bot-cleared Google sessions as our SERP endpoint, so you get the image grid without touching Google's hidden internals.
+Unlike the old Google Images layout (where the original was hidden behind a click), the current results page carries every result's origin image URL inline, so `imageUrl` is the real original image on the publisher's site - not a Google thumbnail. It runs on the same anti-bot-cleared Google sessions as our SERP endpoint, so you get the image grid without touching Google's hidden internals.
 
 <Note>
 Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live image grid plus a copy-paste snippet.
@@ -26,10 +26,52 @@ POST /images/google-search
 | `gl` | no | Optional Google market override (ISO-2 lowercase, e.g. `de`). Leave it empty to follow `proxy_country`; set it only for a different market than the IP country. |
 | `max_results` | no | Optional cap on the number of results returned, `1`-`500`. Default: everything the fetched pages return. |
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/images/google-search?q=eiffel%20tower&proxy_country=US&pages=3" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_images("eiffel tower", proxy_country="US", pages=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleImages("eiffel tower", {
+  proxyCountry: "US",
+  pages: 3,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleImages('eiffel tower', [
+    'proxy_country' => 'US',
+    'pages' => 3,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_images("eiffel tower", proxy_country: "US", pages: 3)
+```
+
+</CodeGroup>
 
 ## Response
 

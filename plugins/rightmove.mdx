@@ -1,0 +1,170 @@
+---
+title: "Rightmove plugin"
+description: "Rightmove property listings as clean JSON - price with rent frequency, bedrooms, bathrooms, property type, address, coordinates, images and the estate agent, for sale or to rent."
+sidebarTitle: "Rightmove"
+---
+
+The **Rightmove** plugin turns a Rightmove property search into structured JSON. Give it a UK place name, choose to buy or rent, and get the listings back: price (amount, currency, rent frequency and the price as printed), transaction type, bedrooms and bathrooms, property type, address, a short summary, coordinates, images, the estate agent (name, branch and phone) and the listing dates.
+
+Filter by price, bedrooms and property type, sort the results, and collect up to 1,008 listings in one call. No Rightmove account is needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Property search
+
+```
+POST /realestate/rightmove
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `location` | yes | UK place name, e.g. `London`, `Manchester` or `Milton Keynes`. A place Rightmove cannot resolve returns `404`. |
+| `channel` | no | `buy` (default, for sale) or `rent` (to rent). |
+| `min_price` / `max_price` | no | Price range in GBP. |
+| `min_bedrooms` / `max_bedrooms` | no | Bedroom range. |
+| `property_type` | no | Rightmove property types, comma-separated, e.g. `flat,detached`. |
+| `sort` | no | `relevance` (default), `newest`, `price_asc`, `price_desc` or `oldest`. |
+| `max_results` | no | How many listings to collect across pages (about 24 per page). Default `48`, max `1008`. |
+| `page` | no | 1-based results page to start from. Default `1`, max `42`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/realestate/rightmove?location=Manchester&channel=rent&min_bedrooms=2&max_results=24" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.rightmove_search(
+    "Manchester",
+    channel="rent",
+    min_bedrooms=2,
+    max_results=24,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.rightmoveSearch("Manchester", {
+  channel: "rent",
+  minBedrooms: 2,
+  maxResults: 24,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->rightmoveSearch('Manchester', [
+    'channel' => 'rent',
+    'min_bedrooms' => 2,
+    'max_results' => 24,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.rightmove_search(
+  "Manchester",
+  channel: "rent",
+  min_bedrooms: 2,
+  max_results: 24
+)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "location": "Manchester",
+  "channel": "rent",
+  "properties": [
+    {
+      "id": "94156518",
+      "url": "https://www.rightmove.co.uk/properties/94156518",
+      "address": "20A Wilbraham Court Two, Fallowfield, Manchester, M14",
+      "price": { "amount": 1000, "currency": "GBP", "frequency": "monthly", "display": "£1,000 pcm" },
+      "transactionType": "rent",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "propertyType": "Apartment",
+      "propertyTypeFull": "2 bedroom apartment",
+      "summary": "AVAILABLE NOVEMBER - Located in a desirable village setting, this modern upper-floor apartment offers an excellent oppor...",
+      "coordinates": { "lat": 53.443392, "lng": -2.22544 },
+      "images": [
+        "https://media.rightmove.co.uk:443/dir/crop/10:9-16:9/property-photo/3972df6e4/94156518/3972df6e42861aa19c2149999a06f865_max_476x317.jpeg"
+      ],
+      "agent": {
+        "name": "Philip James Manchester",
+        "branch": "Philip James Manchester, Manchester",
+        "phone": "0161 524 1595"
+      },
+      "addedOrReduced": "Added on 10/10/2026",
+      "firstVisibleDate": "2026-10-10T01:42:51Z",
+      "listingUpdateReason": "new",
+      "listingUpdateDate": "2026-10-10T01:48:05Z"
+    }
+  ],
+  "resultsCollected": 24,
+  "totalResults": 2888,
+  "query": {
+    "minPrice": null,
+    "maxPrice": null,
+    "minBedrooms": 2,
+    "maxBedrooms": null,
+    "propertyType": null,
+    "sort": "relevance"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` | Rightmove property id and a clean listing URL. |
+| `address` | Display address as Rightmove shows it. |
+| `price` | `amount` (number), `currency` (`GBP`), `frequency` (e.g. `monthly` for rentals) and `display` (the price as printed, e.g. `£1,000 pcm`). |
+| `transactionType` | Rightmove transaction type, `buy` or `rent`. |
+| `bedrooms` / `bathrooms` | Room counts. |
+| `propertyType` / `propertyTypeFull` | Short type (e.g. `Apartment`) and the full label (e.g. `2 bedroom apartment`). |
+| `summary` | Listing summary text. |
+| `coordinates` | `lat` / `lng`. |
+| `images` | Listing photo URLs. |
+| `agent` | Estate agent `name`, `branch` and `phone`. |
+| `addedOrReduced` | Rightmove's "Added on" or "Reduced on" line. |
+| `firstVisibleDate` | When the listing first appeared. |
+| `listingUpdateReason` / `listingUpdateDate` | Latest change to the listing (e.g. `new`, `price_reduced`) and when it happened. |
+
+`totalResults` is the number of matches Rightmove reports for the search.
+
+## What you can build
+
+- **Rent and price tracking** - follow asking rents and prices by town, bedroom count and property type.
+- **New-listing and price-cut alerts** - run a search on a schedule with `sort=newest` and watch `listingUpdateReason`.
+- **Agent market share** - count listings per `agent` and branch across a region.
+- **Map-based analysis** - plot listings by `coordinates` to study supply by neighbourhood.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Rightmove search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

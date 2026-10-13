@@ -1,0 +1,152 @@
+---
+title: "Google Maps Place Details plugin"
+description: "One Google Maps place in full as clean JSON - name, address, phone, website, rating, categories, coordinates, plus code, opening hours, photos and related places."
+sidebarTitle: "Google Maps Place"
+---
+
+The **Google Maps Place Details** plugin returns everything Google Maps shows for one place as structured JSON. Identify the place with a `place_id`, a Google Maps place URL or a raw Maps `feature_id`, and you get the name, the one-line address and its component lines, the phone number and website, the star rating, the business categories, the coordinates and plus code, the opening hours with the current open/closed status, the editorial description, photos, related places and a stable Google Maps link.
+
+No Google Cloud project, billing account or Places API key is involved. To find places by keyword and area first, use the [Google Local plugin](/plugins/google-local).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Place details
+
+```
+POST /maps/place-details
+```
+
+Pass one of `place_id`, `url` or `feature_id`. If you pass more than one, `feature_id` wins, then `url`, then `place_id`.
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `place_id` | one of the three | A Google place id, e.g. `ChIJN1t_tDeuEmsRUsoyG83frY4`. |
+| `url` | one of the three | A Google Maps place URL that contains the place's feature id (`0x...:0x...`) or place id, such as a `/maps/place/...` URL. The id is read out of it. |
+| `feature_id` | one of the three | A Maps feature id `0xHEX:0xHEX`, e.g. `0x47e66e2964e34e2d:0x8ddca9ee380ef7e0`. Fastest - no resolve step. Every response returns it as `featureId`, so store it for repeat lookups. |
+| `hl` | no | Google interface language, e.g. `en` (default), `de`, `fr`. |
+| `gl` | no | Google country (ISO-2, lowercase). Default `us`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Default `US`. The place is resolved directly, so the answer does not depend on it; an EU country runs into Google's consent wall. |
+| `raw` | no | `true` adds Google's decoded place array under `raw`. Default `false`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/maps/place-details?place_id=ChIJN1t_tDeuEmsRUsoyG83frY4&hl=en" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.maps_place_details(place_id="ChIJN1t_tDeuEmsRUsoyG83frY4", hl="en")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.mapsPlaceDetails({ placeId: "ChIJN1t_tDeuEmsRUsoyG83frY4", hl: "en" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->mapsPlaceDetails(['place_id' => 'ChIJN1t_tDeuEmsRUsoyG83frY4', 'hl' => 'en']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.maps_place_details(place_id: "ChIJN1t_tDeuEmsRUsoyG83frY4", hl: "en")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "place": {
+    "name": "Google Sydney - Pirrama Road",
+    "address": "Google Sydney - Pirrama Road, Ground Floor/48 Pirrama Rd, Pyrmont NSW 2009, Australia",
+    "addressLines": [
+      "Google Sydney - Pirrama Road",
+      "Ground Floor/48 Pirrama Rd",
+      "Pyrmont NSW 2009",
+      "Australia"
+    ],
+    "phone": "+61 2 9374 4000",
+    "website": "http://google.com/",
+    "rating": 4.1,
+    "reviewCount": 1214,
+    "categories": ["Corporate office", "Software company"],
+    "featureId": "0x6b12ae37b47f5b37:0x8eaddfcd1b32ca52",
+    "cid": "10281119596374313554",
+    "latitude": -33.866489,
+    "longitude": 151.1958561,
+    "plusCode": "4RRH45MW+C8",
+    "hours": {
+      "Monday": ["8:30 AM\u20135:30 PM"],
+      "Friday": ["8:30 AM\u20135 PM"],
+      "Saturday": ["Closed"],
+      "Sunday": ["Closed"]
+    },
+    "openNow": "Closed",
+    "photo": "https://lh6.googleusercontent.com/-G07I17q8WY8/AAAAAAAAAAI/AAAAAAAAAAA/vCgGhXTAdKc/s44-p-k-no-ns-nd/photo.jpg",
+    "photos": ["https://lh6.googleusercontent.com/-G07I17q8WY8/AAAAAAAAAAI/AAAAAAAAAAA/vCgGhXTAdKc/s44-p-k-no-ns-nd/photo.jpg"],
+    "relatedPlaces": [
+      { "name": "Academia Shito", "feature_id": "0x6b12af422747e8bb:0x1a3197dda6e91f59" }
+    ],
+    "googleMapsUrl": "https://www.google.com/maps?cid=10281119596374313554"
+  },
+  "resolvedFrom": "place_id"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `name` / `address` | Place name and the one-line address. `addressLines` holds the same address split into lines. |
+| `phone` / `website` | Phone number and website, when listed. |
+| `rating` / `reviewCount` | Star rating (out of 5) and the number of reviews. `reviewCount` is best effort and can be missing. |
+| `priceLevel` | Google's price level text, for places that have one (restaurants, bars). |
+| `categories` | Business categories, primary first. |
+| `latitude` / `longitude` / `plusCode` | Coordinates and the Open Location Code. |
+| `hours` | Opening hours by weekday, as Google prints them (several ranges per day when the place closes mid-day). |
+| `openNow` | Google's current open/closed status line, e.g. `Closed`. |
+| `description` | The editorial description, when Google has one. |
+| `photo` / `photos` | The hero photo and the photo URLs in the feed. |
+| `relatedPlaces` | Places Google lists as "people also search for", each with `name` and `feature_id` you can pass back to this endpoint. |
+| `featureId` / `cid` / `googleMapsUrl` | Google's ids for the place and a stable Maps link built from the `cid`. |
+| `resolvedFrom` | Which input identified the place: `place_id`, `url` or `feature_id`. |
+
+<Note>
+Fields Google does not have for a place are left out of `place`, so check for a key's presence rather than for `null`.
+</Note>
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | No place identifier, a malformed `feature_id`, or a `url` with no place id or feature id in it. |
+| `502` | The place could not be resolved, Google returned no place data, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Lead enrichment** - add phone, website, categories and hours to a list of businesses.
+- **Location data pipelines** - keep coordinates, addresses and plus codes for your stores or a competitor's.
+- **Reputation tracking** - watch a place's rating and review count over time.
+- **Local SEO audits** - check that a business's Maps listing shows the right categories, hours and website.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a Google Maps place and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

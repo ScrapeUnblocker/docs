@@ -1,0 +1,182 @@
+---
+title: "Amazon Reviews plugin"
+description: "The review data an Amazon product page shows as clean JSON - star rating, review count, the 1-5 star histogram, Amazon's Customers say summary and the top reviews, on 20 regional marketplaces."
+sidebarTitle: "Amazon Reviews"
+---
+
+The **Amazon Reviews** plugin returns the review data an Amazon product page shows to a signed-out visitor, as structured JSON: the overall `rating`, the total `reviewCount`, the 1-5 star `histogram`, Amazon's AI-generated **Customers say** summary with per-aspect sentiment and quoted excerpts, and the top `reviews` with author, rating, title, text, date, country, verified-purchase flag, helpful votes, variant and images.
+
+Identify the product with `asin` (plus `marketplace`) or a product `url`. Amazon shows its full review list only to signed-in customers, so this is the public slice on the product page - typically 5 to 13 top reviews, local ones first and then reviews from other countries - not an export of every review a product has.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Product reviews
+
+```
+POST /marketplace/amazon-reviews
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `asin` | one of `asin` / `url` | 10-char product id, e.g. `B07PXGQC1Q` (books use their ISBN-10). Pair with `marketplace`. |
+| `url` | one of `asin` / `url` | Full product URL, e.g. `https://www.amazon.de/dp/B0D1XD1ZV3`. The ASIN and marketplace are read from it. |
+| `marketplace` | no | Regional Amazon site the ASIN belongs to, default `amazon.com`. Reviews are read from that store. Same 20 sites as the [Amazon plugin](/plugins/amazon#supported-marketplaces). |
+| `proxy_country` | no | Proxy country (ISO-2). Defaults to the marketplace's home country. The reviews come from the marketplace itself, so any proxy country returns the same reviews. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/amazon-reviews?asin=B0D1XD1ZV3&marketplace=amazon.de" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.amazon_reviews(asin="B0D1XD1ZV3", marketplace="amazon.de")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.amazonReviews({ asin: "B0D1XD1ZV3", marketplace: "amazon.de" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->amazonReviews(['asin' => 'B0D1XD1ZV3', 'marketplace' => 'amazon.de']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.amazon_reviews(asin: "B0D1XD1ZV3", marketplace: "amazon.de")
+```
+</CodeGroup>
+
+An ASIN Amazon does not have on that marketplace returns `404`. A `502` means the product page could not be read this time - retry, or try another `proxy_country`.
+
+### Response
+
+```json
+{
+  "asin": "B0D1XD1ZV3",
+  "marketplace": "amazon.de",
+  "url": "https://www.amazon.de/dp/B0D1XD1ZV3",
+  "title": "Apple AirPods Pro (2nd Generation) Wireless Ear Buds with USB-C Charging ...",
+  "rating": 4.6,
+  "reviewCount": 46236,
+  "histogram": { "5": 84, "4": 8, "3": 3, "2": 1, "1": 4 },
+  "customersSay": null,
+  "reviewsGated": false,
+  "reviewsReturned": 9,
+  "reviews": [
+    {
+      "id": "R3PRSAO6WV7UDC",
+      "url": "https://www.amazon.de/gp/customer-reviews/R3PRSAO6WV7UDC",
+      "author": "Egor S.",
+      "rating": 5.0,
+      "title": "Sehr guter Klang!",
+      "body": "Die sind sehr, sehr gut !",
+      "date": "2026-05-17",
+      "dateRaw": "Reviewed in Germany on 17 May 2026",
+      "country": "Germany",
+      "fromOtherCountry": false,
+      "language": "de-DE",
+      "verified": true,
+      "helpfulVotes": 0,
+      "variant": null,
+      "images": ["https://m.media-amazon.com/images/I/81ttbYoPAnL._SY500_.jpg"]
+    },
+    {
+      "id": "R3L37U10MPUWCM",
+      "url": "https://www.amazon.de/gp/customer-reviews/R3L37U10MPUWCM",
+      "author": "Laney",
+      "rating": 5.0,
+      "title": "Worth the buy",
+      "body": "LOVE these they work great and great battery life ...",
+      "date": "2026-10-04",
+      "dateRaw": "Reviewed in the United States on 4 October 2026",
+      "country": "United States",
+      "fromOtherCountry": true,
+      "language": "en-US",
+      "verified": true,
+      "helpfulVotes": 0,
+      "variant": null,
+      "images": []
+    }
+  ],
+  "proxyCountry": "DE",
+  "exitCountry": "de",
+  "exitProvider": "isp"
+}
+```
+
+When the product page shows a **Customers say** block, `customersSay` carries it (shortened example):
+
+```json
+{
+  "summary": "Customers find these wireless earbuds fantastic with clear sound quality ...",
+  "aspects": [
+    {
+      "name": "Fit",
+      "sentiment": "mixed",
+      "mentions": 3491,
+      "positive": 2183,
+      "negative": 1308,
+      "summary": "Customers have mixed experiences with how the headphones sit in their ears ...",
+      "excerpts": [
+        {
+          "reviewId": "R3AR3P4Z9FSW74",
+          "url": "https://www.amazon.com/gp/customer-reviews/R3AR3P4Z9FSW74",
+          "text": "Love the size, fit, and sound quality. Battery life is limited when used for long conversations ..."
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `rating` / `reviewCount` | Overall star rating (out of 5) and the total number of global ratings. |
+| `histogram` | Share of ratings per star, in percent, keyed `"5"` to `"1"`. |
+| `customersSay` | Amazon's AI summary: overall `summary` plus `aspects`, each with `sentiment` (`positive`, `negative`, `mixed`), `mentions`, `positive`, `negative`, `summary` and the quoted review `excerpts`. `null` when the page shows none. |
+| `reviewsGated` | `true` when Amazon shows a sign-in prompt in place of the top reviews (common on amazon.com). `reviews` is then empty, while rating, histogram and `customersSay` still come back. |
+| `reviews[].id` / `url` | Amazon review id and a link to the review. |
+| `reviews[].author` / `rating` / `title` / `body` | Reviewer display name, star rating, headline and review text. |
+| `reviews[].date` / `dateRaw` | ISO date and the date line as Amazon prints it. |
+| `reviews[].country` / `fromOtherCountry` / `language` | Where the review was written, whether it is one of the reviews from other countries Amazon adds after the local ones, and its language. |
+| `reviews[].verified` / `helpfulVotes` | Verified-purchase flag and helpful votes. |
+| `reviews[].variant` / `images` | The product variant reviewed and review image URLs. |
+| `exitCountry` / `exitProvider` | Country and type of the proxy that served the call. |
+
+Every field is always present and is `null` when the page does not show it.
+
+## What you can build
+
+- **Review monitoring** - track a product's rating, review count and star histogram over time.
+- **Voice-of-customer analysis** - feed `customersSay` aspects and review text into sentiment dashboards.
+- **Competitor benchmarking** - compare ratings and aspect sentiment across rival products and marketplaces.
+- **Product research** - read what buyers praise and complain about before sourcing a product.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a product's reviews and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

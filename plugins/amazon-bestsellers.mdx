@@ -1,0 +1,176 @@
+---
+title: "Amazon Best Sellers plugin"
+description: "Amazon Best Sellers, New Releases, Movers & Shakers, Most Wished For and Gift Ideas lists as clean JSON - rank, ASIN, title, price, currency, rating and review count, on 20 regional marketplaces."
+sidebarTitle: "Amazon Best Sellers"
+---
+
+The **Amazon Best Sellers** plugin returns an Amazon ranked list for a category as structured JSON. Pass a department slug (`electronics`), a slug plus browse-node id (`electronics/172541`) or a pasted Amazon list URL, and you get up to 100 ranked items - each with its rank, ASIN, title, product URL, image, price and currency, rating and review count - plus the category itself with its parents and subcategories, so you can walk the whole category tree.
+
+Pick one of five lists with `list_type` (Best Sellers, New Releases, Movers & Shakers, Most Wished For, Gift Ideas) and any of 20 regional marketplaces. `proxy_country` defaults to the marketplace's home country, so prices come back in the store's own currency. Leave `category` empty to get the all-departments root: the department list in `category.subcategories` and no items.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Ranked list
+
+```
+POST /marketplace/amazon-bestsellers
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `category` | no | A department slug (`electronics`, `books`, `toys-and-games`), a slug plus browse-node id (`electronics/172541` = Headphones), or any Amazon Best Sellers / New Releases / Movers & Shakers / Most Wished For / Gift Ideas URL (its marketplace and list type are then used). Empty = the all-departments root: the department list and no items. |
+| `list_type` | no | `bestsellers` (default), `new_releases`, `movers_and_shakers`, `most_wished_for` or `gift_ideas`. Ignored when `category` is a list URL. |
+| `marketplace` | no | Regional Amazon site, default `amazon.com`. See [Supported marketplaces](#supported-marketplaces). Ignored when `category` is a URL. |
+| `max_results` | no | How many ranked items to return, `1`-`100`, default `30`. A list holds up to 100 items over two pages of 50, and each page fetched is billed as one request (`pagesFetched`). Asking for more than the first 30 items of a page makes the call slower. |
+| `proxy_country` | no | Proxy country (ISO-2). Defaults to the marketplace's home country (`amazon.com` -> `US`), so prices are in the store's currency. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/amazon-bestsellers?category=electronics%2F172541&marketplace=amazon.com&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.amazon_bestsellers("electronics/172541", marketplace="amazon.com", max_results=5)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.amazonBestsellers("electronics/172541", { marketplace: "amazon.com", maxResults: 5 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->amazonBestsellers('electronics/172541', ['marketplace' => 'amazon.com', 'max_results' => 5]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.amazon_bestsellers("electronics/172541", marketplace: "amazon.com", max_results: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "marketplace": "amazon.com",
+  "listType": "bestsellers",
+  "listTitle": "Best Sellers in Headphones & Earbuds",
+  "category": {
+    "name": "Headphones",
+    "slug": "electronics",
+    "nodeId": "172541",
+    "url": "https://www.amazon.com/gp/bestsellers/electronics/172541/",
+    "parents": [
+      { "name": "Any Department", "slug": null, "nodeId": null, "url": "https://www.amazon.com/gp/bestsellers/" },
+      { "name": "Electronics", "slug": "electronics", "nodeId": null, "url": "https://www.amazon.com/gp/bestsellers/electronics/" }
+    ],
+    "subcategories": [
+      { "name": "Earbud Headphones", "slug": "electronics", "nodeId": "12097478011", "url": "https://www.amazon.com/gp/bestsellers/electronics/12097478011/" },
+      { "name": "Over-Ear Headphones", "slug": "electronics", "nodeId": "12097479011", "url": "https://www.amazon.com/gp/bestsellers/electronics/12097479011/" }
+    ]
+  },
+  "message": null,
+  "resultsCollected": 5,
+  "itemsWithDetails": 5,
+  "pagesFetched": 1,
+  "items": [
+    {
+      "rank": 1,
+      "asin": "B0FQFB8FMG",
+      "title": "Apple AirPods Pro 3 Wireless Earbuds with Active Noise Cancellation ...",
+      "url": "https://www.amazon.com/dp/B0FQFB8FMG",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/61solmQSSlL._AC_UL300_SR300,200_.jpg",
+      "price": 199,
+      "currency": "USD",
+      "priceRaw": "$199.00",
+      "offersCount": null,
+      "rating": 4.4,
+      "reviewsCount": 16362,
+      "salesRank": null,
+      "previousSalesRank": null,
+      "salesRankChangePct": null
+    },
+    {
+      "rank": 2,
+      "asin": "B0CZPLV566",
+      "title": "Beats Solo 4 - Wireless On-Ear Bluetooth Headphones ...",
+      "url": "https://www.amazon.com/dp/B0CZPLV566",
+      "image": "https://images-na.ssl-images-amazon.com/images/I/515FE+S4yLL._AC_UL300_SR300,200_.jpg",
+      "price": 149.95,
+      "currency": "USD",
+      "priceRaw": "$149.95",
+      "offersCount": null,
+      "rating": 4.6,
+      "reviewsCount": 29577,
+      "salesRank": null,
+      "previousSalesRank": null,
+      "salesRankChangePct": null
+    }
+  ],
+  "url": "https://www.amazon.com/gp/bestsellers/electronics/172541/",
+  "proxyCountry": "US",
+  "exitCountry": "us",
+  "exitProvider": "isp"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `rank` | Position in the list, 1-100. |
+| `asin` | Amazon product id. Pass it to the [Amazon plugin](/plugins/amazon) for the full product page or to [Amazon Reviews](/plugins/amazon-reviews) for its reviews. |
+| `title` / `url` / `image` | Product title, a clean `/dp/<asin>` URL and the card image. |
+| `price` / `currency` / `priceRaw` | Numeric price, its ISO currency and the price text as Amazon shows it. `null` when the card shows no price. |
+| `offersCount` | When the card shows "N offers from" a price, the number of offers (`price` is then the lowest offer). Otherwise `null`. |
+| `rating` / `reviewsCount` | Star rating (out of 5) and number of ratings. |
+| `salesRank` / `previousSalesRank` / `salesRankChangePct` | Movers & Shakers only: the current and previous sales rank and the percentage change. `null` on other lists. |
+
+Response-level fields:
+
+| Field | Notes |
+| --- | --- |
+| `category` | The list's category: `name`, `slug`, `nodeId`, `url`, `parents` and `subcategories`. Every subcategory's `url` can be passed back as `category` to drill down. |
+| `message` | When Amazon has no list for that category, its own message text, with an empty `items` array. Otherwise `null`. |
+| `itemsWithDetails` | How many items came back complete. An item whose card Amazon did not load comes back with only `rank`, `asin` and `url`. |
+| `pagesFetched` | List pages fetched, each billed as one request. |
+| `exitCountry` / `exitProvider` | Country and type of the proxy that served the call. |
+
+### Supported marketplaces
+
+`amazon.com` `amazon.co.uk` `amazon.de` `amazon.fr` `amazon.it` `amazon.es` `amazon.nl` `amazon.se` `amazon.pl` `amazon.com.be` `amazon.com.tr` `amazon.ca` `amazon.com.mx` `amazon.com.br` `amazon.co.jp` `amazon.in` `amazon.ae` `amazon.sa` `amazon.sg` `amazon.com.au`
+
+Browse-node ids differ between marketplaces, so drill down from each site's own department list (call with an empty `category`).
+
+## What you can build
+
+- **Trend and demand tracking** - snapshot a category's top 100 daily and watch ranks, prices and review counts move.
+- **Product research** - spot new entrants with New Releases and fast risers with Movers & Shakers.
+- **Category maps** - walk `subcategories` from the root to build a full category tree per marketplace.
+- **Price monitoring** - follow the best sellers' prices in each store's own currency across 20 marketplaces.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Pull a Best Sellers list and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

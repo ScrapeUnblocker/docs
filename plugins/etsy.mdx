@@ -25,13 +25,55 @@ POST /marketplace/etsy-search
 | `min_price` / `max_price` | no | Price range. |
 | `page` | no | 1-based page to start from (~48 per page). Default `1`. |
 | `max_results` | no | How many products to collect across pages. Default `48`, max `500`. |
-| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to US (USD prices). |
+| `proxy_country` | no | Proxy country (ISO-2). Defaults to US (USD prices). |
 | `include_sponsored` | no | `true` to also return Etsy's paid ad placements. Default `false`: ads are left out, since Etsy mixes them into every page regardless of the search order and `sort`. |
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/marketplace/etsy-search?query=handmade%20necklace&sort=top_reviews&max_results=96" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.etsy_search("handmade necklace", sort="top_reviews", max_results=96)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.etsySearch("handmade necklace", {
+  sort: "top_reviews",
+  maxResults: 96,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->etsySearch('handmade necklace', [
+    'sort' => 'top_reviews',
+    'max_results' => 96,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.etsy_search("handmade necklace", sort: "top_reviews", max_results: 96)
+```
+
+</CodeGroup>
 
 ## Response
 
@@ -68,7 +110,7 @@ curl -X POST "https://api.scrapeunblocker.com/marketplace/etsy-search?query=hand
 | `url` | Clean `/listing/` URL. |
 
 <Note>
-Any field with no value is omitted from a product. Prices come back in the exit country's currency, so the plugin pins a US exit by default - pass `proxy_country` to price in another market.
+Any field with no value is omitted from a product. Prices come back in the proxy country's currency, so the plugin defaults to US - pass `proxy_country` to price in another market.
 </Note>
 
 ## What you can build

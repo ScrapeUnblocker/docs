@@ -1,0 +1,260 @@
+---
+title: "Product Hunt plugin"
+description: "Product Hunt launches as clean JSON - a day's ranked leaderboard with votes, comments, topics and ranks, keyword and topic listings, or one product's full detail."
+sidebarTitle: "Product Hunt"
+---
+
+The **Product Hunt** plugin turns Product Hunt into structured JSON. It has four modes:
+
+- **`leaderboard`** - a day's launches with name, tagline, votes, comments, topics and the daily, weekly and monthly rank. Pass a past `date` for a finalised, ranked board; today's board is live and not ranked yet.
+- **`search`** - products matching a keyword.
+- **`topic`** - products under a topic slug such as `artificial-intelligence`.
+- **`detail`** - one product by slug, with its description, website, social links, review rating, followers, categories and latest launch.
+
+No Product Hunt account or API token is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Launches, search, topics and products
+
+```
+POST /products/producthunt
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | no | What to fetch: `leaderboard` (default), `search`, `topic` or `detail`. |
+| `query` | with `search` | Search terms, e.g. `ai chatbot`. |
+| `date` | no | Leaderboard day as `YYYY-MM-DD` (`leaderboard` mode). Omit for today. |
+| `topic` | with `topic` | Topic slug, e.g. `artificial-intelligence`. |
+| `slug` | with `detail` | Product slug, e.g. `notion`. |
+| `max_results` | no | Max products for the list modes (`leaderboard`, `search`, `topic`), `1`-`200`. Default `30`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Best left blank: Product Hunt is global. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/products/producthunt?mode=leaderboard&date=2026-10-10&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.product_hunt(mode="leaderboard", date="2026-10-10", max_results=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.productHunt({ mode: "leaderboard", date: "2026-10-10", maxResults: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->productHunt(['mode' => 'leaderboard', 'date' => '2026-10-10', 'max_results' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.product_hunt(mode: "leaderboard", date: "2026-10-10", max_results: 5)
+```
+</CodeGroup>
+
+For one product, call the same method with `mode="detail"` and `slug="notion"` (Node.js: `{ mode: "detail", slug: "notion" }`).
+
+### Response: leaderboard, search and topic
+
+```json
+{
+  "mode": "leaderboard",
+  "date": "2026-10-10",
+  "products": [
+    {
+      "id": "1257662",
+      "type": "launch",
+      "name": "Onepin",
+      "tagline": "AI voiceover with every name, price and date said right",
+      "slug": "onepin",
+      "productId": "1324290",
+      "productSlug": "onepin",
+      "url": "https://www.producthunt.com/products/onepin",
+      "votesCount": 435,
+      "launchDayScore": 430,
+      "commentsCount": 107,
+      "dailyRank": 1,
+      "weeklyRank": 7,
+      "monthlyRank": 9,
+      "topics": [
+        {
+          "id": "267",
+          "slug": "developer-tools",
+          "name": "Developer Tools"
+        },
+        {
+          "id": "268",
+          "slug": "artificial-intelligence",
+          "name": "Artificial Intelligence"
+        }
+      ],
+      "thumbnail": "https://ph-files.imgix.net/25268265-e582-4351-8a6e-1f94e6959d71.png",
+      "featuredAt": "2026-10-10T00:01:00-07:00",
+      "createdAt": "2026-10-10T00:01:00-07:00",
+      "productState": "default"
+    },
+    {
+      "id": "1245921",
+      "type": "launch",
+      "name": "ReSO AI",
+      "tagline": "Get discovered & recommended when customers ask AI",
+      "slug": "reso-ai-2",
+      "productId": "1313775",
+      "productSlug": "reso",
+      "url": "https://www.producthunt.com/products/reso",
+      "votesCount": 500,
+      "launchDayScore": 423,
+      "commentsCount": 43,
+      "dailyRank": 2,
+      "weeklyRank": 5,
+      "monthlyRank": 5,
+      "topics": [
+        {
+          "id": "231",
+          "slug": "seo",
+          "name": "SEO"
+        },
+        {
+          "id": "268",
+          "slug": "artificial-intelligence",
+          "name": "Artificial Intelligence"
+        }
+      ],
+      "thumbnail": "https://ph-files.imgix.net/33f42573-56e1-48c0-af57-9a5f9a969a06.png",
+      "featuredAt": "2026-10-10T00:01:00-07:00",
+      "createdAt": "2026-10-10T00:01:00-07:00",
+      "productState": "default"
+    }
+  ],
+  "resultsCollected": 5
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `type` | Product Hunt's launch id and the item type (`launch`). |
+| `name` / `tagline` | Product name and its one-line pitch. |
+| `slug` / `productSlug` / `productId` | The launch slug and the product it belongs to; pass `productSlug` as `slug` in `detail` mode. |
+| `url` | The product's Product Hunt page. |
+| `votesCount` / `launchDayScore` / `commentsCount` | Upvotes, Product Hunt's launch-day score and the number of comments. |
+| `dailyRank` / `weeklyRank` / `monthlyRank` | Ranks on the daily, weekly and monthly boards (not set yet on today's live board). |
+| `topics` | Topic `id`, `slug` and `name`. |
+| `thumbnail` | Product thumbnail URL. |
+| `featuredAt` / `createdAt` | When the launch was featured and created. |
+
+### Response: detail
+
+```json
+{
+  "mode": "detail",
+  "slug": "notion",
+  "product": {
+    "id": "106091",
+    "type": "product",
+    "name": "Notion",
+    "tagline": "The all-in-one workspace",
+    "slug": "notion",
+    "url": "https://www.producthunt.com/products/notion",
+    "websiteUrl": "https://www.notion.so",
+    "displayUrl": "notion.so",
+    "description": "Notion is an all-in-one workspace that combines note-taking, project management, and task...",
+    "logo": "https://ph-files.imgix.net/ff3e2acf-884a-4f4c-a383-6edfe3de0d88.png",
+    "reviewsRating": 4.83,
+    "reviewsCount": 1410,
+    "followersCount": 18756,
+    "postsCount": 25,
+    "categoriesCount": 8,
+    "addonsCount": 35,
+    "isNoLongerOnline": false,
+    "isTopProduct": true,
+    "wasInYCombinator": false,
+    "social": {
+      "websiteUrl": "https://www.notion.so",
+      "twitterUrl": "https://x.com/notion",
+      "iosUrl": "https://www.producthunt.com/r/47e5478295cd4c",
+      "androidUrl": "https://www.producthunt.com/r/3de4ff894c8110"
+    },
+    "categories": [
+      {
+        "id": "35",
+        "name": "Note and writing apps",
+        "slug": "notes-documents",
+        "url": "https://www.producthunt.com/categories/notes-documents"
+      },
+      {
+        "id": "36",
+        "name": "Project management software",
+        "slug": "project-management",
+        "url": "https://www.producthunt.com/categories/project-management"
+      }
+    ],
+    "latestLaunch": {
+      "id": "1192317",
+      "name": "Ship OS by Notion",
+      "tagline": "The agent-native way to ship software",
+      "slug": "ship-os-by-notion",
+      "url": "https://www.producthunt.com/posts/ship-os-by-notion",
+      "launchNumber": 25,
+      "launchState": "featured",
+      "featuredAt": "2026-07-10T00:01:00-07:00",
+      "createdAt": "2026-07-10T00:01:00-07:00",
+      "launchedThisWeek": false
+    },
+    "image": "https://ph-files.imgix.net/ff3e2acf-884a-4f4c-a383-6edfe3de0d88.png?auto=format",
+    "screenshots": [
+      "https://ph-files.imgix.net/6a8f48a7-77f9-406e-9b73-79108150f9e1.png?auto=format&fit=crop"
+    ],
+    "aggregateRating": {
+      "ratingValue": "4.83",
+      "reviewCount": 1410
+    },
+    "applicationCategory": "Task Management",
+    "operatingSystem": "Web"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `websiteUrl` / `displayUrl` | The product's own website. |
+| `description` / `logo` / `image` / `screenshots` | Long description, logo and gallery images. |
+| `reviewsRating` / `reviewsCount` | Product Hunt review rating (out of 5) and number of reviews. |
+| `followersCount` / `postsCount` / `addonsCount` | Followers, number of launches and add-ons. |
+| `social` | Website, X, app store and other social links, when the product lists them. |
+| `categories` | Product Hunt categories with their pages. |
+| `latestLaunch` | The most recent launch: name, tagline, launch number, state and dates. |
+| `isTopProduct` / `isNoLongerOnline` | Product Hunt's flags for a top product and a product that is gone. |
+
+## What you can build
+
+- **Launch tracking** - pull each day's ranked leaderboard and keep a history of top launches.
+- **Competitor watch** - search your category and get alerted when a new product launches.
+- **Market research by topic** - list everything launched under a topic with votes and comments.
+- **Lead and partner lists** - enrich products with their website and social links from `detail` mode.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Pull a Product Hunt leaderboard and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

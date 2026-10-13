@@ -1,0 +1,146 @@
+---
+title: "AliExpress Search plugin"
+description: "AliExpress product search as clean JSON - product ID, title, price, original price, currency, rating, orders sold, images and a product link."
+sidebarTitle: "AliExpress Search"
+---
+
+The **AliExpress Search** plugin turns an AliExpress search into structured JSON. Give it a keyword and it returns the products AliExpress shows - each with its `productId`, title, numeric price plus the formatted price and currency, the original price, rating, how many have sold (`orders`), images and a clean product URL - plus the total result count.
+
+Sort by relevance, orders, price or newest and collect up to 1,200 products per call (about 60 per page). AliExpress localises prices and titles by region, so the currency and language follow the proxy country: pass `proxy_country` (for example `US`) to pin them.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /goods/aliexpress-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keyword` | yes | What to search, e.g. `wireless earbuds` or `phone case`. |
+| `sort` | no | `relevance` (default), `orders`, `price_asc`, `price_desc` or `newest`. |
+| `max_results` | no | How many products to collect across pages (about 60 per page). Default `60`, max `1200`. |
+| `page` | no | 1-based results page to start from, `1`-`20`. Default `1`. |
+| `proxy_country` | no | Proxy country (ISO-2). Also sets the currency and language AliExpress answers in. Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/goods/aliexpress-search?keyword=wireless%20earbuds&sort=orders&proxy_country=US" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aliexpress_search("wireless earbuds", sort="orders", proxy_country="US")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.aliexpressSearch("wireless earbuds", { sort: "orders", proxyCountry: "US" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->aliexpressSearch('wireless earbuds', ['sort' => 'orders', 'proxy_country' => 'US']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aliexpress_search("wireless earbuds", sort: "orders", proxy_country: "US")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "keyword": "wireless earbuds",
+  "products": [
+    {
+      "productId": "3256812453673234",
+      "url": "https://www.aliexpress.com/item/3256812453673234.html",
+      "title": "Lenovo XT53 Wireless Bluetooth 5.3 Earphones Gaming Low Latency Dual Mode Music Earbuds ...",
+      "price": 11.58,
+      "priceFormatted": "US $11.58",
+      "currency": "USD",
+      "currencySymbol": "$",
+      "originalPrice": 31.77,
+      "originalPriceFormatted": "US $31.77",
+      "rating": 4.9,
+      "ordersText": "10,000+ sold",
+      "orders": 10000,
+      "image": "https://ae-pic-a1.aliexpress-media.com/kf/S7c0a301a1f29413097d40e9f05eafcdbZ.png",
+      "images": [
+        "https://ae-pic-a1.aliexpress-media.com/kf/S7c0a301a1f29413097d40e9f05eafcdbZ.png",
+        "https://ae-pic-a1.aliexpress-media.com/kf/Acab955b08c7f459fa83a2512fb6a517e0.jpg"
+      ]
+    },
+    {
+      "productId": "3256809274283413",
+      "url": "https://www.aliexpress.com/item/3256809274283413.html",
+      "title": "HTC NE20 AI Translator Earbuds Portable Lanyard Long Battery Wireless Headphone ...",
+      "price": 12.39,
+      "priceFormatted": "US $12.39",
+      "currency": "USD",
+      "currencySymbol": "$",
+      "originalPrice": 32.62,
+      "originalPriceFormatted": "US $32.62",
+      "rating": 4.9,
+      "ordersText": "10,000+ sold",
+      "orders": 10000,
+      "image": "https://ae-pic-a1.aliexpress-media.com/kf/Sf5bf4e1606e54aaab6cdab62773abd8eE.png",
+      "images": [
+        "https://ae-pic-a1.aliexpress-media.com/kf/Sf5bf4e1606e54aaab6cdab62773abd8eE.png",
+        "https://ae-pic-a1.aliexpress-media.com/kf/S54a67b88276f40a1a1a2830b0d72d48eB.jpg"
+      ]
+    }
+  ],
+  "resultsCollected": 60,
+  "totalResults": 15999,
+  "query": { "sort": "orders" }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `url` | AliExpress product id and a clean `/item/<id>.html` URL. |
+| `title` | Product title, in the language of the proxy country's AliExpress site. |
+| `price` / `currency` / `currencySymbol` | Numeric price, ISO currency and its symbol. The currency follows `proxy_country`. |
+| `priceFormatted` | The price as AliExpress prints it. |
+| `originalPrice` / `originalPriceFormatted` | The price before the discount. `null` when there is none. |
+| `rating` | Star rating (out of 5). |
+| `orders` / `ordersText` | Units sold as a number (the lower bound AliExpress shows, e.g. `10,000+` -> `10000`) and the original text. |
+| `image` / `images` | Main image and the image gallery from the result card. |
+
+## What you can build
+
+- **Product sourcing** - find top-selling items for a keyword with price and order counts.
+- **Price comparison** - compare AliExpress prices in your local currency against other marketplaces.
+- **Trend tracking** - watch `orders` grow over time to spot rising products.
+- **Dropshipping catalogs** - collect titles, prices and images for a niche in one call.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an AliExpress search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

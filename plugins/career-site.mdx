@@ -1,0 +1,201 @@
+---
+title: "Career Sites plugin"
+description: "Every open job on a company career site (Greenhouse, Lever, Ashby, Workday, SmartRecruiters, Workable, Recruitee) as clean JSON in one shape - title, locations, workplace type, department, dates, salary ranges and descriptions."
+sidebarTitle: "Career Sites"
+---
+
+The **Career Sites** plugin reads a company's own job board and returns every open job as structured JSON. Give it the company's career page URL on Greenhouse, Lever, Ashby, Workday, SmartRecruiters, Workable or Recruitee (or the ATS name and the company's board name), and it detects the ATS and returns each job in one normalized shape: id, title, links to the posting and the application form, main location and every location, country, remote flag and workplace type, department and team, employment type, posting and update dates, requisition id, salary ranges where the ATS publishes pay, the ATS's own extra fields and, on request, the full description as text and HTML.
+
+Filter by words in the title, location, department or remote only, and get up to 2,000 jobs in one call. A link to a single posting returns just that posting with its description. No login or ATS account is needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Board jobs
+
+```
+POST /jobs/career-site
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `url` | one of `url` / `provider` + `company` | The company's career page on its ATS (see the table below). A link to one posting returns just that posting. |
+| `provider` | one of `url` / `provider` + `company` | Instead of `url`: the ATS, one of `greenhouse`, `lever`, `ashby`, `workday`, `smartrecruiters`, `workable`, `recruitee`. Use with `company`. |
+| `company` | one of `url` / `provider` + `company` | Instead of `url`: the company's board name on that ATS, as in its career URL (see the table below). |
+| `keyword` | no | Only jobs whose title contains every word, e.g. `software engineer`. |
+| `location` | no | Only jobs in this place (city, region or country as the company writes it, e.g. `London`, `Germany`, `Remote`). Case-insensitive. |
+| `department` | no | Only jobs in this department or team, e.g. `Engineering`. |
+| `remote` | no | `true` for remote jobs only. Default `false`. |
+| `limit` | no | How many jobs to return, `1`-`2000`. Default `100`. |
+| `include_description` | no | Add each job's full description (`descriptionText`, `descriptionHtml`). Default `false`. On Workday and SmartRecruiters this reads every posting separately (one billed request each, at most 300 per call). |
+| `proxy_country` | no | Proxy country the requests are sent from (ISO-2). Leave blank to let the API pick. |
+
+### Supported career sites
+
+| ATS (`provider`) | Career page `url` | `company` |
+| --- | --- | --- |
+| Greenhouse | `https://job-boards.greenhouse.io/stripe` | `stripe` |
+| Lever | `https://jobs.lever.co/palantir` | `palantir` |
+| Ashby | `https://jobs.ashbyhq.com/ramp` | `ramp` |
+| Workday | `https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite` | `nvidia.wd5/NVIDIAExternalCareerSite` |
+| SmartRecruiters | `https://jobs.smartrecruiters.com/Ubisoft2` | `Ubisoft2` |
+| Workable | `https://apply.workable.com/huggingface` | `huggingface` |
+| Recruitee | `https://bunq.recruitee.com` | `bunq` |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/jobs/career-site?url=https%3A%2F%2Fjobs.ashbyhq.com%2Framp&keyword=engineer&limit=10" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.career_site_jobs(
+    "https://jobs.ashbyhq.com/ramp",
+    keyword="engineer",
+    limit=10,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.careerSiteJobs("https://jobs.ashbyhq.com/ramp", {
+  keyword: "engineer",
+  limit: 10,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->careerSiteJobs('https://jobs.ashbyhq.com/ramp', [
+    'keyword' => 'engineer',
+    'limit' => 10,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.career_site_jobs(
+  "https://jobs.ashbyhq.com/ramp",
+  keyword: "engineer",
+  limit: 10
+)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "provider": "ashby",
+  "company": "ramp",
+  "companyName": null,
+  "boardUrl": "https://jobs.ashbyhq.com/ramp",
+  "totalJobs": 166,
+  "matchedJobs": 39,
+  "resultsCollected": 10,
+  "jobs": [
+    {
+      "id": "34413f8d-26bf-4bbc-8ade-eb309a0e2245",
+      "title": "Security Engineer, Cloud",
+      "company": "ramp",
+      "provider": "ashby",
+      "url": "https://jobs.ashbyhq.com/ramp/34413f8d-26bf-4bbc-8ade-eb309a0e2245",
+      "applyUrl": "https://jobs.ashbyhq.com/ramp/34413f8d-26bf-4bbc-8ade-eb309a0e2245/application",
+      "location": "New York, NY (HQ)",
+      "locations": ["New York, NY (HQ)", "Remote (Canada)"],
+      "country": null,
+      "remote": true,
+      "workplaceType": "hybrid",
+      "department": "Engineering",
+      "team": "Backend",
+      "employmentType": "Full-time",
+      "postedAt": "2026-04-07T17:12:35.753+00:00",
+      "updatedAt": null,
+      "requisitionId": null,
+      "salary": {
+        "min": 211400.0,
+        "max": 290600.0,
+        "currency": "USD",
+        "interval": "year",
+        "text": "$211.4K - $290.6K"
+      },
+      "salaryRanges": [
+        {
+          "min": 211400.0,
+          "max": 290600.0,
+          "currency": "USD",
+          "interval": "year",
+          "text": "$211.4K - $290.6K"
+        }
+      ],
+      "customFields": null,
+      "descriptionText": null,
+      "descriptionHtml": null
+    }
+  ],
+  "query": {
+    "keyword": "engineer",
+    "location": null,
+    "department": null,
+    "remote": false,
+    "limit": 10,
+    "includeDescription": false,
+    "job": null
+  },
+  "pagesFetched": 1,
+  "warnings": []
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `title` | The ATS's job id and the job title. |
+| `company` / `provider` | Board name and the detected ATS. |
+| `url` / `applyUrl` | Links to the posting and to the application form. |
+| `location` / `locations` / `country` | Main location, every location of the job, and the country when the ATS gives one. |
+| `remote` / `workplaceType` | Remote flag and `remote`, `hybrid` or `onsite`. |
+| `department` / `team` | Department and team. |
+| `employmentType` | Employment type as the ATS writes it, e.g. `Full-time`. |
+| `postedAt` / `updatedAt` | Posting and last-update times. |
+| `requisitionId` | The company's requisition id, when the ATS exposes it. |
+| `salary` / `salaryRanges` | Main pay range and every range, each with `min`, `max`, `currency`, `interval` and the `text` the ATS shows, where the ATS publishes pay. |
+| `customFields` | The ATS's extra fields for the job. |
+| `descriptionText` / `descriptionHtml` | Full description, with `include_description=true`. |
+
+A field the ATS does not expose is `null`. The response also carries the detected `provider`, `company`, `companyName`, `boardUrl`, `totalJobs` on the board, `matchedJobs` after your filters, and `warnings`. A board with no open jobs (or none matching the filters) answers `200` with an empty `jobs`.
+
+<Note>
+Billing follows the requests made to the ATS (`pagesFetched`): one for a whole Greenhouse, Ashby, Workable or Recruitee board, one per Lever (100 jobs), Workday (20 jobs) or SmartRecruiters (100 jobs) listing page, plus one per Workday or SmartRecruiters posting whose description is read.
+</Note>
+
+## What you can build
+
+- **Job aggregation** - collect openings straight from company career sites, in one shape across seven ATS platforms.
+- **Hiring signals** - track `totalJobs` and new `postedAt` dates per company and department.
+- **Pay transparency data** - collect published `salaryRanges` by title, location and company.
+- **Talent and sales intelligence** - see which teams a target company is growing and where.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Pull a career site and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

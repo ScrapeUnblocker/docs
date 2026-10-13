@@ -1,0 +1,196 @@
+---
+title: "Yelp Reviews plugin"
+description: "Yelp business reviews as clean JSON - star rating, full text, date, language, author with Elite status, photos, reactions and owner reply, plus the business's rating, review count and star histogram."
+sidebarTitle: "Yelp Reviews"
+---
+
+The **Yelp Reviews** plugin reads a Yelp business's reviews page by page, not just the few on the business page, and returns them as structured JSON. Give it a business URL, alias or business id and it returns each review's id and link, star rating, full text, language, publish date, the author (name, location, review, friend and photo counts, Elite status), photos with captions, videos, the Helpful, Thanks, Love this and Oh no reaction counts, check-ins, the owner's public reply and the author's earlier reviews of the same business.
+
+The business comes with them: name, rating, review count, the 1-5 star histogram, review counts per language, categories, city and neighborhoods. Sort the way yelp.com does, keep only some star ratings, search the reviews for a phrase, drop older reviews with `since`, and collect up to 500 per call; `nextStart` continues where a call stopped. Billing is one unit per 10 reviews returned (`pagesFetched`).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Business reviews
+
+```
+POST /local/yelp-reviews
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `business` | yes | The business: its Yelp page URL (`https://www.yelp.com/biz/gary-danko-san-francisco`), its alias (`gary-danko-san-francisco`) or its business id (`WavvLdfdP6g8aZTtbBQHTw`, the `businessId` from [Yelp Local](/plugins/yelp) results). An id skips the extra lookup a URL or alias needs. |
+| `max_reviews` | no | How many reviews to return, `1`-`500`. Default `20`. |
+| `page` | no | 1-based Yelp review page to start from (10 reviews per page, `1`-`1000`). Default `1`. |
+| `start` | no | 0-based review offset to start from instead of `page`. Pass a previous response's `nextStart` to continue exactly where it stopped. |
+| `sort` | no | As yelp.com's "Sort by" menu: `relevance` (default, Yelp's own order), `newest`, `oldest`, `highest`, `lowest` or `elites`. |
+| `language` | no | Reviews written in this language (two-letter code: `en`, `fr`, `de`, `es`, ...). Yelp lists one language at a time. Default: the language most of the business's reviews are in; `business.reviewsCountByLanguage` lists the others. |
+| `rating` | no | Only reviews with these star ratings, comma-separated (e.g. `1,2`). |
+| `query` | no | Only reviews that mention this phrase (yelp.com's review search). |
+| `since` | no | Only reviews written on or after this date (`YYYY-MM-DD`). With `sort=newest` paging stops at the first older review. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). Yelp serves reviews the same to every country, so leave it blank unless you need one. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/local/yelp-reviews?business=gary-danko-san-francisco&max_reviews=10&sort=newest" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.yelp_reviews("gary-danko-san-francisco", max_reviews=10, sort="newest")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.yelpReviews("gary-danko-san-francisco", { maxReviews: 10, sort: "newest" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->yelpReviews('gary-danko-san-francisco', ['max_reviews' => 10, 'sort' => 'newest']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.yelp_reviews("gary-danko-san-francisco", max_reviews: 10, sort: "newest")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "business": {
+    "businessId": "WavvLdfdP6g8aZTtbBQHTw",
+    "alias": "gary-danko-san-francisco",
+    "name": "Gary Danko",
+    "url": "https://www.yelp.com/biz/gary-danko-san-francisco",
+    "rating": 4.5,
+    "reviewCount": 6150,
+    "ratingHistogram": { "1": 125, "2": 217, "3": 485, "4": 1100, "5": 4228 },
+    "reviewsCountByLanguage": { "en": 6151, "zh": 3, "de": 1 },
+    "categories": ["New American", "French", "Cocktail Bars"],
+    "city": "San Francisco",
+    "region": "CA",
+    "neighborhoods": ["Russian Hill", "Fisherman's Wharf"],
+    "image": "https://s3-media0.fl.yelpcdn.com/bphoto/5dbjkeTld05HumeToIAhRQ/90s.jpg"
+  },
+  "reviews": [
+    {
+      "id": "uP7LSWnXOFDQZs4uSMry4A",
+      "url": "https://www.yelp.com/biz/gary-danko-san-francisco?hrid=uP7LSWnXOFDQZs4uSMry4A",
+      "rating": 5,
+      "text": "The Fleet Week Weekend San Francisco Edition:\n\nIt seems San Francisco has a reputation of having lots of good dining institutions which makes the city a star in...",
+      "language": "en",
+      "publishedDate": "2026-10-11T08:39:21-07:00",
+      "date": "2026-10-11",
+      "user": {
+        "id": "...",
+        "name": "Juan V.",
+        "location": "San Francisco, CA",
+        "profileUrl": "...",
+        "avatar": "...",
+        "reviewCount": 2025,
+        "friendCount": 5000,
+        "photoCount": 14847,
+        "isElite": true,
+        "eliteYear": 2026,
+        "isEliteAllStar": null
+      },
+      "photos": [
+        {
+          "id": "HyRE7wLRiyc9LWh_2r0_lA",
+          "url": "https://s3-media0.fl.yelpcdn.com/bphoto/HyRE7wLRiyc9LWh_2r0_lA/o.jpg",
+          "caption": "This looks sour like some on my social media in SF",
+          "width": 921,
+          "height": 2000
+        }
+      ],
+      "photosCount": 10,
+      "videos": [],
+      "ownerResponse": null,
+      "reactions": { "helpful": 11, "thanks": 4, "loveThis": 8, "ohNo": 0 },
+      "helpfulVotes": 11,
+      "checkIns": 0,
+      "isFirstReviewer": false,
+      "isReviewOfTheDay": false,
+      "authorExpertise": "Cocktail Bar",
+      "isUpdated": false,
+      "previousReviews": []
+    }
+  ],
+  "resultsCollected": 10,
+  "totalResults": 6151,
+  "page": 1,
+  "start": 0,
+  "sort": "newest",
+  "language": "en",
+  "rating": null,
+  "query": null,
+  "since": null,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "nextStart": 10
+}
+```
+
+### Review fields
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` | Review id and a direct link to the review on the business page. |
+| `rating` / `text` / `language` | Star rating (1-5), the full review text and its language. |
+| `publishedDate` / `date` | Publish timestamp with time zone, and the date alone. |
+| `user` | Author `name` (first name and initial, as Yelp shows it), `location`, `reviewCount`, `friendCount`, `photoCount`, `isElite` and `eliteYear`. |
+| `photos` / `photosCount` / `videos` | Review photos (`url`, `caption`, `width`, `height`), the photo count and any videos. |
+| `reactions` / `helpfulVotes` | `helpful`, `thanks`, `loveThis` and `ohNo` counts. |
+| `ownerResponse` | The owner's public reply, `null` when there is none. |
+| `checkIns` / `isFirstReviewer` / `isReviewOfTheDay` / `isUpdated` | Yelp's per-review flags. |
+| `previousReviews` | The author's earlier reviews of the same business, if any. |
+
+### Business and paging
+
+| Field | Notes |
+| --- | --- |
+| `business.reviewCount` | The review count Yelp shows for the business. |
+| `business.ratingHistogram` / `business.reviewsCountByLanguage` | Reviews per star and per language, across every language. Yelp updates these separately from `reviewCount`, so their sums can differ from it by a few. |
+| `totalResults` | How many reviews match this call's `language`, `rating` and `query` - the total that `start` pages through. |
+| `hasMore` / `nextStart` | While `hasMore` is true, call again with `start` = `nextStart` to continue exactly where this call stopped. |
+| `nextPage` | Set only when `nextStart` falls on a page boundary (a multiple of 10), else `null`. |
+
+A business with no reviews returns an empty `reviews` list; an unknown alias or URL returns `404`.
+
+## What you can build
+
+- **Reputation monitoring** - poll with `sort=newest` and `since` and alert on new 1- and 2-star reviews.
+- **Competitive benchmarking** - compare star histograms and review volume across competing businesses.
+- **Topic research** - pull only reviews that mention a dish, service or issue with `query`.
+- **Owner response tracking** - see which reviews get a public reply.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Yelp reviews lookup and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

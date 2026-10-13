@@ -1,0 +1,153 @@
+---
+title: "DuckDuckGo plugin"
+description: "DuckDuckGo search results as clean JSON - organic results, top and bottom ads and related searches for any country, in the same shape as Google results from serpApi."
+sidebarTitle: "DuckDuckGo"
+---
+
+The **DuckDuckGo** plugin turns a DuckDuckGo search into structured JSON. Give it a keyword and it returns organic results with position, title, URL, displayed URL, domain and description, the first page's ads in top and bottom lists, and related searches. Collect up to 10 pages in one call.
+
+The response has the same shape as Google results from [`/serpApi`](/guides/serp-scraping), so code written for Google results reads DuckDuckGo results by changing the path only. Pick the region with `proxy_country`: it sets DuckDuckGo's region and the country the search is sent from.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Web search
+
+```
+POST /search/duckduckgo
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keyword` | yes | Search terms, e.g. `project management software`. |
+| `pages_to_check` | no | How many result pages to collect, `1`-`10` (about 10 results each). Default `1`. Ads come from the first page; further pages add organic results. |
+| `proxy_country` | no | Country to search from (ISO-2), e.g. `US`, `DE`. Sets the result region and the location the search is sent from, which decides the ads. Default `US`. |
+| `language` | no | Interface language (ISO-639-1), e.g. `en`, `de`. Default `en`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/search/duckduckgo?keyword=project%20management%20software&proxy_country=US&language=en" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.duckduckgo_search("project management software", proxy_country="US", language="en")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.duckduckgoSearch("project management software", { proxyCountry: "US", language: "en" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->duckduckgoSearch('project management software', ['proxy_country' => 'US', 'language' => 'en']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.duckduckgo_search("project management software", proxy_country: "US", language: "en")
+```
+</CodeGroup>
+
+<Note>
+Each results page fetched is billed as one request: `pages_to_check=3` that returns three pages counts as 3 requests, and `pagesChecked` shows the exact number.
+</Note>
+
+### Response
+
+```json
+{
+  "engine": "duckduckgo",
+  "keyword": "project management software",
+  "country": "US",
+  "language": "en",
+  "totalResults": null,
+  "resultsCollected": 14,
+  "topAdsCount": 3,
+  "bottomAdsCount": 1,
+  "organicResultsCount": 10,
+  "topAds": [
+    {
+      "position": 1,
+      "title": "Project Management 2026 - Choose Best PM Software",
+      "url": "https://www.forbes.com/advisor/l/top-project-management-software/?utm_source=bing&utm_medium=cpc...",
+      "displayedUrl": "https://www.forbes.com › PM Tools › Compare",
+      "domain": "forbes.com",
+      "description": "Take Control Of Your Projects And Boost Efficiency With Our Powerful Management Tools..."
+    }
+  ],
+  "bottomAds": [
+    {
+      "position": 1,
+      "title": "Project Management Software - Side-by-Side Comparison (2026)",
+      "url": "https://www.consumervoice.org/top-project-management-software?gclid=&kw=project%20management%20software...",
+      "displayedUrl": "https://www.consumervoice.org › Top-Software › Project-Manager",
+      "domain": "consumervoice.org",
+      "description": "Compare the Best Project Management Software and Maximize Your Team Efficiency..."
+    }
+  ],
+  "organic": [
+    {
+      "position": 1,
+      "title": "10 Best Project Management Software of 2026 - Forbes Advisor",
+      "url": "https://www.forbes.com/advisor/business/software/best-project-management-software/",
+      "displayedUrl": "https://www.forbes.com › advisor › business › software › best-project-management-software",
+      "domain": "forbes.com",
+      "description": "Sep 25, 2026 To find the best project management software, we evaluated 26 platforms and scored 61 metrics..."
+    }
+  ],
+  "relatedSearches": [
+    "project management software for students",
+    "best project management software 2026",
+    "project management software login"
+  ],
+  "pagesChecked": 1,
+  "hasMore": true
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `organic` | Organic results in page order: `position`, `title`, `url`, `displayedUrl` (as DuckDuckGo prints it), `domain` and `description` (the snippet). |
+| `topAds` / `bottomAds` | Ads above and below the results on the first page, with the same fields. `domain` is the advertiser's domain. DuckDuckGo does not show ads on every query, so an empty list is a normal answer. |
+| `relatedSearches` | DuckDuckGo's related searches. |
+| `totalResults` | Always `null` - DuckDuckGo shows no result count. Kept for the same shape as `/serpApi`. |
+| `resultsCollected` | Ads plus organic results returned. `topAdsCount`, `bottomAdsCount` and `organicResultsCount` count each list. |
+| `pagesChecked` / `hasMore` | Pages fetched (the billed number) and whether more results are available. |
+| `country` / `language` | The region and language the search ran in. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a `proxy_country` that is not an ISO-2 code (or not available) or a `language` that is not an ISO-639-1 code. |
+| `502` | DuckDuckGo blocked the search, returned no results page, or the search did not finish in time. Retry. |
+
+## What you can build
+
+- **Rank tracking** - follow where your pages rank on DuckDuckGo next to Google, with one parser for both.
+- **Ad intelligence** - see which advertisers show on your keywords, by country.
+- **Keyword research** - collect related searches for content planning.
+- **Privacy-focused audience research** - see what DuckDuckGo users find for your brand and products.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a DuckDuckGo search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

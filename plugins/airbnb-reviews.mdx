@@ -1,0 +1,219 @@
+---
+title: "Airbnb Reviews plugin"
+description: "Every guest review of an Airbnb listing as clean JSON - star rating, text as written plus Airbnb's translation, date, stay detail, photos, reviewer and host response, with the listing's ratings and review tags."
+sidebarTitle: "Airbnb Reviews"
+---
+
+The **Airbnb Reviews** plugin reads every guest review of an Airbnb listing, not just the few on the room page, and returns them as structured JSON. Give it a listing id or a room URL from any Airbnb domain and it returns each review's star rating, the text as written with its language, Airbnb's translation into the `locale` you pick, the date, the stay detail, photos, the reviewer and the host's response.
+
+The listing summary comes with them: title, room and property type, host, overall and six category ratings, review count, the rating distribution and review tags. Order by relevance, most recent, highest or lowest rated, drop older reviews with `since`, and collect up to 500 per call from any page or offset. Each page of up to 50 reviews read is one billed unit (`pagesFetched`). It is the reviews companion to [Airbnb Stays](/plugins/airbnb) and [Airbnb Listing](/plugins/airbnb-listing).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Listing reviews
+
+```
+POST /travel/airbnb-reviews
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `room` | yes | Airbnb listing id (e.g. `23860926`) or a room URL on any Airbnb domain, e.g. `https://www.airbnb.co.uk/rooms/23860926`. |
+| `max_reviews` | no | How many reviews to return, `1`-`500`. Default `50`. Airbnb serves 50 reviews per request; each request is one billed unit. |
+| `page` | no | 1-based page of `max_reviews`-sized pages (`1`-`1000`). Default `1`. Pass a previous response's `nextPage` to continue. |
+| `offset` | no | Start at this review position instead of `page` (`0`-`20000`). Pass a previous response's `nextOffset` to resume exactly. |
+| `sort` | no | `most_relevant` (default, Airbnb's own order), `most_recent`, `highest_rated` or `lowest_rated`. |
+| `locale` | no | Language to translate reviews and host responses into, e.g. `en`, `de`, `fr`, `es`, `pt-BR`. Default `en`. The original text and its language always come back too. |
+| `since` | no | Only reviews written on or after this date (`YYYY-MM-DD`). With `sort=most_recent` paging also stops once older reviews start. |
+| `include_listing` | no | Also return the listing summary. Default `true`; set `false` to skip it. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/travel/airbnb-reviews?room=35283352&max_reviews=10&sort=most_recent" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.airbnb_reviews("35283352", max_reviews=10, sort="most_recent")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.airbnbReviews("35283352", { maxReviews: 10, sort: "most_recent" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->airbnbReviews('35283352', ['max_reviews' => 10, 'sort' => 'most_recent']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.airbnb_reviews("35283352", max_reviews: 10, sort: "most_recent")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "url": "https://www.airbnb.com/rooms/35283352",
+  "listingId": "35283352",
+  "listing": {
+    "id": "35283352",
+    "url": "https://www.airbnb.com/rooms/35283352",
+    "title": "Cozy studio close to Champs Elysées & Eiffel tower",
+    "roomType": "Entire home/apt",
+    "propertyType": "Entire rental unit",
+    "city": "Seine",
+    "country": "France",
+    "host": { "id": "...", "name": "Moutaz", "isSuperhost": true },
+    "rating": {
+      "overall": 4.89,
+      "accuracy": 4.93,
+      "cleanliness": 4.85,
+      "checkin": 4.94,
+      "communication": 4.98,
+      "location": 4.97,
+      "value": 4.85
+    },
+    "reviewsCount": 179,
+    "ratingDistribution": [
+      { "stars": 5, "percentage": 0.9162011173184358 },
+      { "stars": 4, "percentage": 0.061452513966480445 },
+      { "stars": 3, "percentage": 0.0223463687150838 }
+    ],
+    "ratingCounts": { "5": 164, "4": 11, "3": 4, "2": 0, "1": 0 },
+    "isGuestFavorite": true,
+    "isNewListing": false,
+    "reviewTags": [
+      { "key": "LOCATION", "name": "Location", "count": 118 },
+      { "key": "WALKABILITY", "name": "Walkability", "count": 43 }
+    ]
+  },
+  "reviews": [
+    {
+      "id": "1794761957127142355",
+      "rating": 5,
+      "text": "Le logement de Moutaz est idéalement placé, au calme et fidèle à la description. Parfait pour un séjour dans la capitale !",
+      "language": "fr",
+      "translatedText": "Moutaz's place is ideally located, quiet and as described. Perfect for a stay in the capital!",
+      "date": "2026-10-12T07:11:37Z",
+      "localizedDate": "Today",
+      "stayDetail": "Stayed a few nights",
+      "stayDetailType": "LENGTH_OF_STAY",
+      "roomTypeTitle": null,
+      "photos": [],
+      "reviewer": {
+        "id": "...",
+        "name": "Marine",
+        "photo": "...",
+        "location": null,
+        "tenure": "10 years on Airbnb",
+        "profileUrl": "...",
+        "profileId": "...",
+        "isSuperhost": false,
+        "deleted": false
+      },
+      "response": null
+    },
+    {
+      "id": "1789177426742035697",
+      "rating": 5,
+      "text": "Excellent stay! Loved that we could wash our clothes while we were there!",
+      "language": "en",
+      "translatedText": null,
+      "date": "2026-10-04T14:16:09Z",
+      "localizedDate": "1 week ago",
+      "stayDetail": "Stayed a few nights",
+      "stayDetailType": "LENGTH_OF_STAY",
+      "roomTypeTitle": null,
+      "photos": [],
+      "reviewer": {
+        "id": "...",
+        "name": "Emily",
+        "photo": "...",
+        "location": "Cleveland, Ohio",
+        "tenure": null,
+        "profileUrl": "...",
+        "profileId": "...",
+        "isSuperhost": false,
+        "deleted": false
+      },
+      "response": null
+    }
+  ],
+  "resultsCollected": 10,
+  "totalResults": 179,
+  "page": 1,
+  "offset": 0,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "nextOffset": 10,
+  "sort": "most_recent",
+  "locale": "en",
+  "since": null,
+  "warnings": []
+}
+```
+
+### Review fields
+
+| Field | Notes |
+| --- | --- |
+| `id` / `rating` | Review id and star rating (1-5). |
+| `text` / `language` | The review as the guest wrote it, and its language. |
+| `translatedText` | Airbnb's translation into `locale`; `null` when the review is already in that language. |
+| `date` / `localizedDate` | ISO timestamp and Airbnb's relative date (e.g. `1 week ago`). |
+| `stayDetail` / `stayDetailType` | Airbnb's stay line, such as `Stayed a few nights` or `Group trip`, and its type. |
+| `photos` | Photos attached to the review. |
+| `reviewer` | `name`, `photo`, `location` or `tenure` (time on Airbnb), `profileUrl` and `profileId` (the public profile Airbnb's review cards open), `isSuperhost`, and `deleted` when the guest has since closed their account. `id` is Airbnb's internal account id. |
+| `response` | The host's public response, `null` when there is none. |
+
+### Listing summary and paging
+
+| Field | Notes |
+| --- | --- |
+| `listing.rating` | `overall` plus the six category ratings (out of 5). |
+| `listing.ratingDistribution` | Each star's share of ratings as a 0-1 fraction (`0.916` = 91.6%), as Airbnb gives it. |
+| `listing.ratingCounts` | Number of ratings per star, worked out from those shares and `reviewsCount`; `null` when they do not fit (seen on some hotel listings). |
+| `listing.reviewTags` | Airbnb's review topics (`key`, `name`, `count`), such as Location or Hospitality. |
+| `totalResults` / `hasMore` | Reviews the listing has, and whether more remain after this call. |
+| `nextPage` / `nextOffset` | Pass as `page` or `offset` to continue. |
+
+## What you can build
+
+- **Guest feedback monitoring** - pull new reviews with `sort=most_recent` and `since` and alert on low ratings.
+- **Multilingual sentiment analysis** - analyze every review in one language through `translatedText`, keeping the original.
+- **Host response tracking** - see how often hosts reply to reviews and what they say.
+- **Short-term rental research** - compare rating distributions and review topics across competing listings.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Airbnb reviews lookup and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

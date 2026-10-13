@@ -1,0 +1,208 @@
+---
+title: "Trustpilot plugin"
+description: "A company's Trustpilot profile and reviews as clean JSON - TrustScore, the 1-5 star breakdown, review count and each review's rating, text, author, verified flag and company reply."
+sidebarTitle: "Trustpilot"
+---
+
+The **Trustpilot** plugin turns a company's Trustpilot page into structured JSON. Give it the company's domain, such as `www.nike.com`, and it returns a `company` summary (TrustScore, total reviews, the 1-5 star distribution, categories and contact) plus a `reviews` array, each review with its rating, title, text, author, verified badge, language, dates and the company's reply.
+
+Reviews come 20 to a page. Start at any `page`, fetch up to 20 consecutive pages in one call with `pages`, and narrow the list with `stars`, `sort`, `language`, `date`, `search`, `verified` or `replies`. No Trustpilot account or login is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Company reviews
+
+```
+POST /reviews/trustpilot
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `company` | yes | The reviewed company's domain, e.g. `www.nike.com` or `nike.com`. A full site URL or a Trustpilot review URL also works. |
+| `page` | no | 1-based page to start from, 20 reviews per page. Default `1`. |
+| `pages` | no | How many consecutive pages to fetch from `page` onward, `1`-`20`. Default `1`. Stops early at the last page. |
+| `stars` | no | Only reviews with these star ratings (`1`-`5`). Repeat the key for several, e.g. `stars=4&stars=5`; in the SDKs pass a list. |
+| `sort` | no | `recency` (default, newest first) or `relevancy`. |
+| `language` | no | Review language as an ISO-2 code (`en`, `de`) or `all` (default). |
+| `date` | no | Only reviews from a recent window: `last30days`, `last3months`, `last6months` or `last12months`. Omit for all time. |
+| `search` | no | Keyword to search for within the company's reviews. |
+| `verified` | no | `true` returns only reviews with Trustpilot's verified badge. Default `false`. |
+| `replies` | no | `true` returns only reviews the company replied to. Default `false`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Defaults to a country chosen for the site. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/reviews/trustpilot?company=www.nike.com&stars=4&stars=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.trustpilot_reviews("www.nike.com", stars=[4, 5])
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.trustpilotReviews("www.nike.com", { stars: [4, 5] });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->trustpilotReviews('www.nike.com', ['stars' => [4, 5]]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.trustpilot_reviews("www.nike.com", stars: [4, 5])
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "company": {
+    "name": "Nike",
+    "domain": "www.nike.com",
+    "trustScore": 1.5,
+    "stars": 1.5,
+    "totalReviews": 13162,
+    "reviewsLast12Months": 1995,
+    "websiteUrl": "https://www.nike.com",
+    "profileImage": "//s3-eu-west-1.amazonaws.com/tpd/screenshots/46d46ce60000640...",
+    "categories": [
+      "Activewear Store",
+      "Shoe Store"
+    ],
+    "countryCode": "US",
+    "isClaimed": false,
+    "isClosed": false,
+    "contact": {
+      "email": null,
+      "address": "Niels Brocks Gade 8 , 4. sal.",
+      "city": "Randers C",
+      "country": "US",
+      "phone": "86406388",
+      "zip": "8900"
+    },
+    "ratingDistribution": {
+      "1": 10023,
+      "2": 495,
+      "3": 366,
+      "4": 469,
+      "5": 1809,
+      "total": 13162
+    },
+    "profileUrl": "https://www.trustpilot.com/review/www.nike.com"
+  },
+  "reviews": [
+    {
+      "id": "6acbbbfb8783daf34d31149e",
+      "title": "Custim Shoes arrived and could not be…",
+      "text": "Custim Shoes arrived and could not be happier",
+      "rating": 5,
+      "author": {
+        "name": "Adam",
+        "country": "ZA",
+        "reviewCount": 7,
+        "verified": false
+      },
+      "date": "2026-10-11T18:40:27.000Z",
+      "experiencedDate": "2026-10-10T00:00:00.000Z",
+      "verified": false,
+      "verificationLevel": "not-verified",
+      "likes": 0,
+      "language": "en",
+      "reply": null
+    },
+    {
+      "id": "6acae17a620a560203c740f1",
+      "title": "Nice shoes!",
+      "text": "Nice shoes!",
+      "rating": 5,
+      "author": {
+        "name": "Jonathan",
+        "country": "ES",
+        "reviewCount": 1,
+        "verified": false
+      },
+      "date": "2026-10-11T03:08:10.000Z",
+      "experiencedDate": "2026-10-10T00:00:00.000Z",
+      "verified": false,
+      "verificationLevel": "not-verified",
+      "likes": 0,
+      "language": "en",
+      "reply": null
+    }
+  ],
+  "reviewsCollected": 20,
+  "totalReviews": 13163,
+  "totalFilteredReviews": 2278,
+  "pagination": {
+    "currentPage": 1,
+    "perPage": 20,
+    "totalCount": 2278,
+    "totalPages": 100
+  },
+  "pagesFetched": [
+    1
+  ],
+  "query": {
+    "company": "www.nike.com",
+    "stars": [
+      4,
+      5
+    ],
+    "sort": "recency",
+    "language": "all",
+    "date": null,
+    "search": null,
+    "verified": false,
+    "replies": false
+  }
+}
+```
+
+The `company` object carries `trustScore`, `totalReviews`, `reviewsLast12Months`, the `ratingDistribution` (count per star, plus `total`), `categories`, `contact` and the `profileUrl`. `totalFilteredReviews` and `pagination` count the reviews that match your filters; `query` echoes the filters that were applied.
+
+### Review fields
+
+| Field | Notes |
+| --- | --- |
+| `id` | Trustpilot's review id. |
+| `title` / `text` | Review headline and body. |
+| `rating` | Star rating, `1`-`5`. |
+| `author` | `name`, `country` (ISO-2), `reviewCount` (reviews the author has written) and `verified`. |
+| `date` / `experiencedDate` | When the review was posted and the date of the experience it describes (ISO-8601). |
+| `verified` / `verificationLevel` | Trustpilot's verified badge and its level, e.g. `not-verified`. |
+| `likes` | Useful votes on the review. |
+| `language` | Language code of the review. |
+| `reply` | The company's reply as `text` and `date`, or `null` when the company has not replied. |
+
+## What you can build
+
+- **Review monitoring** - pull new reviews with `sort=recency` or `date=last30days` and alert on low ratings.
+- **Reputation dashboards** - track `trustScore`, `totalReviews` and the star distribution over time.
+- **Support quality tracking** - use `replies=true` to see which reviews a company answers and how.
+- **Sentiment and topic analysis** - feed review `text` into a classifier, filtered by `language` or `search`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a company on Trustpilot and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

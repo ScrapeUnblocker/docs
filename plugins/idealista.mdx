@@ -1,0 +1,326 @@
+---
+title: "Idealista plugin"
+description: "idealista listings in Spain, Italy and Portugal as clean JSON - price, price drops, price per m², area, rooms, floor, photos and agency, plus one listing in full with features, energy rating and coordinates."
+sidebarTitle: "Idealista"
+---
+
+The **Idealista** plugin turns idealista, the property portal for Spain (idealista.com), Italy (idealista.it) and Portugal (idealista.pt), into structured JSON. It has two endpoints:
+
+- **Search** (`/realestate/idealista`) - give it a location the way idealista writes it in its URLs (or any idealista search URL) and get the listings back: price with currency and rent period, the original price and the drop in percent after a price cut, price per m², area, rooms, floor, lift, exterior and parking flags, description, tags, photos, plan, video and virtual tour flags, and the agency. Filter by sale or rent, property type, price and size, rooms, bathrooms and features, and collect up to 300 listings in one call.
+- **Listing detail** (`/realestate/idealista-detail`) - give it a listing id or URL and get the full listing: the price breakdown, every feature group idealista lists, bathrooms, year built, energy rating, description, address lines, coordinates, the photo gallery, floor plans and the advertiser.
+
+No idealista account or API key is needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Property search
+
+```
+POST /realestate/idealista
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `location` | yes | Location as idealista writes it in its URLs: a municipality (`madrid-madrid`, `barcelona-barcelona`, `milano-milano`, `lisboa`), a district (`madrid/centro`, `lisboa/arroios`) or a province (`malaga-provincia`). Not used when `url` is given. |
+| `url` | no | Any idealista search URL with its filters (idealista.com, .it or .pt). Overrides `location` and the filter fields. |
+| `country` | no | `es` (default, idealista.com), `it` (idealista.it) or `pt` (idealista.pt). |
+| `operation` | no | `sale` (default) or `rent`. |
+| `property_type` | no | `homes` (default), `new_homes`, `offices`, `premises`, `garages`, `lands`, `storage`, `buildings` or `rooms`. |
+| `min_price` / `max_price` | no | Price range in EUR (monthly rent with `operation=rent`). |
+| `min_size` / `max_size` | no | Area range in m². |
+| `rooms` | no | Comma-separated room counts, e.g. `2,3`. Bedrooms in Spain (`0` = studio ... `4` = four or more) and Portugal (T0 ... T4+); total rooms in Italy (`1` ... `5` = five or more). |
+| `bathrooms` | no | Comma-separated `1`, `2`, `3` (`3` = three or more). |
+| `features` | no | Comma-separated: `lift`, `terrace`, `balcony`, `garage`, `pool`, `garden`, `air_conditioning`, `storage_room`, `fitted_wardrobes`, `accessible`, `luxury`, `new_construction`, `good_condition`, `to_renovate`. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc`, `newest`, `oldest`, `size_asc`, `size_desc`, `price_per_m2_asc`, `price_per_m2_desc` or `biggest_drop`. |
+| `page` | no | 1-based results page to start from (30 listings per page, idealista shows at most 60 pages per search). Use `nextPage` from a previous response to continue. |
+| `max_results` | no | How many listings to collect across pages, `1`-`300`. Default `30`. Each page fetched is one billed request (`pagesFetched`). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/realestate/idealista?location=madrid-madrid&country=es&operation=rent&max_price=2000" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.idealista_search(
+    "madrid-madrid",
+    country="es",
+    operation="rent",
+    max_price=2000,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.idealistaSearch("madrid-madrid", {
+  country: "es",
+  operation: "rent",
+  maxPrice: 2000,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->idealistaSearch('madrid-madrid', [
+    'country' => 'es',
+    'operation' => 'rent',
+    'max_price' => 2000,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.idealista_search(
+  "madrid-madrid",
+  country: "es",
+  operation: "rent",
+  max_price: 2000
+)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "listings": [
+    {
+      "id": "112207707",
+      "url": "https://www.idealista.com/inmueble/112207707/",
+      "title": "Piso en Calle de Bailén, Palacio, Madrid",
+      "priceText": "1.650 €/mes",
+      "price": 1650,
+      "currency": "EUR",
+      "pricePeriod": "month",
+      "originalPrice": 1750,
+      "priceDropPercent": 6,
+      "rooms": 2,
+      "area": 75,
+      "floor": "1ª planta interior sin ascensor",
+      "lift": false,
+      "exterior": false,
+      "description": "VIDEO DISPONIBLE! Piso interior orientado a patio de luces, luminoso y muy tranquilo, amueblado (excepto cama...",
+      "images": [
+        "https://img4.idealista.com/blur/480_360_mq/0/id.pro.es.image.master/63/20/c2/1462248023.jpg"
+      ],
+      "imageCount": 19,
+      "multimedia": ["VIDEO"],
+      "agency": {
+        "name": "Madrid Alquila",
+        "url": "https://www.idealista.com/pro/madridalquila/",
+        "logo": "https://st3.idealista.com/be/e7/c2/madridalquila.gif"
+      },
+      "professional": true
+    }
+  ],
+  "resultsCollected": 30,
+  "totalResults": 4316,
+  "heading": "4.316 casas y pisos hasta 2.000 euros en alquiler en Madrid",
+  "page": 1,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "viewLimitReached": false,
+  "country": "es",
+  "searchUrl": "https://www.idealista.com/alquiler-viviendas/madrid-madrid/con-precio-hasta_2000/",
+  "query": {
+    "country": "es",
+    "operation": "rent",
+    "propertyType": "homes",
+    "location": "madrid-madrid",
+    "maxPrice": 2000,
+    "sort": "relevance"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` / `title` | idealista listing id, link and title. |
+| `price` / `priceText` / `currency` | Numeric price, the price as printed, and the currency (`EUR`). |
+| `pricePeriod` | `month` on rentals. |
+| `originalPrice` / `priceDropPercent` | The price before a cut and the drop in percent, when idealista shows a price cut. |
+| `pricePerM2` | Price per m², when idealista shows it on the card. |
+| `area` / `rooms` | Area in m² and room count. |
+| `floor` / `lift` / `exterior` | Floor line as printed, plus lift and exterior flags. |
+| `parking` | `included` or `optional`, when the card mentions parking. |
+| `description` | Listing description from the search card. |
+| `tags` | idealista's labels, e.g. `Alquiler de temporada` (seasonal rental). |
+| `images` / `imageCount` | Card photo and the total photo count. |
+| `multimedia` | Extra media on the listing: `PLAN`, `VIDEO`, `VIRTUAL_TOUR_3D`, `VIRTUAL_TOUR_360`. |
+| `agency` / `professional` | The agency (`name`, `url`, `logo`) and whether the advertiser is a professional. |
+
+The response also carries `totalResults`, the `heading` idealista shows, `page`, `nextPage` and `hasMore` for paging, `viewLimitReached` (true once the 60-page limit of a search is hit) and the `searchUrl` that was read. A search with no match answers `200` with an empty `listings`; an unknown location answers `404`.
+
+## Listing detail
+
+```
+POST /realestate/idealista-detail
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `listing` | yes | idealista listing id (`112207707`) or URL, e.g. `https://www.idealista.com/inmueble/112207707/`, `https://www.idealista.it/immobile/37068709/` or `https://www.idealista.pt/imovel/34868387/`. |
+| `country` | no | Country of a bare listing id: `es` (default), `it` or `pt`. Ignored for a URL. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/realestate/idealista-detail?listing=112207707&country=es" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.idealista_detail("112207707", country="es")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.idealistaDetail("112207707", { country: "es" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->idealistaDetail('112207707', ['country' => 'es']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.idealista_detail("112207707", country: "es")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "listing": {
+    "id": "112207707",
+    "url": "https://www.idealista.com/inmueble/112207707/",
+    "title": "Alquiler de piso en Calle de Bailén",
+    "locationLine": "Palacio, Madrid",
+    "operation": "rent",
+    "propertyType": "home",
+    "priceText": "1.650 €/mes",
+    "price": 1650,
+    "currency": "EUR",
+    "pricePeriod": "month",
+    "area": 75,
+    "rooms": 2,
+    "floor": "1ª planta interior sin ascensor",
+    "lift": false,
+    "exterior": false,
+    "features": [
+      {
+        "group": "Características básicas",
+        "items": ["75 m² construidos", "2 habitaciones", "1 baño"]
+      },
+      { "group": "Edificio", "items": ["1ª planta interior", "Sin ascensor"] }
+    ],
+    "bathrooms": 1,
+    "builtYear": 1900,
+    "energyRating": "E",
+    "energyConsumption": 276.9,
+    "priceDetails": {
+      "Precio del inmueble": "1.650 €/mes",
+      "Precio por m²": "22,00 €/m²",
+      "notes": ["Fianza de 1 mes"]
+    },
+    "pricePerM2": 22,
+    "description": "VIDEO DISPONIBLE! Piso interior orientado a patio de luces, luminoso y muy tranquilo, amueblado (excepto cama...",
+    "address": ["Calle de Bailén", "Barrio Palacio", "Distrito Centro"],
+    "locationApproximate": true,
+    "images": [
+      {
+        "url": "https://img4.idealista.com/blur/WEB_DETAIL/0/id.pro.es.image.master/63/20/c2/1462248023.jpg",
+        "caption": "Salón",
+        "width": 750,
+        "height": 673
+      }
+    ],
+    "multimediaCounts": { "PICTURE": 19, "VIDEO": 2 },
+    "coordinates": { "latitude": 40.4215657, "longitude": -3.7137121 },
+    "advertiser": {
+      "name": "Madrid Alquila",
+      "professionalName": "Madrid Alquila",
+      "reference": "5601",
+      "type": "Profesional",
+      "agencyUrl": "https://www.idealista.com/pro/madridalquila/",
+      "logo": "https://st3.idealista.com/be/e7/c2/madridalquila.gif"
+    },
+    "updated": "Anuncio actualizado el 13 de octubre",
+    "country": "es"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `title` / `locationLine` | Listing title and the neighbourhood line. |
+| `operation` / `propertyType` | `sale` or `rent`, and the property type. |
+| `price` / `priceText` / `currency` / `pricePeriod` | Price, as printed, currency and rent period. |
+| `originalPrice` / `priceDropPercent` | Price before a cut and the drop in percent, when shown. |
+| `priceDetails` | The price breakdown idealista shows (price, price per m², community fees, deposit notes). |
+| `pricePerM2` | Price per m². |
+| `area` / `usableArea` | Built and usable area in m². |
+| `rooms` / `bathrooms` | Room and bathroom counts. |
+| `floor` / `lift` / `exterior` | Floor line, lift and exterior flags. |
+| `builtYear` | Year built. |
+| `energyRating` / `energyConsumption` | Energy certificate rating and consumption. |
+| `features` | Every feature group idealista lists, as `group` + `items`. |
+| `description` | Full listing description. |
+| `address` | Address lines, from street to city. |
+| `coordinates` / `locationApproximate` | Map position; `locationApproximate` is `true` when the advertiser hid the exact spot. |
+| `images` / `floorPlans` | Photo gallery (`url`, `caption`, `width`, `height`) and floor plans. |
+| `multimediaCounts` | Number of photos, videos and other media. |
+| `advertiser` | Advertiser `name`, `type` as idealista labels it (e.g. `Profesional`), the advertiser's `reference`, and the agency page and logo for professionals. |
+| `updated` | idealista's "last updated" line. |
+
+A field idealista does not show for a listing is left out. A listing its advertiser removed answers `404`.
+
+## What you can build
+
+- **Rent and price indexes** - track price and price per m² by district across Spain, Italy and Portugal.
+- **Price-cut tracking** - sort by `biggest_drop` and follow `originalPrice` / `priceDropPercent` over time.
+- **Investment screening** - combine area, rooms, floor, energy rating and price per m² to rank listings.
+- **Listing enrichment** - read each search result in full through the detail endpoint for features, coordinates and floor plans.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an idealista search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

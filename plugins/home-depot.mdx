@@ -1,0 +1,134 @@
+---
+title: "Home Depot Search plugin"
+description: "Home Depot product search as clean JSON - item ID, title, brand, model number, price, original price, currency, rating, review count, image and a product link."
+sidebarTitle: "Home Depot Search"
+---
+
+The **Home Depot Search** plugin turns a Home Depot search into structured JSON. Give it a keyword and it returns the products Home Depot shows - each with its `itemId`, title, brand, model number, price and the original price when it is on sale, currency, star rating, review count, an image and a clean product URL - plus the total result count.
+
+Sort by relevance, price, rating or best sellers, filter by a USD price range, and collect up to `max_results` products across pages (about 24 per page) starting from any `page`.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/homedepot-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search, e.g. `cordless drill` or `interior paint`. |
+| `sort` | no | `relevance` (default), `price_low`, `price_high`, `top_rated` or `best_seller`. |
+| `min_price` / `max_price` | no | Price range in USD (whole dollars). |
+| `page` | no | 1-based page to start from (about 24 per page). Default `1`. |
+| `max_results` | no | How many products to collect across pages. Default `24`, max `500`. |
+| `proxy_country` | no | Proxy country (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/homedepot-search?query=cordless%20drill&max_price=150&max_results=24" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.homedepot_search("cordless drill", max_price=150, max_results=24)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.homedepotSearch("cordless drill", { maxPrice: 150, maxResults: 24 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->homedepotSearch('cordless drill', ['max_price' => 150, 'max_results' => 24]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.homedepot_search("cordless drill", max_price: 150, max_results: 24)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "cordless drill",
+  "sort": "relevance",
+  "resultsCollected": 24,
+  "totalResults": 231,
+  "products": [
+    {
+      "itemId": "204279858",
+      "title": "20V MAX Cordless 1/2 in. Drill/Driver, (2) 20V 1.3Ah Batteries, Charger and Bag",
+      "brand": "DEWALT",
+      "price": 119.0,
+      "currency": "USD",
+      "rating": 4.62,
+      "reviewCount": 11402,
+      "image": "https://images.thdstatic.com/productImages/d00a1384-69ea-4f77-a5c3-c0ac8fd531fa/svn/dewalt-power-drills-dcd771c2-64_600.jpg",
+      "url": "https://www.homedepot.com/p/DEWALT-20V-MAX-Cordless-1-2-in-Drill-Driver-2-20V-1-3Ah-Batteries-Charger-and-Bag-DCD771C2/204279858",
+      "modelNumber": "DCD771C2"
+    },
+    {
+      "itemId": "317987598",
+      "title": "ONE+ 18V Cordless 1/2 in. Drill/Driver Kit with (1) Compact Battery and Charger",
+      "brand": "RYOBI",
+      "price": 89.0,
+      "currency": "USD",
+      "rating": 4.67,
+      "reviewCount": 4228,
+      "image": "https://images.thdstatic.com/productImages/059fa03e-f40f-4e9c-a224-0af4b56efa9a/svn/ryobi-power-drills-pcl206k1-64_600.jpg",
+      "url": "https://www.homedepot.com/p/RYOBI-ONE-18V-Cordless-1-2-in-Drill-Driver-Kit-with-1-Compact-Battery-and-Charger-PCL206K1/317987598",
+      "modelNumber": "PCL206K1"
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `itemId` | Home Depot's internal item id, the last segment of the product URL. |
+| `title` / `brand` | Product title and brand. |
+| `modelNumber` | Manufacturer model number, handy for matching the same product across retailers. |
+| `price` / `currency` | Current price and ISO currency (USD). |
+| `originalPrice` | The price before a markdown, present only when the product is on sale. |
+| `rating` / `reviewCount` | Star rating (out of 5) and number of reviews. |
+| `image` / `url` | Product image and a clean product URL. |
+
+A field with no value is left out of that product (for example `brand`, `modelNumber` or `originalPrice`).
+
+## What you can build
+
+- **Price monitoring** - track prices and markdowns for tools, appliances and building materials.
+- **Cross-retailer matching** - match products to other stores by `modelNumber` and compare prices.
+- **Assortment research** - see which brands and models Home Depot carries for a category.
+- **Review signals** - rank products by `rating` and `reviewCount` for buying guides.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Home Depot search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

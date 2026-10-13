@@ -1,0 +1,274 @@
+---
+title: "Yelp Local plugin"
+description: "Yelp local businesses as clean JSON - search by term and location for name, rating, review count, price tier, categories, address and hours, or fetch one business with phone, website, attributes, photos and popular dishes."
+sidebarTitle: "Yelp Local"
+---
+
+The **Yelp Local** plugin returns Yelp business data as structured JSON. It has two methods:
+
+- **Search** - a term and a location, such as `coffee` in `San Francisco, CA`, returns the businesses Yelp lists: name, rating, review count, price tier, categories, address, neighborhood, this week's hours, a review snippet and a clean business link. Filter by sort, price and open-now, and collect up to 240 across pages (10 per page).
+- **Business** - a business URL returns one place in full: phone, address, website, menu link, opening hours, attributes, specialties, review highlights, photos and popular dishes.
+
+To read a business's reviews, use [Yelp Reviews](/plugins/yelp-reviews) with the `businessId` or `url` from these results.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /local/yelp
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `search` by `yelpSearch`. In a raw request `search` is the default. |
+| `find_desc` | yes | Search keyword or category, e.g. `coffee` or `plumbers`. |
+| `find_loc` | yes | Location to search, e.g. `San Francisco, CA` or `94109`. |
+| `sort` | no | `recommended` (default), `rating`, `review_count` or `distance`. |
+| `price` | no | Price tier `1`-`4` (`$` to `$$$$`); combine like `1,2`. |
+| `open_now` | no | `true` keeps only businesses open now. Default `false`. |
+| `max_results` | no | How many businesses to collect across pages (10 per page), `1`-`240`. Default `30`. |
+| `start` | no | Result offset to start from. Default `0`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). Defaults to `US`. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/local/yelp?mode=search&find_desc=coffee&find_loc=San%20Francisco%2C%20CA&sort=rating&max_results=10" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.yelp_search("coffee", "San Francisco, CA", sort="rating", max_results=10)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.yelpSearch("coffee", "San Francisco, CA", { sort: "rating", maxResults: 10 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->yelpSearch('coffee', 'San Francisco, CA', ['sort' => 'rating', 'max_results' => 10]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.yelp_search("coffee", "San Francisco, CA", sort: "rating", max_results: 10)
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "search",
+  "find_desc": "coffee",
+  "find_loc": "San Francisco, CA",
+  "totalResults": 240,
+  "resultsCollected": 10,
+  "businesses": [
+    {
+      "businessId": "IU26nUYu6-BS6z5LXpNAxQ",
+      "isAd": true,
+      "image": "https://s3-media0.fl.yelpcdn.com/bphoto/RuC5Pm0g2OiRIeIO8Y5h3Q/ls.jpg",
+      "name": "Starbucks",
+      "rating": 3,
+      "reviewCount": 249,
+      "priceRange": "$",
+      "alias": "starbucks-san-francisco-166",
+      "url": "https://www.yelp.com/biz/starbucks-san-francisco-166",
+      "categories": ["Coffee & Tea"],
+      "address": "1390 Market St",
+      "city": "San Francisco",
+      "neighborhoods": ["Civic Center"],
+      "hoursCurrentWeek": { "Mon": ["05:00-20:00"], "Sat": ["05:00-19:00"], "Sun": ["05:00-19:00"] }
+    },
+    {
+      "businessId": "DEeNWVfCf-OTpS77ZRNPPw",
+      "isAd": false,
+      "image": "https://s3-media0.fl.yelpcdn.com/bphoto/CcDbweDW_ENnM1zlZqAcKg/ls.jpg",
+      "reviewSnippet": "I'm usually not a fan of getting matcha at coffee shops but I was pleasantly surprised and enjoyed...",
+      "name": "Binge Coffee House",
+      "rating": 4.8,
+      "reviewCount": 168,
+      "alias": "binge-coffee-house-san-francisco",
+      "url": "https://www.yelp.com/biz/binge-coffee-house-san-francisco",
+      "categories": ["Bubble Tea", "Vietnamese", "Coffee & Tea"],
+      "address": "530 Valencia St",
+      "city": "San Francisco",
+      "neighborhoods": ["Mission"],
+      "hoursCurrentWeek": { "Mon": ["09:00-18:00"], "Fri": ["09:00-20:00"], "Sun": ["09:00-19:00"] }
+    }
+  ],
+  "query": { "sort": "rating", "price": null, "open_now": false }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `businessId` / `alias` / `url` | Yelp's business id, its alias and a clean `/biz/` link. Pass any of them to [Yelp Reviews](/plugins/yelp-reviews), or the `url` to [Business](#business). |
+| `isAd` | `true` for sponsored results Yelp places in the list; filter them out if you want organic results only. |
+| `name` / `rating` / `reviewCount` | Business name, star rating (out of 5) and number of reviews. |
+| `priceRange` | `$` to `$$$$`, left out when Yelp shows none. |
+| `categories` | Yelp categories. |
+| `address` / `city` / `neighborhoods` | Street address, city and neighborhoods. |
+| `hoursCurrentWeek` | This week's opening hours per day, as `HH:MM-HH:MM` ranges. |
+| `reviewSnippet` / `image` | The review excerpt Yelp shows on the card, and the main photo. |
+
+`totalResults` is how many businesses Yelp matched; page further with `start`.
+
+## Business
+
+```
+POST /local/yelp
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `detail` by `yelpBusiness`. In a raw request send `mode=detail`. |
+| `url` | yes | A Yelp business URL or `/biz/` alias, e.g. `https://www.yelp.com/biz/gary-danko-san-francisco`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). Defaults to `US`. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/local/yelp?mode=detail&url=https%3A%2F%2Fwww.yelp.com%2Fbiz%2Fgary-danko-san-francisco" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.yelp_business("https://www.yelp.com/biz/gary-danko-san-francisco")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.yelpBusiness("https://www.yelp.com/biz/gary-danko-san-francisco");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->yelpBusiness('https://www.yelp.com/biz/gary-danko-san-francisco');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.yelp_business("https://www.yelp.com/biz/gary-danko-san-francisco")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "detail",
+  "business": {
+    "businessId": "WavvLdfdP6g8aZTtbBQHTw",
+    "name": "Gary Danko",
+    "rating": 4.5,
+    "reviewCount": 6150,
+    "alias": "gary-danko-san-francisco",
+    "url": "https://www.yelp.com/biz/gary-danko-san-francisco",
+    "priceRange": "$$$$",
+    "phone": "(406) 626-8866",
+    "address": "800 N Point St, San Francisco, CA 94109",
+    "street": "800 N Point St",
+    "city": "San Francisco",
+    "state": "CA",
+    "zipCode": "94109",
+    "neighborhoods": ["Russian Hill", "Fisherman's Wharf"],
+    "country": "US",
+    "timezone": "America/Los_Angeles",
+    "categories": ["New American", "French", "Cocktail Bars"],
+    "website": "http://garydanko.com",
+    "menuUrl": "https://garydanko.com/wp-content/uploads/garydanko/main-menu-9.3.26.pdf",
+    "isOpenNow": false,
+    "hours": {
+      "Mon": ["5:00 PM - 10:00 PM"],
+      "Tue": ["Closed"],
+      "Wed": ["Closed"],
+      "Thu": ["5:00 PM - 10:00 PM"]
+    },
+    "isPermanentlyClosed": false,
+    "attributes": [
+      { "name": "Takes reservations", "active": true },
+      { "name": "Walk-ins welcome", "active": true },
+      { "name": "Offers delivery", "active": false }
+    ],
+    "specialties": "Twenty-six years after opening its doors in San Francisco's iconic Fisherman's Wharf neighborhood, Restaurant Gary Danko continues to refine...",
+    "summary": "Fine dining with customizable menus and a romantic ambiance.",
+    "reviewHighlights": [
+      "I always come hungry and get 5 courses with the risotto, filet, duck, and chocolate soufflé as my go-to's."
+    ],
+    "primaryPhoto": "https://s3-media0.fl.yelpcdn.com/bphoto/5dbjkeTld05HumeToIAhRQ/l.jpg",
+    "photos": [
+      "https://s3-media0.fl.yelpcdn.com/bphoto/5dbjkeTld05HumeToIAhRQ/l.jpg",
+      "https://s3-media0.fl.yelpcdn.com/bphoto/cuDqiIhTuLs-AI0PVeiGwQ/l.jpg"
+    ],
+    "popularDishes": ["Roast Maine Lobster", "Lemon Pepper Duck Breast", "Seared Filet of Beef"],
+    "monthlySearchCount": 188194,
+    "isYelpAdvertiser": false,
+    "yelpGuaranteed": false
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `phone` / `website` / `menuUrl` | Phone number as Yelp lists it, the business website and its menu link. |
+| `address` / `street` / `city` / `state` / `zipCode` / `country` / `timezone` | Full address, its parts, and the local time zone. |
+| `hours` / `isOpenNow` / `isPermanentlyClosed` | Opening hours per day, open-now and permanently-closed flags. |
+| `attributes` | Yelp's amenities and attributes, each with `name` and `active`. |
+| `specialties` / `summary` | The owner's "Specialties" text and Yelp's one-line summary. |
+| `reviewHighlights` | Short highlight sentences Yelp pulls from reviews. |
+| `primaryPhoto` / `photos` | Main photo and more photos. |
+| `popularDishes` | Dishes Yelp lists as popular. |
+| `monthlySearchCount` / `isYelpAdvertiser` / `yelpGuaranteed` | Yelp's monthly search count, advertiser flag and Yelp Guaranteed flag, as Yelp shows them. |
+
+## What you can build
+
+- **Local lead generation** - list businesses for a category and city with phone, website and address.
+- **Market and location research** - compare ratings, review counts and price tiers across a neighborhood.
+- **Business data enrichment** - add hours, attributes, photos and popular dishes to your own listings.
+- **Review pipelines** - feed each `businessId` into [Yelp Reviews](/plugins/yelp-reviews) for the full review text.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Yelp search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

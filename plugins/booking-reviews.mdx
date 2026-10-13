@@ -1,0 +1,165 @@
+---
+title: "Booking.com Reviews plugin"
+description: "Booking.com hotel reviews as clean JSON - the newest 15 reviews per language in up to 18 languages, each with date, score, rating band, liked and disliked text, reviewer country, trip type, nights and stay month."
+sidebarTitle: "Booking.com Reviews"
+---
+
+The **Booking.com Reviews** plugin returns a Booking.com hotel's newest guest reviews as structured JSON. Give it a hotel page URL (or the short `<cc>/<slug>` form, such as `gb/the-savoy`) and it returns each review's date, score out of 10 with Booking's score word and a rating band, title, what the guest liked and disliked, the reviewer's name and country, trip and traveler type, nights, month of stay, helpful votes and language.
+
+Booking serves the **newest 15 reviews written in each language**. Pick the languages with `languages` (18 to choose from, or `all` for up to 270 reviews), cap the total with `max_results` and drop older reviews with `since`. That makes it a fit for monitoring new reviews and multilingual sentiment, not for downloading a hotel's full review history. Each language read is one billed unit (`pagesFetched`).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Hotel reviews
+
+```
+POST /travel/booking-reviews
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `hotel` | yes | Booking.com hotel page URL, e.g. `https://www.booking.com/hotel/fr/le-meurice.html` (a locale suffix such as `.en-gb.html` and query parameters are fine), or `<cc>/<slug>` such as `fr/le-meurice`. |
+| `languages` | no | Review languages, comma-separated, or `all`: `en`, `de`, `fr`, `es`, `it`, `nl`, `pt`, `pl`, `ru`, `ja`, `zh`, `ko`, `sv`, `da`, `no`, `fi`, `cs`, `tr`. Default `en`. Read in the order given until `max_results` is reached; each language is one billed unit. |
+| `max_results` | no | How many reviews to return across languages, `1`-`270` (at most 15 per language). Default `15`. |
+| `since` | no | Only reviews written on or after this date (`YYYY-MM-DD`). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/travel/booking-reviews?hotel=https%3A%2F%2Fwww.booking.com%2Fhotel%2Fgb%2Fthe-savoy.html&languages=en,de&max_results=30" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.booking_reviews("https://www.booking.com/hotel/gb/the-savoy.html", languages="en,de", max_results=30)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.bookingReviews("https://www.booking.com/hotel/gb/the-savoy.html", { languages: "en,de", maxResults: 30 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->bookingReviews('https://www.booking.com/hotel/gb/the-savoy.html', ['languages' => 'en,de', 'max_results' => 30]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.booking_reviews("https://www.booking.com/hotel/gb/the-savoy.html", languages: "en,de", max_results: 30)
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "hotel": {
+    "url": "https://www.booking.com/hotel/gb/the-savoy.html",
+    "countryCode": "gb",
+    "slug": "the-savoy"
+  },
+  "reviews": [
+    {
+      "id": "2e0f2f561783aa35",
+      "language": "en",
+      "reviewDate": "2026-10-10",
+      "reviewDateText": "Reviewed: October 10, 2026",
+      "rating": 9.0,
+      "ratingText": "Wonderful",
+      "ratingBand": "superb",
+      "title": null,
+      "positiveText": "All the staff behaved in a professional manner, always put the customer first",
+      "negativeText": "The late timing of cleaning the suites, staff would turn up at about 5pm, to clean the room...",
+      "reviewer": { "name": "Ann", "country": "United Kingdom", "countryCode": "GB" },
+      "tripType": "leisure",
+      "travelerType": "solo",
+      "nights": 3,
+      "stayMonth": "2026-10",
+      "stayText": "Stayed in October 2026",
+      "helpfulVotes": 2,
+      "submittedFromMobile": true,
+      "tags": ["Leisure trip", "Solo traveler", "Stayed 3 nights", "Submitted from a mobile device"]
+    },
+    {
+      "id": "755717066e20eec1",
+      "language": "de",
+      "reviewDate": "2026-05-25",
+      "reviewDateText": "Bewertung abgegeben: 25. Mai 2026",
+      "rating": 8.0,
+      "ratingText": null,
+      "ratingBand": "very_good",
+      "title": "Es ist ein tolles Hotel mit dem besten Service, den ich jemals hatte.",
+      "positiveText": "Die Lage des Hotels kann nicht besser sein, das Service ist top! Die Ausstattung ist sehr edel...",
+      "negativeText": null,
+      "reviewer": { "name": "Petra", "country": "Österreich", "countryCode": "AT" },
+      "tripType": "leisure",
+      "travelerType": "couple",
+      "nights": 3,
+      "stayMonth": "2026-05",
+      "stayText": "Übernachtet am Mai 2026",
+      "helpfulVotes": 0,
+      "submittedFromMobile": false,
+      "tags": ["Urlaub", "Paar", "Länge des Aufenthalts: 3 Nächte"]
+    }
+  ],
+  "resultsCollected": 25,
+  "languages": [
+    { "language": "en", "status": "ok", "reviewsFound": 15, "capped": true },
+    { "language": "de", "status": "ok", "reviewsFound": 10, "capped": false }
+  ],
+  "pagesFetched": 2,
+  "since": null
+}
+```
+
+### Review fields
+
+| Field | Notes |
+| --- | --- |
+| `id` / `language` | Review id and the language it was written in. |
+| `reviewDate` / `reviewDateText` | Review date (`YYYY-MM-DD`) and Booking's own date line, in the review's language. |
+| `rating` / `ratingText` / `ratingBand` | Score out of 10, Booking's score word when shown (e.g. `Wonderful`), and a band from `exceptional` down to `very_poor`. |
+| `title` / `positiveText` / `negativeText` | Review title and what the guest liked and disliked. Any of them can be `null`. |
+| `reviewer` | Reviewer `name` (as Booking shows it), `country` and ISO `countryCode`. |
+| `tripType` / `travelerType` | E.g. `leisure`; `solo`, `couple`, `family` and similar. |
+| `nights` / `stayMonth` / `stayText` | Nights stayed, month of the stay (`YYYY-MM`) and Booking's stay line. |
+| `helpfulVotes` / `submittedFromMobile` | Helpful votes and whether the review was written on a phone. |
+| `tags` | Booking's raw review tags, in the review's language. |
+
+The top-level `languages` array reports each language read: `status`, `reviewsFound`, and `capped: true` when Booking holds older reviews in that language than the 15 it serves. The response holds the reviews only - not the hotel's name or overall score; use the [Booking.com Hotels](/plugins/booking) plugin for those.
+
+## What you can build
+
+- **New-review monitoring** - poll a hotel daily with `since` and alert on low scores or new complaints in `negativeText`.
+- **Multilingual sentiment** - read the newest reviews in every language with `languages=all` and compare what each market likes.
+- **Competitive benchmarking** - track the latest scores and rating bands of competing hotels.
+- **Guest-mix analysis** - break recent reviews down by `travelerType`, `tripType`, reviewer country and length of stay.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Booking.com reviews lookup and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

@@ -1,0 +1,211 @@
+---
+title: "Similarweb plugin"
+description: "Similarweb's traffic overview for any website as clean JSON - global, country and category rank, monthly visits and their trend, engagement, traffic sources, top countries, demographics, similar sites, search keywords and the company profile."
+sidebarTitle: "Similarweb"
+---
+
+The **Similarweb** plugin returns Similarweb's public traffic overview for a website as structured JSON. Give it a domain, any URL on the site or a Similarweb page URL, and you get the global, country and category rank with their monthly change, total visits for the latest month and the change, bounce rate, pages per visit and average visit duration, visits and ranks for the last three months, the traffic-source split, top countries, gender and age groups, similar sites with their affinity, the organic and paid search split with top keywords, top social networks, referring sites, outgoing links, display-ad publishers, technologies, audience interests and the company profile.
+
+The figures are Similarweb's own estimates, as its free website page shows them to signed-out visitors, and `snapshotDate` names the month they describe. No Similarweb account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Website overview
+
+```
+POST /seo/similarweb
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `domain` | yes | Website to look up: a bare domain (`github.com`), a URL (`https://www.github.com/about`) or a Similarweb page URL. A leading `www.` is dropped; other subdomains (`docs.python.org`) are kept, because Similarweb tracks them separately. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Optional. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/seo/similarweb?domain=github.com" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.similarweb_overview("github.com")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.similarwebOverview("github.com");
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->similarwebOverview('github.com');
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.similarweb_overview("github.com")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "domain": "github.com",
+  "found": true,
+  "hasTrafficData": true,
+  "url": "https://www.similarweb.com/website/github.com/",
+  "snapshotDate": "2026-09-01",
+  "description": "Join the world's most widely adopted, AI-powered developer platform where millions of developers, businesses...",
+  "category": "computers_electronics_and_technology/programming_and_developer_software",
+  "icon": "https://site-images.similarcdn.com/image?url=github.com&t=2&s=1&h=6525c30f1af9ea5e...",
+  "globalRank": 45,
+  "globalRankChange": 5,
+  "country": "US",
+  "countryRank": 77,
+  "countryRankChange": 4,
+  "categoryRank": 4,
+  "categoryRankChange": 0,
+  "totalVisits": 645466516,
+  "visitsChangePercent": -0.59,
+  "bounceRate": 0.3644,
+  "pagesPerVisit": 5.69,
+  "avgVisitDuration": "00:06:27",
+  "avgVisitDurationSeconds": 387,
+  "visitsHistory": [
+    { "month": "2026-07", "visits": 637885711, "changePercent": 3.68 },
+    { "month": "2026-08", "visits": 649321442, "changePercent": 1.79 },
+    { "month": "2026-09", "visits": 645466516, "changePercent": -0.59 }
+  ],
+  "rankHistory": [
+    { "month": "2026-08", "globalRank": 50, "countryRank": 81, "categoryRank": 4 },
+    { "month": "2026-09", "globalRank": 45, "countryRank": 77, "categoryRank": 4 }
+  ],
+  "trafficSources": [
+    { "source": "direct", "share": 0.5331, "rank": 1 },
+    { "source": "organic", "share": null, "rank": 2 },
+    { "source": "gen_ai", "share": null, "rank": null }
+  ],
+  "countriesTotal": 105,
+  "topCountries": [
+    { "countryCode": "US", "share": 0.1873, "shareChange": 0.0062 },
+    { "countryCode": "CN", "share": 0.1183, "shareChange": 0.0137 }
+  ],
+  "demographics": {
+    "male": 0.6978,
+    "female": 0.3022,
+    "ageGroups": [
+      { "minAge": 18, "maxAge": 24, "share": 0.2751 },
+      { "minAge": 65, "maxAge": null, "share": 0.0335 }
+    ]
+  },
+  "competitors": [
+    {
+      "domain": "stackoverflow.com",
+      "category": "computers_electronics_and_technology/programming_and_developer_software",
+      "categoryRank": 94,
+      "affinity": 1.0,
+      "icon": "https://site-images.similarcdn.com/image?url=stackoverflow.com&t=2&s=1&h=04179ebf..."
+    }
+  ],
+  "search": {
+    "organicShare": 0.9996,
+    "paidShare": 0.0004,
+    "keywordsTotal": 2300400,
+    "topKeywords": [
+      { "keyword": "github", "cpc": 1.62, "volume": null, "estimatedValue": null },
+      { "keyword": "github desktop", "cpc": 2.25, "volume": null, "estimatedValue": null }
+    ]
+  },
+  "socialNetworks": { "total": 61, "top": [{ "name": "Youtube", "share": 0.44 }, { "name": "Reddit", "share": 0.2706 }] },
+  "referrals": {
+    "total": 926,
+    "topSites": [
+      { "domain": null, "share": 0.0463, "locked": true },
+      { "domain": "ycombinator.com", "share": 0.0184, "locked": false }
+    ],
+    "topCategories": [{ "category": "Computers_Electronics_and_Technology/Programming_and_Developer_Software", "share": 0.2764 }]
+  },
+  "outgoingLinks": {
+    "total": 784,
+    "topSites": [{ "domain": "raw.githubusercontent.com", "share": 0.02, "locked": false }],
+    "topCategories": [{ "category": "Computers_Electronics_and_Technology/Search_Engines", "share": 0.1677 }]
+  },
+  "displayAds": { "publishersTotal": 772, "networksTotal": 9, "topPublishers": [{ "domain": null, "share": 0.3618, "locked": true }] },
+  "technologies": {
+    "total": 148,
+    "categoriesTotal": 20,
+    "categories": [{ "category": "conversion_and_analytics", "topTechnology": "Google Analytics", "technologiesCount": 6 }]
+  },
+  "audienceInterests": {
+    "topics": ["news", "games", "software"],
+    "categories": ["games/video_games_consoles_and_accessories"],
+    "websites": ["google.com", "reddit.com", "youtube.com"]
+  },
+  "company": {
+    "name": "GitHub",
+    "yearFounded": 2008,
+    "headquartersCountry": "US",
+    "headquartersCity": "San Francisco",
+    "employeesMin": 501,
+    "employeesMax": 1000,
+    "revenueMin": 1000000000,
+    "revenueMax": null,
+    "revenueCurrency": null,
+    "parentDomain": "github.com"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `found` / `hasTrafficData` | `found: false` when Similarweb has no page for the domain (the other keys come back `null` or empty). `hasTrafficData: false` when Similarweb tracks the site but finds it too small to estimate. |
+| `snapshotDate` | The month the figures describe. |
+| `globalRank` / `countryRank` / `categoryRank` | Ranks, with `country` and `category` naming the country and category. The `...Change` fields are the month-over-month move; positive means the site moved up (the rank number fell). |
+| `totalVisits` / `visitsChangePercent` | Estimated visits in the latest month and the change from the month before, in percent. |
+| `bounceRate` / `pagesPerVisit` / `avgVisitDuration` | Engagement. `bounceRate` is a 0-1 share; `avgVisitDuration` is `HH:MM:SS`, also given in seconds as `avgVisitDurationSeconds`. |
+| `visitsHistory` / `rankHistory` | Visits and ranks for each of the last three months. |
+| `trafficSources` | Channel shares (direct, organic, referrals, social, mail, ads and more). Similarweb's free page reveals only some of them; the rest come back with `share: null`. |
+| `topCountries` | Top countries by share of visits, with the change in share; `countriesTotal` counts all countries. |
+| `demographics` | Gender split and age groups (`maxAge: null` for the open-ended oldest group). |
+| `competitors` | Similar sites with their category, category rank and `affinity` (0-1). |
+| `search` | Organic and paid share of search traffic, the keyword count and top keywords with CPC. |
+| `referrals` / `outgoingLinks` / `displayAds` / `socialNetworks` | Top referring sites, sites the visitors go to next, display-ad publishers and social networks, with shares. Entries Similarweb keeps for paying users come back with `domain: null` and `locked: true`. |
+| `technologies` / `audienceInterests` | Technology categories detected on the site, and the topics, categories and sites its audience also visits. |
+| `company` | Founding year, headquarters, employee and revenue range and the parent domain, when Similarweb has them. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Missing or malformed `domain` or `proxy_country`. |
+| `502` | Similarweb blocked the request, would not show the data, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Competitor benchmarking** - compare visits, engagement and channel mix across a set of rival sites every month.
+- **Market and investment research** - track a company's web traffic trend as a growth signal.
+- **Lead scoring** - enrich a list of domains with traffic, country and company size before outreach.
+- **Partnership and media planning** - find sites with an overlapping audience through `competitors` and `referrals`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a website on Similarweb and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

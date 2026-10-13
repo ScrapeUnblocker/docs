@@ -1,0 +1,523 @@
+---
+title: "Coles plugin"
+description: "Coles Australia groceries as clean JSON - search, category and specials listings with price, was-price, unit price, promotions and stock, and one product in full with ingredients, allergens and nutrition."
+sidebarTitle: "Coles"
+---
+
+The **Coles** plugin returns Coles Australia (coles.com.au) grocery data as structured JSON. One endpoint covers four methods: **search** by keyword, list a **category**, list the products on **special** (all deals, or only half-price, multibuy or online-only), or fetch one **product** in full with its ingredients, allergens and nutrition panel.
+
+Every product carries its id, name, brand, size and link, the price with any was-price and saving, the promotion, the unit price, stock with the quantity available, purchase and promotional limits, its categories and the minimum shelf life. Prices are Coles' online prices in AUD. Listings return 48 products per page; `max_results` collects up to 480 across pages, and each page fetched is one billed unit (`pagesFetched`).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+<Note>
+Coles serves its site only to Australia, New Zealand, the US and Canada, so `proxy_country` accepts `AU`, `NZ`, `US` or `CA`; any other country is rejected. Leave it blank and the plugin picks one of them for you.
+</Note>
+
+## Search
+
+Products matching a keyword.
+
+```
+POST /groceries/coles
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `search` by `colesSearch`. In a raw request `search` is the default. |
+| `query` | yes | What to search for, e.g. `milk`, `tim tam` or `chicken breast`. |
+| `special` | no | Keep only products on special: `all`, `half-price`, `multibuy` or `online-only`. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc` or `unit_price_asc`. |
+| `page` | no | 1-based listing page to start from (48 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`480`. Default `48`. Each page fetched is one billed unit. |
+| `proxy_country` | no | `AU`, `NZ`, `US` or `CA`. Leave blank to spread over all of them. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/coles?mode=search&query=tim%20tam&sort=unit_price_asc" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.coles_search("tim tam", sort="unit_price_asc")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.colesSearch("tim tam", { sort: "unit_price_asc" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->colesSearch('tim tam', ['sort' => 'unit_price_asc']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.coles_search("tim tam", sort: "unit_price_asc")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "search",
+  "query": "tim tam",
+  "category": null,
+  "special": null,
+  "sort": "unit_price_asc",
+  "totalResults": 12,
+  "totalPages": 1,
+  "page": 1,
+  "pageSize": 48,
+  "nextPage": null,
+  "resultsCollected": 12,
+  "products": [
+    {
+      "id": "6025536",
+      "name": "Tim Tam Chocolate Biscuits Dark",
+      "brand": "Arnott's",
+      "size": "200g",
+      "url": "https://www.coles.com.au/product/arnott-s-tim-tam-chocolate-biscuits-dark-200g-6025536",
+      "barcode": null,
+      "price": 3.6,
+      "wasPrice": 6.0,
+      "currency": "AUD",
+      "onSale": true,
+      "savings": 2.4,
+      "promotion": { "type": "special", "text": "save $2.40", "specialType": null },
+      "unitPrice": { "price": 1.8, "per": "100g", "text": "$1.80/ 100g" },
+      "priceDescription": null,
+      "inStock": true,
+      "available": true,
+      "availableQuantity": 603,
+      "purchaseLimit": 20,
+      "promotionalLimit": 12,
+      "onlineOnly": false,
+      "sponsored": false,
+      "image": "https://cdn.productimages.coles.com.au/productimages/6/6025536.jpg",
+      "categories": ["Chips, Chocolates & Snacks", "Biscuits & Cookies", "Chocolate Biscuits"],
+      "minimumShelfLife": null
+    }
+  ],
+  "pagesFetched": 1,
+  "didYouMean": null
+}
+```
+
+The search, category and specials methods return the same product objects:
+
+| Field | Notes |
+| --- | --- |
+| `id` | Coles product id. Pass it to [Product](#product). |
+| `name` / `brand` / `size` / `url` | Product name, brand, pack size and product page link. |
+| `barcode` | EAN barcode. Listings usually carry `null`; [Product](#product) fills it. |
+| `price` / `wasPrice` / `savings` | Current price, the struck-through price and the saving, in AUD. `null` when Coles shows none. |
+| `onSale` / `promotion` | Whether the product is on special, and the deal: `type` (`half_price`, `special`, `multibuy` or `offer`) and `text`; multibuy deals add `quantity` and `price`. |
+| `priceDescription` | Coles' price label when it has one, e.g. `1/2 Price`. |
+| `unitPrice` | Price per unit: `price`, `per` (e.g. `1l`, `100g`) and the label `text`. |
+| `inStock` / `available` / `availableQuantity` | Stock and availability flags, and the quantity Coles reports as available. |
+| `purchaseLimit` / `promotionalLimit` | Maximum per order, and maximum at the promotional price. |
+| `onlineOnly` / `sponsored` | Online-only deal and sponsored placement flags. |
+| `image` / `categories` / `minimumShelfLife` | Product image URL, its categories, and Coles' minimum shelf life label (e.g. `Life 7 days min`). |
+
+`totalResults`, `totalPages` and `nextPage` page through the rest; pass `nextPage` as `page` to continue. `didYouMean` carries Coles' spelling suggestion when it has one.
+
+## Category
+
+One category listing, such as Milk or Bakery.
+
+```
+POST /groceries/coles
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `category` by `colesCategory`. In a raw request it is implied when `category` is given. |
+| `category` | yes | A browse link (`https://www.coles.com.au/browse/dairy-eggs-fridge/milk`) or its path (`dairy-eggs-fridge/milk`). |
+| `special` | no | Keep only products on special: `all`, `half-price`, `multibuy` or `online-only`. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc` or `unit_price_asc`. |
+| `page` | no | 1-based listing page to start from (48 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`480`. Default `48`. Each page fetched is one billed unit. |
+| `proxy_country` | no | `AU`, `NZ`, `US` or `CA`. Leave blank to spread over all of them. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/coles?mode=category&category=dairy-eggs-fridge/milk&sort=price_asc" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.coles_category("dairy-eggs-fridge/milk", sort="price_asc")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.colesCategory("dairy-eggs-fridge/milk", { sort: "price_asc" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->colesCategory('dairy-eggs-fridge/milk', ['sort' => 'price_asc']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.coles_category("dairy-eggs-fridge/milk", sort: "price_asc")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "category",
+  "query": null,
+  "category": {
+    "path": ["dairy-eggs-fridge", "milk"],
+    "url": "https://www.coles.com.au/browse/dairy-eggs-fridge/milk"
+  },
+  "special": null,
+  "sort": "price_asc",
+  "totalResults": 198,
+  "totalPages": 5,
+  "page": 1,
+  "pageSize": 48,
+  "nextPage": 2,
+  "resultsCollected": 48,
+  "products": [
+    {
+      "id": "6759482",
+      "name": "Full Cream Milk",
+      "brand": "Coles",
+      "size": "600mL",
+      "url": "https://www.coles.com.au/product/coles-full-cream-milk-600ml-6759482",
+      "barcode": null,
+      "price": 1.4,
+      "wasPrice": null,
+      "currency": "AUD",
+      "onSale": false,
+      "savings": null,
+      "promotion": null,
+      "unitPrice": { "price": 2.33, "per": "1l", "text": "$2.33/ 1L" },
+      "priceDescription": null,
+      "inStock": true,
+      "available": true,
+      "availableQuantity": 24,
+      "purchaseLimit": 20,
+      "promotionalLimit": 12,
+      "onlineOnly": false,
+      "sponsored": false,
+      "image": "https://cdn.productimages.coles.com.au/productimages/6/6759482.jpg",
+      "categories": ["Dairy, Eggs & Fridge", "Milk", "Full Cream Milk"],
+      "minimumShelfLife": "Life 7 days min"
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `category` | The resolved category: its `path` segments and browse `url`. |
+| `products` | Product objects with the fields listed under [Search](#search). |
+
+## Specials
+
+The products on special across the store, optionally narrowed to one kind of deal.
+
+```
+POST /groceries/coles
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `specials` by `colesSpecials`. In a raw request send `mode=specials`. |
+| `special` | no | `all` (default), `half-price`, `multibuy` or `online-only`. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc` or `unit_price_asc`. |
+| `page` | no | 1-based listing page to start from (48 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`480`. Default `48`. Each page fetched is one billed unit. |
+| `proxy_country` | no | `AU`, `NZ`, `US` or `CA`. Leave blank to spread over all of them. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/coles?mode=specials&special=half-price" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.coles_specials(special="half-price")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.colesSpecials({ special: "half-price" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->colesSpecials(['special' => 'half-price']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.coles_specials(special: "half-price")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "specials",
+  "query": null,
+  "category": null,
+  "special": "half-price",
+  "sort": "relevance",
+  "totalResults": 1421,
+  "totalPages": 30,
+  "page": 1,
+  "pageSize": 48,
+  "nextPage": 2,
+  "resultsCollected": 48,
+  "products": [
+    {
+      "id": "7848420",
+      "name": "Slow Cooked Pork Belly Bites In BBQ Honey",
+      "brand": "Coles Made Easy",
+      "size": "500g",
+      "url": "https://www.coles.com.au/product/coles-made-easy-slow-cooked-pork-belly-bites-in-bbq-honey-500g-7848420",
+      "barcode": null,
+      "price": 7.5,
+      "wasPrice": 15.0,
+      "currency": "AUD",
+      "onSale": true,
+      "savings": 7.5,
+      "promotion": { "type": "half_price", "text": "save $7.50" },
+      "unitPrice": { "price": 15.0, "per": "1kg", "text": "$15.00/ 1kg" },
+      "priceDescription": "1/2 Price",
+      "inStock": true,
+      "available": true,
+      "availableQuantity": 1862,
+      "purchaseLimit": 20,
+      "promotionalLimit": 12,
+      "onlineOnly": false,
+      "sponsored": false,
+      "image": "https://cdn.productimages.coles.com.au/productimages/7/7848420.jpg",
+      "categories": ["Meat & Seafood", "Coles Made Easy Range", "Easy Meals"],
+      "minimumShelfLife": null
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `special` | The deal type listed. |
+| `products` | Product objects with the fields listed under [Search](#search). On specials, `onSale` and `promotion` are filled; `wasPrice` and `savings` are `null` when Coles does not print the previous price. |
+
+## Product
+
+One product in full, with ingredients, allergens and the nutrition panel.
+
+```
+POST /groceries/coles
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `product` by `colesProduct`. In a raw request it is implied when `product` is given. |
+| `product` | yes | A Coles product id (`8150288`) or a product link (`https://www.coles.com.au/product/coles-full-cream-milk-3l-8150288`). |
+| `proxy_country` | no | `AU`, `NZ`, `US` or `CA`. Leave blank to spread over all of them. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/coles?mode=product&product=8150288" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.coles_product("8150288")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.colesProduct("8150288");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->colesProduct('8150288');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.coles_product("8150288")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "product": {
+    "id": "8150288",
+    "name": "Full Cream Milk",
+    "brand": "Coles",
+    "size": "3L",
+    "url": "https://www.coles.com.au/product/coles-full-cream-milk-3l-8150288",
+    "barcode": "9300601186945",
+    "price": 4.95,
+    "wasPrice": null,
+    "currency": "AUD",
+    "onSale": false,
+    "savings": null,
+    "promotion": null,
+    "unitPrice": { "price": 1.65, "per": "1L", "text": "$1.65/ 1L" },
+    "priceDescription": null,
+    "inStock": true,
+    "available": true,
+    "availableQuantity": null,
+    "purchaseLimit": 20,
+    "promotionalLimit": 12,
+    "onlineOnly": false,
+    "sponsored": false,
+    "image": "https://cdn.productimages.coles.com.au/productimages/8/8150288.jpg",
+    "categories": ["Dairy, Eggs & Fridge", "Milk", "Full Cream Milk"],
+    "minimumShelfLife": "Life 7 days min",
+    "description": "Coles is committed to bringing you high quality fresh milk from dairy farms across Australia",
+    "ingredients": "Homogenised and Pasteurised Full Cream Milk.",
+    "allergens": "Contains Milk",
+    "dietary": "Source of Calcium",
+    "storage": "Keep this way up,Keep refrigerated. Store at or below 5°C",
+    "usage": null,
+    "dimensions": "273.00 x 153.00 x 102.00 mm",
+    "nutrition": [
+      { "name": "Energy (kJ)", "perServing": "646 kJ", "per100": "258 kJ", "dailyIntake": "7% DI" },
+      { "name": "Protein", "perServing": "8.5 g", "per100": "3.4 g", "dailyIntake": "17% DI" },
+      { "name": "Calcium", "perServing": "295 mg", "per100": "118 mg" }
+    ],
+    "servingSize": "250mL",
+    "servingsPerPack": "12.00",
+    "countryOfOrigin": "Australian",
+    "countryOfOriginLabel": "Australian Milk",
+    "australianIngredientsPercent": 100.0,
+    "images": [
+      "https://cdn.productimages.coles.com.au/productimages/8/8150288.jpg",
+      "https://shop.coles.com.au/wcsstore/Coles-CAS/images/8/1/5/8150288_L.jpg"
+    ],
+    "variants": [
+      {
+        "id": "8379529",
+        "name": "Lite Reduced Fat Milk",
+        "brand": "Coles",
+        "size": "2L",
+        "url": "https://www.coles.com.au/product/coles-lite-reduced-fat-milk-2l-8379529",
+        "price": 3.4,
+        "unitPrice": { "price": 1.7, "per": "1L", "text": "$1.70/ 1L" },
+        "inStock": true,
+        "...": "..."
+      }
+    ],
+    "lastUpdated": "2026-10-13T06:37:55Z"
+  },
+  "pagesFetched": 1,
+  "query": { "product": "8150288" }
+}
+```
+
+`product` carries every field listed under [Search](#search), plus:
+
+| Field | Notes |
+| --- | --- |
+| `barcode` / `description` / `ingredients` | EAN barcode, product description and the ingredient list as printed. |
+| `allergens` / `dietary` | Allergen statement and dietary claims, as Coles prints them. |
+| `storage` / `usage` / `dimensions` | Storage and usage instructions and pack dimensions, `null` when absent. |
+| `nutrition` | Nutrition panel rows: `name`, `perServing`, `per100` (per 100 g or mL) and, where printed, `dailyIntake`. |
+| `servingSize` / `servingsPerPack` | Serving size and servings per pack. |
+| `countryOfOrigin` / `countryOfOriginLabel` / `australianIngredientsPercent` | Country of origin, the label text and the share of Australian ingredients. |
+| `images` | All product images. |
+| `variants` | Other sizes and versions of the product, as product objects. Variants Coles lists without a price come back with `price: null` and `inStock: false`. |
+| `lastUpdated` | When Coles last updated the product data (ISO). |
+
+## What you can build
+
+- **Grocery price monitoring** - track `price`, `wasPrice` and `unitPrice` for a basket of products over time.
+- **Half-price and multibuy tracking** - pull the specials each week, by deal type, and see what goes on promotion.
+- **Cross-retailer comparison** - compare unit prices against [Woolworths](/plugins/woolworths) and [ALDI Australia](/plugins/aldi-au).
+- **Nutrition and allergen databases** - build a catalog keyed by barcode with ingredients, allergens and the nutrition panel.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Coles search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

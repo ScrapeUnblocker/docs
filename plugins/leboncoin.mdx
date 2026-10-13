@@ -1,0 +1,164 @@
+---
+title: "Leboncoin Search plugin"
+description: "Leboncoin classified ads as clean JSON - title, price, city, postcode, department, region, category, date, seller type, ad attributes, image and listing link."
+sidebarTitle: "Leboncoin Search"
+---
+
+The **Leboncoin Search** plugin turns a search on Leboncoin, France's largest classifieds site, into structured JSON. Give it a keyword - optionally a category, a place and a price range - and it returns the ads Leboncoin shows, each with its `id`, title, price and currency, city, postcode, department and region, category, publication date, whether the seller is a professional or a private seller, the ad's attributes (for example bike size or condition), an image and a clean listing URL.
+
+Order by relevance, date or price and collect up to `max_results` ads across pages (35 per page). Paid "à la une" placements are left out unless you ask for them with `include_sponsored`.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/leboncoin-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search, e.g. `velo electrique` or `iphone 13`. |
+| `category` | no | A category name or a numeric Leboncoin category id. Names: `vehicles`, `cars`, `motorcycles`, `vans`, `car_parts`, `real_estate`, `real_estate_sale`, `rentals`, `flatshare`, `holiday_rentals`, `commercial_property`, `electronics`, `computers`, `photo_audio_video`, `phones`, `consoles`, `video_games`, `computer_accessories`, `home_garden`, `furniture`, `appliances`, `diy`, `decoration`, `garden`, `fashion`, `clothing`, `shoes`, `bags_accessories`, `watches_jewelry`, `baby_equipment`, `leisure`, `books`, `sports`, `bikes`, `toys`, `music_instruments`, `collectibles`, `antiques`, `animals`, `jobs`, `job_offers`. |
+| `location` | no | Where to search: a city (`Bordeaux`), a city with postcode (`Toulouse 31000`), a department code (`75`) or a region (`Ile-de-France`). |
+| `min_price` / `max_price` | no | Price range in EUR (whole euros). |
+| `sort` | no | `relevance` (default), `newest`, `price_low` or `price_high`. |
+| `max_results` | no | How many ads to collect across pages. Default `35`, max `500`. |
+| `page` | no | 1-based page to start from (35 per page), `1`-`100`. Default `1`. |
+| `proxy_country` | no | Proxy country (ISO-2). Optional. |
+| `include_sponsored` | no | `true` = also return the paid "à la une" placements (`sponsored: true`). Default `false`, because they ignore the query, category and sort. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/leboncoin-search?query=velo%20electrique&category=bikes&location=Bordeaux" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.leboncoin_search("velo electrique", category="bikes", location="Bordeaux")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.leboncoinSearch("velo electrique", { category: "bikes", location: "Bordeaux" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->leboncoinSearch('velo electrique', ['category' => 'bikes', 'location' => 'Bordeaux']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.leboncoin_search("velo electrique", category: "bikes", location: "Bordeaux")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "velo electrique",
+  "listings": [
+    {
+      "id": "3282377799",
+      "title": "Velo électrique",
+      "price": 700,
+      "currency": "EUR",
+      "location": "Bordeaux 33000",
+      "city": "Bordeaux",
+      "zipcode": "33000",
+      "department": "Gironde",
+      "region": "Aquitaine",
+      "category": "Vélos",
+      "categoryId": "55",
+      "date": "2026-10-04 21:54:16",
+      "image": "https://img.leboncoin.fr/api/v1/lbcpb1/images/32/14/90/32149080517db1800f5d0538e90be265c9a2c230.jpg?rule=ad-image",
+      "url": "https://www.leboncoin.fr/ad/velos/3282377799",
+      "sellerType": "private",
+      "sponsored": false,
+      "attributes": {
+        "bicycle_type": "Vélo électrique",
+        "bicycle_size": "L",
+        "bicycle_brand": "Autre",
+        "bicycle_color": "Noir",
+        "bicycle_wheel_size": "26\" (ETRTO 559)",
+        "condition": "État neuf",
+        "accessories_univers": "Mixte"
+      }
+    },
+    {
+      "id": "3283868667",
+      "title": "Velo électrique",
+      "price": 250,
+      "currency": "EUR",
+      "location": "Bordeaux 33300",
+      "city": "Bordeaux",
+      "zipcode": "33300",
+      "department": "Gironde",
+      "region": "Aquitaine",
+      "category": "Vélos",
+      "categoryId": "55",
+      "date": "2026-10-07 12:41:31",
+      "image": "https://img.leboncoin.fr/api/v1/lbcpb1/images/1f/09/08/1f090852ac667e7bcbf0084f21c97f1f50b638aa.jpg?rule=ad-image",
+      "url": "https://www.leboncoin.fr/ad/velos/3283868667",
+      "sellerType": "private",
+      "sponsored": false,
+      "attributes": {
+        "bicycle_type": "Vélo électrique",
+        "bicycle_size": "M",
+        "condition": "Bon état"
+      }
+    }
+  ],
+  "resultsCollected": 35,
+  "totalResults": 612
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` | Leboncoin ad id and a clean listing URL. |
+| `title` | Ad title as the seller wrote it. |
+| `price` / `currency` | Asking price and currency (EUR). |
+| `location` / `city` / `zipcode` | City with postcode, and the two separately. |
+| `department` / `region` | French department and region. |
+| `category` / `categoryId` | Leboncoin category name (French) and id. |
+| `date` | Publication date and time, `YYYY-MM-DD HH:MM:SS`. |
+| `image` | First ad image URL. |
+| `sellerType` | `pro` for a professional seller, `private` for an individual. |
+| `sponsored` | `true` for a paid "à la une" placement (only returned with `include_sponsored=true`). |
+| `attributes` | The ad's own fields as Leboncoin keys them, e.g. `bicycle_size` or `condition`. Each category has its own set, so cars, real estate and bikes carry different keys. |
+
+## What you can build
+
+- **Second-hand price tracking** - follow asking prices for a model across France or one region.
+- **Deal alerts** - poll `sort=newest` for a query and notify on new ads under a price.
+- **Market research** - measure supply by city, department and seller type for a category.
+- **Vehicle and property analytics** - use each category's `attributes` to model prices by condition and features.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Leboncoin search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

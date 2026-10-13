@@ -1,0 +1,136 @@
+---
+title: "Google Shopping plugin"
+description: "Google Shopping product listings as clean JSON - title, price, currency, original price, discount, merchant, rating and review count, for any market."
+sidebarTitle: "Google Shopping"
+---
+
+The **Google Shopping** plugin runs a Google Shopping search and returns the product cards as structured JSON: title, price (as a number and as Google prints it), currency, the original price and discount when the product is on sale, the merchant, rating and review count.
+
+Give it a search term and pick the market with `gl` (and `proxy_country`), because prices and merchants on Google Shopping are region-specific. Filter by a price range in that market's currency. Each call returns the first page of products. Google Shopping has no per-product URL on its result cards, so products come without a `url`.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /goods/google-shopping
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | yes | Product search term, e.g. `wireless headphones`. |
+| `gl` | no | Market to search, ISO-2, e.g. `us` or `de`. Sets the prices and merchants. Default `us`. |
+| `min_price` / `max_price` | no | Price range in whole units of the `gl` market's currency. |
+| `max_results` | no | How many products to return from the first page, `1`-`100`. Default `60`. |
+| `proxy_country` | no | Proxy country (ISO-2). Prices and merchants are market-specific, so match it to `gl`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/goods/google-shopping?q=wireless%20headphones&gl=us&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_shopping("wireless headphones", gl="us", max_results=5)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleShopping("wireless headphones", { gl: "us", maxResults: 5 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleShopping('wireless headphones', ['gl' => 'us', 'max_results' => 5]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_shopping("wireless headphones", gl: "us", max_results: 5)
+```
+</CodeGroup>
+
+A `403` means Google kept answering with a CAPTCHA; retry, or try another `proxy_country`. A `502` means no products could be collected (no matches, or the call did not finish in time).
+
+### Response
+
+```json
+{
+  "query": "wireless headphones",
+  "hl": "en",
+  "gl": "us",
+  "proxyCountry": "US",
+  "resultsCollected": 5,
+  "products": [
+    {
+      "title": "Sony WH-CH520 Wireless Bluetooth Headphones",
+      "price": 68.0,
+      "priceRaw": "$68.00",
+      "currency": "$",
+      "merchant": "Best Buy",
+      "rating": 4.8,
+      "reviewCount": "32K"
+    },
+    {
+      "title": "JBL Tune 680NC Wireless Noise-Cancelling On-Ear Headphones",
+      "price": 109.95,
+      "priceRaw": "$109.95",
+      "currency": "$",
+      "merchant": "Sweetwater",
+      "rating": 4.5,
+      "reviewCount": "167"
+    },
+    {
+      "title": "JBL Black JBL Live 680NC Wireless Noise Cancelling Headphones Headset On-Ear ...",
+      "price": 119.94,
+      "priceRaw": "$119.94",
+      "currency": "$"
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `title` | Product title as Google shows it. |
+| `price` / `priceRaw` | Numeric price and the price text as Google prints it. |
+| `currency` | The currency as Google displays it on the card (e.g. `$`). |
+| `originalPrice` / `discount` | The price before a sale and the discount, when the card shows one. |
+| `merchant` | The store selling the product, when Google names one. |
+| `rating` / `reviewCount` | Star rating (out of 5) and the review count as Google prints it (a string such as `32K`). |
+| `image` | Product image, when available. |
+
+A field with no value is left out of that product, so a card may carry only `title` and price.
+
+## What you can build
+
+- **Price comparison** - see which merchants sell a product and at what price, per market.
+- **MAP and reseller monitoring** - track the prices merchants advertise for your brand's products.
+- **Market pricing research** - compare price levels for a product type across countries with `gl`.
+- **Retail coverage** - combine with the [Amazon](/plugins/amazon) and [Walmart](/plugins/walmart) plugins for a broader price view.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Google Shopping search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

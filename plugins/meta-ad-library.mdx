@@ -1,10 +1,10 @@
 ---
 title: "Meta Ad Library plugin"
-description: "An advertiser's live Facebook & Instagram ads as clean JSON - ad copy, CTA, format, image and video creative URLs, landing page, platforms and run dates."
+description: "An advertiser's live ads from Meta's Ad Library as clean JSON - ad copy, CTA, format, image and video creative URLs, landing page, platforms and run dates."
 sidebarTitle: "Meta Ad Library"
 ---
 
-The **Meta Ad Library** plugin turns any Facebook/Instagram advertiser's public ads into structured JSON. Give it an advertiser - a Page name or a numeric Page ID - and it returns the ads Meta shows in its Ad Library: each with the ad copy, call-to-action, format, the image and video creative URLs, the landing page, the platforms it runs on, and its run dates.
+The **Meta Ad Library** plugin turns any advertiser's public ads from Meta's Ad Library into structured JSON. Give it an advertiser - a Page name or a numeric Page ID - and it returns the ads Meta shows in its Ad Library: each with the ad copy, call-to-action, format, the image and video creative URLs, the landing page, the platforms it runs on, and its run dates.
 
 It runs a real browser on our own anti-bot fleet and reads the same Ad Library a person sees, then captures Meta's internal results directly - so you get an advertiser's whole active set without a Meta developer account, an access token, or the political-ads-only limits of Meta's official Ad Library API. This is a competitor-ads tool: see what your competitors are running, in which format, and where they send the click.
 
@@ -26,10 +26,64 @@ POST /ads/meta-ad-library
 | `media_type` | no | Creative filter: `all` (default), `image`, `video`, or `meme`. |
 | `max_ads` | no | Upper bound on ads returned; the plugin paginates until it reaches this or runs out. Default `50`, max `500`. |
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/ads/meta-ad-library?advertiser=Nike&country=US&active_status=active&max_ads=30" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.meta_ad_library(
+    "Nike",
+    country="US",
+    active_status="active",
+    max_ads=30,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.metaAdLibrary("Nike", {
+  country: "US",
+  activeStatus: "active",
+  maxAds: 30,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->metaAdLibrary('Nike', [
+    'country' => 'US',
+    'active_status' => 'active',
+    'max_ads' => 30,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.meta_ad_library(
+  "Nike",
+  country: "US",
+  active_status: "active",
+  max_ads: 30
+)
+```
+
+</CodeGroup>
 
 ## Response
 
@@ -49,7 +103,7 @@ curl -X POST "https://api.scrapeunblocker.com/ads/meta-ad-library?advertiser=Nik
       "is_active": true,
       "started_running": "2026-08-07",
       "ended": null,
-      "platforms": ["FACEBOOK", "INSTAGRAM", "MESSENGER", "THREADS"],
+      "platforms": ["FACEBOOK", "MESSENGER"],
       "display_format": "VIDEO",
       "is_dynamic": false,
       "ad_text": "Made to move. The new season is here.",
@@ -90,7 +144,7 @@ curl -X POST "https://api.scrapeunblocker.com/ads/meta-ad-library?advertiser=Nik
 | `page_profile_uri` | Link to the advertiser's Facebook Page. |
 | `is_active` | Whether the ad is currently running. |
 | `started_running` / `ended` | Run dates (ISO `YYYY-MM-DD`, UTC). `ended` is `null` while the ad is still active. |
-| `platforms` | Where the ad runs: `FACEBOOK`, `INSTAGRAM`, `MESSENGER`, `AUDIENCE_NETWORK`, `THREADS`. |
+| `platforms` | Where the ad runs, as Meta's placement names, e.g. `FACEBOOK`, `MESSENGER`, `AUDIENCE_NETWORK`. |
 | `display_format` | Meta's creative format: `IMAGE`, `VIDEO`, `DCO` (dynamic), `CAROUSEL`, `DPA`. |
 | `is_dynamic` | `true` for dynamic-creative ads (DCO/DPA) whose copy is a catalog template. Meta fills placeholders like `{{product.name}}` per viewer from the advertiser's product feed, so `ad_text`/`title` come back as the raw template - `is_dynamic` lets you flag those instead of treating the template as literal ad text. |
 | `ad_text` | The primary ad copy. For dynamic (DCO) ads this can be a template like `{{product.brand}}` - that is the ad as Meta serves it (see `is_dynamic`). |
@@ -116,7 +170,7 @@ An advertiser with no ads for the given filters is a valid answer, not an error 
 - **Competitor ad monitoring** - track exactly which ads a rival runs, in which format, and how often the creative changes.
 - **Creative research** - pull a brand's video and image creative URLs to study hooks, offers and CTAs at scale.
 - **Landing-page intel** - `link_url` shows where every ad sends the click - which offers and pages a competitor pushes.
-- **Format and platform mix** - see whether a competitor leans on video vs. image, and Facebook vs. Instagram vs. Threads.
+- **Format and platform mix** - see whether a competitor leans on video vs. image, and which Meta platforms it runs on.
 - **Market entry** - scope who is advertising in a `country` before you spend.
 
 ## Meta's own Ad Library API

@@ -1,0 +1,228 @@
+---
+title: "Semrush plugin"
+description: "Semrush's public website data as clean JSON - Authority Score, ranks, monthly visits with desktop and mobile history, engagement, organic and paid search traffic, backlinks, top keywords, countries, traffic sources, AI-assistant visits and competitors."
+sidebarTitle: "Semrush"
+---
+
+The **Semrush** plugin returns the data on Semrush's free website pages as structured JSON, with no Semrush account, login or API key. Give it a domain, any URL on the site or a Semrush website page URL, and pick the report:
+
+- **`overview`** (default) - the Authority Score, global, country and category rank with their changes, monthly visits with their desktop and mobile history, pages per visit, time on site and bounce rate, organic and paid search traffic with history, backlinks and referring domains with history and Semrush's Google penalty risk, top organic keywords with position, search volume, CPC, traffic share and intent, top countries, competitors, incoming and outgoing traffic sources, and visits from AI assistants such as ChatGPT and Claude.
+- **`competitors`** - the site's competitor list, each competitor with its Authority Score, ranks, visits and engagement.
+
+The figures are Semrush's own estimates, and `dataDate` names the period they describe. Semrush publishes these pages for about 200,000 of the most visited sites; any other domain comes back with `found: false`.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Website data
+
+```
+POST /seo/semrush
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `domain` | yes | Website to look up: a domain (`github.com`), a URL (`https://www.github.com/about`) or a Semrush website page URL. A leading `www.` is dropped; other subdomains are kept. |
+| `report` | no | `overview` (default) or `competitors`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/seo/semrush?domain=github.com" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+
+curl -X POST "https://api.scrapeunblocker.com/seo/semrush?domain=github.com&report=competitors" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+overview = su.semrush_overview("github.com")
+rivals = su.semrush_overview("github.com", report="competitors")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const overview = await su.semrushOverview("github.com");
+const rivals = await su.semrushOverview("github.com", { report: "competitors" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$overview = $su->semrushOverview('github.com');
+$rivals = $su->semrushOverview('github.com', ['report' => 'competitors']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+overview = su.semrush_overview("github.com")
+rivals = su.semrush_overview("github.com", report: "competitors")
+```
+</CodeGroup>
+
+<Note>
+Each call is one request: one domain, one report.
+</Note>
+
+### Response
+
+`report=overview`:
+
+```json
+{
+  "domain": "github.com",
+  "found": true,
+  "report": "overview",
+  "source": "https://www.semrush.com/website/github.com/overview/",
+  "dataDate": "2026-09-15",
+  "updatedAt": "2026-10-11",
+  "brandName": "GitHub",
+  "authorityScore": 100,
+  "globalRank": 24,
+  "globalRankChange": 1,
+  "countryRank": { "rank": 9, "country": "BD", "countryName": "Bangladesh", "rankChange": 0 },
+  "categoryRank": { "rank": 1, "category": "Computer Software and Development", "rankChange": 0 },
+  "visits": 1436619552,
+  "visitsChangePercent": null,
+  "categories": ["Computer Software and Development", "Online Services"],
+  "pagesPerVisit": 6.075,
+  "timeOnSiteSeconds": 719,
+  "bounceRate": 0.4011,
+  "visitsHistory": [
+    { "date": "2026-09-01", "visits": 1436619552, "desktopVisits": 1166423897, "mobileVisits": 270195655 },
+    { "date": "2026-08-01", "visits": 1212551945, "desktopVisits": 928213741, "mobileVisits": 284338204 }
+  ],
+  "searchTraffic": {
+    "date": "2026-09-15",
+    "organic": 72449659,
+    "organicChangePercent": 2.49,
+    "paid": 21088,
+    "paidChangePercent": -13.47,
+    "history": [{ "date": "2026-09-15", "organic": 72449659, "paid": 21088, "total": 72470747 }]
+  },
+  "backlinks": {
+    "date": "2026-09-01",
+    "backlinks": 5088322474,
+    "backlinksChangePercent": -4.63,
+    "referringDomains": 4217125,
+    "referringDomainsChangePercent": 2.48,
+    "googlePenaltyRisk": "Low",
+    "history": [{ "date": "2026-09-01", "backlinks": 5088322474, "referringDomains": 4217125 }]
+  },
+  "topKeywords": {
+    "date": "2026-09-15",
+    "country": "BD",
+    "keywords": [
+      { "keyword": "github", "position": 1, "searchVolume": 135000, "cpc": 0.62, "trafficShare": 0.2785, "intents": ["navigational"] }
+    ]
+  },
+  "topCountries": [
+    { "country": "US", "countryName": "United States", "visits": 181575163, "trafficShare": 0.1264, "desktopShare": 0.7269, "mobileShare": 0.2731 }
+  ],
+  "competitors": [
+    { "domain": "stackoverflow.com", "relevance": 0.23, "visits": 25915762 },
+    { "domain": "dev.to", "relevance": 0.14, "visits": 9196833 }
+  ],
+  "trafficSources": {
+    "date": "2026-09-15",
+    "incoming": [
+      { "source": "Direct", "share": 0.63535549, "visits": 741093818, "previousVisits": 574779767 },
+      { "source": "google.com - Google organic", "share": 0.16852929, "visits": 196576582, "previousVisits": 157886998 }
+    ],
+    "outgoing": [
+      { "destination": "raw.githubusercontent.com", "share": 0.03260257, "visits": 6042809, "previousVisits": 4698292 }
+    ]
+  },
+  "aiTraffic": [
+    {
+      "source": "chatgpt.com",
+      "name": "ChatGPT",
+      "visits": 11744546,
+      "share": 0.00873,
+      "history": [{ "date": "2026-09-01", "visits": 11744546 }, { "date": "2026-08-01", "visits": 7665006 }]
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `found` | `false` when Semrush has no public page for the domain. |
+| `dataDate` / `updatedAt` | The period the figures describe and when Semrush last updated the page. |
+| `authorityScore` | Semrush Authority Score (0-100). |
+| `globalRank` / `countryRank` / `categoryRank` | Ranks with their change; `countryRank` is in the site's top country, `categoryRank` in its main category. |
+| `visits` / `visitsChangePercent` / `visitsHistory` | Monthly visits, the change in percent, and the monthly history split into `desktopVisits` and `mobileVisits`. |
+| `pagesPerVisit` / `timeOnSiteSeconds` / `bounceRate` | Engagement. `bounceRate` is a 0-1 share. |
+| `searchTraffic` | Organic and paid search traffic with their change and history. |
+| `backlinks` | Backlinks and referring domains with their change and history, plus `googlePenaltyRisk`. |
+| `topKeywords` | Top organic keywords in the site's main market: `position`, `searchVolume`, `cpc`, `trafficShare` and search `intents`. |
+| `topCountries` | Countries by visits, with traffic share and the desktop/mobile split. |
+| `competitors` | Competing sites with `relevance` and visits. Use `report=competitors` for the full list with ranks and engagement. |
+| `trafficSources` | `incoming` sources and `outgoing` destinations, each with share, visits and the previous period's visits. |
+| `aiTraffic` | Visits from AI assistants (ChatGPT, Claude and others) with their monthly history. |
+
+`report=competitors` returns the domain's own `authorityScore`, ranks and visits, plus a `competitors` list:
+
+```json
+{
+  "domain": "github.com",
+  "found": true,
+  "report": "competitors",
+  "source": "https://www.semrush.com/website/github.com/competitors/",
+  "dataDate": "2026-09-15",
+  "brandName": "GitHub",
+  "authorityScore": 100,
+  "visits": 1436619552,
+  "competitors": [
+    {
+      "domain": "stackoverflow.com",
+      "description": "Stack Overflow is the largest, most trusted online community for developers to learn, share their programming knowledge...",
+      "dataDate": "2026-09-15",
+      "brandName": "Stack Overflow",
+      "authorityScore": 85,
+      "globalRank": 1606,
+      "globalRankChange": 257,
+      "countryRank": { "rank": 1510, "country": "US", "countryName": "United States", "rankChange": -124 },
+      "categoryRank": { "rank": 22, "category": "Distance Learning", "rankChange": 0 },
+      "visits": 30285839,
+      "visitsChangePercent": 16.86,
+      "pagesPerVisit": 2.6677,
+      "timeOnSiteSeconds": 436,
+      "bounceRate": 0.5758
+    }
+  ]
+}
+```
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Missing or malformed `domain`, or a `report` other than `overview` / `competitors`. |
+| `502` | No Semrush page was returned (blocked or timed out). Retry. |
+
+## What you can build
+
+- **Competitor benchmarking** - compare Authority Score, visits and search traffic across rival sites every month.
+- **Prospect research** - enrich a list of domains with traffic, backlinks and top countries before outreach.
+- **AI visibility tracking** - follow how many visits a site gets from AI assistants over time.
+- **Market maps** - expand from one site to its competitor set with `report=competitors`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a website on Semrush and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

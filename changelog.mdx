@@ -3,6 +3,27 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-13" description="Every plugin documented, in all four SDKs and the MCP server">
+  **53 new plugin pages** - [the plugins overview](/plugins/overview) now lists
+  every public plugin in 14 categories: e-commerce (Walmart, Target, Best Buy,
+  Home Depot, SHEIN, AliExpress, Alibaba, 1688, TikTok Shop, Amazon Best Sellers
+  and reviews), groceries (Woolworths, Coles, ALDI Australia), travel
+  (Booking.com reviews, Airbnb listings and reviews, Tripadvisor), Google
+  (Trends, Shopping, Jobs, Maps place details), Bing, DuckDuckGo, Yahoo and
+  Brave, real estate (Zillow, Redfin, Rightmove, Idealista, ImmobilienScout24),
+  AutoScout24, jobs (Glassdoor, Naukri, Wellfound, company career sites),
+  reviews and companies (Trustpilot, G2, Capterra, Product Hunt, Crunchbase),
+  Yelp, Naver Place, Google Play, the App Store, YouTube, Spotify, Telegram,
+  Quora, Similarweb, Ahrefs and Semrush.
+
+  **SDKs 0.10.1** ([Python](/sdks/python), [Node.js](/sdks/nodejs),
+  [PHP](/sdks/php), [Ruby](/sdks/ruby)) have a method for every plugin plus a
+  generic `plugin(path, params)`; each plugin page shows the call in all four
+  languages. **MCP server 0.3.1** and the hosted connector add `list_plugins`
+  and `run_plugin`, so an AI assistant can find and run any plugin
+  ([MCP](/sdks/mcp)).
+</Update>
+
 <Update label="2026-10-09" description="Skyscanner: a failed place lookup is a 502; oopbuy: Taobao page size">
   - **Skyscanner flights and hotels:** when the place lookup for `origin`,
     `dest` or `destination` fails on our side, the call now returns **`502`**
@@ -25,17 +46,12 @@ description: "Notable changes to the ScrapeUnblocker API."
   [402 payment required](/errors#user-set-budget-exceeded).
 </Update>
 
-<Update label="2026-10-06" description="Plugins: timeouts are a 502, Threads counts are numbers, Amazon exitProvider is a proxy type">
+<Update label="2026-10-06" description="Plugins: timeouts are a 502, Skyscanner car hire defaults, Amazon exitProvider is a proxy type">
   - **Plugin timeouts:** a dedicated plugin call that does not finish within its
     time limit now returns **`502`** with a plain-text `... timed out.` message.
     Some plugins (for example Walmart search) used to answer a timeout with a
     `500`. Not billed; retry with backoff. `/getPageSource` and `/serpApi` keep
     their `504`.
-  - **Threads profile:** `likes`, `comments`, `reposts` and `shares` are now
-    always integers (`0` when the post has none, `null` when Threads does not
-    publish the number). They could contain button labels such as `"Comment"`.
-    Each post's `url` is now the post's own link and `text` is the full post
-    text instead of a shortened one.
   - **Skyscanner car hire:** `market`, `locale`, `currency` and `driver_age` are
     optional, with the defaults `UK`, `en-GB`, `GBP` and `30` (the same as
     flights and hotels). A request without dates or a pickup gets an immediate
@@ -111,7 +127,7 @@ description: "Notable changes to the ScrapeUnblocker API."
   [Concurrency limits](/rate-limits).
 </Update>
 
-<Update label="2026-09-29" description="Plugin fixes: Etsy, Indeed, Craigslist, Target, Booking, Skyscanner">
+<Update label="2026-09-29" description="Plugin fixes: Etsy, Indeed, Target, Booking, Skyscanner">
   - [Etsy](/plugins/etsy): each listing comes back **once** (before, most came
     back twice). **`currency` is now the ISO code** (`USD`, `EUR`); the symbol
     moved to the new **`currencySymbol`**. New **`sponsored`** flag marks Etsy's
@@ -119,8 +135,6 @@ description: "Notable changes to the ScrapeUnblocker API."
     failing.
   - [Indeed](/plugins/indeed): new **`datePosted`** and **`sponsored`** per job;
     `sort=date` returns jobs newest first; `totalResults` is filled again.
-  - [Craigslist](/plugins/craigslist): every listing has a stable **`id`**, also
-    when Craigslist shows no posting id.
   - [Target](/plugins/target): `sort` (`price_low`, `price_high`, ...) is applied
     again.
   - [Booking](/plugins/booking): prices are rounded to cents.
@@ -174,16 +188,14 @@ description: "Notable changes to the ScrapeUnblocker API."
   fetch chain as `getPageSource` - no per-site API key, account or CAPTCHA setup.
 </Update>
 
-<Update label="2026-09-22" description="Four marketplace plugins: Target, Vinted, Craigslist and Zalando">
+<Update label="2026-09-22" description="Three marketplace plugins: Target, Vinted and Zalando">
   **New plugin pages:** [`POST /marketplace/target-search`](/plugins/target),
-  [`POST /marketplace/vinted-search`](/plugins/vinted),
-  [`POST /marketplace/craigslist-search`](/plugins/craigslist) and
+  [`POST /marketplace/vinted-search`](/plugins/vinted) and
   [`POST /marketplace/zalando-search`](/plugins/zalando). Each returns clean,
   parsed JSON with pagination to `max_results`: **Target** US retail search
   (tcin, title, brand, price, image, URL) via Target's own Redsky API;
   **Vinted** EU resale listings on any regional marketplace (title, price and
-  currency, brand, size, condition, image); **Craigslist** US classifieds in any
-  metro (posting id, title, price, location, image); and **Zalando** EU fashion
+  currency, brand, size, condition, image); and **Zalando** EU fashion
   search on any storefront (sku, brand, name, price and currency, image). All run
   on the same anti-bot fetch chain as `getPageSource` - no per-site API key,
   account or CAPTCHA setup.
@@ -242,17 +254,6 @@ description: "Notable changes to the ScrapeUnblocker API."
   only, treat `523` the same way (retry after a short pause).
 </Update>
 
-<Update label="2026-09-16" description="Southwest Airlines fares plugin">
-  **New plugin: [`POST /flights/southwest-quotes`](/plugins/southwest).** Live
-  Southwest Airlines fares as clean JSON - dollar and Rapid Rewards points
-  prices for every flight on a route, one-way or return. Southwest sells no
-  public fare API and fronts its site with Akamai Bot Manager; the plugin runs
-  the search on a warm, anti-bot-cleared session and returns Southwest's own
-  `booking/shopping` payload (fare products Wanna Get Away / Wanna Get Away Plus
-  / Anytime / Business Select, with taxes and Rapid Rewards points). Origin and
-  destination are IATA airport codes; `fare_type` is `dollars` or `points`.
-</Update>
-
 <Update label="2026-09-10" description="YouTube channel endpoint returns exact counts, duration and channel stats">
   **`POST /content/youtube-channel` now returns richer data.** The endpoint
   reads a channel's uploads through the YouTube Data API, so each video now
@@ -275,22 +276,6 @@ description: "Notable changes to the ScrapeUnblocker API."
   slowly and hands back an empty shell, while the plugin reads Temu's `ld+json`
   directly. Every other Temu page (homepage, category pages) still works through
   `getPageSource`.
-</Update>
-
-<Update label="2026-09-08" description="New TikTok plugin - creators, videos and hashtags as JSON">
-  **[TikTok plugin](/plugins/tiktok).** Three new endpoints read public TikTok
-  data with no login: `POST /social/tiktok-profile` (exact follower / like /
-  video counts, bio, link, flags and the creator's newest videos, up to 200),
-  `POST /social/tiktok-video` (one video or photo post - exact plays, likes,
-  comments, shares, saves and reposts, hashtags, mentions, author, music,
-  play / download / per-quality URLs, subtitle tracks and, with
-  `include_transcript=true`, the transcript as text) and `POST
-  /social/tiktok-hashtag` (total views and videos under a tag plus its videos,
-  up to 200), plus `POST /social/tiktok-search` (the videos TikTok ranks for a
-  query, region selectable) and `POST /social/tiktok-comments` (a post's
-  comments with author, likes and replies) - both run in a browser session
-  that solves TikTok's captcha on the fly. Measured over 750 production calls
-  for the first three: 99.3% success, 5.9 s average (single videos about 2 s).
 </Update>
 
 <Update label="2026-09-08" description="Documentation moved to docs.scrapeunblocker.com">
@@ -478,18 +463,8 @@ description: "Notable changes to the ScrapeUnblocker API."
   [Claude Code Plugin](/sdks/claude-code).
 </Update>
 
-<Update label="2026-08-04" description="TikTok and Instagram parsed data, Google Local contacts, Skyscanner markets">
-  Five fixes, all from one round of outside testing.
-
-  **`parsed_data=true` now works on TikTok and Instagram.** Both sites build
-  their pages in the browser, so there was almost nothing in the markup to read
-  and the response came back as little more than a page title - even though the
-  HTML we handed you carried every number. Dedicated extractors now read the
-  embedded payload, which also means **exact integers** instead of the rounded
-  prose the page paints: a TikTok video returns `plays`, `likes`, `comments`,
-  `shares` and `saves`; an Instagram post returns exact `likes` and `comments`,
-  the real `author.username` and a real `posted_at`. See
-  [Parsed data](/guides/parsed-data#social-pages-tiktok-and-instagram).
+<Update label="2026-08-04" description="Google Local contacts, Skyscanner markets, SERP retries">
+  Fixes from one round of outside testing.
 
   **Google Local returns `phone` and `website`.** The phone used to arrive glued
   to the end of `hours`; it is now its own field and `hours` is clean. `website`

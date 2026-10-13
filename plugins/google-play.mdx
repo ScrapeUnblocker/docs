@@ -1,0 +1,257 @@
+---
+title: "Google Play plugin"
+description: "Google Play app data as clean JSON - title, developer, score, rating count, star histogram, installs, price, content rating, description and screenshots - plus app search."
+sidebarTitle: "Google Play"
+---
+
+The **Google Play** plugin turns Play Store listings into structured JSON. Give it a package id such as `com.whatsapp` and it returns the app's full listing: title and developer with contact details, category, the star score with its rating and review counts and the full histogram, installs, price and in-app purchase range, content rating, description, icon and screenshots, last update, what's-new notes and the apps Play lists as similar. Or search by keyword and get the matching apps with their package id, developer, score and installs.
+
+`hl` sets the language and `gl` the store country. No Google Play developer account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## App details
+
+```
+POST /apps/google-play
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `app_id` | yes | Play package id, e.g. `com.whatsapp`. |
+| `mode` | - | Set to `app` by `googlePlayApp`. |
+| `hl` | no | Language code, e.g. `en` (default) or `de`. |
+| `gl` | no | Store country (ISO-2), e.g. `us` (default) or `de`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/apps/google-play?mode=app&app_id=com.whatsapp&hl=en&gl=us" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_play_app("com.whatsapp", hl="en", gl="us")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googlePlayApp("com.whatsapp", { hl: "en", gl: "us" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googlePlayApp('com.whatsapp', ['hl' => 'en', 'gl' => 'us']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_play_app("com.whatsapp", hl: "en", gl: "us")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "app",
+  "app": {
+    "appId": "com.whatsapp",
+    "title": "WhatsApp Messenger",
+    "summary": "Simple. Reliable. Private.",
+    "description": "WhatsApp from Meta is a FREE messaging and video calling app. It’s used by over...",
+    "developer": "WhatsApp LLC",
+    "developerId": "5191370068110375942",
+    "developerLegalName": "Meta Platforms, Inc.",
+    "developerWebsite": "http://www.whatsapp.com/",
+    "developerEmail": "android@support.whatsapp.com",
+    "developerAddress": "1 Meta Way\nMenlo Park, CA 94025-1444\nUnited States",
+    "genre": "Communication",
+    "genreId": "COMMUNICATION",
+    "score": 4.618134,
+    "scoreText": "4.6",
+    "ratings": 245587733,
+    "reviews": 1950297,
+    "histogram": {
+      "1": 10888129,
+      "2": 3476992,
+      "3": 8931177,
+      "4": 21935625,
+      "5": 200355756
+    },
+    "installs": "10,000,000,000+",
+    "minInstalls": 10000000000,
+    "realInstalls": 12404698220,
+    "price": 0,
+    "currency": "USD",
+    "free": true,
+    "offersInAppPurchases": true,
+    "inAppPurchases": "$0.40 - $199.99 per item",
+    "contentRating": "Everyone",
+    "icon": "https://play-lh.googleusercontent.com/Gqxk4T0uZsDwFp07DE-508...",
+    "screenshots": [
+      "https://play-lh.googleusercontent.com/GQF4h3VL-kklOrVS_f1QRA..."
+    ],
+    "released": "Oct 18, 2010",
+    "updated": 1791596350,
+    "updatedISO": "2026-10-10T01:39:10Z",
+    "updatedText": "Oct 10, 2026",
+    "whatsNewText": "• You can now choose to share recent group history with new members when you add...",
+    "privacyPolicy": "https://www.whatsapp.com/legal/privacy-policy",
+    "url": "https://play.google.com/store/apps/details?id=com.whatsapp",
+    "similarApps": [
+      "com.snapchat.android",
+      "com.duolingo"
+    ],
+    "similarAppsCount": 6
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `appId` / `title` / `summary` / `url` | Package id, app name, Play's short summary and the store link. |
+| `description` | Full description (HTML in `description`, plain text in `descriptionText`). |
+| `developer` / `developerId` / `developerLegalName` | Developer name, Play developer id and legal entity. |
+| `developerWebsite` / `developerEmail` / `developerAddress` / `developerPhone` | The developer's public contact details, when the listing shows them. |
+| `genre` / `genreId` | Play category. |
+| `score` / `scoreText` | Average star rating (out of 5), as a number and as Play prints it. |
+| `ratings` / `reviews` / `histogram` | Number of ratings, number of written reviews and the count per star. |
+| `installs` / `minInstalls` / `realInstalls` | The install band as Play prints it, its lower bound and the exact install count. |
+| `price` / `currency` / `free` | Price (`0` for free apps) and currency. |
+| `offersInAppPurchases` / `inAppPurchases` | Whether the app sells in-app items, and their price range. |
+| `contentRating` | Age rating, e.g. `Everyone`. |
+| `icon` / `headerImage` / `screenshots` | Listing images. |
+| `released` / `updated` | Release date, and last update as a Unix timestamp (`updatedISO`, `updatedText` for other formats). |
+| `version` | Current version, when the listing shows one. |
+| `whatsNew` / `whatsNewText` | Release notes of the latest update (HTML and plain text). |
+| `similarApps` / `similarAppsCount` | Package ids of the apps Play lists as similar. |
+
+## App search
+
+```
+POST /apps/google-play
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | yes | Search term, e.g. `vpn`. |
+| `mode` | - | Set to `search` by `googlePlaySearch`. |
+| `max_results` | no | How many apps to return, `1`-`100`. Default `30`. |
+| `hl` | no | Language code, e.g. `en` (default). |
+| `gl` | no | Store country (ISO-2), e.g. `us` (default). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/apps/google-play?mode=search&q=vpn&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_play_search("vpn", max_results=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googlePlaySearch("vpn", { maxResults: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googlePlaySearch('vpn', ['max_results' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_play_search("vpn", max_results: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "search",
+  "query": "vpn",
+  "apps": [
+    {
+      "appId": "com.free.vpn.super.hotspot.open",
+      "title": "VPN - Super Unlimited Proxy",
+      "developer": "VPN Super Inc",
+      "score": 4.7144837,
+      "scoreText": "4.7",
+      "genre": "Tools",
+      "installs": "100,000,000+",
+      "summary": "VPN - Super Unlimited Proxy: Fast, Secure, and Free VPN app for Androi...",
+      "icon": "https://play-lh.googleusercontent.com/BF9h4LmbFEdweJbOEte99x...",
+      "contentRating": "Everyone",
+      "inAppPurchases": "$6.99 - $79.99 per item",
+      "url": "https://play.google.com/store/apps/details?id=com.free.vpn.super.hotspot.open"
+    },
+    {
+      "appId": "ch.protonvpn.android",
+      "title": "Proton VPN: Secure & Fast VPN",
+      "developer": "Proton AG",
+      "score": 4.675847,
+      "scoreText": "4.7",
+      "genre": "Tools",
+      "installs": "100,000,000+",
+      "summary": "Proton VPN is the world's only free VPN app that is safe to use and re...",
+      "icon": "https://play-lh.googleusercontent.com/sNzvGfn-_S8SLmWYHxLjCn...",
+      "contentRating": "Everyone",
+      "inAppPurchases": "$9.99 - $119.88 per item",
+      "url": "https://play.google.com/store/apps/details?id=ch.protonvpn.android"
+    }
+  ],
+  "resultsCount": 5
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `appId` / `title` / `url` | Package id (pass it to `googlePlayApp`), app name and store link. |
+| `developer` | Developer name. |
+| `score` / `scoreText` | Average star rating (out of 5). |
+| `genre` / `contentRating` | Play category and age rating. |
+| `installs` | Install band as Play prints it. |
+| `summary` / `icon` | Short description and app icon. |
+| `inAppPurchases` | In-app purchase price range, when the app sells in-app items. |
+
+## What you can build
+
+- **App store intelligence** - track ratings, installs and the star histogram of your app and its competitors.
+- **Release monitoring** - watch `updated` and `whatsNewText` to see when rivals ship.
+- **Keyword rank tracking** - record where apps place for a search term, per store country.
+- **Market and lead research** - list apps in a niche with their developers and public contact details.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a Play Store app and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

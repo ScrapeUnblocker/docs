@@ -1,0 +1,361 @@
+---
+title: "Naver Place plugin"
+description: "Naver Map places, Korea's main local search, as clean JSON - search results with category, addresses, phone, coordinates, rating and review counts, and full place details with hours, menus, photos, review stats and visitor reviews."
+sidebarTitle: "Naver Place"
+---
+
+The **Naver Place** plugin returns place data from Naver Map, the local search most people in Korea use for restaurants, cafes, clinics and shops, as structured JSON. It has two methods:
+
+- **Search** - a query in Korean or English, such as `강남 맛집` (restaurants in Gangnam) or `Gangnam cafe`, returns up to 50 places with name, category, road and lot addresses, phone, coordinates, visitor rating, visitor and blog review counts, opening status, popular menus, booking and Naver Pay flags and the Naver Map link.
+- **Details** - a place id or Naver Map link returns the full place: opening hours per day, description, directions, conveniences, menus with prices, photos, homepage and links, nearby subway stations and review statistics, with its first 10 visitor reviews and first blog reviews.
+
+Korean text comes back as is. Each call is one page and one billed unit.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /maps/naver-place
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `search` by `naverPlaceSearch`. In a raw request it is the default when no `place` is given. |
+| `query` | yes | What to search for, in Korean or English: a category, a place name or both, e.g. `강남 맛집`, `홍대 카페`, `부산 호텔` or `Gangnam cafe`. |
+| `longitude` | no | Search centre longitude (with `latitude`), e.g. `127.0276`. Naver ranks places around the centre, and each result then carries its `distance` from it. |
+| `latitude` | no | Search centre latitude (with `longitude`), e.g. `37.4979`. |
+| `max_results` | no | How many places to return, `1`-`50`. Default `50`. Naver answers one page of up to 50 places per search; move the search centre to reach other places. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `KR`, `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/maps/naver-place?mode=search&query=%EA%B0%95%EB%82%A8%20%EB%A7%9B%EC%A7%91&max_results=20" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.naver_place_search("강남 맛집", max_results=20)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.naverPlaceSearch("강남 맛집", { maxResults: 20 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->naverPlaceSearch('강남 맛집', ['max_results' => 20]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.naver_place_search("강남 맛집", max_results: 20)
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "강남 맛집",
+  "searchCentre": null,
+  "businessType": "restaurant",
+  "totalResults": 34381,
+  "resultsCollected": 20,
+  "results": [
+    {
+      "position": 1,
+      "id": "2097258400",
+      "name": "오몬자",
+      "category": "일식당",
+      "categoryCodes": ["220036", "220038", "220081", "220804"],
+      "businessType": "restaurant",
+      "address": "서울특별시 강남구 역삼동 810-4 1층",
+      "roadAddress": "봉은사로2길 19 1층",
+      "jibunAddress": "역삼동 810-4",
+      "area": "서울 강남구 역삼동",
+      "phone": "0507-1312-1321",
+      "latitude": 37.5035726,
+      "longitude": 127.0261977,
+      "distance": null,
+      "rating": 4.89,
+      "visitorReviewCount": 7044,
+      "blogReviewCount": 689,
+      "bookingReviewCount": 0,
+      "status": "영업 중",
+      "statusDescription": "22:00에 라스트오더",
+      "microReview": "넓은 매장에서 즐기는 철판 요리 파티",
+      "popularMenus": "명란모찌몬자, (2인)오!몬자세트, 한맥생맥주, 아사히생맥주, 야끼소바",
+      "options": ["예약", "남/녀 화장실 구분", "단체 이용 가능", "간편결제"],
+      "imageUrl": "https://ldb-phinf.pstatic.net/20251117_3/1763339289891sVASH_JPEG/9577A393-....jpeg",
+      "imageUrls": ["https://ldb-phinf.pstatic.net/20251117_3/1763339289891sVASH_JPEG/9577A393-....jpeg"],
+      "imageCount": 11,
+      "hasBooking": true,
+      "bookingUrl": null,
+      "hasNaverPay": false,
+      "talktalkUrl": null,
+      "isNewOpening": false,
+      "representativePrice": null,
+      "hotelMinPrice": null,
+      "saveCount": "~100",
+      "url": "https://map.naver.com/p/entry/place/2097258400"
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `position` / `id` | Rank in Naver's results and the Naver place id. Pass `id` to [Details](#details). |
+| `name` / `category` / `businessType` | Place name, Naver's category (e.g. `일식당`, Japanese restaurant) and its business type (e.g. `restaurant`). |
+| `address` / `roadAddress` / `jibunAddress` / `area` | Full address, road-name address, lot (jibun) address and the district. |
+| `phone` | Phone number as Naver lists it. |
+| `latitude` / `longitude` / `distance` | Coordinates, and the distance from the search centre when you set one. |
+| `rating` / `visitorReviewCount` / `blogReviewCount` | Visitor rating and the numbers of visitor and blog reviews. |
+| `status` / `statusDescription` | Opening status and its note, in Korean (e.g. `영업 중`, open now). |
+| `microReview` / `popularMenus` / `options` | Naver's one-line summary, popular menu items and options such as reservations or group seating. |
+| `imageUrl` / `imageUrls` / `imageCount` | Main image, more images and the photo count. |
+| `hasBooking` / `bookingUrl` / `hasNaverPay` | Naver booking and Naver Pay flags. |
+| `hotelMinPrice` / `representativePrice` | Lowest price for stays, and the representative price for salons and similar businesses. |
+| `url` | The place's Naver Map link. |
+
+`searchCentre` echoes the centre you passed, and `totalResults` is how many places Naver matched.
+
+## Details
+
+```
+POST /maps/naver-place
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `details` by `naverPlaceDetails`. In a raw request it is implied when `place` is given. |
+| `place` | yes | The place id (`2097258400`), a Naver Map link (`https://map.naver.com/p/entry/place/2097258400`) or a Naver Place link (`https://m.place.naver.com/restaurant/2097258400/home`). |
+| `sort` | no | Visitor review order: `relevance` (default, Naver's own order) or `recent` (newest first). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `KR`, `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/maps/naver-place?mode=details&place=2097258400&sort=recent" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.naver_place_details("2097258400", sort="recent")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.naverPlaceDetails("2097258400", { sort: "recent" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->naverPlaceDetails('2097258400', ['sort' => 'recent']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.naver_place_details("2097258400", sort: "recent")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "place": {
+    "id": "2097258400",
+    "name": "오몬자",
+    "category": "일식당",
+    "categoryCodes": ["220036", "220038", "220081"],
+    "businessType": "restaurant",
+    "address": "서울 강남구 봉은사로2길 19 1층",
+    "jibunAddress": "서울 강남구 역삼동 810-4",
+    "phone": "0507-1312-1321",
+    "isVirtualPhone": true,
+    "latitude": 37.5035726,
+    "longitude": 127.0261977,
+    "rating": 4.89,
+    "visitorReviewCount": 7044,
+    "textReviewCount": 6851,
+    "blogReviewCount": 689,
+    "status": "영업 중",
+    "statusDescription": "22:00에 라스트오더",
+    "businessHours": [
+      {
+        "name": null,
+        "status": "영업 중",
+        "statusDescription": "22:00에 라스트오더",
+        "days": [
+          { "day": "화", "open": "11:30", "close": "23:00", "breaks": [], "lastOrder": "22:00", "description": null },
+          { "day": "금", "open": "11:30", "close": "24:00", "breaks": [], "lastOrder": "23:00", "description": null }
+        ],
+        "regularClosedDays": null,
+        "irregularClosedDays": [],
+        "note": null
+      }
+    ],
+    "description": "강남 신논현에서 만나는 도쿄 츠키시마 스타일 몬자야끼 전문점...",
+    "directions": "신논현역에서 도보로 방문 가능한 거리에 위치해 있습니다...",
+    "microReviews": ["넓은 매장에서 즐기는 철판 요리 파티"],
+    "conveniences": ["예약", "남/녀 화장실 구분", "단체 이용 가능", "간편결제"],
+    "facilities": ["예약", "남/녀 화장실 구분", "단체 이용 가능"],
+    "paymentMethods": ["간편결제"],
+    "keywords": ["몬자야끼", "강남몬자야끼", "강남야끼소바"],
+    "parking": null,
+    "homepage": "https://ohmonja.com",
+    "links": [{ "type": "홈페이지", "url": "https://ohmonja.com" }],
+    "menus": [
+      {
+        "name": "명란모찌몬자야끼",
+        "price": "21,800원",
+        "description": "몬자야끼 대표메뉴\n명란의 감칠맛과 모찌의 쫀득함",
+        "imageUrl": "https://ldb-phinf.pstatic.net/20251030_34/....png",
+        "badges": [],
+        "isSetMenu": false
+      }
+    ],
+    "menuImages": ["https://ldb-phinf.pstatic.net/20251030_227/....png"],
+    "photos": ["https://ldb-phinf.pstatic.net/20251117_3/1763339289891sVASH_JPEG/9577A393-....jpeg"],
+    "photoCount": 289,
+    "bookingUrl": "https://m.booking.naver.com/booking/6/bizes/1529676",
+    "talktalkUrl": null,
+    "subwayStations": [
+      { "name": "신논현역", "line": "신분당선", "nearestExit": "4", "walkMinutes": 3, "walkMeters": 174 }
+    ],
+    "michelinGuide": null,
+    "relatedLinks": [{ "name": "다이닝코드", "url": "https://diningcode.com/profile.php?rid=LU722g8PKKd2" }],
+    "reviewStats": {
+      "averageRating": 4.89,
+      "totalCount": 7047,
+      "imageReviewCount": 6011,
+      "authorCount": 3718,
+      "starDistribution": [{ "score": 0.5, "count": 11 }, { "score": 1.0, "count": 6 }],
+      "themes": [{ "label": "맛", "count": 5418 }, { "label": "만족도", "count": 3595 }],
+      "menuMentions": [{ "label": "명란", "count": 565 }],
+      "keywordVotes": [{ "keyword": "음식이 맛있어요", "code": "food_good", "count": 6546 }],
+      "keywordVoteReviewCount": 7015
+    },
+    "url": "https://map.naver.com/p/entry/place/2097258400"
+  },
+  "reviews": [
+    {
+      "id": "6acdc6e7a64a5065746e346c",
+      "rating": 5.0,
+      "body": "#강남역맛집 명란 존맛탱이여서 재방문해써요 직원분들도 친절하세용",
+      "created": "10.13.화",
+      "createdDate": "2026-10-13",
+      "visited": "10.13.화",
+      "visitedAt": "2026-10-13T05:43:20.000Z",
+      "visitCount": 1,
+      "viewCount": 0,
+      "verifiedBy": "결제내역",
+      "orderedItem": "명란모찌몬자",
+      "keywords": ["음식이 맛있어요", "재료가 신선해요", "양이 많아요"],
+      "situations": ["예약 없이 이용", "바로 입장", "데이트"],
+      "tags": [],
+      "media": [{ "type": "image", "url": "https://pup-review-phinf.pstatic.net/....jpeg", "videoUrl": null }],
+      "reactions": { "fun": 0, "helpful": 0, "wannago": 0, "cool": 0 },
+      "language": "ko",
+      "author": {
+        "id": "...",
+        "nickname": "nay****",
+        "url": "...",
+        "imageUrl": null,
+        "reviewCount": 9,
+        "photoCount": 6,
+        "averageRating": 5.0,
+        "followerCount": 0
+      },
+      "ownerReply": null
+    }
+  ],
+  "reviewsCollected": 10,
+  "reviewSort": "recent",
+  "blogReviews": [
+    {
+      "type": "blog",
+      "title": "몬자야끼 신논현역 맛집 오몬자 방문기",
+      "url": "...",
+      "excerpt": "교보문고에서 달력도 살 겸, 오랜만에 나온 강남! 몬자야끼라는, 전에 먹어본 적 없는 일본식 메뉴를 파는...",
+      "author": "...",
+      "sourceName": "...",
+      "sourceUrl": "...",
+      "date": "4일 전",
+      "thumbnailUrl": "http://blogfiles.naver.net/....jpg",
+      "imageCount": 42
+    }
+  ],
+  "blogReviewsTotal": 690,
+  "pagesFetched": 1,
+  "query": { "place": "2097258400" }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `place.address` / `place.jibunAddress` / `place.phone` | Road-name and lot addresses and phone; `isVirtualPhone` marks a Naver forwarding number. |
+| `place.businessHours` | Opening hours per day (`day`, `open`, `close`, `breaks`, `lastOrder`), plus regular and irregular closed days. |
+| `place.description` / `place.directions` | The owner's description and directions. |
+| `place.conveniences` / `place.facilities` / `place.paymentMethods` / `place.parking` | What the place offers and how you can pay. |
+| `place.keywords` / `place.links` / `place.homepage` | Owner keywords, homepage and social links. |
+| `place.menus` / `place.menuImages` | Menu items with `name`, `price`, `description` and image, and photos of the printed menu. |
+| `place.photos` / `place.photoCount` | Photos and the total photo count. |
+| `place.bookingUrl` / `place.subwayStations` | Naver booking link and nearby stations with line, exit and walking time. |
+| `place.reviewStats` | `averageRating`, `totalCount`, `starDistribution`, review `themes`, `menuMentions` and `keywordVotes` (Naver's "what visitors liked" votes). |
+| `reviews` | First 10 visitor reviews: `body`, `rating`, `createdDate`, `visitedAt`, `verifiedBy` (receipt or payment record), `keywords`, `situations`, `media`, `reactions`, the `author`'s stats and the `ownerReply`. |
+| `reviewSort` | `relevance` or `recent`, as requested. |
+| `blogReviews` / `blogReviewsTotal` | First blog and cafe posts about the place (`title`, `excerpt`, `date`, `thumbnailUrl`) and how many exist. |
+
+## What you can build
+
+- **Korean local business data** - build restaurant, cafe or clinic lists for a district with addresses, phones and coordinates.
+- **Location intelligence** - set a search centre and map what is around a site, with each place's distance.
+- **Menu and price research** - collect menus with prices across competing places.
+- **Reputation monitoring** - track ratings, review statistics and the newest visitor reviews with `sort=recent`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Naver Map search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

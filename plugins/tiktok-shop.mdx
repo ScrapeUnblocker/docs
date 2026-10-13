@@ -1,0 +1,458 @@
+---
+title: "TikTok Shop plugin"
+description: "TikTok Shop (US) product data as clean JSON - keyword or category search, one product in full with variants, shipping, seller scores and top reviews, and a store with its storefront products."
+sidebarTitle: "TikTok Shop"
+---
+
+The **TikTok Shop** plugin turns the US TikTok Shop into structured JSON. It is three endpoints:
+
+- **`/social/tiktok-shop-search`** - up to 30 product cards for a keyword, or about 15 for a category: price and discount, rating, review count, sold count, brand, seller and, when TikTok binds one, the promoting video with its play and like counts. A keyword also returns related searches and categories; a category returns its subcategories and breadcrumbs.
+- **`/social/tiktok-shop-product`** - one product in full: title, description, status, brand, price or price range, sold count, rating with its 1-5 star distribution, category path, images, options and every variant with price and stock, specifications, shipping, promotion labels, the seller with service scores, and the top reviews the page shows.
+- **`/social/tiktok-shop-store`** - a store's profile (rating, followers, sold count, product, review and video counts, service scores) and up to 20 products from its storefront.
+
+The plugin covers the US storefront only and prices are in USD. Each endpoint reads one page and is one billed request. No TikTok account or cookies are involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+List products for a keyword or a category.
+
+```
+POST /social/tiktok-shop-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | one of `q` / `category` | Search keyword, e.g. `led face mask`, or a TikTok Shop keyword URL like `https://www.tiktok.com/shop/product/led-face-mask`. |
+| `category` | one of `q` / `category` | List a category instead of a keyword: a category URL (`https://www.tiktok.com/shop/c/beauty-personal-care/601450`) or its numeric id (`601450`). |
+| `max_results` | no | Products to return, `1`-`30`. Default `30`. A keyword lists up to 30 products, a category about 15. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/social/tiktok-shop-search?q=led%20face%20mask&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.tiktok_shop_search("led face mask", max_results=5)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.tiktokShopSearch("led face mask", { maxResults: 5 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->tiktokShopSearch('led face mask', ['max_results' => 5]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.tiktok_shop_search("led face mask", max_results: 5)
+```
+</CodeGroup>
+
+To list a category, leave the keyword out and pass the `category` option, e.g. `su.tiktok_shop_search(category="601450")` in Python. A keyword or category TikTok has no listing for returns `404`; try a broader keyword or a category.
+
+### Response
+
+```json
+{
+  "query": "led face mask",
+  "keyword": "Led face mask",
+  "url": "https://www.tiktok.com/shop/product/led-face-mask",
+  "region": "us",
+  "hasMore": true,
+  "relatedSearches": [
+    { "name": "led face mask light therapy", "url": "https://shop.tiktok.com/us/k/led-face-mask-light-therapy" }
+  ],
+  "relatedCategories": [
+    { "name": "Facial Beauty Devices", "url": "https://shop.tiktok.com/us/c/facial-beauty-devices/601672" }
+  ],
+  "description": "LED face masks are becoming increasingly popular in the skincare world ...",
+  "products": [
+    {
+      "productId": "1732363938059489978",
+      "url": "https://shop.tiktok.com/us/pdp/umitec-led-light-therapy-mask-4-modes-830nm-nir-anti-aging-rechargeable-comfort-silicone/1732363938059489978",
+      "title": "ZoneCraft LED Red Light Therapy Face Mask with Eye Pads, 4 Modes, 10-Minute Timer ...",
+      "image": "https://p16-oec-general-useast5.ttcdn-us.com/tos-useast5-i-omjb5zjo8w-tx/e5858fe9436b46d6b9bcf9be0cfbf166~tplv-...",
+      "price": { "current": 169.99, "original": 299.99, "discountPercent": 43, "currency": "USD", "currencySymbol": "$", "fromPrice": true },
+      "rating": 4.9,
+      "reviewCount": 62,
+      "soldCount": 140,
+      "brand": "Umitec",
+      "seller": { "id": "7495451149554059962", "name": "Umitec", "logo": "https://p16-oec-general-useast5.ttcdn-us.com/..." },
+      "labels": ["Fall Deals", "Free shipping"],
+      "video": {
+        "id": "7650606695986646302",
+        "url": "https://www.tiktok.com/@.../video/7650606695986646302",
+        "title": "Self care kinda day ...",
+        "author": "Candance F.",
+        "playCount": 18654,
+        "likeCount": 2238,
+        "durationSeconds": 10.1,
+        "uploadedAt": "2026-06-12T20:21:43Z",
+        "cover": "https://p16-common-sign.tiktokcdn-us.com/..."
+      }
+    },
+    {
+      "productId": "1730700737574179367",
+      "url": "https://shop.tiktok.com/us/pdp/red-light-face-mask-by-comfort-white-7-1-modes-90-light-coverage/1730700737574179367",
+      "title": "SHMHE Red Light Therapy Mask - 7 Color LED Facial Beauty Machine ...",
+      "image": "https://p16-oec-general-useast8.ttcdn-us.com/tos-useast8-i-rt0ujvrtvp-tx2/7dadac08aba74aaab5bd5f8315722d6d~tplv-...",
+      "price": { "current": 22.99, "original": 49.99, "discountPercent": 54, "currency": "USD", "currencySymbol": "$", "fromPrice": true },
+      "rating": 4.4,
+      "reviewCount": 4982,
+      "soldCount": 57210,
+      "brand": null,
+      "seller": { "id": "7495857858207910439", "name": "Timeleshop", "logo": "https://p16-oec-general.ttcdn-us.com/..." },
+      "labels": ["Free shipping"]
+    }
+  ],
+  "resultsCount": 5
+}
+```
+
+A category listing has the same `products` cards, with the category, its `subcategories` and `breadcrumbs` in place of the related searches:
+
+```json
+{
+  "category": { "id": "601450", "name": "Beauty & Personal Care", "level": 1, "leaf": false, "url": "https://www.tiktok.com/shop/c/beauty-personal-care/601450" },
+  "subcategories": [
+    { "id": "849032", "name": "Hand & Foot Care", "level": 2, "leaf": false, "url": "https://www.tiktok.com/shop/c/hand-foot-care/849032" }
+  ],
+  "breadcrumbs": [{ "id": "601450", "name": "Beauty & Personal Care" }],
+  "hasMore": true,
+  "products": ["..."]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `url` | TikTok Shop product id and the product page URL. Pass either to [Product](#product). |
+| `title` / `image` | Product title and main image. |
+| `price` | `current`, `original`, `discountPercent`, `currency` (USD), `currencySymbol` and `fromPrice` (`true` when the card shows a "from" price for a range). |
+| `rating` / `reviewCount` / `soldCount` | Star rating (out of 5), number of reviews and units sold. |
+| `brand` | Brand, when the product lists one. |
+| `seller` | `id`, `name` and `logo`. Pass the `id` to [Store](#store). |
+| `labels` | Promotion labels, e.g. `Free shipping`. |
+| `video` | Present when TikTok binds a promoting video: `id`, `url`, `title`, `author`, `playCount`, `likeCount`, `durationSeconds`, `uploadedAt` and `cover`. |
+
+## Product
+
+```
+POST /social/tiktok-shop-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `url` | one of `url` / `product_id` | A product URL (`https://www.tiktok.com/shop/pdp/<slug>/<id>`, `https://shop.tiktok.com/us/pdp/<id>` or a `/view/product/` link) or a bare product id. |
+| `product_id` | one of `url` / `product_id` | The numeric product id, e.g. `1732224050708320653`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/social/tiktok-shop-product?url=https%3A%2F%2Fshop.tiktok.com%2Fus%2Fpdp%2F1732224050708320653" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.tiktok_shop_product("https://shop.tiktok.com/us/pdp/1732224050708320653")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.tiktokShopProduct("https://shop.tiktok.com/us/pdp/1732224050708320653");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->tiktokShopProduct('https://shop.tiktok.com/us/pdp/1732224050708320653');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.tiktok_shop_product("https://shop.tiktok.com/us/pdp/1732224050708320653")
+```
+</CodeGroup>
+
+A product that does not exist or is not sold in the US returns `404`. A URL for another market (e.g. `shop.tiktok.com/gb/...`) returns `400`.
+
+### Response
+
+```json
+{
+  "productId": "1732224050708320653",
+  "url": "https://shop.tiktok.com/us/pdp/red-light-therapy-mask-for-face-neck-4-modes-2000mah/1732224050708320653",
+  "region": "us",
+  "title": "INTEO 4 Modes Red Light Therapy LED Face & Neck Mask - 680 LEDs, 840-860nm Near-Infrared ...",
+  "seoTitle": "INTEO Red Light Therapy Mask 680 LEDs Cordless 2000mAh Silicone",
+  "description": "- 【680 High-Energy Light Beads & Full Coverage】This red light therapy mask for face and neck ...",
+  "descriptionImages": ["https://p16-oec-general-useast5.ttcdn-us.com/..."],
+  "status": "on_sale",
+  "available": true,
+  "brand": "INTEO",
+  "price": {
+    "current": 159.99,
+    "original": 299.99,
+    "discountPercent": 47,
+    "currency": "USD",
+    "currencySymbol": "$",
+    "display": "$159.99 - 279.99",
+    "originalDisplay": null,
+    "isRange": true,
+    "min": 159.99,
+    "max": 279.99
+  },
+  "soldCount": 349,
+  "rating": 4.6,
+  "reviewCount": 43,
+  "ratingDistribution": { "1": 1, "2": 0, "3": 2, "4": 8, "5": 32 },
+  "categories": [
+    { "id": "601450", "name": "Beauty & Personal Care", "level": 1, "leaf": false },
+    { "id": "1933456", "name": "Microcurrent Devices", "level": 5, "leaf": true }
+  ],
+  "images": ["https://p16-oec-general-useast5.ttcdn-us.com/..."],
+  "options": [
+    {
+      "id": "100000",
+      "name": "Color",
+      "values": [
+        { "id": "1001074", "value": "Pink", "image": "https://p16-oec-general-useast5.ttcdn-us.com/..." },
+        { "id": "1001079", "value": "White", "image": "https://p16-oec-general-useast5.ttcdn-us.com/..." }
+      ]
+    }
+  ],
+  "variants": [
+    { "skuId": "1732431678594912653", "properties": { "Color": "Pink" }, "price": 159.99, "originalPrice": 299.99, "discountPercent": 47, "currency": "USD", "stock": 114, "available": true, "purchaseLimit": 200 },
+    { "skuId": "1732519470694961549", "properties": { "Color": "White" }, "price": 279.99, "originalPrice": null, "discountPercent": null, "currency": "USD", "stock": 15, "available": true, "purchaseLimit": 200 }
+  ],
+  "specifications": [
+    { "name": "Brand", "value": "INTEO" },
+    { "name": "Is cordless", "value": "Yes" }
+  ],
+  "shipping": {
+    "free": true,
+    "fee": 0.0,
+    "feeDisplay": "$0.00",
+    "currency": "USD",
+    "originalFee": 5.99,
+    "method": "Standard shipping",
+    "minDays": 7,
+    "maxDays": 10,
+    "estimatedDelivery": "Oct 20 - Oct 23",
+    "shipsFrom": "local",
+    "reachable": true
+  },
+  "labels": ["Flash sale", "Fall Deals", "Free shipping"],
+  "seller": {
+    "id": "7496099972735732109",
+    "name": "INTEO US",
+    "url": "https://shop.tiktok.com/us/store/inteo-us/7496099972735732109",
+    "rating": 4.5,
+    "followers": 11742,
+    "soldCount": 15704,
+    "productCount": 10,
+    "reviewCount": 1626,
+    "videoCount": 1423,
+    "logo": "https://p19-oec-general-useast5.ttcdn-us.com/...",
+    "label": null,
+    "creatorName": "INTEO US",
+    "businessName": "AMINY TECHNOLOGY INC",
+    "businessAddress": "Arizona,United States",
+    "scores": [
+      { "name": "Positive feedback", "value": "81%", "level": "Good" },
+      { "name": "On-time delivery", "value": "91%", "level": "Excellent" }
+    ]
+  },
+  "reviews": [
+    {
+      "id": "7650948609219708685",
+      "rating": 5,
+      "text": "I've been loving the INTEO Red Light Therapy Mask! It's comfortable, cordless, and easy to use at home ...",
+      "date": "2026-06-13T18:28:33Z",
+      "reviewer": "g**y G**y",
+      "reviewerAvatar": "https://p16-common-sign.tiktokcdn-us.com/...",
+      "verifiedPurchase": true,
+      "incentivized": true,
+      "variant": "Pink",
+      "skuId": "1732431678594912653",
+      "country": "US",
+      "images": ["https://p16-oec-general-useast5.ttcdn-us.com/..."]
+    }
+  ],
+  "safetyWarnings": [],
+  "keywords": ["INTEO red light therapy mask", "red light therapy face and neck"]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `title` / `description` / `descriptionImages` | Product title, description text and the images inside the description. |
+| `status` / `available` | Listing status (e.g. `on_sale`) and whether it can be bought. |
+| `price` | `current`, `original`, `discountPercent`, `currency`, display strings, and `min` / `max` with `isRange` when variants are priced differently. |
+| `soldCount` / `rating` / `reviewCount` / `ratingDistribution` | Units sold, star rating, number of reviews and the count per star. |
+| `categories` | Category path, `level` 1 first; `leaf` marks the deepest one. |
+| `options` / `variants` | Option names and values (with images), and every SKU with its `properties`, `price`, `originalPrice`, `stock`, `available` and `purchaseLimit`. |
+| `specifications` | Product attributes as name / value pairs. |
+| `shipping` | `free`, `fee`, `originalFee`, `method`, `minDays` / `maxDays` and `estimatedDelivery`. |
+| `seller` | Store profile with `rating`, `followers`, `soldCount`, product / review / video counts, service `scores`, and `businessName` / `businessAddress`. |
+| `reviews` | The top reviews the product page shows (not the full review list): `rating`, `text`, `date`, masked `reviewer`, `verifiedPurchase`, `variant`, `country` and `images`. |
+
+## Store
+
+```
+POST /social/tiktok-shop-store
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `store` | yes | A store URL (`https://www.tiktok.com/shop/store/<name>/<seller id>`) or the seller id, e.g. `7496099972735732109`. |
+| `max_results` | no | Storefront products to return, `0`-`20`. Default `20`. `0` = store profile only. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/social/tiktok-shop-store?store=7496099972735732109&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.tiktok_shop_store("7496099972735732109", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.tiktokShopStore("7496099972735732109", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->tiktokShopStore('7496099972735732109', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.tiktok_shop_store("7496099972735732109", max_results: 3)
+```
+</CodeGroup>
+
+Most stores answer in a few seconds; a store TikTok shows only behind its verification puzzle (common for smaller shops) can take up to about 50 seconds. A seller id with no US store returns `404`.
+
+### Response
+
+```json
+{
+  "store": {
+    "id": "7496099972735732109",
+    "name": "INTEO US",
+    "url": "https://shop.tiktok.com/us/store/inteo-us/7496099972735732109",
+    "rating": 4.5,
+    "followers": 11742,
+    "soldCount": 15704,
+    "productCount": 10,
+    "reviewCount": 1626,
+    "videoCount": 1423,
+    "logo": "https://p16-oec-general-useast5.ttcdn-us.com/...",
+    "label": null,
+    "creatorName": "INTEO US",
+    "businessName": null,
+    "businessAddress": null,
+    "scores": [
+      { "name": "Positive feedback", "value": "81%", "level": "Good" },
+      { "name": "On-time delivery", "value": "91%", "level": "Excellent" },
+      { "name": "Issue resolution", "value": "<18h", "level": "Excellent" }
+    ],
+    "description": "Shop INTEO US on TikTok Shop! 15.7K sold, 11.7K+ followers ..."
+  },
+  "region": "us",
+  "products": [
+    {
+      "productId": "1731263806493921677",
+      "url": "https://shop.tiktok.com/us/pdp/red-light-therapy-lamp-by-inteo-120-leds-removable-pad-2in1-use/1731263806493921677",
+      "title": "INTEO Wearable Red Light Therapy Device - Bendable Curved Panel, 120 LED Lights ...",
+      "image": "https://p19-oec-general-useast5.ttcdn-us.com/...",
+      "price": { "current": 229.99, "original": null, "discountPercent": null, "currency": "USD", "currencySymbol": "$", "fromPrice": false },
+      "rating": 4.5,
+      "reviewCount": 1030,
+      "soldCount": 9277,
+      "brand": null,
+      "seller": { "id": "7496099972735732109", "name": "INTEO US", "logo": "https://p16-oec-general-useast5.ttcdn-us.com/..." },
+      "labels": ["Free shipping"]
+    }
+  ],
+  "resultsCount": 3,
+  "hasMore": true
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `store.rating` / `followers` / `soldCount` | Store rating, follower count and units sold. |
+| `store.productCount` / `reviewCount` / `videoCount` | Number of products, reviews and videos. |
+| `store.label` | A badge such as `OFFICIAL SHOP`, else `null`. |
+| `store.scores` | Service scores such as positive feedback, on-time delivery and issue resolution, each with a `value` and `level`. |
+| `store.businessName` / `businessAddress` | Always `null` here - the store page does not carry them. The product endpoint's `seller` has them. |
+| `products` | Storefront products, in the same card shape as [Search](#search). |
+| `hasMore` | Whether the storefront has more products than were returned. |
+
+A store with no products listed returns its profile and an empty `products`.
+
+## What you can build
+
+- **Product research** - find best-selling products for a keyword or category with sold counts and promoting videos.
+- **Price and stock monitoring** - track a product's variants, prices, discounts and stock over time.
+- **Seller intelligence** - compare stores by followers, sales and service scores.
+- **Creator-led demand signals** - use the bound video's play and like counts to see which products are getting traction.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a TikTok Shop product and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

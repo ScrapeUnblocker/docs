@@ -30,16 +30,70 @@ POST /jobs/indeed
 | `sort` | no | `relevance` (default) or `date`. |
 | `max_results` | no | How many jobs to collect across pages. Default `30`, max `500`. |
 | `start` | no | 0-based result offset to start from. Default `0`. |
-| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to the country's own site. |
+| `proxy_country` | no | Proxy country (ISO-2). Defaults to the country of the `country` site. |
 
 ### Supported country sites
 
 `us` `uk` `ca` `au` `in` `ie` `de` `fr` `nl` `es` `it` `at` `ch` `be` `pl` `se` `sg` `za` `nz` `mx`
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/jobs/indeed?query=software%20engineer&location=New%20York&job_type=fulltime&max_results=50" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.indeed_jobs(
+    "software engineer",
+    location="New York",
+    job_type="fulltime",
+    max_results=50,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.indeedJobs("software engineer", {
+  location: "New York",
+  jobType: "fulltime",
+  maxResults: 50,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->indeedJobs('software engineer', [
+    'location' => 'New York',
+    'job_type' => 'fulltime',
+    'max_results' => 50,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.indeed_jobs(
+  "software engineer",
+  location: "New York",
+  job_type: "fulltime",
+  max_results: 50
+)
+```
+
+</CodeGroup>
 
 ## Response
 

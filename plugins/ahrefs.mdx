@@ -1,0 +1,269 @@
+---
+title: "Ahrefs plugin"
+description: "Ahrefs' free SEO tools as clean JSON - Domain Rating, backlinks and referring domains, top backlinks, organic traffic and its value, broken links, keyword difficulty, keyword ideas and the Google SERP with Ahrefs metrics."
+sidebarTitle: "Ahrefs"
+---
+
+The **Ahrefs** plugin runs seven of Ahrefs' free SEO tools and returns their answers as structured JSON, with no Ahrefs account, login or API key. Pick the tool with `tool`:
+
+- **Domain tools** take a domain or URL as `target`: `authority` (Domain Rating, backlinks, referring domains and their dofollow share), `backlinks` (the same plus the top backlinks), `traffic` (monthly organic traffic, its value in USD, history, top pages, countries and keywords) and `broken-links` (broken backlinks pointing at the site and broken links on its pages). `mode` sets the scope: the domain with its subdomains, the domain alone, everything under a URL prefix, or one exact URL.
+- **Keyword tools** take a search phrase as `keyword` and a market as `country`: `keyword-difficulty` (KD 0-100, the referring domains a page needs to rank and the SERP it was read from), `keywords` (Google keyword ideas and question ideas with difficulty and volume buckets) and `serp` (the top Google results with Ahrefs metrics for each organic result, plus the AI overview, questions, shopping, local and news blocks).
+
+The figures are Ahrefs' own, as its free tools show them to signed-out visitors: the top backlinks, pages, countries and keywords rather than every one, and keyword volumes as buckets such as `10K+`.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Free SEO tools
+
+```
+POST /seo/ahrefs
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `tool` | yes | `authority`, `backlinks`, `traffic`, `broken-links` (these take `target`), `keyword-difficulty`, `keywords` or `serp` (these take `keyword`). Ahrefs' page names and shorthands also work, e.g. `dr`, `kd`, `backlink-checker`, `keyword-generator`. |
+| `target` | for domain tools | Domain or URL, e.g. `github.com` or `https://github.com/features`. |
+| `keyword` | for keyword tools | Search phrase, e.g. `crm software`. |
+| `country` | no | Two-letter market code. Keyword tools: the Google market searched (default `us`). `traffic`: limits the estimate to that country (default worldwide). Not used by the other domain tools. |
+| `mode` | no | Target scope for the domain tools: `subdomains` (default, the domain with all its subdomains), `domain` (without subdomains), `prefix` (everything under the URL) or `exact` (that URL only). |
+| `protocol` | no | `traffic` only: `both` (default), `http` or `https`. |
+| `questions` | no | `keywords` only: also return question ideas. Default `true`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/seo/ahrefs?tool=backlinks&target=github.com" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+
+curl -X POST "https://api.scrapeunblocker.com/seo/ahrefs?tool=keywords&keyword=crm%20software&country=us" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+backlinks = su.ahrefs("backlinks", target="github.com")
+ideas = su.ahrefs("keywords", keyword="crm software", country="us")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const backlinks = await su.ahrefs("backlinks", { target: "github.com" });
+const ideas = await su.ahrefs("keywords", { keyword: "crm software", country: "us" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$backlinks = $su->ahrefs('backlinks', ['target' => 'github.com']);
+$ideas = $su->ahrefs('keywords', ['keyword' => 'crm software', 'country' => 'us']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+backlinks = su.ahrefs("backlinks", target: "github.com")
+ideas = su.ahrefs("keywords", keyword: "crm software", country: "us")
+```
+</CodeGroup>
+
+<Note>
+Each call is one request: one tool, one domain or keyword.
+</Note>
+
+### Response
+
+Every answer carries `tool`, `query` (the resolved target, mode, keyword and country, so a batch can be matched back to its inputs), `source` (the Ahrefs tool page) and `found`, plus the tool's own fields. `tool=backlinks`:
+
+```json
+{
+  "tool": "backlinks",
+  "query": { "target": "github.com", "mode": "subdomains" },
+  "source": "https://ahrefs.com/backlink-checker",
+  "found": true,
+  "domainRating": 97.0,
+  "backlinks": 4923570941,
+  "referringDomains": 2459599,
+  "dofollowBacklinksPercent": 90,
+  "dofollowReferringDomainsPercent": 95,
+  "topBacklinks": [
+    {
+      "urlFrom": "https://duckduckgo.com/",
+      "urlTo": "https://github.com/duckduckgo/tracker-blocklists",
+      "title": "DuckDuckGo - Protection. Privacy. Peace of mind.",
+      "anchor": "list of trackers",
+      "textBefore": "more , which all help cover different tracking angles. Our",
+      "textAfter": "is open source, along with the list of exceptions we",
+      "domainRating": 91,
+      "redirectChain": [],
+      "inRenderedHtml": true,
+      "inRawHtml": false
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `found` | `false` (with the tool's fields empty or `null`) when Ahrefs has no data for the target or keyword. A failure returns an error status instead. |
+| `domainRating` | Ahrefs Domain Rating (0-100). |
+| `backlinks` / `referringDomains` | Total backlinks and linking domains. `dofollowBacklinksPercent` and `dofollowReferringDomainsPercent` give the dofollow share of each. |
+| `topBacklinks` | The strongest backlinks: linking page (`urlFrom`), target (`urlTo`), page `title`, `anchor`, the text around the link, the linking site's `domainRating`, any `redirectChain`, and whether the link is in the rendered and the raw HTML. |
+
+`tool=authority` returns the same fields without `topBacklinks`.
+
+**`tool=traffic`** - organic search traffic, worldwide unless you pass `country`:
+
+```json
+{
+  "tool": "traffic",
+  "query": { "target": "github.com", "mode": "subdomains", "country": null, "protocol": "both" },
+  "source": "https://ahrefs.com/traffic-checker",
+  "found": true,
+  "organicTraffic": 42794500,
+  "trafficValueUsd": 24266038.0,
+  "trafficHistory": [
+    { "date": "2026-09-01", "organicTraffic": 46427964 },
+    { "date": "2026-10-01", "organicTraffic": 42805791 }
+  ],
+  "topPages": [{ "url": "https://github.com/", "traffic": 1271332, "sharePercent": 12.58 }],
+  "topCountries": [{ "country": "US", "sharePercent": 23.66 }],
+  "topKeywords": [{ "keyword": "github desktop", "position": 1, "traffic": 83000 }]
+}
+```
+
+**`tool=broken-links`** - `inbound` broken backlinks (links from other sites to pages on the target that fail) and `outbound` broken links on the target's own pages:
+
+```json
+{
+  "tool": "broken-links",
+  "query": { "target": "github.com", "mode": "subdomains" },
+  "source": "https://ahrefs.com/broken-link-checker",
+  "found": true,
+  "inbound": {
+    "totalBacklinks": 42311319,
+    "dofollowBacklinks": 51,
+    "links": [
+      {
+        "urlFrom": "https://stackoverflow.com/questions/2003505/how-do-i-delete-a-git-branch-locally-and-remotely",
+        "urlTo": "https://github.com/git/git/blob/master/Documentation/RelNotes/2.3.0.txt",
+        "httpCode": 404,
+        "title": "version control - How do I delete a Git branch locally and remotely? - Stack Overflow",
+        "anchor": "Git v2.3",
+        "textBefore": "As of",
+        "textAfter": ",",
+        "domainRating": 92,
+        "redirectChain": []
+      }
+    ]
+  },
+  "outbound": { "totalLinks": null, "dofollowLinks": null, "pages": [] }
+}
+```
+
+**`tool=keyword-difficulty`** - KD, the referring domains a page needs to rank in the top 10, and the SERP it was read from (`results`, same shape as `tool=serp`):
+
+```json
+{
+  "tool": "keyword-difficulty",
+  "query": { "keyword": "web scraping", "country": "US" },
+  "source": "https://ahrefs.com/keyword-difficulty",
+  "found": true,
+  "difficulty": 53,
+  "referringDomainsToRank": 95,
+  "lastUpdate": "2026-10-09T02:10:55Z",
+  "results": [
+    { "position": 3, "type": "questions", "questions": ["What is web scraping used for?", "Which tool is best for web scraping?"] }
+  ]
+}
+```
+
+**`tool=keywords`** - Google keyword ideas and question ideas. `difficulty` is a bucket (`easy`, `medium`, `hard`, or `unknown`); `volume` is Ahrefs' volume bucket, with `volumeMin` as a number:
+
+```json
+{
+  "tool": "keywords",
+  "query": { "keyword": "crm software", "country": "US" },
+  "source": "https://ahrefs.com/keyword-generator",
+  "found": true,
+  "ideas": [
+    { "keyword": "crm software", "country": "US", "difficulty": "hard", "volume": "100K+", "volumeMin": 100000, "updatedAt": "2026-10-06T18:01:21Z" },
+    { "keyword": "crm software examples", "country": "US", "difficulty": "easy", "volume": "1K+", "volumeMin": 1000, "updatedAt": "2026-10-06T02:27:33Z" }
+  ],
+  "totalIdeas": 11992,
+  "questionIdeas": [
+    { "keyword": "what is crm software", "country": "US", "difficulty": "hard", "volume": "10K+", "volumeMin": 10000, "updatedAt": "2026-10-08T16:58:07Z" }
+  ],
+  "totalQuestionIdeas": 999
+}
+```
+
+**`tool=serp`** - the top Google results in page order. Each block has a `position` and a `type` (`organic`, `ai_overview`, `questions`, `organic_shopping`, `local_pack`, `videos`, `top_stories` and more); organic results carry Ahrefs `metrics`:
+
+```json
+{
+  "tool": "serp",
+  "query": { "keyword": "running shoes", "country": "US" },
+  "source": "https://ahrefs.com/serp-checker",
+  "found": true,
+  "lastUpdate": "2026-10-07T10:35:21Z",
+  "results": [
+    { "position": 2, "type": "ai_overview", "text": "Running shoes typically cost between $35 and $220, with popular daily trainers averaging around $125 to $155..." },
+    { "position": 4, "type": "local_pack", "items": [{ "title": "Fartleks Running Shop", "url": null }] },
+    {
+      "position": 5,
+      "type": "organic",
+      "organicPosition": 2,
+      "title": "Running Shoes with Extra Support",
+      "url": "https://www.dickssportinggoods.com/a/running-shoes-extra-support-0bfz01a.html",
+      "displayUrl": "https://www.dickssportinggoods.com › running-shoes-ex...",
+      "metrics": {
+        "ahrefsRank": 7635,
+        "domainRating": 83,
+        "urlRating": 4,
+        "backlinks": 0,
+        "referringDomains": 0,
+        "traffic": 19217,
+        "trafficValueUsd": 9993.29,
+        "keywords": 6,
+        "topKeyword": "running shoes",
+        "topKeywordVolume": 202000,
+        "words": 2955,
+        "httpCode": 200
+      },
+      "siteLinks": []
+    }
+  ]
+}
+```
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Missing or unknown `tool`, a domain tool without `target` (or a keyword tool without `keyword`), a malformed `country`, or Ahrefs rejected the target or keyword. The message says what to fix. |
+| `502` | Ahrefs could not be reached or did not answer in time. Retry. |
+
+## What you can build
+
+- **SEO dashboards** - track Domain Rating, referring domains and organic traffic for your site and a set of competitors.
+- **Link building** - find broken backlinks to reclaim and see which pages link to a competitor.
+- **Keyword research** - collect keyword and question ideas with difficulty and volume buckets for a topic.
+- **SERP analysis** - see who ranks for a keyword and how strong each result is before you target it.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Ahrefs tool and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

@@ -1,0 +1,396 @@
+---
+title: "App Store plugin"
+description: "Apple App Store data as clean JSON - one app's price, rating, star histogram, version history, privacy labels and chart rank, app search, or customer reviews per country."
+sidebarTitle: "App Store"
+---
+
+The **App Store** plugin turns Apple App Store listings into structured JSON. It covers three things:
+
+- **App details** - one app's title and subtitle, developer, price, rating with the star histogram, content and age rating, genres, release and update dates, the current version with release notes and the version history, size, minimum iOS version, languages, description, screenshots, privacy labels, top-chart rank and similar apps.
+- **App search** - up to 200 apps matching a keyword.
+- **Reviews** - customer reviews with title, text, rating, author, date, the app version reviewed and helpful votes, newest or most helpful first.
+
+Pass the app as a numeric id (`310633997`), `id310633997`, an apps.apple.com URL or a bundle id (`net.whatsapp.WhatsApp`). Prices, ratings and reviews are per store country, picked with `country`. No Apple developer account is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## App details
+
+```
+POST /apps/app-store
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `app_id` | yes | Numeric App Store id (`310633997`), `id310633997`, an apps.apple.com app URL, or a bundle id (`net.whatsapp.WhatsApp`). |
+| `mode` | - | Set to `app` by `appStoreApp`. |
+| `country` | no | App Store country (ISO-2), e.g. `us`, `gb`, `de`. Default: the country in an app URL, else `us`. |
+| `lang` | no | Listing language, e.g. `fr` or `fr-CA`, for countries whose store has several languages. Default: the store's own. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/apps/app-store?mode=app&app_id=310633997&country=us" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.app_store_app("310633997", country="us")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.appStoreApp("310633997", { country: "us" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->appStoreApp('310633997', ['country' => 'us']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.app_store_app("310633997", country: "us")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "app",
+  "country": "us",
+  "app": {
+    "appId": "310633997",
+    "bundleId": "net.whatsapp.WhatsApp",
+    "title": "WhatsApp Messenger",
+    "subtitle": "Simple. Reliable. Private.",
+    "url": "https://apps.apple.com/us/app/whatsapp-messenger/id310633997",
+    "developer": "WhatsApp Inc.",
+    "developerId": "310634000",
+    "developerUrl": "https://apps.apple.com/us/developer/whatsapp-inc/id310634000",
+    "developerWebsite": "http://www.whatsapp.com/",
+    "price": 0.0,
+    "currency": "USD",
+    "priceText": "Free",
+    "free": true,
+    "rating": 4.68344,
+    "ratingsCount": 18759602,
+    "histogram": {
+      "1": 645559,
+      "2": 254952,
+      "3": 568194,
+      "4": 1456913,
+      "5": 15839078
+    },
+    "contentRating": "12+",
+    "ageRating": "13+",
+    "genres": [
+      "Social Networking",
+      "Utilities"
+    ],
+    "releaseDate": "2009-05-04T02:43:49Z",
+    "updated": "2026-10-12T12:34:26Z",
+    "version": "26.40.77",
+    "releaseNotes": "We update the app regularly to fix bugs, optimize performance and impr...",
+    "versionHistory": [
+      {
+        "version": "26.40.77",
+        "date": "2026-10-12T12:34:26Z",
+        "releaseNotes": "We update the app regularly to fix bugs,..."
+      }
+    ],
+    "size": 402210816,
+    "minimumOsVersion": "15.1",
+    "languages": [
+      "AR",
+      "BN",
+      "CA"
+    ],
+    "description": "WhatsApp from Meta is a free messaging and calling app used by over 2 billion pe...",
+    "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/06/7d/...",
+    "screenshots": [
+      "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/..."
+    ],
+    "offersInAppPurchases": true,
+    "privacy": [
+      {
+        "type": "DATA_LINKED_TO_YOU",
+        "title": "Data Linked to You",
+        "categories": [
+          "PURCHASES",
+          "FINANCIAL_INFO"
+        ]
+      }
+    ],
+    "chartRank": {
+      "position": 3,
+      "chart": "Social Networking",
+      "url": "https://apps.apple.com/us/iphone/charts/6005?chart=top-free"
+    },
+    "similarApps": [
+      {
+        "appId": "454638411",
+        "bundleId": "com.facebook.Messenger",
+        "title": "Messenger",
+        "subtitle": "Text, audio and video calls"
+      }
+    ],
+    "moreByDeveloper": [
+      {
+        "appId": "1386412985",
+        "bundleId": "net.whatsapp.WhatsAppSMB",
+        "title": "WhatsApp Business",
+        "subtitle": "Business"
+      }
+    ]
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `appId` / `bundleId` / `url` | Numeric App Store id, bundle id and the store link. |
+| `title` / `subtitle` | App name and its subtitle line. |
+| `developer` / `developerId` / `developerUrl` / `developerWebsite` | Developer name, Apple id, store page and website. |
+| `price` / `currency` / `priceText` / `free` | Price in the store's currency, as a number and as Apple prints it. |
+| `rating` / `ratingsCount` / `histogram` | Average rating (out of 5), number of ratings and the count per star in this country. |
+| `contentRating` / `ageRating` | Apple's age rating; `advisories` lists the content notes behind it. |
+| `genres` | Store categories (`genre` is the primary one). |
+| `releaseDate` / `updated` | First release and last update (ISO-8601). |
+| `version` / `releaseNotes` / `versionHistory` | Current version, its notes and earlier versions with dates and notes. |
+| `size` / `minimumOsVersion` / `languages` | Download size in bytes, minimum iOS version and supported languages. |
+| `description` / `icon` / `screenshots` | Listing text and images (`ipadScreenshots` too, when present). |
+| `offersInAppPurchases` / `inAppPurchases` | Whether the app sells in-app items, and the items with their prices when the listing shows them. |
+| `privacy` | App privacy labels: each `type` (e.g. `DATA_LINKED_TO_YOU`) with its data `categories`. |
+| `chartRank` | The app's `position` in its top chart and the `chart` name. |
+| `similarApps` / `moreByDeveloper` | Apps the store lists as similar, and the developer's other apps. |
+
+An app that does not exist in the chosen country returns `404`.
+
+## App search
+
+```
+POST /apps/app-store
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | yes | Search term, e.g. `vpn`. |
+| `mode` | - | Set to `search` by `appStoreSearch`. |
+| `country` | no | App Store country (ISO-2). Default `us`. |
+| `lang` | no | Listing language, e.g. `fr` or `fr-CA`. Default: the store's own. |
+| `max_results` | no | How many apps to return, `1`-`200`. Default `50`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/apps/app-store?mode=search&q=vpn&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.app_store_search("vpn", max_results=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.appStoreSearch("vpn", { maxResults: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->appStoreSearch('vpn', ['max_results' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.app_store_search("vpn", max_results: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "search",
+  "query": "vpn",
+  "country": "us",
+  "apps": [
+    {
+      "appId": "1370293473",
+      "bundleId": "mobi.mobilejump.freevpn",
+      "title": "VPN - Super Unlimited Proxy",
+      "url": "https://apps.apple.com/us/app/vpn-super-unlimited-proxy/id1370293473",
+      "developer": "Mobile Jump Pte Ltd",
+      "developerId": "1484585154",
+      "price": 0.0,
+      "currency": "USD",
+      "priceText": "Free",
+      "free": true,
+      "rating": 4.62749,
+      "ratingsCount": 2122058,
+      "contentRating": "4+",
+      "genre": "Productivity",
+      "genres": [
+        "Productivity",
+        "Utilities"
+      ],
+      "version": "2.56.0",
+      "updated": "2026-10-08T05:54:56Z",
+      "releaseDate": "2018-05-15T11:50:11Z",
+      "size": 180580352,
+      "minimumOsVersion": "16.0",
+      "icon": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/fd/d7/...",
+      "descriptionSnippet": "VPN - Super Unlimited Proxy is a free VPN and proxy app for iPhone, iPad, Mac an..."
+    }
+  ],
+  "resultsCount": 5
+}
+```
+
+Each app carries its `appId` (pass it to `appStoreApp` or `appStoreReviews`), `bundleId`, `title`, `developer`, price fields, `rating` and `ratingsCount`, `contentRating`, genres, `version`, `updated`, `releaseDate`, `size`, `minimumOsVersion`, `icon` and a `descriptionSnippet`.
+
+## Reviews
+
+```
+POST /apps/app-store
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `app_id` | yes | Numeric App Store id, `id310633997`, an apps.apple.com app URL, or a bundle id. |
+| `mode` | - | Set to `reviews` by `appStoreReviews`. |
+| `country` | no | App Store country (ISO-2). Reviews are per country. Default: the country in an app URL, else `us`. |
+| `max_results` | no | How many reviews to collect, `1`-`500`. Default `50`. Apple serves 50 per page and at most 10 pages per country; each page is billed as one request. |
+| `sort` | no | `mostrecent` (default) or `mosthelpful`. |
+| `page` | no | Review page to start from, `1`-`10`. Pass the `nextPage` of a previous response to continue. Default `1`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/apps/app-store?mode=reviews&app_id=310633997&sort=mostrecent&max_results=50" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.app_store_reviews("310633997", sort="mostrecent", max_results=50)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.appStoreReviews("310633997", { sort: "mostrecent", maxResults: 50 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->appStoreReviews('310633997', ['sort' => 'mostrecent', 'max_results' => 50]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.app_store_reviews("310633997", sort: "mostrecent", max_results: 50)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "reviews",
+  "appId": "310633997",
+  "country": "us",
+  "sort": "mostrecent",
+  "url": "https://apps.apple.com/us/app/id310633997",
+  "reviews": [
+    {
+      "id": "14654857012",
+      "title": "What I like and don't like",
+      "text": "I like WhatsApp it's a good app for texting called and stuff. But it won't work as if for...",
+      "rating": 4,
+      "author": "E.",
+      "authorUrl": "https://itunes.apple.com/us/reviews/id...",
+      "date": "2026-10-11T11:24:49-07:00",
+      "version": "26.39.75",
+      "helpfulVotes": 0,
+      "totalVotes": 0
+    },
+    {
+      "id": "14653679658",
+      "title": "Love it!",
+      "text": "Love it! I get to talk to my mom on video even though she’s an iPhone user and I’m an andr...",
+      "rating": 5,
+      "author": "V.",
+      "authorUrl": "https://itunes.apple.com/us/reviews/id...",
+      "date": "2026-10-11T05:47:41-07:00",
+      "version": "26.39.75",
+      "helpfulVotes": 0,
+      "totalVotes": 0
+    }
+  ],
+  "resultsCollected": 50,
+  "page": 1,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` | Apple's review id. Use it to skip reviews you already have when you continue. |
+| `title` / `text` | Review headline and body. |
+| `rating` | Star rating, `1`-`5`. |
+| `author` / `authorUrl` | The reviewer's display name and their reviews page. |
+| `date` | When the review was posted (ISO-8601 with offset). |
+| `version` | The app version the review was written for. |
+| `helpfulVotes` / `totalVotes` | "Helpful" votes and all votes on the review. |
+
+`hasMore` and `nextPage` tell you where to continue. When the last page was only partly used, `nextPage` points at it again, so skip reviews whose `id` you already have.
+
+## What you can build
+
+- **Review monitoring** - pull the newest reviews per country and flag low ratings after each release.
+- **Release tracking** - follow `version`, `releaseNotes` and `versionHistory` of competing apps.
+- **Keyword and chart tracking** - record search positions and `chartRank` over time.
+- **Privacy and compliance research** - compare the privacy labels apps declare across a category.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up an App Store app and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

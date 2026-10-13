@@ -628,126 +628,6 @@
         ]
       }
     },
-    "/flights/southwest-quotes": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Southwest Airlines flight fares as JSON",
-        "description": "Live Southwest Airlines fares for a route and date, returned as JSON. Each fare product (Basic / Wanna Get Away / Wanna Get Away Plus / Anytime / Business Select) is priced in US dollars or Rapid Rewards points. One-way or return. Origin and destination are IATA airport codes (e.g. DAL, HOU). The search runs on a warm, anti-bot-cleared session.",
-        "operationId": "southwest_flights_flights_southwest_quotes_post",
-        "parameters": [
-          {
-            "name": "origin",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "title": "Origin"
-            }
-          },
-          {
-            "name": "dest",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "title": "Dest"
-            }
-          },
-          {
-            "name": "depart_date",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "title": "Depart Date"
-            }
-          },
-          {
-            "name": "return_date",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "title": "Return Date"
-            }
-          },
-          {
-            "name": "adults",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 8,
-              "minimum": 1,
-              "default": 1,
-              "title": "Adults"
-            }
-          },
-          {
-            "name": "fare_type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "dollars",
-              "title": "Fare Type"
-            }
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "US",
-              "title": "Proxy Country"
-            }
-          },
-          {
-            "name": "max_attempts",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 5,
-              "minimum": 1,
-              "default": 3,
-              "title": "Max Attempts"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Southwest fares as JSON.",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Missing or invalid search parameters."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
     "/hotels/skyscanner-quotes": {
       "post": {
         "tags": [
@@ -2031,586 +1911,6 @@
           },
           "502": {
             "description": "Blocked by Meta, no ads collected (proxy/anti-bot failure), or the call did not finish in time."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
-    "/social/threads-profile": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Scrape a public Threads profile",
-        "description": "Fetches a public Threads (Meta) profile for `username` and returns it as JSON: `username`, `fullName`, `bio`, `followers`, `threadsCount`, `profileUrl`, `avatar`, and a `posts` array of the recent posts - each with `text`, `url`, `age`, and the integer engagement counts `likes`, `comments`, `reposts` (reposts plus quote posts, as on the Threads repost button) and `shares`. A count is `0` when the post has none and `null` when Threads does not publish it (for example hidden like counts) or it cannot be read. `username` accepts a bare handle, an `@handle`, or a full profile URL. No login or cookies are required - only public profiles are read. A username with no Threads profile returns 404.",
-        "operationId": "threads_profile_social_threads_profile_post",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Threads handle ('zuck' or '@zuck') or a full profile URL like 'https://www.threads.com/@zuck'.",
-              "title": "Username"
-            },
-            "description": "Threads handle ('zuck' or '@zuck') or a full profile URL like 'https://www.threads.com/@zuck'."
-          },
-          {
-            "name": "max_posts",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 100,
-              "minimum": 1,
-              "description": "Maximum recent posts to return (1-100). The profile page carries roughly the newest 10-25.",
-              "default": 25,
-              "title": "Max Posts"
-            },
-            "description": "Maximum recent posts to return (1-100). The profile page carries roughly the newest 10-25."
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to a country chosen for Threads.",
-              "title": "Proxy Country"
-            },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to a country chosen for Threads."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "JSON profile object with a `posts` array (`postsCollected` gives its length).",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Missing or malformed username."
-          },
-          "404": {
-            "description": "Threads has no profile for that username."
-          },
-          "502": {
-            "description": "Blocked by Threads, no profile returned, or the call did not finish in time."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
-    "/social/tiktok-profile": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Scrape a public TikTok profile and its newest videos",
-        "description": "Fetches a public TikTok creator profile for `username` and returns it as JSON: `username`, `userId`, `secUid`, `nickname`, `bio`, `bioLink`, `verified`, `privateAccount`, `isOrganization`, `createdAt`, `avatar` (thumb/medium/large), exact `stats` (followers, following, likes, videos, friends), `commerce` (commerceUser, seller), privacy `settings`, and a `videos` array of the creator's newest posts (up to 10). With `video_details=true` (default) every listed video carries the full `/social/tiktok-video` shape - exact plays, likes, comments, shares, saves, reposts, hashtags, mentions, music, play/download URLs, subtitles and timestamps. `username` accepts a bare handle, `@handle` or a profile URL. No login or cookies - only public profiles are read; private or missing accounts return 404 with TikTok's reason.",
-        "operationId": "tiktok_profile_social_tiktok_profile_post",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "TikTok handle ('nasa' or '@nasa') or a profile URL like 'https://www.tiktok.com/@nasa'.",
-              "title": "Username"
-            },
-            "description": "TikTok handle ('nasa' or '@nasa') or a profile URL like 'https://www.tiktok.com/@nasa'."
-          },
-          {
-            "name": "max_videos",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 200,
-              "minimum": 0,
-              "description": "How many of the creator's newest videos to include (0-200). 0 = profile only (fastest). Up to 10 come from TikTok's server-rendered widget in a couple of seconds; asking for more opens the profile in a browser and scrolls the real grid (about 35 videos a batch, 10-30 s), newest first, all with full details.",
-              "default": 10,
-              "title": "Max Videos"
-            },
-            "description": "How many of the creator's newest videos to include (0-200). 0 = profile only (fastest). Up to 10 come from TikTok's server-rendered widget in a couple of seconds; asking for more opens the profile in a browser and scrolls the real grid (about 35 videos a batch, 10-30 s), newest first, all with full details."
-          },
-          {
-            "name": "video_details",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "description": "Fetch each listed video's own page for full engagement (exact plays, likes, comments, shares, saves), hashtags, music, media URLs and timestamps. false = only id, caption, cover and play count (one fetch fewer per video).",
-              "default": true,
-              "title": "Video Details"
-            },
-            "description": "Fetch each listed video's own page for full engagement (exact plays, likes, comments, shares, saves), hashtags, music, media URLs and timestamps. false = only id, caption, cover and play count (one fetch fewer per video)."
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
-              "title": "Proxy Country"
-            },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "JSON profile object with a `videos` array (`videosCollected` gives its length).",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Missing or malformed username / proxy_country."
-          },
-          "404": {
-            "description": "Profile does not exist, was banned, or is private."
-          },
-          "502": {
-            "description": "Blocked by TikTok, no profile returned, or the call did not finish in time."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
-    "/social/tiktok-video": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Scrape one TikTok video or photo post",
-        "description": "Fetches a single public TikTok post by `url` (video URL, photo-post URL, bare id or short link) and returns it as JSON: `id`, `url`, `type` (video/photo), `description`, `title`, `hashtags`, `mentions`, `language`, `createdAt`, exact `stats` (plays, likes, comments, shares, saves, reposts), an `author` snapshot with its own stats, `video` (duration, size, codec, cover, play/download URLs, per-quality URLs, subtitles), `images` for photo posts, `music` (title, author, original, play URL), `flags` (isAd, isAigc, duet/stitch/share enabled), content `labels`, effects and location. With `include_transcript=true` the subtitle track is downloaded too and returned as plain text in `transcript` (with `transcriptLanguage`). Media URLs are signed by TikTok and expire after a few hours. No login or cookies; deleted, private or region-locked posts return 404 with TikTok's reason.",
-        "operationId": "tiktok_video_social_tiktok_video_post",
-        "parameters": [
-          {
-            "name": "url",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "A TikTok video or photo-post URL ('https://www.tiktok.com/@nasa/video/7665075736742530317'), a bare video id, or a vm.tiktok.com / tiktok.com/t/ short link.",
-              "title": "Url"
-            },
-            "description": "A TikTok video or photo-post URL ('https://www.tiktok.com/@nasa/video/7665075736742530317'), a bare video id, or a vm.tiktok.com / tiktok.com/t/ short link."
-          },
-          {
-            "name": "include_transcript",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "description": "Also download the video's subtitle track (TikTok's own captions, mostly auto-generated) and return it as plain text in `transcript` - one line per cue. Adds ~1 s. Empty when the video has no subtitle track.",
-              "default": false,
-              "title": "Include Transcript"
-            },
-            "description": "Also download the video's subtitle track (TikTok's own captions, mostly auto-generated) and return it as plain text in `transcript` - one line per cue. Adds ~1 s. Empty when the video has no subtitle track."
-          },
-          {
-            "name": "transcript_language",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Preferred subtitle language when several exist, matched against TikTok's codes (e.g. 'eng-US', 'spa-ES', or just 'eng'). Default: the first track.",
-              "title": "Transcript Language"
-            },
-            "description": "Preferred subtitle language when several exist, matched against TikTok's codes (e.g. 'eng-US', 'spa-ES', or just 'eng'). Default: the first track."
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
-              "title": "Proxy Country"
-            },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "JSON video object.",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Missing or malformed url / proxy_country."
-          },
-          "404": {
-            "description": "Post was deleted, is private, or is region-locked."
-          },
-          "502": {
-            "description": "Blocked by TikTok, no post returned, or the call did not finish in time."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
-    "/social/tiktok-hashtag": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Scrape a TikTok hashtag - totals and top videos",
-        "description": "Fetches a TikTok hashtag page for `hashtag` and returns it as JSON: `hashtag`, `id`, `url`, `stats` (total views and videos under the tag) and a `videos` array of its top posts (up to 10). With `video_details=true` (default) every listed video carries the full `/social/tiktok-video` shape - exact plays, likes, comments, shares, saves, hashtags, author with follower counts, music, media URLs and timestamps - which makes the response a ready trend / creator discovery sample. `hashtag` accepts a bare name, `#name` or a tag URL. No login or cookies.",
-        "operationId": "tiktok_hashtag_social_tiktok_hashtag_post",
-        "parameters": [
-          {
-            "name": "hashtag",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Hashtag name ('nasa' or '#nasa') or a hashtag URL like 'https://www.tiktok.com/tag/nasa'.",
-              "title": "Hashtag"
-            },
-            "description": "Hashtag name ('nasa' or '#nasa') or a hashtag URL like 'https://www.tiktok.com/tag/nasa'."
-          },
-          {
-            "name": "max_videos",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 200,
-              "minimum": 0,
-              "description": "How many of the hashtag's videos to include (0-200). 0 = totals only. Up to 10 top videos come from TikTok's server-rendered widget in a couple of seconds; asking for more opens the hashtag page in a browser and scrolls the real grid (about 30 videos a batch, 10-30 s), all with full details.",
-              "default": 10,
-              "title": "Max Videos"
-            },
-            "description": "How many of the hashtag's videos to include (0-200). 0 = totals only. Up to 10 top videos come from TikTok's server-rendered widget in a couple of seconds; asking for more opens the hashtag page in a browser and scrolls the real grid (about 30 videos a batch, 10-30 s), all with full details."
-          },
-          {
-            "name": "video_details",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "description": "Fetch each listed video's own page for full engagement, hashtags, author stats, music and media URLs. false = only id, caption, cover, author handle and play count.",
-              "default": true,
-              "title": "Video Details"
-            },
-            "description": "Fetch each listed video's own page for full engagement, hashtags, author stats, music and media URLs. false = only id, caption, cover, author handle and play count."
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
-              "title": "Proxy Country"
-            },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "JSON hashtag object with a `videos` array (`videosCollected` gives its length).",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Missing or malformed hashtag / proxy_country."
-          },
-          "404": {
-            "description": "Hashtag has no page on TikTok."
-          },
-          "502": {
-            "description": "Blocked by TikTok, no hashtag returned, or the call did not finish in time."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
-    "/social/tiktok-search": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Search TikTok videos by keyword",
-        "description": "Runs a TikTok video search for `query` in a real browser session and returns the results as JSON: `query`, `url`, `results` - the videos in TikTok's ranking, each in the full `/social/tiktok-video` shape (exact plays, likes, comments, shares, saves, hashtags, author with stats, music, media URLs, subtitles) - `resultsCollected` and `hasMore`. `proxy_country` picks the region TikTok ranks for. No login or cookies. Takes 10-30 s because the page is scrolled for each batch.",
-        "operationId": "tiktok_search_social_tiktok_search_post",
-        "parameters": [
-          {
-            "name": "query",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Search keywords, e.g. 'space telescope'.",
-              "title": "Query"
-            },
-            "description": "Search keywords, e.g. 'space telescope'."
-          },
-          {
-            "name": "max_results",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 200,
-              "minimum": 1,
-              "description": "How many videos to return (1-200). About 12 arrive per scroll; deep pages take longer (10-30 s).",
-              "default": 20,
-              "title": "Max Results"
-            },
-            "description": "How many videos to return (1-200). About 12 arrive per scroll; deep pages take longer (10-30 s)."
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). TikTok ranks search by region, so set it to get the results a user in that country sees.",
-              "title": "Proxy Country"
-            },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). TikTok ranks search by region, so set it to get the results a user in that country sees."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "JSON search object with a `results` array.",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Missing query / bad proxy_country."
-          },
-          "404": {
-            "description": "TikTok returned no results for the query."
-          },
-          "502": {
-            "description": "Blocked by TikTok on every proxy tried, or the call did not finish in time."
-          },
-          "503": {
-            "description": "Browser engine temporarily unavailable - retry."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
-    "/social/tiktok-comments": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Scrape the comments of a TikTok video",
-        "description": "Opens a TikTok post in a real browser session, scrolls its comment panel and returns the comments as JSON: `videoId`, `url`, `totalComments`, `comments` - each with `text`, `createdAt`, `likes`, `replyCount`, `language`, `author` (username, nickname, userId, avatar, profileUrl), `isCreator`, `likedByCreator`, nested `replies` TikTok preloads - plus `commentsCollected` and `hasMore`. No login or cookies. Takes 10-30 s because the panel is scrolled for each batch.",
-        "operationId": "tiktok_comments_social_tiktok_comments_post",
-        "parameters": [
-          {
-            "name": "url",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "A TikTok video / photo-post URL, bare id or short link (same forms as /social/tiktok-video).",
-              "title": "Url"
-            },
-            "description": "A TikTok video / photo-post URL, bare id or short link (same forms as /social/tiktok-video)."
-          },
-          {
-            "name": "max_comments",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 500,
-              "minimum": 1,
-              "description": "How many top-level comments to return (1-500). 20 arrive per scroll; replies TikTok preloads are nested under each comment's `replies`.",
-              "default": 50,
-              "title": "Max Comments"
-            },
-            "description": "How many top-level comments to return (1-500). 20 arrive per scroll; replies TikTok preloads are nested under each comment's `replies`."
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items.",
-              "title": "Proxy Country"
-            },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional - TikTok's public pages are the same worldwide; set it only for region-restricted items."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "JSON object with a `comments` array.",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Missing or malformed url / proxy_country."
-          },
-          "404": {
-            "description": "Post has no comments, or is deleted / private."
-          },
-          "502": {
-            "description": "Blocked by TikTok on every proxy tried, or the call did not finish in time."
-          },
-          "503": {
-            "description": "Browser engine temporarily unavailable - retry."
           },
           "422": {
             "description": "Validation Error",
@@ -5540,6 +4840,275 @@
         ]
       }
     },
+    "/marketplace/1688-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape 1688.com wholesale search results",
+        "description": "Searches 1688.com (China's B2B wholesale marketplace) for `q` and returns the offers as JSON: `offerId`, `title`, `url`, `image`/`images`, `price` in yuan (`currency` CNY), `priceTiers` (price per quantity range with `minQuantity`/`maxQuantity`), `soldText` + `sold` (lower bound of units sold), `repurchaseRatePercent`, `serviceTags`, `promotionTags`, `tags`, `sponsored`, and the `supplier` (`name`, `loginId`, `memberId`, `shopUrl`, `yearsOnPlatform`, `province`, `city`, `factoryInspected`, `businessInspected`, `superFactory`, `tradeScores`). Sort by relevance, sales or price, filter with `price_min`/`price_max` (yuan) and `province`, and collect up to `max_results` across pages (60 per page, each page billed as one request, see `pagesFetched`). Paging: `nextPage` is the next 1688 page not yet returned (pass it as `page` to continue) and `hasMore` says whether there is one; when `max_results` ends inside a page, the rest of that page is not returned (`droppedFromLastPage`), so use multiples of 60 to get every offer. Text is returned in Chinese as 1688 publishes it. Companion to `/marketplace/1688-product`.",
+        "operationId": "search_1688_marketplace_1688_search_post",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search, in Chinese or English, e.g. '手机壳', '连衣裙', 'bluetooth earphones'. Chinese keywords match the most offers.",
+              "title": "Q"
+            },
+            "description": "What to search, in Chinese or English, e.g. '手机壳', '连衣裙', 'bluetooth earphones'. Chinese keywords match the most offers."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based results page to start from (1-34). Use `nextPage` of a previous response to continue.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based results page to start from (1-34). Use `nextPage` of a previous response to continue."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Offers to collect across pages (1-300); 1688 serves 60 per page and each page fetched is billed as one request.",
+              "default": 60,
+              "title": "Max Results"
+            },
+            "description": "Offers to collect across pages (1-300); 1688 serves 60 per page and each page fetched is billed as one request."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Order: relevance, sales, price_asc, price_desc (sales = most sold in the last 30 days first; price in yuan).",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Order: relevance, sales, price_asc, price_desc (sales = most sold in the last 30 days first; price in yuan)."
+          },
+          {
+            "name": "price_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only offers priced at or above this many yuan (CNY).",
+              "title": "Price Min"
+            },
+            "description": "Only offers priced at or above this many yuan (CNY)."
+          },
+          {
+            "name": "price_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only offers priced at or below this many yuan (CNY).",
+              "title": "Price Max"
+            },
+            "description": "Only offers priced at or below this many yuan (CNY)."
+          },
+          {
+            "name": "province",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only suppliers in this Chinese province, by its Chinese name, e.g. 广东 (Guangdong), 浙江 (Zhejiang), 江苏 (Jiangsu).",
+              "title": "Province"
+            },
+            "description": "Only suppliers in this Chinese province, by its Chinese name, e.g. 广东 (Guangdong), 浙江 (Zhejiang), 江苏 (Jiangsu)."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'SG'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'SG'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array plus paging totals. A query 1688 has no offers for answers 200 with an empty array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "502": {
+            "description": "1688 refused every exit (slider page), no results page returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/1688-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape one 1688.com offer's full detail",
+        "description": "Fetches one 1688.com offer (by `offer_id` or `url`) and returns it as JSON: `title`, `status`, `brand`, `category`, prices in yuan (`currency` CNY: `priceText`, `priceMin`/`priceMax`), `pricing` (`tiers` when every SKU is priced by the quantity ladder `priceTiers`, `sku` when each SKU carries its own `price`), `originalPriceTiers` (before a promotion), `unit`, `moq` (minimum order), `available` (stock), `sold` + `soldText` + `soldPeriod`, `variantOptions` (option names and values with images) and `variants` (every SKU with `skuId`, `options`, `price`, `available`), `attributes`, `images`, `video`, `descriptionUrl`, `shipping` (`from`, `dispatch` promise, `unitWeightKg`, `freeShipping`), `services` (guarantees), `labels`, `rating` (`goodRatePercent`, `score`, `reviewCount`, `reviewsWithPhotos`, review `tags`), `favorites` and the `supplier` (`name`, `loginId`, `memberId`, `userId`, `shopUrl`, `serviceScore`, `repeatPurchaseRate3m`, `factory`, `tpMember`, `location`). Text is returned in Chinese as 1688 publishes it. Companion to `/marketplace/1688-search`.",
+        "operationId": "product_1688_marketplace_1688_product_post",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Numeric 1688 offer id, e.g. '735353578254' (the number in detail.1688.com/offer/<id>.html).",
+              "title": "Offer Id"
+            },
+            "description": "Numeric 1688 offer id, e.g. '735353578254' (the number in detail.1688.com/offer/<id>.html)."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "1688 offer link, e.g. 'https://detail.1688.com/offer/735353578254.html' (mobile m.1688.com and offerId= links work too). Either offer_id or url is required.",
+              "title": "Url"
+            },
+            "description": "1688 offer link, e.g. 'https://detail.1688.com/offer/735353578254.html' (mobile m.1688.com and offerId= links work too). Either offer_id or url is required."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'SG'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'SG'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with the full offer record (`product`).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing offer_id/url."
+          },
+          "404": {
+            "description": "No such offer on 1688 (unknown id or removed)."
+          },
+          "502": {
+            "description": "Blocked by 1688 on every attempt, no offer data returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
     "/social/telegram-channel": {
       "post": {
         "tags": [
@@ -5711,6 +5280,1484 @@
           },
           "502": {
             "description": "Telegram returned no usable page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/social/quora": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Quora questions, answers and profiles",
+        "description": "Given a Quora `question` (URL or slug), returns the `question` (`qid`, `title`, `url`, `answerCount`, `allRelatedCount`, `followerCount`, `commentCount`, `topics`) and its `answers`: `id`, `url`, `relation` (`answer`, `merged` for an answer to a question Quora merged into this one, `related` with `include_related=true`), the answered `question`, `author` (`name`, `uid`, `profileUrl`, `imageUrl`, `credential`, `isVerified`, `isAnonymous`), the full `text` with `images` and `links`, `upvotes`, `views`, `shares`, `comments`, `createdAt`, `updatedAt` and `isAiGenerated`; plus `relatedQuestions`. Answers are in Quora's own order, up to `max_answers` (10 per page after the first few), unique within a call. `nextCursor` as `cursor` continues, best-effort: Quora re-ranks the list on every visit, so a continuation can repeat or skip answers of earlier calls (dedupe by `id`); for a complete list ask for a larger `max_answers` in one call (up to 300). `mode=profile&profile=` returns a public `profile` (`name`, `headline`, `description`, follower / following / answer / question / post counts, `contentViews`, `credentials`, `knowsAbout`, `spaces`, `topWriterYears`, `joinedAt`) with its newest `answers`. No login: only what Quora shows an anonymous visitor - Quora's search is not available that way, and Quora lists only a profile's newest few dozen answers to logged-out visitors (`pagingStopped`: `quora_logged_out_limit`). `pagingStopped` otherwise names why paging ended early (`blocked`, `time`, `unavailable`). Billed one unit per page fetched (`pagesFetched`); a `cursor` continuation bills only its GraphQL pages.",
+        "operationId": "quora_social_quora_post",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "'question' (default): a question and its answers. 'profile': a public profile and its newest answers.",
+              "default": "question",
+              "title": "Mode"
+            },
+            "description": "'question' (default): a question and its answers. 'profile': a public profile and its newest answers."
+          },
+          {
+            "name": "question",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Quora question URL (https://www.quora.com/What-is-the-best-way-to-learn-programming), an answer URL on it, or the question slug (What-is-the-best-way-to-learn-programming). Language editions such as es.quora.com are accepted as URLs. Required with mode=question.",
+              "title": "Question"
+            },
+            "description": "Quora question URL (https://www.quora.com/What-is-the-best-way-to-learn-programming), an answer URL on it, or the question slug (What-is-the-best-way-to-learn-programming). Language editions such as es.quora.com are accepted as URLs. Required with mode=question."
+          },
+          {
+            "name": "profile",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Quora profile URL (https://www.quora.com/profile/Adam-DAngelo) or profile slug (Adam-DAngelo). Required with mode=profile.",
+              "title": "Profile"
+            },
+            "description": "Quora profile URL (https://www.quora.com/profile/Adam-DAngelo) or profile slug (Adam-DAngelo). Required with mode=profile."
+          },
+          {
+            "name": "max_answers",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Answers to return: 1-300 with mode=question (default 20), 0-200 with mode=profile (default 10; 0 = profile only). Answers come 10 per page after the first few; each page is one billed unit.",
+              "title": "Max Answers"
+            },
+            "description": "Answers to return: 1-300 with mode=question (default 20), 0-200 with mode=profile (default 10; 0 = profile only). Answers come 10 per page after the first few; each page is one billed unit."
+          },
+          {
+            "name": "include_related",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "mode=question: also return the answers Quora shows from related questions (its 'All related' view, `relation`='related'). By default only answers to this question and to questions merged into it.",
+              "default": false,
+              "title": "Include Related"
+            },
+            "description": "mode=question: also return the answers Quora shows from related questions (its 'All related' view, `relation`='related'). By default only answers to this question and to questions merged into it."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Continue after a previous call: pass its `nextCursor`. Best-effort: each call is a new Quora visit and Quora re-ranks the list per visit, so a continuation can repeat or skip answers of earlier calls - dedupe by answer `id`. For a complete list ask for a larger `max_answers` in one call (up to 300).",
+              "title": "Cursor"
+            },
+            "description": "Continue after a previous call: pass its `nextCursor`. Best-effort: each call is a new Quora visit and Quora re-ranks the list per visit, so a continuation can repeat or skip answers of earlier calls - dedupe by answer `id`. For a complete list ask for a larger `max_answers` in one call (up to 300)."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank for the countries chosen for the site.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank for the countries chosen for the site."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `question` and an `answers` array (or `profile` and `answers` with mode=profile).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Quora has no such question or profile."
+          },
+          "502": {
+            "description": "Blocked by Quora on every attempt, no page returned, or Quora did not answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/jobs/wellfound": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Wellfound startup jobs",
+        "description": "Searches Wellfound (formerly AngelList Talent) startup jobs by `role`, `location` or remote `role` (or a Wellfound search `url`) and returns `jobs`: `title`, `url`, the full `description`, `compensation` with parsed `salary` (`min`, `max`, `currency`) and `equity` (`min`, `max` in %), `jobType` (`full-time`, `part-time`, `contract`, `internship`), `locations`, `remote`, `remotePolicy` (`ONSITE`, `REMOTE`, `ONSITE_OR_REMOTE`, `HYBRID`), `acceptedRemoteLocations`, `yearsExperienceMin`/`Max`, `postedAt` and the hiring `company` (`name`, `slug`, `url`, `tagline`, `companySize`, `stage`, `badges`). A listing page holds 20 companies with up to 3 matching jobs each; by default the call returns one page, with `max_results` it pages through up to that many jobs. Totals: `totalJobs`, `totalCompanies`, `pageCount`, `nextPage`. `mode=job&job=<url>` returns one job in full: description (text and HTML), salary with period, the same `jobType` and `remotePolicy` values (the page's wording in `remotePolicyText`, plus `wfhFlexible`), skills, `visaSponsorship`, `relocation`, `hiresRemotelyIn`, preferred timezones, hiring contact, posting date, and the company's size, markets, badges, funding and founders. Billed one unit per page fetched (`pagesFetched`).",
+        "operationId": "wellfound_jobs_jobs_wellfound_post",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "'search' (default): job listings by role / location / remote role. 'job': one job page in full.",
+              "default": "search",
+              "title": "Mode"
+            },
+            "description": "'search' (default): job listings by role / location / remote role. 'job': one job page in full."
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Role to search, as text or Wellfound slug: 'software engineer', 'product-manager', 'data-scientist'.",
+              "title": "Role"
+            },
+            "description": "Role to search, as text or Wellfound slug: 'software engineer', 'product-manager', 'data-scientist'."
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Location, as text or Wellfound slug: 'new york', 'san-francisco', 'london', 'berlin'.",
+              "title": "Location"
+            },
+            "description": "Location, as text or Wellfound slug: 'new york', 'san-francisco', 'london', 'berlin'."
+          },
+          {
+            "name": "remote",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Remote jobs only (needs role, no location).",
+              "default": false,
+              "title": "Remote"
+            },
+            "description": "Remote jobs only (needs role, no location)."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A Wellfound search URL instead of role / location / remote: https://wellfound.com/role/l/software-engineer/san-francisco, /role/r/<role>, /location/<location>.",
+              "title": "Url"
+            },
+            "description": "A Wellfound search URL instead of role / location / remote: https://wellfound.com/role/l/software-engineer/san-francisco, /role/r/<role>, /location/<location>."
+          },
+          {
+            "name": "job",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=job: the job URL (https://wellfound.com/jobs/4787364-software-engineer) or '<id>-<slug>', as returned in `jobs[].url` by mode=search.",
+              "title": "Job"
+            },
+            "description": "mode=job: the job URL (https://wellfound.com/jobs/4787364-software-engineer) or '<id>-<slug>', as returned in `jobs[].url` by mode=search."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based listing page to start from (1-500); use `nextPage` of a previous response to continue.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based listing page to start from (1-500); use `nextPage` of a previous response to continue."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "How many jobs to collect across pages (1-500). Default: the whole first page (20 companies with up to 3 jobs each, usually 30-60 jobs). Each page fetched is one billed unit.",
+              "title": "Max Results"
+            },
+            "description": "How many jobs to collect across pages (1-500). Default: the whole first page (20 companies with up to 3 jobs each, usually 30-60 jobs). Each page fetched is one billed unit."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank for the country chosen for the site.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank for the country chosen for the site."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `jobs` array, totals and `nextPage` (or `job` with mode=job).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Wellfound has no such role / location listing, or no such job."
+          },
+          "502": {
+            "description": "Blocked by Wellfound on every attempt, no page returned, or Wellfound did not answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/companies/wellfound": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Wellfound startup company profiles",
+        "description": "Given a Wellfound `company` (slug like `stripe` or a wellfound.com/company/<slug> URL), returns its profile: `name`, `tagline`, `description`, `website` and social links, `companySize`, `stage`, `badges`, `markets`, `locations`, `companyTypes`, `hiring`, `openJobs` with `openJobsByRole`, `totalRaised`, `fundingRounds` (`type`, `date`, `valuation`), `founders` (name, profile URL, role, bio, location), `teamMembersCount`, `perks`, `media`, the first open `jobs` (with `jobsTotal`) and `similarCompanies`. Company profiles sit behind a Cloudflare challenge, so a call can take up to about a minute. `mode=search` lists Wellfound's startup directory by `location` or `industry` (10 companies per page, paged up to `max_results`) with website, description, markets, locations and open-job counts. Billed one unit per page fetched (`pagesFetched`).",
+        "operationId": "wellfound_companies_companies_wellfound_post",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "'profile' (default): one company's profile. 'search': the startup directory by location or industry.",
+              "default": "profile",
+              "title": "Mode"
+            },
+            "description": "'profile' (default): one company's profile. 'search': the startup directory by location or industry."
+          },
+          {
+            "name": "company",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=profile: the company slug ('stripe') or URL (https://wellfound.com/company/stripe).",
+              "title": "Company"
+            },
+            "description": "mode=profile: the company slug ('stripe') or URL (https://wellfound.com/company/stripe)."
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=search: location as text or slug ('new york', 'london').",
+              "title": "Location"
+            },
+            "description": "mode=search: location as text or slug ('new york', 'london')."
+          },
+          {
+            "name": "industry",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=search: Wellfound industry slug ('saas', 'fintech-2', 'artificial-intelligence', 'health-care', 'e-commerce'; see wellfound.com/browse/tech-industries). Common names such as 'fintech', 'healthcare', 'crypto' or 'edtech' are mapped to their slug.",
+              "title": "Industry"
+            },
+            "description": "mode=search: Wellfound industry slug ('saas', 'fintech-2', 'artificial-intelligence', 'health-care', 'e-commerce'; see wellfound.com/browse/tech-industries). Common names such as 'fintech', 'healthcare', 'crypto' or 'edtech' are mapped to their slug."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=search: a Wellfound directory URL (https://wellfound.com/startups/location/new-york or /startups/industry/<industry>) instead of location / industry.",
+              "title": "Url"
+            },
+            "description": "mode=search: a Wellfound directory URL (https://wellfound.com/startups/location/new-york or /startups/industry/<industry>) instead of location / industry."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "mode=search: 1-based page to start from (10 companies per page).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "mode=search: 1-based page to start from (10 companies per page)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "mode=search: how many companies to collect (1-100); each page fetched is one billed unit.",
+              "default": 10,
+              "title": "Max Results"
+            },
+            "description": "mode=search: how many companies to collect (1-100); each page fetched is one billed unit."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank for the country chosen for the site.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank for the country chosen for the site."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `company` (or `companies` with mode=search).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Wellfound has no such company, location or industry."
+          },
+          "502": {
+            "description": "Blocked by Wellfound on every attempt, no page returned, or Wellfound did not answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/maps/naver-place": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Naver Map places",
+        "description": "Naver Map (Naver Place), Korea's main local search. `mode=search&query=` returns up to 50 places (`results`): `id`, `name`, `category`, `businessType`, `address` / `roadAddress` / `jibunAddress`, `phone`, `latitude` / `longitude`, `rating`, `visitorReviewCount`, `blogReviewCount`, opening `status`, `microReview`, `popularMenus`, `options`, images, booking and Naver Pay flags, `hotelMinPrice` (stays), `representativePrice` (salons) and the place's Naver Map `url`, plus `totalResults`. `longitude` / `latitude` move the search centre (each place then carries its `distance`). `mode=details&place=<id or Naver Map link>` returns the `place` - addresses, phone, coordinates, `businessHours` per day, `description`, `directions`, `conveniences`, `facilities`, `keywords`, `menus` with prices, `photos`, `homepage` and `links`, `bookingUrl`, `subwayStations` and `reviewStats` (average rating, star distribution, keyword votes, themes) - with its first ten visitor `reviews` (`body`, `rating`, `created` / `createdDate`, `visitedAt`, `verifiedBy`, `keywords`, `media`, `reactions`, `author` stats, `ownerReply`) and its first `blogReviews` (blog and cafe posts). `sort=recent` returns the newest visitor reviews. Korean text is returned as is. One page per call, billed one unit.",
+        "operationId": "naver_place_maps_naver_place_post",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "'search': search Naver Map for `query` (up to 50 places). 'details': one place's full detail with its first visitor and blog reviews. Defaults to 'details' when `place` is given, else 'search'.",
+              "title": "Mode"
+            },
+            "description": "'search': search Naver Map for `query` (up to 50 places). 'details': one place's full detail with its first visitor and blog reviews. Defaults to 'details' when `place` is given, else 'search'."
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search for (mode=search), in Korean or English: a category, a place name or both, e.g. '강남 맛집', '홍대 카페', '부산 호텔', 'Gangnam cafe'.",
+              "title": "Query"
+            },
+            "description": "What to search for (mode=search), in Korean or English: a category, a place name or both, e.g. '강남 맛집', '홍대 카페', '부산 호텔', 'Gangnam cafe'."
+          },
+          {
+            "name": "place",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The place (mode=details): its Naver place id ('2097258400'), a Naver Map link (https://map.naver.com/p/entry/place/2097258400) or a Naver Place link (https://m.place.naver.com/restaurant/2097258400/home).",
+              "title": "Place"
+            },
+            "description": "The place (mode=details): its Naver place id ('2097258400'), a Naver Map link (https://map.naver.com/p/entry/place/2097258400) or a Naver Place link (https://m.place.naver.com/restaurant/2097258400/home)."
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search centre longitude (mode=search, with `latitude`), e.g. 127.0276. Naver ranks places around the centre, and each result then carries its `distance` from it.",
+              "title": "Longitude"
+            },
+            "description": "Search centre longitude (mode=search, with `latitude`), e.g. 127.0276. Naver ranks places around the centre, and each result then carries its `distance` from it."
+          },
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search centre latitude (mode=search, with `longitude`), e.g. 37.4979.",
+              "title": "Latitude"
+            },
+            "description": "Search centre latitude (mode=search, with `longitude`), e.g. 37.4979."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "How many places to return (mode=search, 1-50). Naver answers one page of up to 50 places per search; move the search centre to reach other places.",
+              "default": 50,
+              "title": "Max Results"
+            },
+            "description": "How many places to return (mode=search, 1-50). Naver answers one page of up to 50 places per search; move the search centre to reach other places."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Visitor review order (mode=details): 'relevance' (Naver's default) or 'recent' (newest first).",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Visitor review order (mode=details): 'relevance' (Naver's default) or 'recent' (newest first)."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'KR', 'US'). Leave blank for the country chosen for the site.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'KR', 'US'). Leave blank for the country chosen for the site."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `results` (mode=search) or `place`, `reviews` and `blogReviews` (mode=details). A search Naver has no places for answers 200 with an empty `results` list.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Naver has no place with that id."
+          },
+          "502": {
+            "description": "Blocked by Naver on every attempt, no Naver page returned, or Naver did not answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/jobs/career-site": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape company career sites (Greenhouse, Lever, Ashby, Workday and more)",
+        "description": "Every open job on a company's career site hosted on Greenhouse, Lever, Ashby, Workday, SmartRecruiters, Workable or Recruitee, from its career page `url` (or `provider` + `company`). Each job (`jobs`) has `id`, `title`, `company`, `provider`, `url`, `applyUrl`, `location` and `locations`, `country`, `remote`, `workplaceType` (remote / hybrid / onsite), `department`, `team`, `employmentType`, `postedAt`, `updatedAt`, `requisitionId`, `salary` and `salaryRanges` (min, max, currency, interval) where the ATS publishes pay, `customFields` (the ATS's extra fields) and, with `include_description=true`, `descriptionText` and `descriptionHtml`. A field the ATS does not expose is null. Filter with `keyword` (title words), `location`, `department` and `remote`; `limit` caps the jobs returned. The answer also carries the detected `provider`, `company`, `companyName`, `boardUrl`, `totalJobs` on the board and `matchedJobs`. A link to one posting returns just that posting with its description. Billed one unit per upstream request that returned data (`pagesFetched`): one for a whole Greenhouse, Ashby, Workable or Recruitee board, one per Lever (100 jobs), Workday (20 jobs) or SmartRecruiters (100 jobs) listing page, plus one per Workday / SmartRecruiters posting whose description is read.",
+        "operationId": "career_site_jobs_jobs_career_site_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The company's career page on its ATS, e.g. 'https://job-boards.greenhouse.io/stripe', 'https://jobs.lever.co/palantir', 'https://jobs.ashbyhq.com/ramp', 'https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite', 'https://jobs.smartrecruiters.com/Ubisoft2', 'https://apply.workable.com/huggingface', 'https://bunq.recruitee.com'. A link to one posting returns just that posting.",
+              "title": "Url"
+            },
+            "description": "The company's career page on its ATS, e.g. 'https://job-boards.greenhouse.io/stripe', 'https://jobs.lever.co/palantir', 'https://jobs.ashbyhq.com/ramp', 'https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite', 'https://jobs.smartrecruiters.com/Ubisoft2', 'https://apply.workable.com/huggingface', 'https://bunq.recruitee.com'. A link to one posting returns just that posting."
+          },
+          {
+            "name": "provider",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Instead of `url`: the ATS (greenhouse, lever, ashby, workday, smartrecruiters, workable, recruitee), with `company`.",
+              "title": "Provider"
+            },
+            "description": "Instead of `url`: the ATS (greenhouse, lever, ashby, workday, smartrecruiters, workable, recruitee), with `company`."
+          },
+          {
+            "name": "company",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Instead of `url`: the company's board name on that ATS, as in its career URL: Greenhouse token ('stripe'), Lever / Ashby / Workable / Recruitee slug, SmartRecruiters company id ('Ubisoft2'), Workday '<tenant>.wd<N>/<site>' ('nvidia.wd5/NVIDIAExternalCareerSite').",
+              "title": "Company"
+            },
+            "description": "Instead of `url`: the company's board name on that ATS, as in its career URL: Greenhouse token ('stripe'), Lever / Ashby / Workable / Recruitee slug, SmartRecruiters company id ('Ubisoft2'), Workday '<tenant>.wd<N>/<site>' ('nvidia.wd5/NVIDIAExternalCareerSite')."
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only jobs whose title contains every word, e.g. 'software engineer'.",
+              "title": "Keyword"
+            },
+            "description": "Only jobs whose title contains every word, e.g. 'software engineer'."
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only jobs in this place (city, region or country as the company writes it, e.g. 'London', 'Germany', 'Remote'); case-insensitive.",
+              "title": "Location"
+            },
+            "description": "Only jobs in this place (city, region or country as the company writes it, e.g. 'London', 'Germany', 'Remote'); case-insensitive."
+          },
+          {
+            "name": "department",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only jobs in this department or team, e.g. 'Engineering'.",
+              "title": "Department"
+            },
+            "description": "Only jobs in this department or team, e.g. 'Engineering'."
+          },
+          {
+            "name": "remote",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only remote jobs.",
+              "default": false,
+              "title": "Remote"
+            },
+            "description": "Only remote jobs."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "How many jobs to return (1-2000).",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "How many jobs to return (1-2000)."
+          },
+          {
+            "name": "include_description",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Add each job's full description (`descriptionText`, `descriptionHtml`). On Workday and SmartRecruiters this reads every posting separately (one billed request each, at most 300 per call).",
+              "default": false,
+              "title": "Include Description"
+            },
+            "description": "Add each job's full description (`descriptionText`, `descriptionHtml`). On Workday and SmartRecruiters this reads every posting separately (one billed request each, at most 300 per call)."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the requests are sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the requests are sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `jobs` array plus the detected board and totals. A board with no open jobs (or none matching the filters) answers 200 with an empty `jobs` list.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters, or a URL that is not a supported career page."
+          },
+          "404": {
+            "description": "The ATS has no such board, or no such posting."
+          },
+          "502": {
+            "description": "The ATS refused every attempt, answered something that is not its job data, or did not answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/music/spotify": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Spotify artists, albums, tracks, playlists and search",
+        "description": "Returns Spotify catalog data as JSON, including the play counts and audience numbers the official Web API does not expose. `type=artist`: `artist` (`followers`, `monthlyListeners`, `worldRank`, `topCities`, `biography`, `externalLinks`, images, `verified`), `topTracks` with `playcount` (a top track's `album` carries `name` and `releaseDate` when Spotify lists that album among the artist's releases), `discography` groups (popular releases, albums, singles, compilations with totals), `relatedArtists`, `appearsOn`, `featuredOn` / `discoveredOn` playlists; `discography=true` adds the full `releases` list, paged. `type=album`: `album` (type, release date, label, copyright, artists, cover) and `tracks` with `playcount`, paged. `type=track`: `track` with `playcount`, duration, explicit flag, album and every credited artist. `type=playlist`: `playlist` (name, description, `followers`, owner, cover, `totalTracks`) and `tracks` with `playcount`, `addedAt`, `bpm` and `key`, paged. `type=search&query=`: `results` of `search_type` tracks, artists, albums or playlists, paged; a search with no match answers 200 with empty `results`. `playcount` comes only on artist, album, track and playlist lookups: Spotify's search does not return it, so search track results have no `playcount` key (look a track up with `type=track` for its count). `id` takes an open.spotify.com URL, a Spotify URI or a bare id. Lists page with `offset` / `max_results` and answer `hasMore` / `nextOffset`; each page fetched is one billed unit (`pagesFetched`).",
+        "operationId": "spotify_music_spotify_post",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to fetch: artist, album, track, playlist, search. Optional when `id` is a Spotify URL or URI (they carry the type) or when only `query` is given (a search).",
+              "title": "Type"
+            },
+            "description": "What to fetch: artist, album, track, playlist, search. Optional when `id` is a Spotify URL or URI (they carry the type) or when only `query` is given (a search)."
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The artist, album, track or playlist: an open.spotify.com URL (https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02), a Spotify URI (spotify:artist:06HL4z0CvFAxyc27GXpf02) or a bare 22-character id (then set `type`).",
+              "title": "Id"
+            },
+            "description": "The artist, album, track or playlist: an open.spotify.com URL (https://open.spotify.com/artist/06HL4z0CvFAxyc27GXpf02), a Spotify URI (spotify:artist:06HL4z0CvFAxyc27GXpf02) or a bare 22-character id (then set `type`)."
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search text for type=search, e.g. 'daft punk'.",
+              "title": "Query"
+            },
+            "description": "Search text for type=search, e.g. 'daft punk'."
+          },
+          {
+            "name": "search_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "What a search returns: tracks, artists, albums, playlists.",
+              "default": "tracks",
+              "title": "Search Type"
+            },
+            "description": "What a search returns: tracks, artists, albums, playlists."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "0-based position to start from in the list being paged: album tracks, playlist tracks, search results, or the full discography with discography=true. Use the `nextOffset` of a previous response to continue. Spotify serves search results up to position 1000.",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "0-based position to start from in the list being paged: album tracks, playlist tracks, search results, or the full discography with discography=true. Use the `nextOffset` of a previous response to continue. Spotify serves search results up to position 1000."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "How many list items to collect. Album tracks: 1-1000 (default 100, 100 per page). Playlist tracks: 1-2000 (default 100, 100 per page). Search: 1-1000 (default 20, 50 per page). Artist releases with discography=true: 1-1000 (default 50, 50 per page). Each page fetched is one billed unit.",
+              "title": "Max Results"
+            },
+            "description": "How many list items to collect. Album tracks: 1-1000 (default 100, 100 per page). Playlist tracks: 1-2000 (default 100, 100 per page). Search: 1-1000 (default 20, 50 per page). Artist releases with discography=true: 1-1000 (default 50, 50 per page). Each page fetched is one billed unit."
+          },
+          {
+            "name": "discography",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "type=artist only: also return the artist's full release list (albums, singles, compilations, newest first) in `releases`, paged by offset / max_results.",
+              "default": false,
+              "title": "Discography"
+            },
+            "description": "type=artist only: also return the artist's full release list (albums, singles, compilations, newest first) in `releases`, paged by offset / max_results."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Country the request is sent from (ISO-2, e.g. 'DE', 'GB'). Spotify's market follows it, which can change `playable` and search order; play counts are the same everywhere. Leave blank for any.",
+              "title": "Proxy Country"
+            },
+            "description": "Country the request is sent from (ISO-2, e.g. 'DE', 'GB'). Spotify's market follows it, which can change `playable` and search order; play counts are the same everywhere. Leave blank for any."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `type` and the entity (`artist`, `album`, `track` or `playlist`) plus its lists, or `results` for a search.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Spotify has no artist, album, track or playlist with that id (a private playlist reads as not found)."
+          },
+          "502": {
+            "description": "Spotify refused the request, returned no data, or did not answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/realestate/idealista": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape idealista property listings (Spain, Italy, Portugal)",
+        "description": "Searches idealista (idealista.com, idealista.it, idealista.pt) for `location` - or takes any idealista search `url` - and returns the listings as JSON: `id`, `url`, `title`, `price` + `currency` (+ `pricePeriod` for rentals), `originalPrice` and `priceDropPercent` after a price cut, `pricePerM2`, `area`, `rooms`, `floor`, `lift`, `exterior`, `parking`, `description`, `tags`, `images`, `imageCount`, `multimedia` (plan, video, 3D tour), `agency` and `professional`. Filter by `operation` (sale / rent), `property_type`, price and size ranges, `rooms`, `bathrooms` and `features`, order with `sort`, and collect up to `max_results` across pages (30 per page; idealista shows at most 60 pages per search). A search with no match answers 200 with an empty `listings`. Billed one unit per page fetched (`pagesFetched`).",
+        "operationId": "idealista_search_realestate_idealista_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Any idealista search URL (idealista.com, idealista.it or idealista.pt) with its filters, e.g. https://www.idealista.com/alquiler-viviendas/barcelona-barcelona/con-precio-hasta_2000,de-dos-dormitorios/. Overrides location and the filter parameters.",
+              "title": "Url"
+            },
+            "description": "Any idealista search URL (idealista.com, idealista.it or idealista.pt) with its filters, e.g. https://www.idealista.com/alquiler-viviendas/barcelona-barcelona/con-precio-hasta_2000,de-dos-dormitorios/. Overrides location and the filter parameters."
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Location as idealista writes it in its URLs: a municipality ('madrid-madrid', 'barcelona-barcelona', 'milano-milano', 'lisboa'), a district ('madrid/centro', 'lisboa/arroios') or a province ('malaga-provincia'). Required unless url is given.",
+              "title": "Location"
+            },
+            "description": "Location as idealista writes it in its URLs: a municipality ('madrid-madrid', 'barcelona-barcelona', 'milano-milano', 'lisboa'), a district ('madrid/centro', 'lisboa/arroios') or a province ('malaga-provincia'). Required unless url is given."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "es, it, pt (idealista.com / .it / .pt).",
+              "default": "es",
+              "title": "Country"
+            },
+            "description": "es, it, pt (idealista.com / .it / .pt)."
+          },
+          {
+            "name": "operation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "sale or rent.",
+              "default": "sale",
+              "title": "Operation"
+            },
+            "description": "sale or rent."
+          },
+          {
+            "name": "property_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "One of: homes, new_homes, offices, premises, garages, lands, storage, buildings, rooms.",
+              "default": "homes",
+              "title": "Property Type"
+            },
+            "description": "One of: homes, new_homes, offices, premises, garages, lands, storage, buildings, rooms."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Minimum price in EUR (monthly rent with operation=rent).",
+              "title": "Min Price"
+            },
+            "description": "Minimum price in EUR (monthly rent with operation=rent)."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Maximum price in EUR.",
+              "title": "Max Price"
+            },
+            "description": "Maximum price in EUR."
+          },
+          {
+            "name": "min_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Minimum area in m².",
+              "title": "Min Size"
+            },
+            "description": "Minimum area in m²."
+          },
+          {
+            "name": "max_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Maximum area in m².",
+              "title": "Max Size"
+            },
+            "description": "Maximum area in m²."
+          },
+          {
+            "name": "rooms",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated room counts: bedrooms in Spain (0 = studio ... 4 = four or more) and Portugal (T0 ... T4+), total rooms in Italy (1 ... 5 = five or more). E.g. '2,3'.",
+              "title": "Rooms"
+            },
+            "description": "Comma-separated room counts: bedrooms in Spain (0 = studio ... 4 = four or more) and Portugal (T0 ... T4+), total rooms in Italy (1 ... 5 = five or more). E.g. '2,3'."
+          },
+          {
+            "name": "bathrooms",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated 1, 2, 3 (3 = three or more).",
+              "title": "Bathrooms"
+            },
+            "description": "Comma-separated 1, 2, 3 (3 = three or more)."
+          },
+          {
+            "name": "features",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated: lift, terrace, balcony, garage, pool, garden, air_conditioning, storage_room, fitted_wardrobes, accessible, luxury, new_construction, good_condition, to_renovate.",
+              "title": "Features"
+            },
+            "description": "Comma-separated: lift, terrace, balcony, garage, pool, garden, air_conditioning, storage_room, fitted_wardrobes, accessible, luxury, new_construction, good_condition, to_renovate."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "One of: relevance, price_asc, price_desc, newest, oldest, size_asc, size_desc, price_per_m2_asc, price_per_m2_desc, biggest_drop.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "One of: relevance, price_asc, price_desc, newest, oldest, size_asc, size_desc, price_per_m2_asc, price_per_m2_desc, biggest_drop."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "1-based results page to start from (30 listings per page, at most 60). Use the `nextPage` of a previous response to continue.",
+              "title": "Page"
+            },
+            "description": "1-based results page to start from (30 listings per page, at most 60). Use the `nextPage` of a previous response to continue."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "How many listings to collect across pages (1-300); each page fetched is one billed unit.",
+              "default": 30,
+              "title": "Max Results"
+            },
+            "description": "How many listings to collect across pages (1-300); each page fetched is one billed unit."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2). Leave blank for the exit chosen for the site.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2). Leave blank for the exit chosen for the site."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `listings` array, `totalResults` and `nextPage`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "idealista has no such search (unknown location or URL)."
+          },
+          "502": {
+            "description": "Blocked by idealista on every attempt, no results page returned, or idealista did not answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/realestate/idealista-detail": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape one idealista listing (Spain, Italy, Portugal)",
+        "description": "Given an idealista `listing` id (with `country`) or URL, returns the listing as JSON: `title`, `locationLine`, `operation`, `propertyType`, `price` + `currency` (+ `pricePeriod`), `originalPrice`/`priceDropPercent`, `pricePerM2`, `priceDetails` (the price breakdown idealista shows, e.g. community fees or deposit), `area`, `usableArea`, `rooms`, `bathrooms`, `floor`, `lift`, `builtYear`, `energyRating`, `features` (every feature group idealista lists), `description`, `address`, `coordinates` (`locationApproximate` when the advertiser hid the exact spot), `images`, `floorPlans`, `multimediaCounts`, `advertiser` (name, type, reference, agency page) and `updated`. A listing its advertiser removed answers 404. Billed one unit.",
+        "operationId": "idealista_detail_realestate_idealista_detail_post",
+        "parameters": [
+          {
+            "name": "listing",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "idealista listing id ('111278716') or URL, e.g. https://www.idealista.com/inmueble/111278716/, https://www.idealista.it/immobile/37068709/ or https://www.idealista.pt/imovel/34868387/.",
+              "title": "Listing"
+            },
+            "description": "idealista listing id ('111278716') or URL, e.g. https://www.idealista.com/inmueble/111278716/, https://www.idealista.it/immobile/37068709/ or https://www.idealista.pt/imovel/34868387/."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Country of a bare listing id: es, it, pt. Ignored for a URL.",
+              "default": "es",
+              "title": "Country"
+            },
+            "description": "Country of a bare listing id: es, it, pt. Ignored for a URL."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2). Leave blank for the exit chosen for the site.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2). Leave blank for the exit chosen for the site."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `listing` object.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "idealista says the listing does not exist or was removed."
+          },
+          "502": {
+            "description": "Blocked by idealista on every attempt, no listing page returned, or idealista did not answer in time."
           },
           "422": {
             "description": "Validation Error",
@@ -6221,6 +7268,230 @@
           },
           "502": {
             "description": "Blocked by Similarweb, its free-view allowance was exhausted on every proxy tried, or the call did not finish in time - retry."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/seo/ahrefs": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Run Ahrefs' free SEO tools (DR, backlinks, traffic, keywords, KD, SERP)",
+        "description": "Ahrefs' free SEO tools as JSON, without an Ahrefs account. `tool=authority&target=<domain>`: `domainRating`, `backlinks`, `referringDomains`, `dofollowBacklinksPercent`, `dofollowReferringDomainsPercent`. `tool=backlinks`: the same plus `topBacklinks` (`urlFrom`, `urlTo`, `title`, `anchor`, `textBefore`/`textAfter`, `domainRating`). `tool=traffic`: `organicTraffic`, `trafficValueUsd`, `trafficHistory`, `topPages`, `topCountries`, `topKeywords` (`country` narrows it to one market). `tool=broken-links`: `inbound` broken backlinks and `outbound` broken links on the site's pages. `tool=keyword-difficulty&keyword=<phrase>`: `difficulty` (0-100), `referringDomainsToRank` and the SERP `results`. `tool=keywords`: `ideas` and `questionIdeas` with `difficulty` and `volume` buckets, plus totals (Google). `tool=serp`: the top Google `results` (organic with `metrics` - DR, UR, backlinks, referring domains, traffic, value, keywords - plus AI overview, questions, shopping, local and news blocks). Domain tools take `mode` (subdomains, domain, prefix, exact). One call, one unit.",
+        "operationId": "ahrefs_tools_seo_ahrefs_post",
+        "parameters": [
+          {
+            "name": "tool",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Which Ahrefs free tool to run: 'authority' (Domain Rating), 'backlinks', 'traffic', 'broken-links' (these take `target`), 'keyword-difficulty', 'keywords' (keyword ideas), 'serp' (these take `keyword`).",
+              "title": "Tool"
+            },
+            "description": "Which Ahrefs free tool to run: 'authority' (Domain Rating), 'backlinks', 'traffic', 'broken-links' (these take `target`), 'keyword-difficulty', 'keywords' (keyword ideas), 'serp' (these take `keyword`)."
+          },
+          {
+            "name": "target",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Domain or URL for the domain tools, e.g. 'github.com' or 'https://github.com/features'.",
+              "title": "Target"
+            },
+            "description": "Domain or URL for the domain tools, e.g. 'github.com' or 'https://github.com/features'."
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search phrase for the keyword tools, e.g. 'running shoes'.",
+              "title": "Keyword"
+            },
+            "description": "Search phrase for the keyword tools, e.g. 'running shoes'."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Two-letter market code. Keyword tools: the search market (default 'us'). traffic: limits the estimate to that country (default: worldwide). Not used by the other domain tools.",
+              "title": "Country"
+            },
+            "description": "Two-letter market code. Keyword tools: the search market (default 'us'). traffic: limits the estimate to that country (default: worldwide). Not used by the other domain tools."
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Target scope for the domain tools: 'subdomains' (the domain with all its subdomains), 'domain' (without subdomains), 'prefix' (everything under the URL) or 'exact' (that URL only).",
+              "default": "subdomains",
+              "title": "Mode"
+            },
+            "description": "Target scope for the domain tools: 'subdomains' (the domain with all its subdomains), 'domain' (without subdomains), 'prefix' (everything under the URL) or 'exact' (that URL only)."
+          },
+          {
+            "name": "protocol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "traffic only: 'both', 'http' or 'https'.",
+              "default": "both",
+              "title": "Protocol"
+            },
+            "description": "traffic only: 'both', 'http' or 'https'."
+          },
+          {
+            "name": "questions",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "keywords only: also return question ideas.",
+              "default": true,
+              "title": "Questions"
+            },
+            "description": "keywords only: also return question ideas."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `tool`, `query`, `found` and the tool's fields (`found: false`, with empty fields, when Ahrefs has no data for the target or keyword).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters, or Ahrefs rejected the target/keyword."
+          },
+          "502": {
+            "description": "Ahrefs refused every exit, its anti-bot check could not be passed, or it did not answer in time - retry."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/seo/semrush": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Get a website's Semrush overview (Authority Score, traffic, backlinks)",
+        "description": "Semrush's public website data for `domain`, without a Semrush account. `report=overview` (default): `authorityScore`, `globalRank`, `countryRank`, `categoryRank`, `visits` with `visitsChangePercent` and `visitsHistory` (desktop/mobile), `pagesPerVisit`, `timeOnSiteSeconds`, `bounceRate`, `searchTraffic` (organic and paid with history), `backlinks` (backlinks, referring domains, Google penalty risk, history), `topKeywords` (position, search volume, CPC, traffic share, intent), `topCountries`, `competitors`, `trafficSources` (incoming and outgoing) and `aiTraffic` (visits from AI assistants). `report=competitors`: the domain's competitors, each with Authority Score, ranks, visits and engagement. Semrush publishes these pages for about 200k of the most visited sites; any other domain returns `found: false`. One call, one unit.",
+        "operationId": "semrush_overview_seo_semrush_post",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Website to look up: a domain ('github.com'), a URL ('https://www.github.com/about') or a Semrush website page URL. A leading 'www.' is dropped; other subdomains are kept.",
+              "title": "Domain"
+            },
+            "description": "Website to look up: a domain ('github.com'), a URL ('https://www.github.com/about') or a Semrush website page URL. A leading 'www.' is dropped; other subdomains are kept."
+          },
+          {
+            "name": "report",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "'overview' (traffic, rank, search traffic, backlinks, keywords, countries, competitors, sources) or 'competitors' (the competitor list with each one's ranks, visits and engagement).",
+              "default": "overview",
+              "title": "Report"
+            },
+            "description": "'overview' (traffic, rank, search traffic, backlinks, keywords, countries, competitors, sources) or 'competitors' (the competitor list with each one's ranks, visits and engagement)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON website data (`found: false` when Semrush has no public page for the domain).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or malformed domain / report."
+          },
+          "502": {
+            "description": "No Semrush page was returned (blocked or timed out) - retry."
           },
           "422": {
             "description": "Validation Error",
@@ -7774,11 +9045,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
+              "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
               "default": "segments",
               "title": "Format"
             },
-            "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext."
+            "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext."
           },
           {
             "name": "proxy_country",
@@ -8765,380 +10036,6 @@
           },
           "502": {
             "description": "Blocked by YouTube, comments could not be fetched, or the call did not finish in time."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
-    "/jobs/linkedin": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Scrape LinkedIn job postings",
-        "description": "Searches LinkedIn's guest jobs API for `keyword` (+ optional `location` and filters) and returns the postings as JSON: `jobId`, `title`, `company`, `companyUrl`, `location`, `postedDate`, `jobUrl`, `companyLogo` and benefit tags. Filter with `time_posted` (24h/week/month), `workplace` (onsite/remote/hybrid), `job_type`, `experience`, `salary` band and `sort`, and collect up to `max_results` across pages. `mode=detail` with a `job_id` returns one job's full description, seniority, employment type, job function, industries and applicant count. No LinkedIn login required.",
-        "operationId": "linkedin_jobs_jobs_linkedin_post",
-        "parameters": [
-          {
-            "name": "keyword",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Job search terms, e.g. 'python developer'. Required for mode=search.",
-              "title": "Keyword"
-            },
-            "description": "Job search terms, e.g. 'python developer'. Required for mode=search."
-          },
-          {
-            "name": "location",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Location text, e.g. 'United States' or 'Berlin, Germany'. Optional.",
-              "title": "Location"
-            },
-            "description": "Location text, e.g. 'United States' or 'Berlin, Germany'. Optional."
-          },
-          {
-            "name": "mode",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "description": "'search' (default) for a job list, or 'detail' for one job by job_id.",
-              "default": "search",
-              "title": "Mode"
-            },
-            "description": "'search' (default) for a job list, or 'detail' for one job by job_id."
-          },
-          {
-            "name": "job_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "For mode=detail: a numeric LinkedIn job id or a /jobs/view/ URL.",
-              "title": "Job Id"
-            },
-            "description": "For mode=detail: a numeric LinkedIn job id or a /jobs/view/ URL."
-          },
-          {
-            "name": "max_results",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 1000,
-              "minimum": 1,
-              "description": "How many jobs to collect across pages (search mode).",
-              "default": 25,
-              "title": "Max Results"
-            },
-            "description": "How many jobs to collect across pages (search mode)."
-          },
-          {
-            "name": "time_posted",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Time posted filter: 24h, week, month.",
-              "title": "Time Posted"
-            },
-            "description": "Time posted filter: 24h, week, month."
-          },
-          {
-            "name": "workplace",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Workplace type (comma-separated ok): onsite, remote, hybrid.",
-              "title": "Workplace"
-            },
-            "description": "Workplace type (comma-separated ok): onsite, remote, hybrid."
-          },
-          {
-            "name": "job_type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Job type (comma-separated ok): full_time, part_time, contract, temporary, internship, volunteer, other.",
-              "title": "Job Type"
-            },
-            "description": "Job type (comma-separated ok): full_time, part_time, contract, temporary, internship, volunteer, other."
-          },
-          {
-            "name": "experience",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Experience level (comma-separated ok): internship, entry, associate, mid_senior, director, executive.",
-              "title": "Experience"
-            },
-            "description": "Experience level (comma-separated ok): internship, entry, associate, mid_senior, director, executive."
-          },
-          {
-            "name": "salary",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Minimum salary band (US$): 40k, 60k, 80k, 100k, 120k, 140k, 160k, 180k, 200k.",
-              "title": "Salary"
-            },
-            "description": "Minimum salary band (US$): 40k, 60k, 80k, 100k, 120k, 140k, 160k, 180k, 200k."
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Sort order: relevant, recent. Defaults to LinkedIn's relevance.",
-              "title": "Sort"
-            },
-            "description": "Sort order: relevant, recent. Defaults to LinkedIn's relevance."
-          },
-          {
-            "name": "geo_id",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "LinkedIn numeric geoId for a precise region (advanced; overrides location text).",
-              "title": "Geo Id"
-            },
-            "description": "LinkedIn numeric geoId for a precise region (advanced; overrides location text)."
-          },
-          {
-            "name": "distance",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "maximum": 100,
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Search radius in miles around the location.",
-              "title": "Distance"
-            },
-            "description": "Search radius in miles around the location."
-          },
-          {
-            "name": "enrich",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "description": "Search mode: also fetch each job's full description + criteria (bounded to 25 jobs). Slower.",
-              "default": false,
-              "title": "Enrich"
-            },
-            "description": "Search mode: also fetch each job's full description + criteria (bounded to 25 jobs). Slower."
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
-              "title": "Proxy Country"
-            },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "JSON with a `jobs` array (search) or a single `job` object (detail).",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid parameters."
-          },
-          "502": {
-            "description": "Blocked by LinkedIn, no data returned, or the call did not finish in time."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
-    "/companies/linkedin": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Scrape a LinkedIn company page",
-        "description": "Fetches a public LinkedIn company page for `company` (a slug like 'microsoft' or a full company URL) and returns it as JSON: `name`, `companyId`, `tagline`, `description`, `industry`, `companySize`, `employeeCount` (members on LinkedIn), `headquarters`, a structured `address`, `type`, `founded`, `specialties`, `website`, `followers`, `logo`, `coverImage`, `locations`, `similarPages`, `affiliatedPages` and `recentPosts`. Every field is always present and is `null` when the page does not show it. No LinkedIn login required.",
-        "operationId": "linkedin_company_companies_linkedin_post",
-        "parameters": [
-          {
-            "name": "company",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "LinkedIn company slug (e.g. 'microsoft') or a full company URL.",
-              "title": "Company"
-            },
-            "description": "LinkedIn company slug (e.g. 'microsoft') or a full company URL."
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
-              "title": "Proxy Country"
-            },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "JSON with the company object.",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid parameters."
-          },
-          "404": {
-            "description": "LinkedIn has no company page for that slug."
-          },
-          "502": {
-            "description": "Blocked by LinkedIn on every attempt, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -11043,103 +11940,6 @@
         ]
       }
     },
-    "/social/instagram": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Scrape an Instagram profile or post",
-        "description": "Given an Instagram `username` (or `url`), returns the public profile as JSON: `username`, `full_name`, `biography`, `followers`, `following`, `posts_count`, `verified`, `private`, `avatar_url`, `external_urls` and `recent_posts` (shortcode, url, caption, thumbnail, media type). A post/reel URL returns that single post with its engagement instead. Instagram does not ship per-post counts on a profile page, so profile `recent_posts` carry no like/comment counts.",
-        "operationId": "instagram_scrape_social_instagram_post",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Instagram username/handle, e.g. 'nasa' (with or without a leading @).",
-              "title": "Username"
-            },
-            "description": "Instagram username/handle, e.g. 'nasa' (with or without a leading @)."
-          },
-          {
-            "name": "url",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "An instagram.com profile or post/reel URL (alternative to `username`).",
-              "title": "Url"
-            },
-            "description": "An instagram.com profile or post/reel URL (alternative to `username`)."
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
-              "title": "Proxy Country"
-            },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "JSON with a `data` object (profile or post).",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid parameters."
-          },
-          "502": {
-            "description": "Instagram login wall / gated - no public data returned, or the call did not finish in time."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
     "/marketplace/target-search": {
       "post": {
         "tags": [
@@ -11656,154 +12456,6 @@
           },
           "502": {
             "description": "Blocked by mobile.de, no results page returned, or the call did not finish in time."
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ScrapeUnblockerKey": []
-          }
-        ]
-      }
-    },
-    "/marketplace/craigslist-search": {
-      "post": {
-        "tags": [
-          "Plugins"
-        ],
-        "summary": "Scrape Craigslist search",
-        "description": "Searches Craigslist for `query` in a given metro (`site`) and section (`category`) and returns the listings as JSON: `id`, `pid`, `title`, `url`, `price`, `currency`, `location` and `image`. Filter with `min_price`/`max_price` and cap the count with `max_results`. Results are merged from the gallery DOM and the embedded JSON-LD ItemList.",
-        "operationId": "craigslist_search_marketplace_craigslist_search_post",
-        "parameters": [
-          {
-            "name": "query",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "What to search, e.g. 'bicycle' or 'sofa'.",
-              "title": "Query"
-            },
-            "description": "What to search, e.g. 'bicycle' or 'sofa'."
-          },
-          {
-            "name": "site",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "description": "Metro subdomain, e.g. 'newyork', 'sfbay', 'chicago'.",
-              "default": "newyork",
-              "title": "Site"
-            },
-            "description": "Metro subdomain, e.g. 'newyork', 'sfbay', 'chicago'."
-          },
-          {
-            "name": "category",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "description": "Craigslist code: sss=for sale, cta=cars+trucks, apa=housing, jjj=jobs.",
-              "default": "sss",
-              "title": "Category"
-            },
-            "description": "Craigslist code: sss=for sale, cta=cars+trucks, apa=housing, jjj=jobs."
-          },
-          {
-            "name": "min_price",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Lowest price to include (USD).",
-              "title": "Min Price"
-            },
-            "description": "Lowest price to include (USD)."
-          },
-          {
-            "name": "max_price",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Highest price to include (USD).",
-              "title": "Max Price"
-            },
-            "description": "Highest price to include (USD)."
-          },
-          {
-            "name": "max_results",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "maximum": 500,
-              "minimum": 1,
-              "description": "How many listings to return (1-500).",
-              "default": 120,
-              "title": "Max Results"
-            },
-            "description": "How many listings to return (1-500)."
-          },
-          {
-            "name": "proxy_country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US.",
-              "title": "Proxy Country"
-            },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to US."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "JSON with a `listings` array.",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid parameters."
-          },
-          "502": {
-            "description": "Blocked by Craigslist, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -12791,6 +13443,570 @@
           },
           "502": {
             "description": "Blocked by SHEIN, no results page returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/groceries/woolworths": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Woolworths (Australia) groceries",
+        "description": "Woolworths Australia (woolworths.com.au) products as JSON. `mode=search&query=`, `mode=category&category=` and `mode=specials` return `products`: `id` (stockcode), `name`, `brand`, `size`, `url`, `barcode`, `price`, `wasPrice`, `onSale`, `savings`, `promotion` (`type` half_price / special / multibuy / offer, `text`, multibuy `quantity` and `price`), `unitPrice` (`price`, `per`, `text`), `soldBy`, `inStock`, `available`, `purchaseLimit`, `isNew`, `sponsored`, `image`, `categories`, `healthStarRating` and `rating`, plus `totalResults`, `totalPages` and `nextPage`. `mode=product&product=` returns `product` with those fields and `description`, `ingredients`, `allergens` (`contains`, `mayContain`, `freeFrom`), `dietary`, `nutrition` (per serving and per 100 g / mL), `servingSize`, `servingsPerPack`, `storage`, `countryOfOrigin`, `department`, `aisle`, `images` and `variants`. Prices are Woolworths' online prices in AUD. Listings collect up to `max_results` from `page` on, billed one unit per page.",
+        "operationId": "woolworths_groceries_woolworths_post",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "'search' (default): products matching `query`. 'category': a category listing. 'specials': a specials page (Half Price unless `category` names another). 'product': one product with nutrition and ingredients. Defaults to 'product' when `product` is given and to 'category' when `category` is.",
+              "title": "Mode"
+            },
+            "description": "'search' (default): products matching `query`. 'category': a category listing. 'specials': a specials page (Half Price unless `category` names another). 'product': one product with nutrition and ingredients. Defaults to 'product' when `product` is given and to 'category' when `category` is."
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search for (mode=search), e.g. 'milk', 'tim tam', 'chicken breast'.",
+              "title": "Query"
+            },
+            "description": "What to search for (mode=search), e.g. 'milk', 'tim tam', 'chicken breast'."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=category: a browse link (https://www.woolworths.com.au/shop/browse/dairy-eggs-fridge/milk), its path ('dairy-eggs-fridge/milk') or a category id ('1_6E4F4E4'). mode=specials: the specials page - 'half-price' (default), 'lower-shelf-price', 'everyday-low-price', 'seasonal-price', 'buy-more-save-more', 'online-only-specials' or a specials link.",
+              "title": "Category"
+            },
+            "description": "mode=category: a browse link (https://www.woolworths.com.au/shop/browse/dairy-eggs-fridge/milk), its path ('dairy-eggs-fridge/milk') or a category id ('1_6E4F4E4'). mode=specials: the specials page - 'half-price' (default), 'lower-shelf-price', 'everyday-low-price', 'seasonal-price', 'buy-more-save-more', 'online-only-specials' or a specials link."
+          },
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=product: a stockcode ('888137') or a product link (https://www.woolworths.com.au/shop/productdetails/888137/woolworths-full-cream-milk).",
+              "title": "Product"
+            },
+            "description": "mode=product: a stockcode ('888137') or a product link (https://www.woolworths.com.au/shop/productdetails/888137/woolworths-full-cream-milk)."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Listing order: relevance, price_asc, price_desc, unit_price_asc, unit_price_desc, name.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Listing order: relevance, price_asc, price_desc, unit_price_asc, unit_price_desc, name."
+          },
+          {
+            "name": "specials_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "mode=search: only products on special.",
+              "default": false,
+              "title": "Specials Only"
+            },
+            "description": "mode=search: only products on special."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based listing page to start from (36 products per page).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based listing page to start from (36 products per page)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect across pages, 1-360. Each page fetched is billed one unit.",
+              "default": 36,
+              "title": "Max Results"
+            },
+            "description": "Products to collect across pages, 1-360. Each page fetched is billed one unit."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'AU', 'US'). Leave blank: Woolworths answers every country, so the load spreads over all exits.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'AU', 'US'). Leave blank: Woolworths answers every country, so the load spreads over all exits."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `products` (listings) or `product`. A search with no matches answers 200 with an empty `products` list; one Woolworths shows only to signed-in shoppers (tobacco) also carries `warnings`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters, or a product Woolworths shows only to signed-in shoppers."
+          },
+          "404": {
+            "description": "Woolworths has no such product or category."
+          },
+          "502": {
+            "description": "Blocked by Woolworths on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/groceries/coles": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Coles (Australia) groceries",
+        "description": "Coles Australia (coles.com.au) products as JSON. `mode=search&query=`, `mode=category&category=` and `mode=specials` return `products`: `id`, `name`, `brand`, `size`, `url`, `price`, `wasPrice`, `onSale`, `savings`, `promotion` (`type` half_price / special / multibuy / offer, `text`, multibuy `quantity` and `price`), `unitPrice` (`price`, `per`, `text`), `inStock`, `available`, `availableQuantity`, `purchaseLimit`, `promotionalLimit`, `onlineOnly`, `sponsored`, `image`, `categories` and `minimumShelfLife`, plus `totalResults`, `totalPages` and `nextPage`. `special` limits a search or the specials listing to half-price, multibuy or online-only deals. `mode=product&product=` returns `product` with those fields and `barcode`, `description`, `ingredients`, `allergens`, `dietary`, `storage`, `nutrition` (per serving and per 100 g / mL), `servingSize`, `servingsPerPack`, `countryOfOrigin`, `images` and `variants`. Prices are Coles' online prices in AUD. Listings collect up to `max_results` from `page` on, billed one unit per page.",
+        "operationId": "coles_groceries_coles_post",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "'search' (default): products matching `query`. 'category': a category listing. 'specials': the products on special. 'product': one product with nutrition and ingredients. Defaults to 'product' when `product` is given and to 'category' when `category` is.",
+              "title": "Mode"
+            },
+            "description": "'search' (default): products matching `query`. 'category': a category listing. 'specials': the products on special. 'product': one product with nutrition and ingredients. Defaults to 'product' when `product` is given and to 'category' when `category` is."
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search for (mode=search), e.g. 'milk', 'tim tam', 'chicken breast'.",
+              "title": "Query"
+            },
+            "description": "What to search for (mode=search), e.g. 'milk', 'tim tam', 'chicken breast'."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=category: a browse link (https://www.coles.com.au/browse/dairy-eggs-fridge/milk) or its path ('dairy-eggs-fridge/milk').",
+              "title": "Category"
+            },
+            "description": "mode=category: a browse link (https://www.coles.com.au/browse/dairy-eggs-fridge/milk) or its path ('dairy-eggs-fridge/milk')."
+          },
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=product: a Coles product id ('8150288') or a product link (https://www.coles.com.au/product/coles-full-cream-milk-3l-8150288).",
+              "title": "Product"
+            },
+            "description": "mode=product: a Coles product id ('8150288') or a product link (https://www.coles.com.au/product/coles-full-cream-milk-3l-8150288)."
+          },
+          {
+            "name": "special",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Products on special only: all, half-price, multibuy, online-only. mode=specials defaults to 'all'; with mode=search it filters the results.",
+              "title": "Special"
+            },
+            "description": "Products on special only: all, half-price, multibuy, online-only. mode=specials defaults to 'all'; with mode=search it filters the results."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Listing order: relevance, price_asc, price_desc, unit_price_asc.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Listing order: relevance, price_asc, price_desc, unit_price_asc."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based listing page to start from (48 products per page).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based listing page to start from (48 products per page)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect across pages, 1-480. Each page fetched is billed one unit.",
+              "default": 48,
+              "title": "Max Results"
+            },
+            "description": "Products to collect across pages, 1-480. Each page fetched is billed one unit."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from: AU, NZ, US or CA (Coles serves only these). Leave blank to spread over all of them.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from: AU, NZ, US or CA (Coles serves only these). Leave blank to spread over all of them."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `products` (listings) or `product`. A search with no matches answers 200 with an empty `products` list.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Coles has no such product or category."
+          },
+          "502": {
+            "description": "Blocked by Coles on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/groceries/aldi-au": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape ALDI Australia groceries",
+        "description": "ALDI Australia (aldi.com.au) products as JSON. `mode=search&query=`, `mode=category&category=` and `mode=specials` return `products`: `id` (SKU), `name`, `brand`, `size`, `url`, `price`, `priceText`, `wasPrice`, `onSale`, `unitPrice` (`price`, `per`, `text`), `bottleDeposit`, `specialBuy` (on-sale date and label), `badges`, `available`, `soldOnline`, `ageRestricted`, `image`, `categories` and `categoryKeys`, plus `totalResults`, `totalPages` and `nextPage`. `mode=specials` lists one Special Buys drop (the current one, or the date / link in `category`; `theme` narrows it) and returns `promotions`, every drop ALDI has announced with its themes. `mode=product&product=` returns `product` with those fields and `description`, `ingredients`, `allergens`, `claims`, `storage`, `usage`, `countryOfOrigin` and `images`. Prices are ALDI's in-store prices in AUD (ALDI Australia does not sell groceries online). Listings collect up to `max_results` from `page` on, billed one unit per page.",
+        "operationId": "aldi_au_groceries_aldi_au_post",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "'search' (default): products matching `query`. 'category': a category listing. 'specials': a Special Buys drop. 'product': one product with ingredients and its images. Defaults to 'product' when `product` is given and to 'category' when `category` is.",
+              "title": "Mode"
+            },
+            "description": "'search' (default): products matching `query`. 'category': a category listing. 'specials': a Special Buys drop. 'product': one product with ingredients and its images. Defaults to 'product' when `product` is given and to 'category' when `category` is."
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search for (mode=search), e.g. 'milk', 'chocolate', 'nappies'.",
+              "title": "Query"
+            },
+            "description": "What to search for (mode=search), e.g. 'milk', 'chocolate', 'nappies'."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=category: a category link (https://www.aldi.com.au/products/dairy-eggs-fridge/milk/k/1111111160) or its key ('1111111160'; '1588161425841179' = Lower Prices). mode=specials: the Special Buys drop - its date ('2026-10-14') or link (https://www.aldi.com.au/special-buys/2026-10-14); blank = the current drop.",
+              "title": "Category"
+            },
+            "description": "mode=category: a category link (https://www.aldi.com.au/products/dairy-eggs-fridge/milk/k/1111111160) or its key ('1111111160'; '1588161425841179' = Lower Prices). mode=specials: the Special Buys drop - its date ('2026-10-14') or link (https://www.aldi.com.au/special-buys/2026-10-14); blank = the current drop."
+          },
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=product: an ALDI SKU ('000000000000398691') or a product link (https://www.aldi.com.au/product/farmdale-light-milk-2l-000000000000398691).",
+              "title": "Product"
+            },
+            "description": "mode=product: an ALDI SKU ('000000000000398691') or a product link (https://www.aldi.com.au/product/farmdale-light-milk-2l-000000000000398691)."
+          },
+          {
+            "name": "theme",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=specials: one theme of the drop, e.g. 'Gardening' (see `promotions[].themes`).",
+              "title": "Theme"
+            },
+            "description": "mode=specials: one theme of the drop, e.g. 'Gardening' (see `promotions[].themes`)."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Listing order: relevance, price_asc, price_desc, name_asc, name_desc.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Listing order: relevance, price_asc, price_desc, name_asc, name_desc."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based listing page to start from (60 products per page).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based listing page to start from (60 products per page)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect across pages, 1-600. Each page fetched is billed one unit.",
+              "default": 60,
+              "title": "Max Results"
+            },
+            "description": "Products to collect across pages, 1-600. Each page fetched is billed one unit."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'AU', 'US'). Leave blank: ALDI answers every country, so the load spreads over all exits.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'AU', 'US'). Leave blank: ALDI answers every country, so the load spreads over all exits."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `products` (listings) or `product`. A search with no matches answers 200 with an empty `products` list.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "ALDI has no such product, or no Special Buys drop on that date."
+          },
+          "502": {
+            "description": "No answer from ALDI on any attempt, an unusable answer, or no answer in time."
           },
           "422": {
             "description": "Validation Error",

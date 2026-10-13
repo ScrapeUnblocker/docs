@@ -1,0 +1,166 @@
+---
+title: "Google Trends plugin"
+description: "Google Trends data as clean JSON - interest over time, interest by region and related queries and topics for up to five keywords, filtered by place, time range, category and search type."
+sidebarTitle: "Google Trends"
+---
+
+The **Google Trends** plugin returns the data behind the trends.google.com explore page as structured JSON. Give it one to five keywords (or Knowledge Graph topic ids such as `/m/0dl567`) and you get interest over time as one point per time bucket with a 0-100 value per keyword, the average for each keyword, interest by region with geo codes, and each keyword's top and rising related queries, with related topics on request.
+
+Filter exactly as on trends.google.com: `geo` for worldwide, a country, a region or a US metro, `timeframe` from the past hour to all time or a custom date range, a `category`, and web, image, news, YouTube or Shopping search via `property`. No Google account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Explore data
+
+```
+POST /trends/google-trends
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keywords` | yes | 1-5 search terms to compare, comma-separated, e.g. `coffee,tea`. A Knowledge Graph topic id such as `/m/0dl567` also works. The SDKs also accept a list and join it for you. |
+| `geo` | no | Where: empty for worldwide (default), an ISO-2 country (`US`), a region (`US-CA`) or a US metro (`US-CA-807`). |
+| `timeframe` | no | `now 1-H`, `now 4-H`, `now 1-d`, `now 7-d`, `today 1-m`, `today 3-m`, `today 12-m` (default), `today 5-y`, `all`, or a custom `YYYY-MM-DD YYYY-MM-DD`. For hourly data within the last 7 days: `YYYY-MM-DDTHH YYYY-MM-DDTHH`. |
+| `category` | no | Google Trends category id. `0` = all categories (default), e.g. `71` = Food & Drink, `5` = Computers & Electronics. |
+| `property` | no | Which Google search to measure: `web` (default), `images`, `news`, `youtube`, `shopping`. |
+| `hl` | no | Language of labels (region names, topic titles), e.g. `en-US` (default), `de`, `fr`. |
+| `tz` | no | Timezone offset in minutes that day and hour buckets align to, using Trends' convention (`300` = UTC-5, `-60` = UTC+1). Default `0` (UTC). |
+| `region_resolution` | no | Level of the region map: `country`, `region`, `city` or `dma`. By default Trends picks it (countries worldwide, regions inside a country). `country` needs a worldwide `geo`, `region` a country `geo`, and `dma` (US metros) a US `geo`. |
+| `include_low_volume` | no | `true` to include regions with low search volume in the region map. Default `false`. |
+| `sections` | no | What to fetch, as a comma list of `interest_over_time`, `interest_by_region`, `related_queries`, `related_topics`, or `all`. Default `interest_over_time,interest_by_region,related_queries`. Fewer sections answer faster. `related_topics` is opt-in, and Google often returns it empty. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Optional - the data follows `geo`, not the proxy country. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/trends/google-trends?keywords=coffee%2Ctea&geo=US&timeframe=today%203-m" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_trends(["coffee", "tea"], geo="US", timeframe="today 3-m")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleTrends(["coffee", "tea"], { geo: "US", timeframe: "today 3-m" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleTrends(['coffee', 'tea'], ['geo' => 'US', 'timeframe' => 'today 3-m']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_trends(["coffee", "tea"], geo: "US", timeframe: "today 3-m")
+```
+</CodeGroup>
+
+<Note>
+Each keyword in a call is billed as one request, because every keyword needs its own related-queries lookup: comparing `coffee` and `tea` counts as 2 requests, a single keyword as 1.
+</Note>
+
+### Response
+
+```json
+{
+  "keywords": ["coffee", "tea"],
+  "geo": "US",
+  "timeframe": "today 3-m",
+  "category": 0,
+  "property": "web",
+  "hl": "en-US",
+  "tz": 0,
+  "resolution": "DAY",
+  "exploreUrl": "https://trends.google.com/trends/explore?date=today%203-m&q=coffee%2Ctea&geo=US&hl=en-US",
+  "interestOverTime": [
+    {
+      "date": "2026-07-13T00:00:00Z",
+      "timestamp": 1783900800,
+      "formattedTime": "Jul 13, 2026",
+      "values": { "coffee": 62, "tea": 30 },
+      "isPartial": false
+    },
+    {
+      "date": "2026-10-13T00:00:00Z",
+      "timestamp": 1791849600,
+      "formattedTime": "Oct 13, 2026",
+      "values": { "coffee": 40, "tea": 25 },
+      "isPartial": true
+    }
+  ],
+  "averages": { "coffee": 57, "tea": 25 },
+  "interestByRegion": [
+    { "geoCode": "US-HI", "geoName": "Hawaii", "values": { "coffee": 72, "tea": 28 }, "coordinates": null },
+    { "geoCode": "US-KS", "geoName": "Kansas", "values": { "coffee": 69, "tea": 31 }, "coordinates": null }
+  ],
+  "regionResolution": "REGION",
+  "relatedQueries": {
+    "coffee": {
+      "top": [
+        { "query": "coffee near me", "value": 100, "formattedValue": "100", "link": "https://trends.google.com/trends/explore?q=coffee+near+me&date=today+3-m&geo=US" }
+      ],
+      "rising": [
+        { "query": "student suspended for bringing coffee", "value": 10950, "formattedValue": "Breakout", "link": "https://trends.google.com/trends/explore?q=student+suspended+for+bringing+coffee&date=today+3-m&geo=US" }
+      ]
+    },
+    "tea": {
+      "top": [
+        { "query": "green tea", "value": 100, "formattedValue": "100", "link": "https://trends.google.com/trends/explore?q=green+tea&date=today+3-m&geo=US" }
+      ],
+      "rising": [
+        { "query": "sketch tea", "value": 400, "formattedValue": "+400%", "link": "https://trends.google.com/trends/explore?q=sketch+tea&date=today+3-m&geo=US" }
+      ]
+    }
+  },
+  "relatedTopics": null,
+  "errors": []
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `resolution` | The bucket size Trends picked for the range: minutes, hours, days (`DAY`), weeks or months. |
+| `interestOverTime` | One point per bucket: ISO `date`, Unix `timestamp`, Trends' own `formattedTime` label, `values` (0-100 per keyword, on the same scale as the chart) and `isPartial` (`true` for a bucket that is still filling). |
+| `averages` | Each keyword's mean interest over the range. |
+| `interestByRegion` | Countries, regions, cities or US metros with `geoCode`, `geoName` and a value per keyword. `regionResolution` says which level you got. |
+| `relatedQueries` | Per keyword, `top` and `rising` lists with `query`, `value`, `formattedValue` (`Breakout` or `+400%` for rising queries) and a `link` to that query on trends.google.com. |
+| `relatedTopics` | Same shape as `relatedQueries`, for topics. `null` unless you ask for `related_topics` in `sections`. |
+| `exploreUrl` | The same view on trends.google.com. |
+| `errors` | One text entry per section (or per keyword's related list) that could not be fetched. The rest of the answer is still returned; a missing related list comes back as `null` for that keyword. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters (e.g. more than five keywords, an unknown `timeframe`, or `region_resolution=dma` without a US `geo`). The message says what to fix. |
+| `502` | Google Trends refused, returned no interest-over-time data, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Demand and seasonality analysis** - compare how interest in products or categories moves through the year.
+- **Market sizing by region** - rank states, countries or US metros by interest before a launch.
+- **Content and SEO planning** - mine rising and breakout queries for new topics.
+- **Brand tracking** - compare your brand against others over time and by place.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Compare keywords on Google Trends and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

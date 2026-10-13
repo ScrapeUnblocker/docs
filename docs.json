@@ -69,9 +69,13 @@
                 "expanded": false,
                 "pages": [
                   "plugins/skyscanner",
-                  "plugins/southwest",
                   "plugins/booking",
-                  "plugins/airbnb"
+                  "plugins/booking-reviews",
+                  "plugins/airbnb",
+                  "plugins/airbnb-listing",
+                  "plugins/airbnb-reviews",
+                  "plugins/tripadvisor",
+                  "plugins/tripadvisor-reviews"
                 ]
               },
               {
@@ -80,7 +84,22 @@
                 "expanded": false,
                 "pages": [
                   "plugins/google-local",
-                  "plugins/google-images"
+                  "plugins/google-images",
+                  "plugins/google-maps-place",
+                  "plugins/google-trends",
+                  "plugins/google-shopping",
+                  "plugins/google-jobs"
+                ]
+              },
+              {
+                "group": "Search engines",
+                "icon": "magnifying-glass",
+                "expanded": false,
+                "pages": [
+                  "plugins/bing",
+                  "plugins/duckduckgo",
+                  "plugins/yahoo",
+                  "plugins/brave"
                 ]
               },
               {
@@ -89,12 +108,20 @@
                 "expanded": false,
                 "pages": [
                   "plugins/amazon",
-                  "plugins/ebay",
+                  "plugins/amazon-bestsellers",
+                  "plugins/amazon-reviews",
                   "plugins/walmart",
                   "plugins/target",
+                  "plugins/best-buy",
+                  "plugins/home-depot",
                   "plugins/etsy",
                   "plugins/temu",
+                  "plugins/shein",
                   "plugins/zalando",
+                  "plugins/aliexpress",
+                  "plugins/alibaba",
+                  "plugins/1688",
+                  "plugins/tiktok-shop",
                   "plugins/oopbuy-search"
                 ]
               },
@@ -103,9 +130,40 @@
                 "icon": "store",
                 "expanded": false,
                 "pages": [
+                  "plugins/ebay",
                   "plugins/vinted",
-                  "plugins/craigslist",
-                  "plugins/mobile-de"
+                  "plugins/leboncoin"
+                ]
+              },
+              {
+                "group": "Groceries",
+                "icon": "basket-shopping",
+                "expanded": false,
+                "pages": [
+                  "plugins/woolworths",
+                  "plugins/coles",
+                  "plugins/aldi-au"
+                ]
+              },
+              {
+                "group": "Real estate",
+                "icon": "house",
+                "expanded": false,
+                "pages": [
+                  "plugins/zillow",
+                  "plugins/redfin",
+                  "plugins/rightmove",
+                  "plugins/idealista",
+                  "plugins/immobilienscout24"
+                ]
+              },
+              {
+                "group": "Vehicles",
+                "icon": "car",
+                "expanded": false,
+                "pages": [
+                  "plugins/mobile-de",
+                  "plugins/autoscout24"
                 ]
               },
               {
@@ -113,15 +171,63 @@
                 "icon": "briefcase",
                 "expanded": false,
                 "pages": [
-                  "plugins/indeed"
+                  "plugins/indeed",
+                  "plugins/glassdoor",
+                  "plugins/naukri",
+                  "plugins/wellfound",
+                  "plugins/career-site"
                 ]
               },
               {
-                "group": "Social & Ads",
-                "icon": "hashtag",
+                "group": "Reviews & Companies",
+                "icon": "star",
                 "expanded": false,
                 "pages": [
-                  "plugins/tiktok",
+                  "plugins/trustpilot",
+                  "plugins/g2",
+                  "plugins/capterra",
+                  "plugins/producthunt",
+                  "plugins/crunchbase"
+                ]
+              },
+              {
+                "group": "Local & Maps",
+                "icon": "location-dot",
+                "expanded": false,
+                "pages": [
+                  "plugins/yelp",
+                  "plugins/yelp-reviews",
+                  "plugins/naver-place"
+                ]
+              },
+              {
+                "group": "Apps",
+                "icon": "mobile-screen",
+                "expanded": false,
+                "pages": [
+                  "plugins/google-play",
+                  "plugins/app-store"
+                ]
+              },
+              {
+                "group": "Video, Music & Communities",
+                "icon": "circle-play",
+                "expanded": false,
+                "pages": [
+                  "plugins/youtube",
+                  "plugins/spotify",
+                  "plugins/telegram",
+                  "plugins/quora"
+                ]
+              },
+              {
+                "group": "SEO & Ads",
+                "icon": "chart-line",
+                "expanded": false,
+                "pages": [
+                  "plugins/similarweb",
+                  "plugins/ahrefs",
+                  "plugins/semrush",
                   "plugins/meta-ad-library"
                 ]
               }
@@ -304,5 +410,19 @@
       "keywords": "web scraping API, anti-bot bypass, Cloudflare bypass, residential proxies, SERP scraping, page source API, data extraction, ScrapeUnblocker"
     },
     "indexing": "all"
-  }
+  },
+  "redirects": [
+    {
+      "source": "/plugins/southwest",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/plugins/craigslist",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/plugins/tiktok",
+      "destination": "/plugins/overview"
+    }
+  ]
 }

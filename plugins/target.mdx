@@ -24,12 +24,54 @@ POST /marketplace/target-search
 | `sort` | no | `relevance` (default), `newest`, `price_low` or `price_high`. |
 | `min_price` / `max_price` | no | Price range in USD. |
 | `max_results` | no | How many products to collect across pages. Default `24`, max `500`. |
-| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to a US exit (required by Target). |
+| `proxy_country` | no | Proxy country (ISO-2). Defaults to US (required by Target). |
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/marketplace/target-search?query=coffee%20maker&sort=price_low&max_results=48" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.target_search("coffee maker", sort="price_low", max_results=48)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.targetSearch("coffee maker", {
+  sort: "price_low",
+  maxResults: 48,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->targetSearch('coffee maker', [
+    'sort' => 'price_low',
+    'max_results' => 48,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.target_search("coffee maker", sort: "price_low", max_results: 48)
+```
+
+</CodeGroup>
 
 ## Response
 

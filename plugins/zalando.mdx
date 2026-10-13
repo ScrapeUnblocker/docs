@@ -24,12 +24,58 @@ POST /marketplace/zalando-search
 | `domain` | no | Zalando storefront. Default `en.zalando.de`. See the list below. |
 | `page` | no | 1-based page to start from (~48 per page). Default `1`. |
 | `max_results` | no | How many products to collect across pages. Default `48`, max `500`. |
-| `proxy_country` | no | Exit-IP country (ISO-2). Defaults to an EU exit. |
+| `proxy_country` | no | Proxy country (ISO-2). Defaults to an EU country. |
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/marketplace/zalando-search?query=nike%20sneakers&domain=en.zalando.de&max_results=96" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.zalando_search("nike sneakers", domain="en.zalando.de", max_results=96)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.zalandoSearch("nike sneakers", {
+  domain: "en.zalando.de",
+  maxResults: 96,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->zalandoSearch('nike sneakers', [
+    'domain' => 'en.zalando.de',
+    'max_results' => 96,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.zalando_search(
+  "nike sneakers",
+  domain: "en.zalando.de",
+  max_results: 96
+)
+```
+
+</CodeGroup>
 
 ### Supported storefronts
 

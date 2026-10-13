@@ -25,12 +25,12 @@ POST /goods/oopbuy-search
 | `page` | no | Page number, default `1`. |
 | `page_size` | no | Results per page, default `20`, max `60`. The `1688` channel serves at most 50 and `taobao` at most 20 per page; a larger value is capped to that. |
 | `sort` | no | `default`, `price_asc`, `price_desc`, or `best_selling`. |
-| `proxy_country` | no | Exit-IP country (ISO-2, e.g. `US`, `DE`). |
+| `proxy_country` | no | Proxy country (ISO-2, e.g. `US`, `DE`). |
 
 <CodeGroup>
 
 ```bash cURL
-curl -X POST "https://api.scrapeunblocker.com/goods/oopbuy-search?keyword=hoodie&channel=1688&sort=best_selling&page=1&page_size=20" \
+curl -X POST "https://api.scrapeunblocker.com/goods/oopbuy-search?keyword=hoodie&channel=1688&sort=best_selling&page_size=20" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
@@ -39,9 +39,11 @@ from scrapeunblocker import Client
 
 su = Client()  # reads SCRAPEUNBLOCKER_KEY
 
-results = su.oopbuy_search(
-    keyword="hoodie", channel="1688",
-    sort="best_selling", page=1, page_size=20,
+result = su.oopbuy_search(
+    "hoodie",
+    channel="1688",
+    sort="best_selling",
+    page_size=20,
 )
 ```
 
@@ -50,9 +52,10 @@ import { ScrapeUnblockerClient } from "scrapeunblocker";
 
 const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
 
-const results = await su.oopbuySearch({
-  keyword: "hoodie", channel: "1688",
-  sort: "best_selling", page: 1, page_size: 20,
+const result = await su.oopbuySearch("hoodie", {
+  channel: "1688",
+  sort: "best_selling",
+  pageSize: 20,
 });
 ```
 
@@ -61,9 +64,10 @@ use ScrapeUnblocker\Client;
 
 $su = new Client(); // reads SCRAPEUNBLOCKER_KEY
 
-$results = $su->oopbuySearch([
-    'keyword' => 'hoodie', 'channel' => '1688',
-    'sort' => 'best_selling', 'page' => 1, 'page_size' => 20,
+$result = $su->oopbuySearch('hoodie', [
+    'channel' => '1688',
+    'sort' => 'best_selling',
+    'page_size' => 20,
 ]);
 ```
 
@@ -72,9 +76,11 @@ require "scrapeunblocker"
 
 su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
 
-results = su.oopbuy_search(
-  keyword: "hoodie", channel: "1688",
-  sort: "best_selling", page: 1, page_size: 20
+result = su.oopbuy_search(
+  "hoodie",
+  channel: "1688",
+  sort: "best_selling",
+  page_size: 20
 )
 ```
 

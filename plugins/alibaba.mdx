@@ -1,0 +1,326 @@
+---
+title: "Alibaba plugin"
+description: "Alibaba.com B2B data as clean JSON - search results with USD prices, quantity price tiers, MOQ, sold count and the supplier card, plus one product in full with SKU variants, attributes, lead times and supplier ratings."
+sidebarTitle: "Alibaba"
+---
+
+The **Alibaba** plugin turns Alibaba.com wholesale listings into structured JSON. It is two endpoints:
+
+- **`/marketplace/alibaba-search`** - a keyword search (any language): product id, title, URL, images, the USD price range with the price per quantity range (`priceTiers`), the minimum order (`moq`), sold count, rating, lead time, certifications and the supplier card - name, store and profile URL, country, years on Alibaba, Verified / Verified PRO / Gold Supplier flags, Trade Assurance and response rate.
+- **`/marketplace/alibaba-product`** - one product by id or URL in full: categories, images, videos, price tiers in the local currency and in USD, SKU variants, attributes, lead time per quantity, packaging, ship-from, Trade Assurance and the supplier's location, business type, rating, response time and on-time delivery rate.
+
+No Alibaba account, buyer login or API key is involved. For China's domestic wholesale marketplace, see the [1688 plugin](/plugins/1688).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/alibaba-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | yes | What to search, e.g. `bluetooth speaker` or `yoga mat`. Any language. |
+| `page` | no | 1-based results page to start from, `1`-`100`. Default `1`. Pass the `nextPage` of a previous response to continue. |
+| `max_results` | no | Products to collect across pages, `1`-`480`. Default `48`. Alibaba serves 48 per page and each page fetched is billed as one request (`pagesFetched`). |
+| `sort` | no | `relevance` (default) or `sales` (most sold in the last 180 days first). |
+| `verified` | no | `true` = only Verified (third-party inspected) suppliers. Default `false`. |
+| `verified_pro` | no | `true` = only Verified PRO suppliers. Default `false`. |
+| `trade_assurance` | no | `true` = only products covered by Trade Assurance. Default `false`. |
+| `supplier_country` | no | Only suppliers located in this country (ISO-2), e.g. `CN`, `US`, `IN`. |
+| `proxy_country` | no | Proxy country (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/alibaba-search?q=bluetooth%20speaker&trade_assurance=true&max_results=48" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.alibaba_search("bluetooth speaker", trade_assurance=True, max_results=48)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.alibabaSearch("bluetooth speaker", { tradeAssurance: true, maxResults: 48 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->alibabaSearch('bluetooth speaker', ['trade_assurance' => true, 'max_results' => 48]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.alibaba_search("bluetooth speaker", trade_assurance: true, max_results: 48)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "bluetooth speaker",
+  "filters": { "sort": "relevance", "verified": false, "verified_pro": false, "trade_assurance": true, "supplier_country": null },
+  "page": 1,
+  "products": [
+    {
+      "productId": "1601840898248",
+      "title": "80W Portable Outdoor Speaker Bluetooth 5.3 RGB Boombox with Dual Mics Removable Battery ...",
+      "url": "https://www.alibaba.com/product-detail/80W-Portable-Outdoor-Speaker-Bluetooth-5_1601840898248.html",
+      "image": "https://s.alicdn.com/@sc04/kf/H605d66e7d5b244248a288a2a36e8600a6.jpg",
+      "thumbnail": "https://s.alicdn.com/@sc04/kf/H605d66e7d5b244248a288a2a36e8600a6.jpg_300x300.jpg",
+      "images": ["https://s.alicdn.com/@sc04/kf/H605d66e7d5b244248a288a2a36e8600a6.jpg"],
+      "priceText": "US $23.96-$26.00",
+      "priceMin": 23.96,
+      "priceMax": 26.0,
+      "currency": "USD",
+      "currencySymbol": "US $",
+      "priceTiers": [
+        { "minQuantity": 2, "maxQuantity": 19, "price": 26.0, "promotionPrice": null },
+        { "minQuantity": 20, "maxQuantity": 2999, "price": 25.69, "promotionPrice": null },
+        { "minQuantity": 10000, "maxQuantity": null, "price": 23.96, "promotionPrice": null }
+      ],
+      "promotionPriceText": null,
+      "promotionPriceMin": null,
+      "promotionPriceMax": null,
+      "discountText": null,
+      "moq": 2,
+      "moqUnit": "pieces",
+      "moqText": "2 pieces",
+      "sold": null,
+      "soldText": null,
+      "rating": 4.1,
+      "reviewsCount": 30,
+      "leadTimeDays": 25,
+      "category": "Speakers",
+      "sponsored": true,
+      "certifications": ["CE", "ROHS"],
+      "supplier": {
+        "name": "Shenzhen Kingstar Technology Co., Ltd.",
+        "companyId": "240260093",
+        "url": "https://szikingstar.en.alibaba.com/",
+        "profileUrl": "https://szikingstar.en.alibaba.com/company_profile.html",
+        "country": "CN",
+        "yearsOnAlibaba": 10,
+        "verified": true,
+        "verifiedPro": true,
+        "goldSupplier": true,
+        "tradeAssurance": true,
+        "responseRate": "79.4%",
+        "logo": "https://sc02.alicdn.com/kf/HTB18j0LSFXXXXaXaFXX760XFXXXZ.png"
+      }
+    }
+  ],
+  "resultsCollected": 48,
+  "totalResults": 214586,
+  "totalResultsText": null,
+  "lastPage": 100,
+  "pagesFetched": 1,
+  "lastPageFetched": 1,
+  "droppedFromLastPage": 0,
+  "hasMore": true,
+  "nextPage": 2,
+  "visitCountry": "PL"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `url` | Alibaba product id and the product page URL. Pass the id to [Product](#product) for the full listing. |
+| `image` / `thumbnail` / `images` | Full-size main image, a 300x300 rendition of it, and the image list. |
+| `priceText` / `priceMin` / `priceMax` / `currency` | Price range as Alibaba prints it and as numbers, in USD. |
+| `priceTiers` | Price per quantity range: `minQuantity`, `maxQuantity` (`null` = and up), `price` and `promotionPrice`. Empty when the card shows only a range. |
+| `promotionPriceText` / `promotionPriceMin` / `promotionPriceMax` / `discountText` | Promotion price and discount, when the product has one. |
+| `moq` / `moqUnit` / `moqText` | Minimum order quantity and its unit. |
+| `sold` / `soldText` | Units sold, when Alibaba shows it. |
+| `rating` / `reviewsCount` | The supplier store's rating and review count shown on the card. |
+| `leadTimeDays` | Lead time in days, when shown. |
+| `category` / `certifications` / `sponsored` | Alibaba category, listed certifications, and whether the card is a paid placement. |
+| `supplier` | `name`, `companyId`, store `url`, `profileUrl`, `country`, `yearsOnAlibaba`, `verified`, `verifiedPro`, `goldSupplier`, `tradeAssurance`, `responseRate` and `logo`. |
+
+Paging fields: `nextPage` is the next Alibaba page not yet returned (pass it as `page` to continue) and `hasMore` says whether there is one. When `max_results` ends inside a page, the rest of that page is not returned (`droppedFromLastPage`), so ask in multiples of 48 to get every product.
+
+## Product
+
+```
+POST /marketplace/alibaba-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | Numeric Alibaba product id, e.g. `1601840898248` (the number before `.html`). |
+| `url` | one of `product_id` / `url` | Alibaba product URL, e.g. `https://www.alibaba.com/product-detail/..._1601840898248.html`. |
+| `proxy_country` | no | Proxy country (ISO-2). Alibaba prices the product in that country's currency; USD figures are always included. Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/alibaba-product?product_id=1601840898248&proxy_country=NL" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.alibaba_product("1601840898248", proxy_country="NL")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.alibabaProduct("1601840898248", { proxyCountry: "NL" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->alibabaProduct('1601840898248', ['proxy_country' => 'NL']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.alibaba_product("1601840898248", proxy_country: "NL")
+```
+</CodeGroup>
+
+A removed or unknown product, or one Alibaba does not show in the proxy country, returns `404` - try another `proxy_country`.
+
+### Response
+
+```json
+{
+  "product": {
+    "productId": "1601840898248",
+    "url": "https://www.alibaba.com/product-detail/_1601840898248.html",
+    "title": "80W Portable Outdoor Speaker Bluetooth 5.3 RGB Boombox with Dual Mics Removable Battery 5400mAh ...",
+    "categoryId": "518",
+    "categories": ["Consumer Electronics", "Speakers & Accessories", "Speakers"],
+    "images": [
+      "https://sc04.alicdn.com/kf/H605d66e7d5b244248a288a2a36e8600a6.jpg",
+      "https://sc04.alicdn.com/kf/Heeacac5148ef4761b9322927f63a8db7E.jpg"
+    ],
+    "videos": [],
+    "currency": "EUR",
+    "currencySymbol": "€",
+    "priceText": "€21.67-23.51",
+    "priceMin": 21.67,
+    "priceMax": 23.51,
+    "priceMinUsd": 23.96,
+    "priceMaxUsd": 26.0,
+    "priceTiers": [
+      { "minQuantity": 2, "maxQuantity": 19, "price": 23.51, "priceUsd": 26.0, "priceText": "€23.51" },
+      { "minQuantity": 10000, "maxQuantity": null, "price": 21.67, "priceUsd": 23.96, "priceText": "€21.67" }
+    ],
+    "moq": 2,
+    "unit": "piece",
+    "unitPlural": "pieces",
+    "variants": {
+      "attributes": [
+        { "name": "color", "values": [{ "name": "Black", "image": "https://sc04.alicdn.com/kf/H85989b8e08d94052836681c1da74019bs.jpg" }] }
+      ],
+      "skus": [
+        { "skuId": "108666010546", "options": { "color": "Black" }, "price": null, "priceUsd": null, "priceText": null }
+      ],
+      "skuPricing": "tiers"
+    },
+    "attributes": [
+      { "name": "bluetooth standard", "value": "Bluetooth v5.3" },
+      { "name": "output power", "value": "50-100W" },
+      { "name": "Battery Capacity", "value": "5400mAh, 5400mAh (11.1V / 1800mAh)" }
+    ],
+    "keyAttributes": [
+      { "name": "bluetooth standard", "value": "Bluetooth v5.3" },
+      { "name": "output power", "value": "50-100W" }
+    ],
+    "leadTimes": [{ "minQuantity": 1, "maxQuantity": 1000, "days": 25 }],
+    "packaging": { "unitSize": "38X16X18", "unitWeight": "1.5", "port": null, "details": [] },
+    "shippingMethods": [],
+    "shipFrom": ["China"],
+    "tradeAssurance": true,
+    "tradeTerm": "FOB",
+    "supplier": {
+      "name": "Shenzhen Kingstar Technology Co., Ltd.",
+      "companyId": "240260093",
+      "url": "https://szikingstar.en.alibaba.com/index.html",
+      "profileUrl": "https://szikingstar.en.alibaba.com/company_profile.html",
+      "country": "CN",
+      "location": "Shenzhen, Guangdong, CN",
+      "yearsOnAlibaba": 10,
+      "businessType": ["Manufacturer", "Trading Company"],
+      "goldSupplier": true,
+      "verified": true,
+      "verifiedBy": "Intertek",
+      "rating": 4.1,
+      "reviewsCount": 2256,
+      "responseTime": "≤11h",
+      "onTimeDeliveryRate": "89.1%",
+      "performance": {
+        "On-time dispatch rate": "89.1%",
+        "Response time": "≤11h",
+        "Year founded": "2015",
+        "Main markets": "North America,Western Europe,South America"
+      },
+      "logo": "https://sc04.alicdn.com/kf/HTB18j0LSFXXXXaXaFXX760XFXXXZ.png_80x80.png"
+    },
+    "visitCountry": "NL"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `categories` | Category path, top level first. |
+| `images` / `videos` | Product image and video URLs. |
+| `priceText` / `priceMin` / `priceMax` / `currency` | Price range in the proxy country's currency (it varies by country). |
+| `priceMinUsd` / `priceMaxUsd` | The same range in USD, identical for every country. |
+| `priceTiers` | Price per quantity range: `minQuantity`, `maxQuantity`, local `price`, `priceUsd` and `priceText`. |
+| `moq` / `unit` / `unitPlural` | Minimum order quantity and its unit. |
+| `variants` | Option `attributes` (names, values, images) and every SKU in `skus`. `skuPricing` is `sku` when SKUs carry their own prices, `tiers` when every SKU is priced by `priceTiers` (SKU prices are then `null`). |
+| `attributes` / `keyAttributes` | Product specifications, and the short list Alibaba highlights. |
+| `leadTimes` | Lead time in days per quantity range. |
+| `packaging` / `shippingMethods` / `shipFrom` / `tradeTerm` | Packaging size and weight, shipping options, origin and trade term (e.g. `FOB`). |
+| `tradeAssurance` | Whether the product is covered by Trade Assurance. |
+| `supplier` | `name`, `companyId`, store `url`, `profileUrl`, `country`, `location`, `yearsOnAlibaba`, `businessType`, `goldSupplier`, `verified` + `verifiedBy`, `rating`, `reviewsCount`, `responseTime`, `onTimeDeliveryRate` and the `performance` figures from the supplier card. |
+
+## What you can build
+
+- **Supplier sourcing** - shortlist verified suppliers for a product with MOQ, lead time and response rate side by side.
+- **Landed-cost models** - feed quantity price tiers in USD into your costing at the order size you plan.
+- **Price benchmarking** - track wholesale price ranges for a product category over time.
+- **Supplier vetting** - pull years on Alibaba, inspection body, ratings and on-time delivery for every candidate.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Alibaba search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

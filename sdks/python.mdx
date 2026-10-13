@@ -181,6 +181,20 @@ cars = su.skyscanner.carhire(
 )
 ```
 
+## Every other plugin
+
+The SDK has a method for every plugin (0.10.0 and later) - the plugin's main input goes in positionally, everything else as keyword options, and options you leave out are not sent, so the API's defaults apply. Each [plugin page](/plugins/overview) shows its method next to cURL.
+
+```python
+products = su.target_search("coffee maker", sort="price_low", max_results=48)
+milk = su.woolworths_product("888137")                     # one product, with nutrition
+trends = su.google_trends(["coffee", "tea"], geo="US")     # a list is sent comma-separated
+reviews = su.trustpilot_reviews("www.nike.com", stars=[4, 5])
+
+# Any plugin endpoint by path, parameters named as the API names them
+data = su.plugin("/marketplace/target-search", query="tv", max_results=24)
+```
+
 ## Async
 
 Every method has an async twin on `AsyncClient`. For high-throughput crawls, cap concurrency to your plan's limit with a semaphore.

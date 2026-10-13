@@ -1,0 +1,158 @@
+---
+title: "Telegram plugin"
+description: "Public Telegram channels as clean JSON - title, description, verified mark and subscriber count, and the posts newest first with date, text, views, media, link previews, reactions, forwards and replies."
+sidebarTitle: "Telegram"
+---
+
+The **Telegram** plugin turns a public Telegram channel into structured JSON. Give it a channel - a username like `durov`, `@durov` or a `t.me` link - and it returns the channel (title, username, description, avatar, verified mark, subscriber count and the photo, video and link counters) and its posts, newest first: id, link, date, the text as plain text and as Telegram's HTML, views, author signature, edited flag, forwards and replies, media with their links, polls, link previews, reactions, inline buttons, and the links, hashtags and mentions in the text.
+
+One call reads one page (about 20 posts) by default. `max_posts` pages back through the channel's history, up to 500 posts per call; `before`, `after` and `since` bound the range, `q` searches inside the channel and `post_id` (or a post link) returns one post. It works for public channels only: users, bots, groups and private channels have no public preview and return `404`. No Telegram account, bot token or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Channel and posts
+
+```
+POST /social/telegram-channel
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `channel` | yes | Public channel: username (`durov`), `@durov`, or a t.me link (`https://t.me/durov`, `https://t.me/s/durov`). A post link (`https://t.me/durov/400`) returns that one post. |
+| `max_posts` | no | Posts to collect, newest first, `1`-`500`, paging back through the channel's history. Each page fetched is billed as one request. Omit it for one page of the newest posts, billed once. |
+| `before` | no | Only posts with an id below this one. Pass the `nextBefore` of a previous response to continue where it stopped. |
+| `after` | no | Stop at this post id: only posts with a higher id are returned. |
+| `since` | no | Stop at this date: only posts published on or after it (`YYYY-MM-DD` or an ISO-8601 datetime, UTC when no offset is given). |
+| `q` | no | Search inside the channel: only posts matching this text. |
+| `post_id` | no | Return only this post (a post id of the channel). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/social/telegram-channel?channel=telegram" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.telegram_channel("telegram")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.telegramChannel("telegram");
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->telegramChannel('telegram');
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.telegram_channel("telegram")
+```
+</CodeGroup>
+
+To go further back, pass `max_posts` (e.g. `max_posts=100`; Node.js `{ maxPosts: 100 }`), or call again with `before` set to the `nextBefore` you got.
+
+### Response
+
+```json
+{
+  "channel": {
+    "username": "telegram",
+    "url": "https://t.me/telegram",
+    "title": "Telegram News",
+    "description": "The official Telegram on Telegram. Much recursion. Very Telegram. Wow.",
+    "avatar": "https://cdn1.telesco.pe/file/NjBm9ocpolQzPs2-dZxI1JUqew4wzMB...",
+    "verified": true,
+    "subscribers": 9340000,
+    "subscribersRaw": "9.34M",
+    "counters": {
+      "subscribers": 9340000,
+      "photos": 16,
+      "videos": 228,
+      "links": 378
+    }
+  },
+  "query": {},
+  "posts": [
+    {
+      "id": 459,
+      "url": "https://t.me/telegram/459",
+      "channel": "telegram",
+      "type": "message",
+      "date": "2026-08-26T19:12:24Z",
+      "text": "Signed Gifts. You can now add your signature and a comment to gifts you buy via the gift marketplace.\n\nAugust Features\n1 • 2 • 3 • 4 • 5 • More",
+      "textHtml": "<b>Signed Gifts.</b> You can now add <b>your signature</b> and a comment to gifts you buy...",
+      "views": 1620000,
+      "viewsRaw": "1.62M",
+      "edited": false,
+      "media": [
+        {
+          "type": "video",
+          "url": "https://cdn1.telesco.pe/file/6efb59a075.mp4?token=Uz-Iw8HIoz...",
+          "thumbnail": "https://cdn1.telesco.pe/file/Jc-GkEzFdMeIe-BRYdwLd90ATU_sigB...",
+          "duration": "0:12",
+          "durationSeconds": 12,
+          "postId": 459
+        }
+      ],
+      "links": [
+        "https://t.me/telegram/382",
+        "https://t.me/telegram/455"
+      ]
+    }
+  ],
+  "postsReturned": 20,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextBefore": 441
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` | The post id and its `t.me` link. |
+| `date` | Publish time, ISO-8601 UTC. |
+| `text` / `textHtml` | The post text as plain text and as Telegram's own HTML. |
+| `views` / `viewsRaw` | View count as a number and as Telegram prints it. |
+| `author` | The author signature, on channels that sign posts. |
+| `edited` | `true` when the post was edited. |
+| `forwardedFrom` / `replyTo` | The channel or user a post was forwarded from, and the post it replies to. |
+| `media` | Photos, videos, animations, round videos, voice notes, audio, documents and stickers: `type`, CDN `url`, `thumbnail` and `duration`, or title and size for files. |
+| `poll` / `linkPreview` | A poll with its options, and the preview card of a shared link. |
+| `reactions` | Reactions with their counts. A custom-emoji reaction has its `customEmojiId`, plus the standard `emoji` and `image` Telegram falls back to when the page shows one. |
+| `buttons` | Inline buttons under the post. |
+| `links` / `hashtags` / `mentions` | Links, hashtags and @-mentions found in the text. |
+
+A key with no value for a post is left out, so each post carries only what it has. Every answer carries `postsReturned`, `pagesFetched`, `hasMore` and `nextBefore`; `query` echoes the filters you set.
+
+## What you can build
+
+- **Channel monitoring** - poll channels for new posts and their view counts.
+- **News and signal feeds** - collect posts from many channels into one searchable stream.
+- **Media archives** - save photos, videos and documents with their dates and captions.
+- **Engagement research** - compare views and reactions across posts and channels over time.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Read a public Telegram channel and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

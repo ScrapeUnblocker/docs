@@ -1,0 +1,249 @@
+---
+title: "Brave Search plugin"
+description: "Brave web and image search as clean JSON - about 20 organic results per page, top and bottom ads and related searches, plus the whole image result set with original image URLs, source pages and dimensions."
+sidebarTitle: "Brave Search"
+---
+
+The **Brave Search** plugin turns Brave searches into structured JSON. Brave answers from its own index, so its rankings are a separate view of the web. It has two endpoints:
+
+- **Web search** (`/search/brave`) - a keyword to the results page: about 20 organic results per page with position, title, URL, displayed URL, domain and description, Brave's ads in top and bottom lists, and related searches. The response has the same shape as Google results from [`/serpApi`](/guides/serp-scraping).
+- **Image search** (`/images/brave-search`) - a keyword to Brave's whole image result set (about 200 images) in one call: the original image URL on the publisher's site, the source domain and page, title, site name, thumbnail and pixel dimensions. The response has the same shape as the [Google Images plugin](/plugins/google-images).
+
+Brave picks the result region from where the searcher is, not from a URL parameter, so `proxy_country` sets it through the country the search is sent from. No Brave Search API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Web search
+
+```
+POST /search/brave
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keyword` | yes | Search terms, e.g. `project management software`. |
+| `pages_to_check` | no | How many result pages to collect, `1`-`10`. Default `1`. Brave shows about 20 organic results per page. |
+| `proxy_country` | no | Country to search from (ISO-2), e.g. `US`, `GB`. Brave takes the result region and the ads from it. Default `US`. |
+| `language` | no | Accepted so calls stay compatible with `/serpApi`, but Brave does not use it; the region comes from `proxy_country` alone. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/search/brave?keyword=project%20management%20software&proxy_country=US" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.brave_search("project management software", proxy_country="US")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.braveSearch("project management software", { proxyCountry: "US" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->braveSearch('project management software', ['proxy_country' => 'US']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.brave_search("project management software", proxy_country: "US")
+```
+</CodeGroup>
+
+<Note>
+Each results page fetched is billed as one request: `pages_to_check=3` that returns three pages counts as 3 requests, and `pagesChecked` shows the exact number.
+</Note>
+
+### Response
+
+```json
+{
+  "engine": "brave",
+  "keyword": "project management software",
+  "country": "US",
+  "language": "en",
+  "totalResults": null,
+  "resultsCollected": 21,
+  "topAdsCount": 1,
+  "bottomAdsCount": 0,
+  "organicResultsCount": 20,
+  "topAds": [
+    {
+      "position": 1,
+      "title": "Keep Your Work Organized",
+      "url": "https://www.zoho.com/projects/lp/project-software.html?utm_source=BraveSearch&utm_medium=cpc...",
+      "displayedUrl": "zoho.com › projects › lp › project-software.html",
+      "domain": "zoho.com",
+      "description": "Ship great products on time with Zoho Projects. Sign up for a trial or try our free plan."
+    }
+  ],
+  "bottomAds": [],
+  "organic": [
+    {
+      "position": 1,
+      "title": "Honest Review of 6 Personal Project Management Tools with Kanban View",
+      "url": "https://www.icagile.com/resources/honest-review-of-6-personal-project-management-tools-with-kanban-view",
+      "displayedUrl": "icagile.com › resources › honest-review-of-6-personal-project-management-tools-with-kanban-view",
+      "domain": "icagile.com",
+      "description": "The Wrike tool lets you switch between personal and team spaces to track personal and collective projects in one platform..."
+    }
+  ],
+  "relatedSearches": [
+    "project management software free",
+    "best project management software",
+    "project management software for small business"
+  ],
+  "pagesChecked": 1,
+  "hasMore": true
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `organic` | Organic results in page order: `position`, `title`, `url`, `displayedUrl` (as Brave prints it), `domain` and `description` (the snippet). |
+| `topAds` / `bottomAds` | Brave Search Ads above and below the results, with the same fields. `url` is the advertiser's destination, not Brave's redirect. Brave does not show ads on every query, so an empty list is a normal answer. |
+| `relatedSearches` | Brave's related searches. |
+| `totalResults` | Always `null` - Brave shows no result count. Kept for the same shape as `/serpApi`. |
+| `resultsCollected` | Ads plus organic results returned. `topAdsCount`, `bottomAdsCount` and `organicResultsCount` count each list. |
+| `pagesChecked` / `hasMore` | Pages fetched (the billed number) and whether more results are available. |
+
+## Image search
+
+```
+POST /images/brave-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | yes | Image search term, e.g. `eiffel tower`. |
+| `max_results` | no | Cap on the number of results returned, `1`-`200`. Default: all (about 200). |
+| `proxy_country` | no | Country to search from (ISO-2); Brave takes the region from it. Default `US`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/images/brave-search?q=eiffel%20tower&proxy_country=US" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.brave_images("eiffel tower", proxy_country="US")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.braveImages("eiffel tower", { proxyCountry: "US" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->braveImages('eiffel tower', ['proxy_country' => 'US']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.brave_images("eiffel tower", proxy_country: "US")
+```
+</CodeGroup>
+
+<Note>
+Brave returns its whole result set on one page, so every call is billed as one request, whatever `max_results` you set.
+</Note>
+
+### Response
+
+```json
+{
+  "engine": "brave",
+  "query": "eiffel tower",
+  "gl": "us",
+  "proxyCountry": "US",
+  "resultsCollected": 200,
+  "pagesFetched": 1,
+  "hasMore": false,
+  "results": [
+    {
+      "position": 1,
+      "imageUrl": "https://cms.tootbus.com/sites/default/files/styles/ratp_xs_webp/public/2021-02/shutterstock_183894290_jpg.jpg.webp?itok=MzNNRyGW",
+      "sourceDomain": "tootbus.com",
+      "sourcePageUrl": "https://www.tootbus.com/en/paris/inspiration/10-fascinating-facts-about-eiffel-tower-you-should-know",
+      "title": "10 Fascinating Facts about the Eiffel Tower you should know",
+      "sourceName": "tootbus.com",
+      "thumbnailUrl": "https://imgs.search.brave.com/HNsoICjicELfOImcnq05q6XwB3w28exDdTTwO5vxIsg/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9jbXMu...",
+      "width": 348,
+      "height": 205,
+      "fileSize": null
+    },
+    {
+      "position": 2,
+      "imageUrl": "https://thephotoargus.com/wp-content/uploads/2019/04/eiffeltower05.jpg",
+      "sourceDomain": "thephotoargus.com",
+      "sourcePageUrl": "https://thephotoargus.com/eiffel-tower-pictures/",
+      "title": "eiffel tower silhouette",
+      "sourceName": "thephotoargus.com",
+      "thumbnailUrl": "https://imgs.search.brave.com/XBlQ6_wPRlBfPsCZPnDBjrVcvjR0rkc5Z4alqbmcvgc/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly90aGVw...",
+      "width": 683,
+      "height": 1024,
+      "fileSize": null
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `imageUrl` | The original image on the publisher's site, not a Brave thumbnail. |
+| `sourceDomain` / `sourcePageUrl` | The site and the page that show the image. Brave's grid does not show the source page; the plugin reads it from the full result set. |
+| `title` / `sourceName` | The result title and the site name. |
+| `thumbnailUrl` | A Brave-hosted thumbnail, for fast previews. |
+| `width` / `height` | Image dimensions in pixels. |
+| `fileSize` | Kept for the same shape as the Google Images plugin. Usually `null`. |
+| `pagesFetched` / `hasMore` | Always one page; `hasMore` is `false` because the whole result set came back. |
+
+Unlike the Google, Bing and Yahoo image plugins, Brave results carry no engine viewer link.
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a `proxy_country` that is not an ISO-2 code (or not available). |
+| `502` | Brave blocked the search, returned no results page, or the search did not finish in time. Retry, or try another `proxy_country`. |
+
+## What you can build
+
+- **Independent-index rank tracking** - follow where your pages rank on Brave's own index next to Google and Bing.
+- **Ad intelligence** - see which advertisers run Brave Search Ads on your keywords.
+- **Keyword research** - collect related searches for content planning.
+- **Image datasets and monitoring** - pull about 200 images per query with their source pages in one call.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Brave search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

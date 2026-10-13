@@ -1,0 +1,345 @@
+---
+title: "Crunchbase plugin"
+description: "Crunchbase company profiles as clean JSON - description, headquarters, status, employee range, industries, CB rank, growth and heat scores, founders, funding rounds, acquisitions, web traffic and news - plus search by company name."
+sidebarTitle: "Crunchbase"
+---
+
+The **Crunchbase** plugin turns a Crunchbase organization profile into structured JSON. Give it the organization's slug - the part after `/organization/` in its profile URL, such as `stripe` - or the full profile URL, and it returns the organization: name, legal name, descriptions, logo, website, headquarters, operating, company and IPO status, employee range, industries, CB rank with its 90-day trend, growth and heat scores, founders, funding rounds with their lead investors, investors, acquisitions, investments, exits, key people, board members, similar companies, products, contact details, social links, monthly web traffic, technology counts, Crunchbase's predictions, key events with their press sources, offices and recent news.
+
+Only have a company name? Search by name first to get its slug.
+
+It reads what a signed-out visitor sees, so values Crunchbase shows only to paying users (founding, closing and IPO dates, funding totals, round dates and amounts, acquisition prices, exits, valuation) come back `null`, and `paywalledFields` names the ones Crunchbase holds for that organization. No Crunchbase account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Company profile
+
+```
+POST /companies/crunchbase
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `organization` | yes | Crunchbase organization slug, e.g. `stripe` or `tesla-motors`, or the full profile URL. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/companies/crunchbase?organization=stripe" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.crunchbase_company("stripe")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.crunchbaseCompany("stripe");
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->crunchbaseCompany('stripe');
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.crunchbase_company("stripe")
+```
+</CodeGroup>
+
+### Response
+
+Trimmed below: the full `organization` record always carries all 73 keys, so a key Crunchbase has no value for is present as `null` or an empty list.
+
+```json
+{
+  "organization": {
+    "name": "Stripe",
+    "slug": "stripe",
+    "uuid": "6f83ddd7-d637-61f8-06b2-438a0037605f",
+    "url": "https://www.crunchbase.com/organization/stripe",
+    "legalName": "Stripe, LLC",
+    "shortDescription": "Stripe provides financial infrastructure that supports online and in-person paym...",
+    "description": "Stripe provides financial infrastructure and software that supports online and i...",
+    "logo": "https://images.crunchbase.com/image/upload/c_pad,f_auto,q_au...",
+    "website": "https://stripe.com",
+    "headquarters": {
+      "city": "South San Francisco",
+      "region": "California",
+      "country": "United States",
+      "continent": "North America",
+      "text": "South San Francisco, California, United States"
+    },
+    "operatingStatus": "active",
+    "companyType": "for_profit",
+    "ipoStatus": "private",
+    "stockSymbol": null,
+    "stockExchange": null,
+    "foundedOn": null,
+    "employeeRange": "5001-10000",
+    "industries": [
+      "Billing",
+      "Finance",
+      "Financial Services"
+    ],
+    "industryGroups": [
+      "Financial Services",
+      "Payments"
+    ],
+    "rank": 36,
+    "rankDelta90d": 6.9,
+    "growthScore": 94,
+    "growthScoreDelta90d": -6,
+    "heatScore": 77,
+    "heatScoreDelta90d": 4,
+    "founders": [
+      {
+        "name": "John Collison",
+        "slug": "john-collison",
+        "url": "https://www.crunchbase.com/person/john-collison",
+        "type": "person",
+        "image": "https://images.crunchbase.com/image/upload/c_pad,f_auto,q_au..."
+      }
+    ],
+    "lastFundingType": "Secondary Market",
+    "fundingTotal": null,
+    "numFundingRounds": 25,
+    "numInvestors": 75,
+    "numAcquisitions": 24,
+    "numInvestments": 97,
+    "numEmployeeProfiles": 312,
+    "acquiredBy": null,
+    "owner": null,
+    "fundingRounds": [
+      {
+        "name": "Secondary Market - Stripe",
+        "url": "https://www.crunchbase.com/funding_round/stripe-secondary-market--9d7e5ac9",
+        "type": "Secondary Market",
+        "announcedOn": null,
+        "moneyRaised": null,
+        "numInvestors": 1,
+        "leadInvestors": [
+          {
+            "name": "Robinhood Ventures",
+            "slug": "robinhood-ventures",
+            "url": "https://www.crunchbase.com/organization/robinhood-ventures",
+            "type": "organization",
+            "image": "https://images.crunchbase.com/image/upload/c_pad,f_auto,q_au..."
+          }
+        ]
+      }
+    ],
+    "acquisitions": [
+      {
+        "name": "Parafin",
+        "slug": "parafin-1b48",
+        "url": "https://www.crunchbase.com/organization/parafin-1b48",
+        "type": "organization",
+        "image": "https://images.crunchbase.com/image/upload/c_pad,f_auto,q_au...",
+        "acquisitionUrl": "https://www.crunchbase.com/acquisition/stripe-acquires-parafin-1b48--691a3eba",
+        "announcedOn": null,
+        "price": null
+      }
+    ],
+    "products": [
+      {
+        "name": "Stripe Payments",
+        "description": "A payment-processing platform for accepting and managing onl..."
+      }
+    ],
+    "contactEmail": "dpo@stripe.com",
+    "phone": "+1 888 926 2289",
+    "socialLinks": {
+      "twitter": "https://x.com/stripe",
+      "facebook": "https://www.facebook.com/StripeHQ"
+    },
+    "webTraffic": {
+      "monthlyVisits": 203227314,
+      "monthlyVisitsChange": 0.0693545159706943
+    },
+    "technology": {
+      "technologiesUsed": 70,
+      "softwareProductsUsed": 66,
+      "apps": 5,
+      "appDownloads": 214757,
+      "patentsGranted": 382,
+      "trademarksRegistered": 105,
+      "itSpendUsd": 393505356
+    },
+    "predictions": {
+      "ipo": {
+        "probability": 0.9511,
+        "tier": "p100_positive_high",
+        "generatedOn": "2026-10-03"
+      }
+    },
+    "events": {
+      "productLaunches": [
+        {
+          "date": "2026-08-19",
+          "title": null,
+          "description": "Stripe Treasury is a programmable financial-services platfor...",
+          "source": {
+            "title": "Stripe launches Stripe Treasury in Australia",
+            "url": "https://fxnewsgroup.com/forex-news/payments/stripe-launches-...",
+            "publisher": "FX News Group",
+            "date": "2026-08-19"
+          }
+        }
+      ]
+    },
+    "news": [
+      {
+        "title": "Who’s hiring and who’s firing in Ireland’s technology sector...",
+        "url": "https://www.irishtimes.com/business/2026/10/09/whos-hiring-a...",
+        "publisher": "Irish Times",
+        "author": null,
+        "date": "2026-10-09"
+      }
+    ],
+    "paywalledFields": [
+      "foundedOn",
+      "fundingTotal",
+      "lastFundingAt",
+      "numExits"
+    ]
+  },
+  "slug": "stripe"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `name` / `legalName` / `slug` / `uuid` / `url` | Names and Crunchbase identifiers of the organization. |
+| `shortDescription` / `description` / `logo` / `website` | Profile text, logo and the company's own website. |
+| `headquarters` | `city`, `region`, `country`, `continent` and a one-line `text`. |
+| `operatingStatus` / `companyType` / `ipoStatus` | E.g. `active`, `for_profit`, `private`; `stockSymbol` and `stockExchange` for public companies. |
+| `employeeRange` / `industries` / `industryGroups` | Size band and Crunchbase's industry tags. |
+| `rank` / `rankDelta90d` | CB rank and its 90-day trend score, from `-10` to `10` (positive means the company moved up, toward #1). |
+| `growthScore` / `heatScore` | Crunchbase's scores (`0`-`100`), with `growthScoreDelta90d` and `heatScoreDelta90d` as their change in points over 90 days. |
+| `founders` / `keyPeople` / `boardMembers` | People with `name`, `slug`, `url` and `image`; key people add their `title` and `startedOn`. |
+| `num*` counts | `numFundingRounds`, `numInvestors`, `numAcquisitions`, `numInvestments`, `numEmployeeProfiles` and more. |
+| `fundingRounds` / `investors` | The latest rounds with type and lead investors, and the investors behind them. |
+| `acquisitions` / `investments` / `exits` / `subOrganizations` | The organization's deals and holdings; `acquiredBy` and `owner` when it has a parent. |
+| `similarCompanies` / `products` | Companies Crunchbase lists as similar, and the organization's products. |
+| `contactEmail` / `phone` / `socialLinks` | Public contact details and social profiles. |
+| `webTraffic` | `monthlyVisits` and `monthlyVisitsChange`, the month-over-month change as a fraction (`0.069` = +6.9%). |
+| `technology` / `predictions` | Technology and IP counts, and Crunchbase's funding, IPO, acquisition and growth predictions. |
+| `events` | `productLaunches`, `partnerships`, `awards`, `layoffs`, `keyEmployeeChanges` and `legalProceedings`, each with its press `source`. |
+| `offices` / `news` | Office openings and recent press coverage. |
+| `paywalledFields` | The keys that are `null` because Crunchbase shows them only to paying users. |
+
+Every company or person reference in these lists has the same shape: `name`, `slug`, `url`, `type` and `image`. An unknown slug returns `404`.
+
+## Search by name
+
+```
+POST /companies/crunchbase
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | Company name to search for, e.g. `Revolut`. Returns matching organizations with their slugs instead of one full profile. |
+| `max_results` | no | How many matches to return, `1`-`25`. Default `10`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/companies/crunchbase?query=Spotify&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.crunchbase_search("Spotify", max_results=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.crunchbaseSearch("Spotify", { maxResults: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->crunchbaseSearch('Spotify', ['max_results' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.crunchbase_search("Spotify", max_results: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "Spotify",
+  "count": 4144,
+  "resultsReturned": 5,
+  "results": [
+    {
+      "name": "Spotify",
+      "slug": "spotify",
+      "uuid": "022417b5-4980-6c54-0f3c-6736bbbb1a5e",
+      "url": "https://www.crunchbase.com/organization/spotify",
+      "shortDescription": "Spotify is a commercial music streaming service that provides restricted digital...",
+      "logo": "https://images.crunchbase.com/image/upload/c_pad,f_auto,q_au..."
+    },
+    {
+      "name": "Spotify Ad Studio",
+      "slug": "spotify-ad-studio",
+      "uuid": "4b2dc921-5f40-46b7-935b-dd7f763d60f3",
+      "url": "https://www.crunchbase.com/organization/spotify-ad-studio",
+      "shortDescription": "Spotify Ad Studio  is a self-serve platform that allows artists and their labels...",
+      "logo": "https://images.crunchbase.com/image/upload/c_pad,f_auto,q_au..."
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `count` | Total number of organizations that match the name. |
+| `resultsReturned` | How many matches this call returned. |
+| `name` / `slug` / `uuid` / `url` | The match; pass its `slug` to `crunchbaseCompany` for the full profile. |
+| `shortDescription` / `logo` | One-line description and logo. |
+
+## What you can build
+
+- **Lead enrichment** - add headquarters, employee range, industries and web traffic to company records in your CRM.
+- **Deal and market tracking** - follow funding rounds, acquisitions and investments across a sector.
+- **Competitive landscapes** - map a company's similar companies with their rank and growth scores.
+- **News and event alerts** - watch `events` and `news` for launches, partnerships, layoffs and leadership changes.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a company on Crunchbase and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

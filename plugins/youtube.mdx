@@ -1,0 +1,467 @@
+---
+title: "YouTube plugin"
+description: "YouTube as clean JSON - a channel's videos with views and publish dates, search results with channel, views and duration, a video's comments with likes and replies, and timestamped transcripts."
+sidebarTitle: "YouTube"
+---
+
+The **YouTube** plugin turns YouTube into structured JSON through four endpoints:
+
+- **Channel videos** - a channel's latest videos (title, views, likes, comments, publish date, duration, thumbnail) plus the channel's name, handle and subscriber, video and view counts.
+- **Search** - results for a query with the video id, title, channel, view count, duration, publish age, thumbnails, a description snippet and badges, filtered by type and sorted.
+- **Comments** - a video's comments with author, text, like and reply counts, publish time and the pinned, hearted, verified and uploader flags.
+- **Transcript** - a video's captions as timestamped segments and as one joined text, in the language you pick.
+
+Pass channels as a handle (`@mkbhd`), a channel id (`UC...`) or a URL, and videos as an id (`dQw4w9WgXcQ`) or any video URL. No YouTube API key or login is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Channel videos
+
+```
+POST /content/youtube-channel
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `channel` | yes | Channel handle (`@mkbhd`), channel id (`UC...`) or a channel URL. |
+| `tab` | no | Which tab: `videos` (default), `shorts` or `streams`. |
+| `limit` | no | Max videos to return, `1`-`200`. Default `30`. Honoured on the `videos` tab; other tabs return a single page. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/content/youtube-channel?channel=%40mkbhd&limit=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.youtube_channel("@mkbhd", limit=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.youtubeChannel("@mkbhd", { limit: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->youtubeChannel('@mkbhd', ['limit' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.youtube_channel("@mkbhd", limit: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "channel": {
+    "name": "Marques Brownlee",
+    "channelId": "UCBJycsmduvYEL83R_U4JriQ",
+    "handle": "@mkbhd",
+    "description": "MKBHD: Quality Tech Videos | YouTuber | Geek | Consumer Electronics |...",
+    "subscriberCount": 21400000,
+    "videoCount": 1857,
+    "viewCount": 5764931922,
+    "thumbnail": "https://yt3.ggpht.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OK..."
+  },
+  "videos": [
+    {
+      "videoId": "_0G4OG39XjI",
+      "title": "WTF is a Googlebook?",
+      "url": "https://www.youtube.com/watch?v=_0G4OG39XjI",
+      "thumbnail": "https://i.ytimg.com/vi/_0G4OG39XjI/hqdefault.jpg",
+      "views": "7.1M views",
+      "published": "4 days ago",
+      "viewCount": 7130486,
+      "likeCount": 90875,
+      "commentCount": 7557,
+      "publishedAt": "2026-10-08T21:00:40Z",
+      "duration": "PT14M13S",
+      "durationSeconds": 853,
+      "description": "New laptops are dropping left and right! Let's talk about Go..."
+    },
+    {
+      "videoId": "3iRUwVzRDZQ",
+      "title": "Xiaomi 18 Fold: How Does This Happen?",
+      "url": "https://www.youtube.com/watch?v=3iRUwVzRDZQ",
+      "thumbnail": "https://i.ytimg.com/vi/3iRUwVzRDZQ/hqdefault.jpg",
+      "views": "11M views",
+      "published": "1 week ago",
+      "viewCount": 11035386,
+      "likeCount": 97000,
+      "commentCount": 6320,
+      "publishedAt": "2026-10-02T20:50:25Z",
+      "duration": "PT10M47S",
+      "durationSeconds": 647,
+      "description": "This is not an iPhone Duo. Xiaomi is at it again.\n\nThe desk..."
+    }
+  ],
+  "resultsCollected": 5
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `videoId` / `url` | Video id and its watch URL. |
+| `title` / `description` | Video title and description. |
+| `views` / `viewCount` | View count as YouTube prints it and as a number. |
+| `likeCount` / `commentCount` | Likes and comments on the video. |
+| `published` / `publishedAt` | Relative publish time (`4 days ago`) and the exact ISO-8601 timestamp. |
+| `duration` / `durationSeconds` | Length as an ISO-8601 duration (`PT14M13S`) and in seconds. |
+| `thumbnail` | Thumbnail image URL. |
+
+The `channel` object holds the channel's `name`, `channelId`, `handle`, `description`, `subscriberCount`, `videoCount`, `viewCount` and `thumbnail`.
+
+The exact counts (`viewCount`, `likeCount`, `commentCount`), `publishedAt`, `duration` and `description` come with the `videos` tab. The `shorts` and `streams` tabs, and the rare call where those details are not available, return the core fields: `videoId`, `title`, `url`, `views`, `published` and `thumbnail`, with the channel's name and id.
+
+## Search
+
+```
+POST /content/youtube-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | Search terms. |
+| `max_results` | no | How many results to collect across pages (about 20 per page), `1`-`500`. Default `20`. |
+| `type` | no | Result type: `video` (default), `channel`, `playlist`, `movie` or `all`. |
+| `sort` | no | Ordering: `relevance` (default), `rating`, `date` or `views`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Defaults to `US`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/content/youtube-search?query=python%20tutorial&sort=views&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.youtube_search("python tutorial", sort="views", max_results=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.youtubeSearch("python tutorial", { sort: "views", maxResults: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->youtubeSearch('python tutorial', ['sort' => 'views', 'max_results' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.youtube_search("python tutorial", sort: "views", max_results: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "python tutorial",
+  "type": "video",
+  "sort": "views",
+  "results": [
+    {
+      "type": "video",
+      "videoId": "rfscVS0vtbw",
+      "title": "Learn Python - Full Course for Beginners [Tutorial]",
+      "url": "https://www.youtube.com/watch?v=rfscVS0vtbw",
+      "channel": {
+        "name": "freeCodeCamp.org",
+        "id": "UC8butISFwT-Wl7EV0hUK0BQ",
+        "url": "https://www.youtube.com/@freecodecamp"
+      },
+      "publishedText": "8y ago",
+      "viewCountText": "49,439,991 views",
+      "viewCount": 49439991,
+      "shortViewCountText": "49M",
+      "lengthText": "4:26:52",
+      "lengthSeconds": 16012,
+      "thumbnails": [
+        {
+          "url": "https://i.ytimg.com/vi/rfscVS0vtbw/hq720.jpg?sqp=-...",
+          "width": 360,
+          "height": 202
+        }
+      ],
+      "descriptionSnippet": "This course will give you a full introduction into all of the core concepts in p...",
+      "badges": [
+        "CC"
+      ],
+      "verified": true,
+      "isLive": false
+    }
+  ],
+  "resultsCollected": 5,
+  "estimatedResults": 7907376,
+  "hasMore": true
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `type` | Result type, e.g. `video`. |
+| `videoId` / `title` / `url` | Video id, title and watch URL. |
+| `channel` | Channel `name`, `id` and `url`. |
+| `publishedText` | Publish age as YouTube prints it, e.g. `8y ago`. |
+| `viewCount` / `viewCountText` / `shortViewCountText` | Views as a number, in full and in short form. |
+| `lengthSeconds` / `lengthText` | Duration in seconds and as YouTube prints it. |
+| `thumbnails` | Thumbnail `url`, `width` and `height`. |
+| `descriptionSnippet` | The description snippet shown in the results. |
+| `badges` / `verified` / `isLive` | Badges such as `CC`, the channel's verified mark and whether the video is live. |
+
+`estimatedResults` is YouTube's estimate of all matches; `hasMore` says whether more pages exist.
+
+## Video comments
+
+```
+POST /content/youtube-comments
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `video` | yes | Video id (`dQw4w9WgXcQ`) or any YouTube video URL. |
+| `sort` | no | Comment order: `top` (default) or `newest`. |
+| `max_results` | no | How many comments to collect across pages (about 20 per page), `1`-`2000`. Default `20`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Defaults to `US`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/content/youtube-comments?video=dQw4w9WgXcQ&sort=top&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.youtube_comments("dQw4w9WgXcQ", sort="top", max_results=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.youtubeComments("dQw4w9WgXcQ", { sort: "top", maxResults: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->youtubeComments('dQw4w9WgXcQ', ['sort' => 'top', 'max_results' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.youtube_comments("dQw4w9WgXcQ", sort: "top", max_results: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "videoId": "dQw4w9WgXcQ",
+  "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
+  "sort": "top",
+  "commentCountText": "2,458,983 Comments",
+  "commentCount": 2458983,
+  "comments": [
+    {
+      "commentId": "Ugw10bSluCDSZMIxUSB4AaABAg",
+      "author": "@LK...",
+      "authorChannelId": "UCHpvH...",
+      "authorThumbnail": "https://yt3.ggpht.com/...",
+      "text": "Let’s put the meme aside, this is actually a banging song.",
+      "likeCount": 219000,
+      "likeCountText": "219K",
+      "publishedTimeText": "6 years ago",
+      "replyCount": 588,
+      "isPinned": false,
+      "isHearted": false,
+      "isAuthorVerified": false,
+      "isUploader": false,
+      "replyLevel": 0
+    },
+    {
+      "commentId": "Ugw_ueQKh1eJhMfZF6B4AaABAg",
+      "author": "@dm...",
+      "authorChannelId": "UCZtAC...",
+      "authorThumbnail": "https://yt3.ggpht.com/...",
+      "text": "They found a new way to Rick Roll in 2026 😭😭😭",
+      "likeCount": 16000,
+      "likeCountText": "16K",
+      "publishedTimeText": "2 months ago",
+      "replyCount": 124,
+      "isPinned": false,
+      "isHearted": false,
+      "isAuthorVerified": false,
+      "isUploader": false,
+      "replyLevel": 0
+    }
+  ],
+  "resultsCollected": 5,
+  "hasMore": true
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `commentId` | YouTube's comment id. |
+| `author` / `authorChannelId` / `authorThumbnail` | The commenter's handle, channel id and avatar. |
+| `text` | Comment text. |
+| `likeCount` / `likeCountText` | Likes as a number and as YouTube prints them. |
+| `replyCount` | Number of replies. |
+| `publishedTimeText` | Relative publish time, e.g. `2 months ago`. |
+| `isPinned` / `isHearted` | Pinned by the creator, hearted by the creator. |
+| `isAuthorVerified` / `isUploader` | The commenter has a verified channel, the commenter is the video's uploader. |
+
+The top level carries the video's `title` and total `commentCount`. A video with comments turned off returns `404`.
+
+## Video transcript
+
+```
+POST /content/youtube-transcript
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `video` | yes | Video id (`dQw4w9WgXcQ`) or any YouTube video URL. |
+| `lang` | no | Preferred caption language, e.g. `en`. A prefix like `en` matches `en-US`. Omit for the default track. |
+| `format` | no | `segments` (default) returns timestamped segments plus the joined text; `text` returns only the joined text. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Defaults to `US`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/content/youtube-transcript?video=dQw4w9WgXcQ&lang=en" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.youtube_transcript("dQw4w9WgXcQ", lang="en")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.youtubeTranscript("dQw4w9WgXcQ", { lang: "en" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->youtubeTranscript('dQw4w9WgXcQ', ['lang' => 'en']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.youtube_transcript("dQw4w9WgXcQ", lang: "en")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "videoId": "dQw4w9WgXcQ",
+  "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
+  "author": "Rick Astley",
+  "channelId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+  "lengthSeconds": 213,
+  "viewCount": 1826087816,
+  "language": "en",
+  "languageName": "English",
+  "isAutoGenerated": false,
+  "isTranslatable": true,
+  "availableLanguages": [
+    {
+      "languageCode": "en",
+      "name": "English",
+      "isAutoGenerated": false
+    },
+    {
+      "languageCode": "en",
+      "name": "English (auto-generated)",
+      "isAutoGenerated": true
+    }
+  ],
+  "segmentCount": 61,
+  "text": "[♪♪♪] ♪ We're no strangers to love ♪ ...",
+  "segments": [
+    {
+      "start": 1.36,
+      "dur": 1.68,
+      "text": "[♪♪♪]"
+    },
+    {
+      "start": 18.64,
+      "dur": 3.24,
+      "text": "♪ We're no strangers to love ♪"
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `segments` | Caption lines with `start` and `dur` in seconds and the `text`. |
+| `text` | All segments joined into one plain text, ready for an LLM or a search index. |
+| `language` / `languageName` | The caption track that was picked. |
+| `isAutoGenerated` | `true` when the track is YouTube's automatic captions. |
+| `availableLanguages` | Every caption track on the video: `languageCode`, `name` and `isAutoGenerated`. |
+| `title` / `author` / `channelId` / `lengthSeconds` / `viewCount` | Video metadata. Can be `null` when YouTube does not return it with the captions. |
+
+A video without captions returns `404`.
+
+## What you can build
+
+- **Channel monitoring** - track new uploads and their views, likes and comments for the channels you follow.
+- **Rank tracking** - record where videos place for your keywords with `sort` and `type`.
+- **Audience and sentiment research** - collect top or newest comments and run them through a classifier.
+- **LLM and RAG pipelines** - turn videos into searchable, timestamped text with the transcript endpoint.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a YouTube lookup and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

@@ -1,0 +1,281 @@
+---
+title: "Airbnb Listing plugin"
+description: "One Airbnb listing in full as clean JSON - description, host, category ratings, rooms and beds, amenities, photos and house rules, plus price, availability and cancellation policy for your dates and guest reviews."
+sidebarTitle: "Airbnb Listing"
+---
+
+The **Airbnb Listing** plugin returns one Airbnb stay in full as structured JSON. Give it a listing id or a room URL from any Airbnb domain and it returns the title, description, room and property type, location with coordinates, the host (superhost flag, response rate, years hosting), the overall and six category ratings, guests, bedrooms, beds and bathrooms, grouped amenities, the photo gallery, highlights, house rules and check-in and check-out times.
+
+Add `check_in` and `check_out` for availability, the cancellation policy and the price for those dates with its nightly breakdown, in the `currency` you choose. Add `include_reviews` for up to 100 guest reviews with translations. It is the single-listing companion to [Airbnb Stays](/plugins/airbnb) (search) and [Airbnb Reviews](/plugins/airbnb-reviews) (every review of a listing).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Listing details
+
+```
+POST /travel/airbnb-room
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `room` | yes | Airbnb listing id (e.g. `23860926`) or a room URL on any Airbnb domain, e.g. `https://www.airbnb.co.uk/rooms/23860926`. |
+| `check_in` | no | Check-in date `YYYY-MM-DD`. With `check_out`, adds price, availability and the cancellation policy. |
+| `check_out` | no | Check-out date `YYYY-MM-DD` (with `check_in`). |
+| `adults` | no | Adult guests, `1`-`16`. Default `1`. Affects the price. |
+| `children` | no | Children aged 2-12, `0`-`15`. Default `0`. |
+| `infants` | no | Infants under 2, `0`-`5`. Default `0`. |
+| `pets` | no | Pets, `0`-`5`. Default `0`. |
+| `currency` | no | Price currency, ISO code such as `USD`, `EUR` or `GBP`. Default `USD`. |
+| `locale` | no | Language for Airbnb's texts, e.g. `en`, `de`, `fr`, `es`, `pt-BR`. Default `en`. Host-written text comes back translated when Airbnb has a translation. |
+| `include_reviews` | no | `true` also returns guest reviews. Default `false`. |
+| `max_reviews` | no | How many reviews to return with `include_reviews`, `1`-`100`. Default `20`. |
+| `reviews_sort` | no | `most_relevant` (default), `most_recent`, `highest_rated` or `lowest_rated`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). Defaults to `US`. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/travel/airbnb-room?room=35283352&check_in=2026-11-10&check_out=2026-11-13&include_reviews=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.airbnb_room("35283352", check_in="2026-11-10", check_out="2026-11-13", include_reviews=True)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.airbnbRoom("35283352", { checkIn: "2026-11-10", checkOut: "2026-11-13", includeReviews: true });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->airbnbRoom('35283352', ['check_in' => '2026-11-10', 'check_out' => '2026-11-13', 'include_reviews' => true]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.airbnb_room("35283352", check_in: "2026-11-10", check_out: "2026-11-13", include_reviews: true)
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "id": "35283352",
+  "url": "https://www.airbnb.com/rooms/35283352",
+  "title": "Cozy studio close to Champs Elysées & Eiffel tower",
+  "propertyName": null,
+  "subtitle": "Entire rental unit in Paris, France",
+  "description": "Welcome to our cozy studio apartment in the heart of Paris equipped with everything you might need for rest and refuge amidst a busy Parisian adventure...",
+  "descriptionLanguage": "en",
+  "roomType": "Entire home/apt",
+  "propertyType": "Entire rental unit",
+  "listingType": "MARKETPLACE",
+  "isLuxe": false,
+  "location": {
+    "address": "Paris, Île-de-France, France",
+    "city": "Seine",
+    "region": null,
+    "country": "France",
+    "lat": 48.87202,
+    "lng": 2.28852,
+    "isExact": false,
+    "neighborhoodDescription": "You can visit the Champs Elysées and the Eiffel Tower in a 5-minute walk...",
+    "gettingAround": null
+  },
+  "host": {
+    "id": "...",
+    "name": "Moutaz",
+    "isSuperhost": true,
+    "isVerified": true,
+    "profileUrl": "...",
+    "photo": "...",
+    "yearsHosting": 7,
+    "monthsHosting": 4,
+    "rating": 4.88,
+    "reviewsCount": 207,
+    "responseRate": 100,
+    "responseRateText": "Response rate: 100%",
+    "responseTime": "Responds within an hour",
+    "about": null,
+    "highlights": ["Speaks Arabic, English, and French"],
+    "cohosts": [{ "name": "Adnan", "photo": "...", "isSuperhost": false }]
+  },
+  "rating": {
+    "overall": 4.89,
+    "accuracy": 4.93,
+    "cleanliness": 4.85,
+    "checkin": 4.94,
+    "communication": 4.98,
+    "location": 4.97,
+    "value": 4.85
+  },
+  "reviewsCount": 179,
+  "ratingDistribution": [
+    { "stars": 5, "percentage": 0.9162011173184358 },
+    { "stars": 4, "percentage": 0.061452513966480445 }
+  ],
+  "reviewTags": [
+    { "name": "Location", "count": 118 },
+    { "name": "Walkability", "count": 43 }
+  ],
+  "isGuestFavorite": true,
+  "isNewListing": false,
+  "qualityPercentile": null,
+  "guests": 2,
+  "bedrooms": 0,
+  "beds": 2,
+  "bathrooms": 1,
+  "sleepingArrangements": [
+    { "name": "Living area", "beds": ["1 double bed", "1 sofa bed"] }
+  ],
+  "amenities": [
+    {
+      "group": "Bathroom",
+      "items": [
+        { "name": "Hair dryer", "available": true, "subtitle": null, "icon": "SYSTEM_HAIRDRYER" },
+        { "name": "Cleaning products", "available": true, "subtitle": null, "icon": "SYSTEM_CLEANING_SUPPLIES" }
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "url": "https://a0.muscache.com/im/pictures/hosting/Hosting-U3RheVN1cHBseUxpc3Rpbmc6MzUyODMzNTI%3D/original/5866c4a9-....jpeg",
+      "caption": null,
+      "room": "Living area"
+    }
+  ],
+  "highlights": [
+    { "title": "Self check-in", "subtitle": "Check yourself in with the lockbox.", "type": "LISTING_SELF_CHECKIN" }
+  ],
+  "houseRules": ["Check-in after 2:00 PM", "Checkout before 11:00 AM", "Self check-in with lockbox", "2 guests maximum", "No pets"],
+  "additionalRules": "Dishes must be clean at the end of the stay",
+  "checkIn": "Check-in after 2:00 PM",
+  "checkOut": "Checkout before 11:00 AM",
+  "safetyAndProperty": [
+    "Not suitable for infants (under 2 years)",
+    "Carbon monoxide alarm not reported: The Host hasn't reported a carbon monoxide alarm on the property..."
+  ],
+  "cancellationPolicy": {
+    "policyId": 51,
+    "title": null,
+    "summary": "Free cancellation for 24 hours. After that, the reservation is non-refundable. Review this host's full policy for details.",
+    "milestones": [
+      {
+        "refundType": "Full refund",
+        "refundTerm": "Get back 100% of what you paid.",
+        "deadline": "24 hours after booking",
+        "description": "Full refund if cancel within 24 hours after booking. Get back 100% of what you paid.."
+      }
+    ]
+  },
+  "available": true,
+  "unavailableReason": null,
+  "canInstantBook": true,
+  "price": {
+    "total": 492.0,
+    "totalText": "$492",
+    "originalTotal": null,
+    "originalTotalText": null,
+    "nightly": 163.9,
+    "nightlyText": "$163.90",
+    "nights": 3,
+    "currency": "USD",
+    "qualifier": "for 3 nights",
+    "label": "$492 for 3 nights",
+    "breakdown": [
+      { "label": "3 nights x $163.90", "amount": 491.71, "amountText": "$491.71" }
+    ],
+    "rateOptions": []
+  },
+  "reviews": [
+    {
+      "id": "1794761957127142355",
+      "rating": 5,
+      "text": "Le logement de Moutaz est idéalement placé, au calme et fidèle à la description. Parfait pour un séjour dans la capitale !",
+      "translatedText": "Moutaz's place is ideally located, quiet and as described. Perfect for a stay in the capital!",
+      "language": "fr",
+      "date": "2026-10-12T07:11:37Z",
+      "localizedDate": "Today",
+      "stayDetail": "Stayed a few nights",
+      "author": { "id": "...", "name": "Marine", "photo": "...", "location": "10 years on Airbnb", "profileUrl": "..." },
+      "response": null
+    }
+  ],
+  "reviewsCollected": 20,
+  "source": "api",
+  "warnings": [],
+  "query": {
+    "room": "35283352",
+    "check_in": "2026-11-10",
+    "check_out": "2026-11-13",
+    "adults": 1,
+    "children": 0,
+    "infants": 0,
+    "pets": 0,
+    "currency": "USD",
+    "locale": "en",
+    "include_reviews": true,
+    "max_reviews": 20,
+    "reviews_sort": "most_relevant"
+  }
+}
+```
+
+### Listing fields
+
+| Field | Notes |
+| --- | --- |
+| `title` / `subtitle` / `description` | Listing title, Airbnb's one-line summary and the full description (`descriptionLanguage` says which language it is in). |
+| `roomType` / `propertyType` / `listingType` | E.g. `Entire home/apt`, `Entire rental unit`; `isLuxe` flags Airbnb Luxe stays. |
+| `location` | `address`, `city`, `region`, `country`, `lat` / `lng` (approximate unless `isExact`), and the host's neighborhood and getting-around notes. |
+| `host` | `name`, `isSuperhost`, `isVerified`, `yearsHosting`, host `rating` and `reviewsCount`, `responseRate`, `responseTime`, profile highlights and `cohosts`. |
+| `rating` | `overall` plus `accuracy`, `cleanliness`, `checkin`, `communication`, `location` and `value` (out of 5). |
+| `reviewsCount` / `ratingDistribution` / `reviewTags` | Review count, each star's share of ratings as a 0-1 fraction, and Airbnb's review topics with counts. |
+| `isGuestFavorite` / `isNewListing` | Airbnb's Guest favourite and new-listing flags. |
+| `guests` / `bedrooms` / `beds` / `bathrooms` / `sleepingArrangements` | Capacity and the bed layout per room. |
+| `amenities` | Grouped the way Airbnb groups them: `group` and `items` (`name`, `available`, `subtitle`). |
+| `photos` | Gallery: `url`, `caption` and the `room` it shows. |
+| `highlights` / `houseRules` / `additionalRules` / `safetyAndProperty` | Listing highlights, house rules, the host's extra rules and safety notes. |
+| `checkIn` / `checkOut` | Check-in and checkout times. |
+| `cancellationPolicy` | With dates: `summary` and the refund `milestones` with their deadlines. |
+| `available` / `unavailableReason` / `canInstantBook` | With dates: whether the stay can be booked, why not if it cannot, and the instant-book flag. |
+| `price` | With dates: `total`, `nightly`, `nights`, `currency`, Airbnb's `label`, the `breakdown` lines and any discounted `originalTotal`. |
+| `reviews` | With `include_reviews`: `rating`, `text` as written, `translatedText` into `locale`, `language`, `date`, `stayDetail`, the `author` and the host's `response`. |
+| `warnings` | Any warnings about the request; empty when there are none. |
+
+## What you can build
+
+- **Rate and availability monitoring** - check a listing's price and availability for your dates on a schedule.
+- **Listing quality analysis** - compare category ratings, amenities and house rules across competing stays.
+- **Short-term rental research** - enrich search results from [Airbnb Stays](/plugins/airbnb) with capacity, host and policy details.
+- **Property data feeds** - build a clean listing record with photos, amenities and coordinates for your own catalog.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Airbnb listing lookup and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

@@ -1,0 +1,751 @@
+---
+title: "Spotify plugin"
+description: "Spotify artists, albums, tracks, playlists and search as clean JSON - with play counts, monthly listeners, world rank and top cities, plus followers, discography and full track lists."
+sidebarTitle: "Spotify"
+---
+
+The **Spotify** plugin turns the Spotify catalog into structured JSON, including the play counts and audience numbers that Spotify's official Web API does not expose:
+
+- **Artist** - followers, monthly listeners, world rank, top cities with listener counts, biography, links and images, top tracks with play counts, discography groups, related artists, releases the artist appears on and playlists that feature the artist.
+- **Album** - type, release date, label, copyright, artists, cover and its tracks with play counts.
+- **Track** - play count, duration, explicit flag, album and every credited artist.
+- **Playlist** - name, description, followers, owner, cover and its tracks with play counts, date added, tempo (`bpm`) and key.
+- **Search** - matching tracks, artists, albums or playlists.
+
+Pass an item as an open.spotify.com URL, a Spotify URI (`spotify:artist:...`) or a bare id. Lists page with `offset` and `max_results`, and every list answer carries `hasMore` and `nextOffset`. Each page fetched is one billed unit (`pagesFetched`). No Spotify account, developer app or OAuth token is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Artist
+
+```
+POST /music/spotify
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `id` | yes | The artist: an open.spotify.com URL (`https://open.spotify.com/artist/4tZwfgrHOc3mvqYlEYSvVi`), a Spotify URI or a bare 22-character id. |
+| `type` | - | Set to `artist` by `spotifyArtist`. |
+| `discography` | no | `true` also returns the artist's full release list (albums, singles, compilations, newest first) in `releases`, paged by `offset` and `max_results`. Default `false`. |
+| `proxy_country` | no | Country the request is sent from (ISO-2, e.g. `DE`). Spotify's market follows it, which can change `playable` and search order; play counts are the same everywhere. Leave blank for any. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/music/spotify?type=artist&id=4tZwfgrHOc3mvqYlEYSvVi" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.spotify_artist("4tZwfgrHOc3mvqYlEYSvVi")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.spotifyArtist("4tZwfgrHOc3mvqYlEYSvVi");
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->spotifyArtist('4tZwfgrHOc3mvqYlEYSvVi');
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.spotify_artist("4tZwfgrHOc3mvqYlEYSvVi")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "type": "artist",
+  "artist": {
+    "id": "4tZwfgrHOc3mvqYlEYSvVi",
+    "name": "Daft Punk",
+    "uri": "spotify:artist:4tZwfgrHOc3mvqYlEYSvVi",
+    "url": "https://open.spotify.com/artist/4tZwfgrHOc3mvqYlEYSvVi",
+    "verified": true,
+    "followers": 11844086,
+    "monthlyListeners": 28201141,
+    "worldRank": 261,
+    "topCities": [
+      {
+        "city": "Mexico City",
+        "country": "MX",
+        "region": "CMX",
+        "listeners": 747022
+      },
+      {
+        "city": "London",
+        "country": "GB",
+        "region": "ENG",
+        "listeners": 413481
+      }
+    ],
+    "biography": "As they evolved from '90s French house pioneers to 2000s dance tastema...",
+    "externalLinks": [
+      {
+        "name": "facebook",
+        "url": "https://facebook.com/daftpunk/?locale=fr_FR"
+      }
+    ],
+    "image": "https://i.scdn.co/image/ab6761610000e5ebd3aa7cc0e419b6c459b08e8e",
+    "images": [
+      {
+        "url": "https://i.scdn.co/image/ab6761610000e5ebd3aa7cc0e419b6c459b08e8e",
+        "width": 640,
+        "height": 640
+      }
+    ],
+    "headerImage": "https://image-cdn-fa.spotifycdn.com/image/ab6761860000eab1e38b5eaa6d5cd43d0193d511",
+    "gallery": [
+      "https://i.scdn.co/image/ab6772690000dd22bb32b26ebe6dccd1c653ffa6"
+    ],
+    "latestRelease": null,
+    "concerts": 0
+  },
+  "topTracks": [
+    {
+      "id": "0DiWol3AO6WpXZgp0goxAV",
+      "name": "One More Time",
+      "uri": "spotify:track:0DiWol3AO6WpXZgp0goxAV",
+      "url": "https://open.spotify.com/track/0DiWol3AO6WpXZgp0goxAV",
+      "playcount": 985907520,
+      "durationMs": 320357,
+      "explicit": false,
+      "playable": true,
+      "trackNumber": null,
+      "discNumber": 1,
+      "hasVideo": false,
+      "artists": [
+        {
+          "id": "4tZwfgrHOc3mvqYlEYSvVi",
+          "name": "Daft Punk",
+          "uri": "spotify:artist:4tZwfgrHOc3mvqYlEYSvVi",
+          "url": "https://open.spotify.com/artist/4tZwfgrHOc3mvqYlEYSvVi"
+        }
+      ],
+      "album": {
+        "id": "2noRn2Aes5aoNVsU6iWThc",
+        "name": "Discovery",
+        "uri": "spotify:album:2noRn2Aes5aoNVsU6iWThc",
+        "url": "https://open.spotify.com/album/2noRn2Aes5aoNVsU6iWThc",
+        "image": "https://i.scdn.co/image/ab67616d0000b2731e81bff9807a9e629fce5ade",
+        "releaseDate": "2001-03-12"
+      }
+    }
+  ],
+  "discography": {
+    "popularReleases": [
+      {
+        "id": "2noRn2Aes5aoNVsU6iWThc",
+        "name": "Discovery",
+        "uri": "spotify:album:2noRn2Aes5aoNVsU6iWThc",
+        "url": "https://open.spotify.com/album/2noRn2Aes5aoNVsU6iWThc",
+        "albumType": "album",
+        "releaseDate": "2001-03-12",
+        "releaseDatePrecision": "day",
+        "totalTracks": 14,
+        "label": "Daft Life Ltd./ADA France",
+        "image": "https://i.scdn.co/image/ab67616d0000b2731e81bff9807a9e629fce5ade",
+        "artists": null,
+        "playable": true
+      }
+    ],
+    "albums": {
+      "totalCount": 15,
+      "items": [
+        {
+          "id": "5AFf68gtvNgGLZarsyEEL8",
+          "name": "Random Access Memories (Drumless Edition)",
+          "uri": "spotify:album:5AFf68gtvNgGLZarsyEEL8",
+          "url": "https://open.spotify.com/album/5AFf68gtvNgGLZarsyEEL8",
+          "albumType": "album",
+          "releaseDate": "2023-11-17",
+          "releaseDatePrecision": "day",
+          "totalTracks": 13,
+          "label": "Legacy Recordings",
+          "image": "https://i.scdn.co/image/ab67616d0000b273d1ec82bc061a90006584aa9b",
+          "artists": null,
+          "playable": true
+        }
+      ]
+    }
+  },
+  "relatedArtists": [
+    {
+      "id": "3yDIp0kaq9EFKe07X1X2rz",
+      "name": "Nile Rodgers",
+      "uri": "spotify:artist:3yDIp0kaq9EFKe07X1X2rz",
+      "url": "https://open.spotify.com/artist/3yDIp0kaq9EFKe07X1X2rz",
+      "image": "https://i.scdn.co/image/ab6761610000e5ebede7b4f5a5316f0cf586ec7e"
+    }
+  ],
+  "featuredOn": [
+    {
+      "id": "37i9dQZF1DZ06evO2CNgSk",
+      "name": "This Is Daft Punk",
+      "uri": "spotify:playlist:37i9dQZF1DZ06evO2CNgSk",
+      "url": "https://open.spotify.com/playlist/37i9dQZF1DZ06evO2CNgSk",
+      "description": "This is Daft Punk. The essential tracks, all in one playlist.",
+      "owner": "Spotify",
+      "ownerUsername": null,
+      "image": "https://pickasso.spotifycdn.com/image/ab67c0de0000deef/dt/v1..."
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `artist.followers` / `artist.monthlyListeners` | Followers and monthly listeners. |
+| `artist.worldRank` | The artist's world rank by monthly listeners, when Spotify shows one. |
+| `artist.topCities` | Cities with the most listeners: `city`, `country`, `region` and `listeners`. |
+| `artist.biography` / `artist.externalLinks` | Biography text and the artist's social and web links. |
+| `artist.image` / `artist.images` / `artist.headerImage` / `artist.gallery` | Profile, header and gallery images. |
+| `topTracks` | The artist's top tracks, each with `playcount`, duration, artists and album. |
+| `discography` | `popularReleases`, and `albums`, `singles` and `compilations` with their `totalCount` and latest items. |
+| `relatedArtists` | Artists Spotify lists as related ("Fans also like"). |
+| `appearsOn` / `featuredOn` / `discoveredOn` / `playlists` | Releases the artist appears on, playlists that feature the artist or where listeners discovered it, and the artist's own playlists. |
+| `releases` | With `discography=true`: the full release list, paged. |
+
+## Album
+
+```
+POST /music/spotify
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `id` | yes | The album: an open.spotify.com URL, a Spotify URI or a bare id. |
+| `type` | - | Set to `album` by `spotifyAlbum`. |
+| `offset` | no | 0-based track position to start from. Pass the `nextOffset` of a previous response to continue. Default `0`. |
+| `max_results` | no | How many tracks to collect, `1`-`1000` (100 per page). Default `100`. |
+| `proxy_country` | no | Country the request is sent from (ISO-2). Leave blank for any. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/music/spotify?type=album&id=4m2880jivSbbyEGAKfITCa&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.spotify_album("4m2880jivSbbyEGAKfITCa", max_results=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.spotifyAlbum("4m2880jivSbbyEGAKfITCa", { maxResults: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->spotifyAlbum('4m2880jivSbbyEGAKfITCa', ['max_results' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.spotify_album("4m2880jivSbbyEGAKfITCa", max_results: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "type": "album",
+  "album": {
+    "id": "4m2880jivSbbyEGAKfITCa",
+    "name": "Random Access Memories",
+    "uri": "spotify:album:4m2880jivSbbyEGAKfITCa",
+    "url": "https://open.spotify.com/album/4m2880jivSbbyEGAKfITCa",
+    "albumType": "album",
+    "releaseDate": "2013-05-20",
+    "releaseDatePrecision": "day",
+    "label": "Columbia",
+    "copyright": [
+      {
+        "text": "(P) 2013 Daft Life Limited under exclusive license to Columbia Records...",
+        "type": "P"
+      }
+    ],
+    "artists": [
+      {
+        "id": "4tZwfgrHOc3mvqYlEYSvVi",
+        "name": "Daft Punk",
+        "uri": "spotify:artist:4tZwfgrHOc3mvqYlEYSvVi",
+        "url": "https://open.spotify.com/artist/4tZwfgrHOc3mvqYlEYSvVi"
+      }
+    ],
+    "image": "https://i.scdn.co/image/ab67616d0000b2739b9b36b0e22870b9f542d937",
+    "images": [
+      {
+        "url": "https://i.scdn.co/image/ab67616d0000b2739b9b36b0e22870b9f542d937",
+        "width": 640,
+        "height": 640
+      }
+    ],
+    "totalTracks": 13,
+    "discs": 1,
+    "playable": true,
+    "isPreRelease": false
+  },
+  "tracks": [
+    {
+      "id": "0dEIca2nhcxDUV8C5QkPYb",
+      "name": "Give Life Back to Music",
+      "uri": "spotify:track:0dEIca2nhcxDUV8C5QkPYb",
+      "url": "https://open.spotify.com/track/0dEIca2nhcxDUV8C5QkPYb",
+      "playcount": 165029686,
+      "durationMs": 275386,
+      "explicit": false,
+      "playable": true,
+      "trackNumber": 1,
+      "discNumber": 1,
+      "hasVideo": false,
+      "artists": [
+        {
+          "id": "4tZwfgrHOc3mvqYlEYSvVi",
+          "name": "Daft Punk",
+          "uri": "spotify:artist:4tZwfgrHOc3mvqYlEYSvVi",
+          "url": "https://open.spotify.com/artist/4tZwfgrHOc3mvqYlEYSvVi"
+        }
+      ],
+      "album": {
+        "id": "4m2880jivSbbyEGAKfITCa",
+        "name": "Random Access Memories",
+        "uri": "spotify:album:4m2880jivSbbyEGAKfITCa",
+        "url": "https://open.spotify.com/album/4m2880jivSbbyEGAKfITCa",
+        "image": "https://i.scdn.co/image/ab67616d0000b2739b9b36b0e22870b9f542d937",
+        "releaseDate": "2013-05-20"
+      }
+    }
+  ],
+  "resultsCollected": 5,
+  "totalResults": 13,
+  "offset": 0,
+  "hasMore": true,
+  "nextOffset": 5,
+  "pagesFetched": 1,
+  "moreByArtist": [
+    {
+      "id": "2noRn2Aes5aoNVsU6iWThc",
+      "name": "Discovery",
+      "uri": "spotify:album:2noRn2Aes5aoNVsU6iWThc",
+      "url": "https://open.spotify.com/album/2noRn2Aes5aoNVsU6iWThc",
+      "albumType": "album",
+      "releaseDate": "2001",
+      "releaseDatePrecision": "year",
+      "totalTracks": null,
+      "label": null,
+      "image": "https://i.scdn.co/image/ab67616d0000b2731e81bff9807a9e629fce5ade",
+      "artists": null,
+      "playable": true
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `album.albumType` / `album.releaseDate` / `album.releaseDatePrecision` | Album, single or compilation, and its release date with its precision (`day`, `month`, `year`). |
+| `album.label` / `album.copyright` | Label and copyright lines. |
+| `album.artists` / `album.image` / `album.images` | Credited artists and cover art. |
+| `album.totalTracks` / `album.discs` | Number of tracks and discs. |
+| `tracks` | The album's tracks, each with `playcount`, `durationMs`, `explicit`, `trackNumber`, `discNumber` and artists. |
+| `totalResults` / `hasMore` / `nextOffset` | Paging over the track list. |
+| `moreByArtist` | Other releases by the album's artist. |
+
+## Track
+
+```
+POST /music/spotify
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `id` | yes | The track: an open.spotify.com URL, a Spotify URI or a bare id. |
+| `type` | - | Set to `track` by `spotifyTrack`. |
+| `proxy_country` | no | Country the request is sent from (ISO-2). Leave blank for any. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/music/spotify?type=track&id=69kOkLUCkxIZYexIgSG8rq" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.spotify_track("69kOkLUCkxIZYexIgSG8rq")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.spotifyTrack("69kOkLUCkxIZYexIgSG8rq");
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->spotifyTrack('69kOkLUCkxIZYexIgSG8rq');
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.spotify_track("69kOkLUCkxIZYexIgSG8rq")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "type": "track",
+  "track": {
+    "id": "69kOkLUCkxIZYexIgSG8rq",
+    "name": "Get Lucky (feat. Pharrell Williams and Nile Rodgers)",
+    "uri": "spotify:track:69kOkLUCkxIZYexIgSG8rq",
+    "url": "https://open.spotify.com/track/69kOkLUCkxIZYexIgSG8rq",
+    "playcount": 734068688,
+    "durationMs": 369626,
+    "explicit": false,
+    "playable": true,
+    "trackNumber": 8,
+    "discNumber": null,
+    "hasVideo": false,
+    "artists": [
+      {
+        "id": "4tZwfgrHOc3mvqYlEYSvVi",
+        "name": "Daft Punk",
+        "uri": "spotify:artist:4tZwfgrHOc3mvqYlEYSvVi",
+        "url": "https://open.spotify.com/artist/4tZwfgrHOc3mvqYlEYSvVi",
+        "image": "https://i.scdn.co/image/ab6761610000e5ebd3aa7cc0e419b6c459b08e8e"
+      },
+      {
+        "id": "2RdwBSPQiwcmiDo9kixcl8",
+        "name": "Pharrell Williams",
+        "uri": "spotify:artist:2RdwBSPQiwcmiDo9kixcl8",
+        "url": "https://open.spotify.com/artist/2RdwBSPQiwcmiDo9kixcl8",
+        "image": "https://i.scdn.co/image/ab6761610000e5ebf0789cd783c20985ec3deb4e"
+      }
+    ],
+    "album": {
+      "id": "4m2880jivSbbyEGAKfITCa",
+      "name": "Random Access Memories",
+      "uri": "spotify:album:4m2880jivSbbyEGAKfITCa",
+      "url": "https://open.spotify.com/album/4m2880jivSbbyEGAKfITCa",
+      "albumType": "album",
+      "releaseDate": "2013-05-20",
+      "releaseDatePrecision": "day",
+      "label": null,
+      "copyright": [
+        {
+          "text": "(P) 2013 Daft Life Limited under exclusive license to Columbia Records...",
+          "type": "P"
+        }
+      ],
+      "totalTracks": 13,
+      "image": "https://i.scdn.co/image/ab67616d0000b2739b9b36b0e22870b9f542d937",
+      "images": [
+        {
+          "url": "https://i.scdn.co/image/ab67616d0000b2739b9b36b0e22870b9f542d937",
+          "width": 640,
+          "height": 640
+        }
+      ]
+    },
+    "mediaType": "audio",
+    "shareUrl": "https://open.spotify.com/track/69kOkLUCkxIZYexIgSG8rq?si=P_BjS0_4ToefO4ajn3Ce1w"
+  },
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `playcount` | Total plays of the track. |
+| `durationMs` / `explicit` / `playable` | Length in milliseconds, explicit flag and whether it plays in the request's market. |
+| `trackNumber` / `discNumber` | Position on the album. |
+| `artists` | Every credited artist with id, URL and image. |
+| `album` | The album with type, release date, label, copyright, track count and cover. |
+| `shareUrl` | Spotify's share link for the track. |
+
+## Playlist
+
+```
+POST /music/spotify
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `id` | yes | The playlist: an open.spotify.com URL, a Spotify URI or a bare id. |
+| `type` | - | Set to `playlist` by `spotifyPlaylist`. |
+| `offset` | no | 0-based track position to start from. Pass the `nextOffset` of a previous response to continue. Default `0`. |
+| `max_results` | no | How many tracks to collect, `1`-`2000` (100 per page). Default `100`. |
+| `proxy_country` | no | Country the request is sent from (ISO-2). Leave blank for any. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/music/spotify?type=playlist&id=37i9dQZF1DXcBWIGoYBM5M&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.spotify_playlist("37i9dQZF1DXcBWIGoYBM5M", max_results=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.spotifyPlaylist("37i9dQZF1DXcBWIGoYBM5M", { maxResults: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->spotifyPlaylist('37i9dQZF1DXcBWIGoYBM5M', ['max_results' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.spotify_playlist("37i9dQZF1DXcBWIGoYBM5M", max_results: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "type": "playlist",
+  "playlist": {
+    "id": "37i9dQZF1DXcBWIGoYBM5M",
+    "name": "Today’s Top Hits",
+    "uri": "spotify:playlist:37i9dQZF1DXcBWIGoYBM5M",
+    "url": "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
+    "description": "The hottest 50. Cover: ASHE",
+    "followers": 33729080,
+    "owner": {
+      "name": "Spotify",
+      "username": "spotify",
+      "uri": "spotify:user:spotify",
+      "url": "https://open.spotify.com/user/spotify",
+      "image": "https://i.scdn.co/image/ab6775700000ee8555c25988a6ac314394d3fbf5"
+    },
+    "image": "https://i.scdn.co/image/ab67706f00000002526040498d89ec622e9d3495",
+    "images": [
+      {
+        "url": "https://i.scdn.co/image/ab67706f00000002526040498d89ec622e9d3495",
+        "width": null,
+        "height": null
+      }
+    ],
+    "totalTracks": 50,
+    "collaborative": false,
+    "format": "format-shows-shuffle"
+  },
+  "tracks": [
+    {
+      "id": "3zOYmiNOuyDL0ClxJcEJ0T",
+      "name": "Stop The Wedding!",
+      "uri": "spotify:track:3zOYmiNOuyDL0ClxJcEJ0T",
+      "url": "https://open.spotify.com/track/3zOYmiNOuyDL0ClxJcEJ0T",
+      "playcount": 90942260,
+      "durationMs": 198840,
+      "explicit": false,
+      "playable": true,
+      "trackNumber": 1,
+      "discNumber": 1,
+      "hasVideo": true,
+      "artists": [
+        {
+          "id": "6P5NO5hzJbuOqSdyPB7SJM",
+          "name": "Ashe",
+          "uri": "spotify:artist:6P5NO5hzJbuOqSdyPB7SJM",
+          "url": "https://open.spotify.com/artist/6P5NO5hzJbuOqSdyPB7SJM"
+        }
+      ],
+      "album": {
+        "id": "4dem9qxmFf4RD6fqoCH6wc",
+        "name": "Stop The Wedding!",
+        "uri": "spotify:album:4dem9qxmFf4RD6fqoCH6wc",
+        "url": "https://open.spotify.com/album/4dem9qxmFf4RD6fqoCH6wc",
+        "image": "https://i.scdn.co/image/ab67616d0000b2730893a0c33fd4b8497b0ef2f6",
+        "releaseDate": "2026-08-07"
+      },
+      "itemType": "track",
+      "bpm": 134.1,
+      "key": "E",
+      "mode": "major",
+      "camelot": "12B",
+      "addedAt": "2026-09-04T04:02:23.110Z",
+      "addedBy": null
+    }
+  ],
+  "resultsCollected": 5,
+  "totalResults": 50,
+  "offset": 0,
+  "hasMore": true,
+  "nextOffset": 5,
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `playlist.followers` / `playlist.owner` | Followers and the owner (name, username, profile URL). |
+| `playlist.description` / `playlist.image` | Description and cover. |
+| `playlist.totalTracks` / `playlist.collaborative` | Number of tracks and whether others can edit it. |
+| `tracks` | The tracks, each with `playcount`, artists and album. |
+| `bpm` / `key` / `mode` / `camelot` | Tempo, musical key, major or minor, and the Camelot code of each track. |
+| `addedAt` / `addedBy` | When the track was added to the playlist, and by whom when Spotify shows it. |
+
+A private playlist reads as not found and returns `404`.
+
+## Search
+
+```
+POST /music/spotify
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | Search text, e.g. `daft punk`. |
+| `type` | - | Set to `search` by `spotifySearch`. |
+| `search_type` | no | What the search returns: `tracks` (default), `artists`, `albums` or `playlists`. |
+| `offset` | no | 0-based result position to start from. Pass the `nextOffset` of a previous response to continue; Spotify serves search results up to position 1000. Default `0`. |
+| `max_results` | no | How many results to collect, `1`-`1000` (50 per page). Default `20`. |
+| `proxy_country` | no | Country the request is sent from (ISO-2). It can change search order. Leave blank for any. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/music/spotify?type=search&query=daft%20punk&search_type=tracks&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.spotify_search("daft punk", search_type="tracks", max_results=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.spotifySearch("daft punk", { searchType: "tracks", maxResults: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->spotifySearch('daft punk', ['search_type' => 'tracks', 'max_results' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.spotify_search("daft punk", search_type: "tracks", max_results: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "type": "search",
+  "query": "daft punk",
+  "searchType": "tracks",
+  "results": [
+    {
+      "id": "0DiWol3AO6WpXZgp0goxAV",
+      "name": "One More Time",
+      "uri": "spotify:track:0DiWol3AO6WpXZgp0goxAV",
+      "url": "https://open.spotify.com/track/0DiWol3AO6WpXZgp0goxAV",
+      "durationMs": 320357,
+      "explicit": false,
+      "playable": true,
+      "hasVideo": false,
+      "artists": [
+        {
+          "id": "4tZwfgrHOc3mvqYlEYSvVi",
+          "name": "Daft Punk",
+          "uri": "spotify:artist:4tZwfgrHOc3mvqYlEYSvVi",
+          "url": "https://open.spotify.com/artist/4tZwfgrHOc3mvqYlEYSvVi"
+        }
+      ],
+      "album": {
+        "id": "2noRn2Aes5aoNVsU6iWThc",
+        "name": "Discovery",
+        "uri": "spotify:album:2noRn2Aes5aoNVsU6iWThc",
+        "url": "https://open.spotify.com/album/2noRn2Aes5aoNVsU6iWThc",
+        "image": "https://i.scdn.co/image/ab67616d0000b2731e81bff9807a9e629fce5ade",
+        "releaseDate": null
+      }
+    }
+  ],
+  "resultsCollected": 5,
+  "offset": 0,
+  "hasMore": true,
+  "nextOffset": 5,
+  "pagesFetched": 1
+}
+```
+
+Search results have the same shape as the matching item type, with one exception: Spotify's search does not return play counts, so track results carry no `playcount` key. Look a track up with `spotifyTrack` for its count. A search with no match answers `200` with empty `results`.
+
+## What you can build
+
+- **Artist analytics** - track monthly listeners, followers, world rank and top cities over time.
+- **Play count tracking** - follow how a release's tracks grow, play by play.
+- **Playlist intelligence** - see which playlists feature an artist and what a playlist adds, with tempo and key for DJ and sync work.
+- **Catalog research** - search the catalog and resolve each hit to full album and track data.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a Spotify artist and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

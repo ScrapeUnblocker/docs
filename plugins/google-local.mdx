@@ -6,7 +6,7 @@ sidebarTitle: "Google Local"
 
 The **Google Local** plugin turns a Google Local (Maps) search into structured JSON. Give it a search phrase and a country, and it returns the businesses Google shows in its local finder - each with name, rating, review count, price level, category, address, phone, website, opening hours and a top review snippet.
 
-It runs on the same warm, anti-bot-cleared Google sessions as our SERP endpoint, so you get the local pack without a Google Places API key, billing project, or quota approval.
+It runs on the same anti-bot-cleared Google sessions as our SERP endpoint, so you get the local pack without a Google Places API key, billing project, or quota approval.
 
 <Note>
 Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
@@ -21,16 +21,58 @@ POST /maps/google-local
 | Field | Required | Notes |
 | --- | --- | --- |
 | `keyword` | yes | Search phrase, e.g. `coffee shops in chicago` or `plumbers near SW1A`. |
-| `proxy_country` | no | Exit-IP country (ISO-2, e.g. `US`, `GB`). Local results are location-sensitive - set the market you want. |
+| `proxy_country` | no | Proxy country (ISO-2, e.g. `US`, `GB`). Local results are location-sensitive - set the market you want. |
 | `gl` | no | Google country of search (ISO-2 lowercase, e.g. `us`, `de`). |
 | `hl` | no | Google UI language (e.g. `en`, `de`, `fr`). Default `en`. |
 
-Because local results depend on location, pass `proxy_country` (and optionally `gl`) that match the market you care about - a search from a US exit returns US businesses.
+Because local results depend on location, pass `proxy_country` (and optionally `gl`) that match the market you care about - a search from the US returns US businesses.
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/maps/google-local?keyword=coffee%20shops%20in%20chicago&proxy_country=US&gl=us" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_local("coffee shops in chicago", proxy_country="US", gl="us")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleLocal("coffee shops in chicago", {
+  proxyCountry: "US",
+  gl: "us",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleLocal('coffee shops in chicago', [
+    'proxy_country' => 'US',
+    'gl' => 'us',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_local("coffee shops in chicago", proxy_country: "US", gl: "us")
+```
+
+</CodeGroup>
 
 ## Response
 

@@ -1,0 +1,347 @@
+---
+title: "G2 plugin"
+description: "G2 software reviews as clean JSON - product rating, star distribution, pros and cons, and each review's rating, answers, reviewer role and company size - plus G2 product search."
+sidebarTitle: "G2"
+---
+
+The **G2** plugin turns G2 product reviews into structured JSON. Give it a product slug such as `slack` (or a g2.com product URL) and it returns the product summary - rating, review count, star distribution, categories, G2's AI summary, the most cited pros and cons, and review counts by company size, industry and region - plus the reviews themselves: title, rating, date, the reviewer's job title and company size, what they like and dislike, the full questionnaire answers, the validation and incentive badges and any vendor response.
+
+The plugin also searches G2's product catalog by keyword, which is the quickest way to find a product's slug.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Product reviews
+
+```
+POST /reviews/g2
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product` | yes | G2 product slug, e.g. `slack` or `hubspot-sales-hub`, or a g2.com product URL such as `https://www.g2.com/products/slack/reviews`. |
+| `mode` | - | Set to `reviews` by `g2Reviews`. |
+| `page` | no | 1-based page to start from: 10 reviews per page, at most 10 pages per sort and filter view. Pass the `nextPage` of a previous response to continue. Default `1`. |
+| `max_results` | no | How many reviews to collect across pages, `1`-`100`. Default `10`. Each page fetched is one billed unit. |
+| `sort` | no | `g2_default` (default, G2's own ranking), `most_recent`, `most_helpful`, `highest_rated` or `lowest_rated`. |
+| `stars` | no | Only reviews with this star rating (`1`-`5`). |
+| `search` | no | Only reviews whose answers mention this keyword. |
+| `details` | no | `true` also fetches the product page for `vendor`, `description`, `website` and `languages` (one more billed unit). Default `false`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank for the country chosen for the site. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/reviews/g2?mode=reviews&product=slack&sort=most_recent&max_results=10" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.g2_reviews("slack", sort="most_recent", max_results=10)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.g2Reviews("slack", { sort: "most_recent", maxResults: 10 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->g2Reviews('slack', ['sort' => 'most_recent', 'max_results' => 10]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.g2_reviews("slack", sort: "most_recent", max_results: 10)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "product": {
+    "name": "Slack",
+    "slug": "slack",
+    "productId": 3437,
+    "productUuid": "bdac866e-7e0a-490c-b679-c43570cce3ce",
+    "vendorId": 469,
+    "rating": 4.5,
+    "reviewCount": 39883,
+    "starDistribution": {
+      "5": 29953,
+      "4": 8175,
+      "3": 1334,
+      "2": 282,
+      "1": 139
+    },
+    "categories": [
+      "Knowledge Base",
+      "Unified Workspaces"
+    ],
+    "aiSummary": "Users consistently praise Slack for its organized communication and easy collaboration, wh...",
+    "pros": [
+      {
+        "label": "Ease of Use",
+        "count": 3483
+      },
+      {
+        "label": "Team Collaboration",
+        "count": 3031
+      }
+    ],
+    "cons": [
+      {
+        "label": "Notification Issues",
+        "count": 1114
+      },
+      {
+        "label": "Missing Features",
+        "count": 905
+      }
+    ],
+    "segments": {
+      "companySize": [
+        {
+          "label": "Small Business (50 or fewer emp.)",
+          "count": 16104
+        }
+      ],
+      "industry": [
+        {
+          "label": "Computer Software",
+          "count": 6050
+        }
+      ],
+      "region": [
+        {
+          "label": "North America",
+          "count": 27727
+        }
+      ]
+    },
+    "videoReviewCount": 60,
+    "url": "https://www.g2.com/products/slack/reviews",
+    "vendor": null,
+    "website": null,
+    "description": null,
+    "languages": null,
+    "image": null
+  },
+  "reviews": [
+    {
+      "id": 13766852,
+      "url": "https://www.g2.com/products/slack/reviews/slack-review-13766852",
+      "title": "Organized Channels and Threads That Keep Conversations Clear and Fast",
+      "rating": 5.0,
+      "date": "2026-10-12",
+      "updatedDate": null,
+      "reviewer": {
+        "name": "Gabriela I.",
+        "anonymous": false,
+        "title": "senior customer support representative",
+        "industry": null,
+        "companySize": "Mid-Market (51-1000 emp.)",
+        "profileUrl": "https://www.g2.com/users/...",
+        "reviewerId": 7194473
+      },
+      "likeBest": "Organized conversations. Channels keep discussions neatly sorted by te...",
+      "dislike": "Some people use threads, others reply in the channel, and the mix make...",
+      "problemsSolved": "Manual routine work. Workflows, reminders, and bots handle things like...",
+      "recommendations": null,
+      "answers": [
+        {
+          "question": "What do you like best about Slack?",
+          "answer": "Organized conversations. Channels keep discussions neatly sorted by te..."
+        }
+      ],
+      "text": "Organized conversations. Channels keep discussions neatly sorted by te...",
+      "videoReview": false,
+      "currentUser": true,
+      "validatedReviewer": true,
+      "validationMethod": "Validated through Google using a business email account",
+      "incentivized": false,
+      "source": "Organic",
+      "aiTranslated": false,
+      "translatedFrom": null,
+      "g2Icon": false,
+      "badges": [
+        "Current User",
+        "Validated Reviewer",
+        "Source: Organic"
+      ],
+      "vendorResponse": null
+    }
+  ],
+  "resultsCollected": 10,
+  "totalResults": 39883,
+  "page": 1,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "viewLimitReached": false,
+  "query": {
+    "product": "slack",
+    "sort": "most_recent",
+    "stars": null,
+    "search": null
+  }
+}
+```
+
+`vendor`, `website`, `description`, `languages` and `image` on the product are filled in when you pass `details=true`. `hasMore` and `nextPage` tell you where to continue; `viewLimitReached` is `true` once you hit G2's 10-page limit for the current sort and filter view (switch `sort`, `stars` or `search` to reach other reviews). An unknown slug returns `404`.
+
+### Review fields
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` | G2's review id and a link to the review. |
+| `title` / `rating` / `date` | Review headline, star rating (out of 5) and publish date (`updatedDate` when edited). |
+| `reviewer` | `name` (as G2 shows it, e.g. first name and initial), `anonymous`, job `title`, `industry` and `companySize`. |
+| `likeBest` / `dislike` / `problemsSolved` | The answers to G2's three main questions. `recommendations` holds the reviewer's recommendations to others, when given. |
+| `answers` | Every question and answer of the review, in order. `text` joins them. |
+| `validatedReviewer` / `validationMethod` | Whether and how G2 validated the reviewer. |
+| `currentUser` / `incentivized` / `source` | G2's badges: current user, incentivized review and the review source (e.g. `Organic`). `badges` lists them as G2 prints them. |
+| `aiTranslated` / `translatedFrom` | Set when G2 machine-translated the review. |
+| `vendorResponse` | The vendor's reply, or `null`. |
+
+## Product search
+
+```
+POST /reviews/g2
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | Keyword to search G2's product catalog for, e.g. `crm` or `project management`. |
+| `mode` | - | Set to `search` by `g2Search`. |
+| `page` | no | 1-based page to start from: 20 products per page, at most 20 pages. Default `1`. |
+| `max_results` | no | How many products to return, `1`-`100`. Default `20`. Search answers whole pages of 20, so it can return a few more. Each page fetched is one billed unit. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank for the country chosen for the site. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/reviews/g2?mode=search&query=project%20management&max_results=20" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.g2_search("project management", max_results=20)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.g2Search("project management", { maxResults: 20 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->g2Search('project management', ['max_results' => 20]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.g2_search("project management", max_results: 20)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "project management",
+  "results": [
+    {
+      "name": "Microsoft Project & Portfolio Management",
+      "slug": "microsoft-microsoft-project-portfolio-management",
+      "productId": 427,
+      "type": "Software",
+      "position": 1,
+      "vendor": {
+        "name": "Microsoft",
+        "slug": "microsoft",
+        "url": "https://www.g2.com/sellers/microsoft"
+      },
+      "rating": 4.0,
+      "reviewCount": 1627,
+      "description": "Microsoft Project & Portfolio Management (PPM) helps you get started quickly and...",
+      "categories": [
+        "Earned Value Management",
+        "Project and Portfolio Management"
+      ],
+      "image": "https://images.g2crowd.com/uploads/product/image/71cbbc9a2be...",
+      "url": "https://www.g2.com/products/microsoft-microsoft-project-portfolio-management/reviews"
+    },
+    {
+      "name": "Oracle Project Management Cloud",
+      "slug": "oracle-oracle-project-management-cloud",
+      "productId": 73235,
+      "type": "Software",
+      "position": 2,
+      "vendor": {
+        "name": "Oracle",
+        "slug": "oracle",
+        "url": "https://www.g2.com/sellers/oracle"
+      },
+      "rating": 3.8,
+      "reviewCount": 39,
+      "description": "Project Management Cloud provides modern project execution tools and methods tha...",
+      "categories": [
+        "Project Management"
+      ],
+      "image": "https://images.g2crowd.com/uploads/product/image/aca40b5464f...",
+      "url": "https://www.g2.com/products/oracle-oracle-project-management-cloud/reviews"
+    }
+  ],
+  "resultsCollected": 20,
+  "page": 1,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `name` / `slug` / `productId` | Product name, the slug to pass as `product` to `g2Reviews`, and G2's numeric id. |
+| `position` | Rank in G2's search results. |
+| `vendor` | Seller `name`, `slug` and G2 seller page `url`. |
+| `rating` / `reviewCount` | Star rating (out of 5) and number of reviews. |
+| `description` / `categories` | Short product description and the G2 categories it is listed in. |
+| `image` / `url` | Product logo and the product's review page. |
+
+## What you can build
+
+- **Competitor review tracking** - pull the newest reviews of your product and its rivals with `sort=most_recent`.
+- **Win/loss and feature research** - mine `likeBest`, `dislike` and the top `pros` and `cons` for recurring themes.
+- **Segment analysis** - compare ratings by reviewer company size and industry.
+- **Market maps** - search a category keyword to list products with their rating and review count.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Pull a product's G2 reviews and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

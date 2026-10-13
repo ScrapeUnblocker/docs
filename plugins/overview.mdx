@@ -6,7 +6,7 @@ sidebarTitle: "Overview"
 
 Plugins are **ready-made scrapers for specific, high-value sites**. Instead of sending a raw URL and parsing HTML yourself, you fill in a few plain fields (a route, a city, some dates) and get back clean, structured JSON - already parsed, sorted, and ready to use.
 
-Under the hood a plugin runs on the same anti-bot infrastructure as the rest of ScrapeUnblocker: warm, challenge-cleared browser sessions, residential proxies, and per-site logic. You never see any of that. You send a search, you get data.
+Under the hood a plugin runs on the same anti-bot infrastructure as the rest of ScrapeUnblocker, plus per-site logic. You never see any of that. You send a search, you get data.
 
 <Note>
 Open the plugins in your dashboard: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). Runs draw from the same quota as your API plan.
@@ -34,9 +34,13 @@ Every plugin has its own page with the exact fields, response shape and API exam
 | Plugin | What you get |
 | --- | --- |
 | [Skyscanner](/plugins/skyscanner) | Flights, hotels and car hire from live Skyscanner results - fares with airline, times, stops and a booking deep link; every hotel for a city and dates; rental quotes with vendor, car and fuel policy. |
-| [Southwest Airlines](/plugins/southwest) | Live Southwest fares as JSON - dollar and Rapid Rewards points prices, every flight on the route, one-way or return. No public fare API, no Akamai to solve. |
 | [Booking.com Hotels](/plugins/booking) | Booking.com hotels for a city and dates - name, price for your stay, review score, address, coordinates, photo and a direct property link. |
+| [Booking.com Reviews](/plugins/booking-reviews) | The newest 15 Booking.com hotel reviews per language in up to 18 languages: score, rating band, liked and disliked text, reviewer country, trip type, nights. |
 | [Airbnb Stays](/plugins/airbnb) | Airbnb stay listings for a location - name, room type, nightly price, rating, review count, coordinates, badges and a clean room link. |
+| [Airbnb Listing](/plugins/airbnb-listing) | One Airbnb listing in full: description, host, category ratings, rooms, amenities, photos and house rules, plus price, availability and cancellation policy for your dates. |
+| [Airbnb Reviews](/plugins/airbnb-reviews) | Every guest review of an Airbnb listing: rating, original text plus translation, date, stay detail, reviewer and host response, with the listing's ratings and review tags. |
+| [Tripadvisor Places](/plugins/tripadvisor) | Tripadvisor restaurant, hotel and attraction lists for a city: name, rating, review count, price range, cuisine, phone, address, coordinates and place link. |
+| [Tripadvisor Reviews](/plugins/tripadvisor-reviews) | Reviews of any Tripadvisor hotel, restaurant or attraction: title, text, rating, dates, trip type, reviewer and owner response, plus the place's histogram and sub-ratings. |
 
 ### Google
 
@@ -44,42 +48,132 @@ Every plugin has its own page with the exact fields, response shape and API exam
 | --- | --- |
 | [Google Local](/plugins/google-local) | Google Maps / Local business listings for a search and market - name, rating, reviews, category, address, and hours. |
 | [Google Images](/plugins/google-images) | Google Images results for a keyword - the full-resolution image URL and source domain for every result, plus source page, title, thumbnail and dimensions. |
+| [Google Maps Place](/plugins/google-maps-place) | One Google Maps place in full by place id, URL or feature id: address, phone, website, rating, categories, coordinates, opening hours, photos and related places. |
+| [Google Trends](/plugins/google-trends) | Interest over time, interest by region and top/rising related queries (topics on request) for 1-5 keywords, filtered by place, time range, category and search type. |
+| [Google Shopping](/plugins/google-shopping) | Google Shopping product cards for any market: title, price, currency, original price, discount, merchant, rating and review count. |
+| [Google Jobs](/plugins/google-jobs) | Google Jobs listings for a search term and location: title, company, location, source board, salary, employment type, remote flag, posting age, benefits and a share link. |
+
+### Search engines
+
+| Plugin | What you get |
+| --- | --- |
+| [Bing](/plugins/bing) | Bing web results (organic, top/bottom ads, related searches, result count) plus Bing Images results with full-resolution image URL, source page and dimensions, per country. |
+| [DuckDuckGo](/plugins/duckduckgo) | DuckDuckGo organic results, top/bottom ads and related searches for any region, up to 10 pages, in the same shape as serpApi. |
+| [Yahoo](/plugins/yahoo) | Yahoo web results (organic, ads, related searches) from Yahoo's regional sites, plus Yahoo Images results with full-resolution image URL, source page and dimensions. |
+| [Brave Search](/plugins/brave) | Brave web results (about 20 organic per page, ads, related searches) and Brave's whole image result set (about 200) with original image URLs and source pages. |
 
 ### E-commerce
 
 | Plugin | What you get |
 | --- | --- |
 | [Amazon](/plugins/amazon) | Amazon product and search data - price, currency, list price, rating, reviews, availability, images and ASINs, in the right currency per marketplace. |
-| [eBay Search](/plugins/ebay) | eBay listings for a keyword on any regional marketplace - price, condition, seller feedback, shipping, sold counts and a direct item link. |
+| [Amazon Best Sellers](/plugins/amazon-bestsellers) | Ranked Best Sellers, New Releases, Movers & Shakers, Most Wished For and Gift Ideas lists: rank, ASIN, title, price, currency, rating, reviews, category tree, 20 marketplaces. |
+| [Amazon Reviews](/plugins/amazon-reviews) | Public review data from a product page: rating, review count, star histogram, Customers say summary with aspect sentiment, and the top reviews. |
 | [Walmart Search](/plugins/walmart) | Walmart product search - title, price and was-price, rating, review count, brand, seller, availability, image and a direct product link. |
 | [Target Search](/plugins/target) | Target product search - tcin, title, brand, price and formatted price, currency, image and a direct product link, via Target's own Redsky API. |
+| [Best Buy Search](/plugins/best-buy) | Best Buy search results: SKU, title, brand, model, price, regular price, rating, review count, image and product URL. |
+| [Home Depot Search](/plugins/home-depot) | Home Depot search results: item ID, title, brand, model number, price, original price, rating, review count, image and product URL. |
 | [Etsy Search](/plugins/etsy) | Etsy product search - title, price and currency, shop, image and a direct listing link, sorted and price-filtered. |
 | [Temu](/plugins/temu) | Temu product data as clean JSON - name, price, availability, rating, review count and images - plus keyword search that returns product URLs straight from Temu. |
+| [SHEIN Search](/plugins/shein) | SHEIN (US) search results: goods ID, SKU, title, price, list price, discount, rating, reviews, category, image and sold-out state, up to 20 per call. |
 | [Zalando Search](/plugins/zalando) | Zalando fashion product search on any European storefront - sku, brand, name, price and currency, image and a direct product link. |
+| [AliExpress Search](/plugins/aliexpress) | AliExpress search results: product ID, title, price, original price, currency, rating, orders sold and images, up to 1,200 per call. |
+| [Alibaba](/plugins/alibaba) | Alibaba.com search with USD price tiers, MOQ, sold count and supplier card, plus one product in full: variants, attributes, lead times and supplier ratings. |
+| [1688](/plugins/1688) | 1688.com wholesale search with yuan price ladders, units sold, repurchase rate and supplier, plus one offer in full: SKUs, stock, MOQ, shipping and ratings. |
+| [TikTok Shop](/plugins/tiktok-shop) | US TikTok Shop: keyword or category search, one product with variants, shipping, seller scores and top reviews, and a store with its products. |
 | [oopbuy Search](/plugins/oopbuy-search) | oopbuy.com product-search listings for a keyword - title, USD and CNY price, monthly sales, image, and product link. |
 
 ### Classifieds & Resale
 
 | Plugin | What you get |
 | --- | --- |
+| [eBay Search](/plugins/ebay) | eBay listings for a keyword on any regional marketplace - price, condition, seller feedback, shipping, sold counts and a direct item link. |
 | [Vinted Search](/plugins/vinted) | Vinted resale listings on any regional marketplace - title, price and currency, brand, size, condition, image and a direct item link. |
-| [Craigslist Search](/plugins/craigslist) | Craigslist classifieds in any US metro - posting id, title, price, currency, location, image and a direct listing link. |
+| [Leboncoin Search](/plugins/leboncoin) | Leboncoin classified ads: title, price, city, postcode, department, region, category, date, seller type, ad attributes, image and URL. |
+
+### Groceries
+
+| Plugin | What you get |
+| --- | --- |
+| [Woolworths](/plugins/woolworths) | Woolworths Australia groceries: search, category and specials listings with price, was-price, unit price and promotions, plus one product with ingredients, allergens and nutrition. |
+| [Coles](/plugins/coles) | Coles Australia groceries: search, category and specials (half-price, multibuy, online-only) with price, unit price, promotions and stock, plus one product with ingredients and nutrition. |
+| [ALDI Australia](/plugins/aldi-au) | ALDI Australia in-store prices: search and category listings with unit price and badges, Special Buys drops with on-sale dates and themes, and full product detail. |
+
+### Real estate
+
+| Plugin | What you get |
+| --- | --- |
+| [Zillow](/plugins/zillow) | Zillow search listings (price, beds, baths, area, address, Zestimate, rent Zestimate, days on Zillow) and one property in full with price history, facts, schools and photos. |
+| [Redfin](/plugins/redfin) | Redfin listings (price, beds, baths, sqft, lot size, address, MLS status, days on market) and one home in full with price history, tax values and the Redfin Estimate. |
+| [Rightmove](/plugins/rightmove) | UK property listings for sale or to rent: price and rent frequency, bedrooms, bathrooms, property type, address, coordinates, images and the estate agent. |
+| [Idealista](/plugins/idealista) | Spain, Italy and Portugal listings with price, price drops, price per m², area, rooms and agency, plus one listing in full with features, energy rating and coordinates. |
+| [ImmobilienScout24](/plugins/immobilienscout24) | German rent and sale listings: cold and warm rent or purchase price, rooms, living area, address, coordinates, construction year, energy class and realtor. |
+
+### Vehicles
+
+| Plugin | What you get |
+| --- | --- |
 | [Mobile.de Cars](/plugins/mobile-de) | mobile.de car listings on Germany's largest marketplace - title, make and model, price, first registration, mileage, power (kW/PS), fuel and a direct listing link. Filter by price, year, mileage and fuel. |
+| [AutoScout24](/plugins/autoscout24) | European car listings: make, model, price with price rating, mileage, first registration, fuel, gearbox, power, location and seller. |
 
 ### Jobs
 
 | Plugin | What you get |
 | --- | --- |
 | [Indeed Jobs](/plugins/indeed) | Indeed job listings for a search and location - title, company, parsed salary, job types, company rating, a snippet and a direct job link. |
+| [Glassdoor](/plugins/glassdoor) | Job listings with pay ranges, employee reviews with sub-ratings and the employer summary, and salary percentiles by job title for any company. |
+| [Naukri](/plugins/naukri) | Indian job listings: title, company and rating, location and work mode, experience range, salary with parsed min/max, skills and posted date. |
+| [Wellfound](/plugins/wellfound) | Startup jobs with salary and equity ranges and remote policy, full job pages, company profiles with funding and founders, and the startup directory. |
+| [Career Sites](/plugins/career-site) | Every open job on a Greenhouse, Lever, Ashby, Workday, SmartRecruiters, Workable or Recruitee board in one shape, with locations, department, dates, salary ranges and descriptions. |
 
-### Social & Ads
+### Reviews & Companies
 
 | Plugin | What you get |
 | --- | --- |
-| [TikTok](/plugins/tiktok) | Public TikTok creators, videos and hashtags as JSON - exact follower, like and video counts, newest videos with full engagement, any post with music, hashtags, subtitles, transcripts and download URLs, hashtag totals with videos, keyword search and comments. No login. |
+| [Trustpilot](/plugins/trustpilot) | A company's Trustpilot profile and reviews - TrustScore, 1-5 star breakdown, review count, and each review's rating, text, author, verified flag and company reply. |
+| [G2](/plugins/g2) | G2 software reviews - product rating, star distribution, pros and cons, each review's answers, reviewer role and company size, plus G2 product search. |
+| [Capterra](/plugins/capterra) | Capterra software reviews - rating, four sub-ratings and pricing, each review's ratings, pros, cons, reviewer role and switching reasons, plus catalog search. |
+| [Product Hunt](/plugins/producthunt) | Product Hunt's daily leaderboard with votes, comments, topics and ranks, keyword and topic listings, or one product's website, socials, rating and followers. |
+| [Crunchbase](/plugins/crunchbase) | Crunchbase company profiles - HQ, status, employees, industries, CB rank, growth and heat scores, founders, funding rounds, acquisitions, web traffic and news - plus name search. |
+
+### Local & Maps
+
+| Plugin | What you get |
+| --- | --- |
+| [Yelp Local](/plugins/yelp) | Yelp businesses by term and location (rating, review count, price tier, categories, address, hours), or one business with phone, website, attributes, photos and popular dishes. |
+| [Yelp Reviews](/plugins/yelp-reviews) | Yelp business reviews: rating, full text, date, author with Elite status, photos, reactions and owner reply, plus the business's star histogram. Sortable and filterable. |
+| [Naver Place](/plugins/naver-place) | Naver Map places in Korea: search with addresses, phone, coordinates, rating and review counts, and place details with hours, menus, review stats and visitor reviews. |
+
+### Apps
+
+| Plugin | What you get |
+| --- | --- |
+| [Google Play](/plugins/google-play) | Google Play app details - developer, score, ratings, star histogram, installs, price, content rating, screenshots, what's new - plus app search per store country. |
+| [App Store](/plugins/app-store) | Apple App Store app details with price, rating histogram, version history, privacy labels and chart rank, app search, and customer reviews per country. |
+
+### Video, Music & Communities
+
+| Plugin | What you get |
+| --- | --- |
+| [YouTube](/plugins/youtube) | YouTube channel videos with views and likes, search results with channel, views and duration, video comments with likes and replies, and timestamped transcripts. |
+| [Spotify](/plugins/spotify) | Spotify artists, albums, tracks and playlists with play counts, monthly listeners, world rank and top cities, plus catalog search. |
+| [Telegram](/plugins/telegram) | Public Telegram channels - title, subscribers and verified mark, and posts newest first with text, views, media, link previews, reactions and forwards. |
+| [Quora](/plugins/quora) | Quora questions with every answer's full text, author, upvotes, views and dates, related questions, and public profiles with their newest answers. |
+
+### SEO & Ads
+
+| Plugin | What you get |
+| --- | --- |
+| [Similarweb](/plugins/similarweb) | A website's Similarweb overview: ranks, monthly visits and trend, engagement, traffic sources, top countries, demographics, similar sites, top keywords and company profile. |
+| [Ahrefs](/plugins/ahrefs) | Ahrefs' free SEO tools: Domain Rating, backlinks and top backlinks, organic traffic and value, broken links, keyword difficulty, keyword ideas and the Google SERP with Ahrefs metrics. |
+| [Semrush](/plugins/semrush) | A website's Semrush data: Authority Score, ranks, visits with desktop/mobile history, search traffic, backlinks, top keywords, countries, traffic sources, AI-assistant visits and competitors. |
 | [Meta Ad Library](/plugins/meta-ad-library) | An advertiser's live Facebook & Instagram ads - ad copy, CTA, format, image and video creative URLs, landing page, platforms and run dates. A competitor-ads tool. |
 
 More plugins are added over time.
+
+## From code
+
+Every plugin has a method in the official SDKs - `su.target_search("tv")` in [Python](/sdks/python), `su.targetSearch("tv")` in [Node.js](/sdks/nodejs), `$su->targetSearch('tv')` in [PHP](/sdks/php) and `su.target_search("tv")` in [Ruby](/sdks/ruby) - and each plugin page shows the call in all four languages next to cURL. AI assistants reach them through the [MCP server](/sdks/mcp) (`list_plugins` and `run_plugin`).
 
 ## Cost and quota
 

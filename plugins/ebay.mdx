@@ -31,12 +31,66 @@ POST /marketplace/ebay-search
 | `free_shipping` | no | `true` to keep only listings eBay marks as free delivery. |
 | `seller` | no | Restrict the search to one seller's username. |
 | `category` | no | eBay category id to search inside, e.g. `131090` for vehicle parts. |
-| `proxy_country` | no | Exit-IP country (ISO-2, e.g. `US`, `DE`). |
+| `proxy_country` | no | Proxy country (ISO-2, e.g. `US`, `DE`). |
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/marketplace/ebay-search?keyword=iphone%2013&marketplace=ebay.com&condition=used&sort=newly_listed" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.ebay_search(
+    "iphone 13",
+    marketplace="ebay.com",
+    condition="used",
+    sort="newly_listed",
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.ebaySearch("iphone 13", {
+  marketplace: "ebay.com",
+  condition: "used",
+  sort: "newly_listed",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->ebaySearch('iphone 13', [
+    'marketplace' => 'ebay.com',
+    'condition' => 'used',
+    'sort' => 'newly_listed',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.ebay_search(
+  "iphone 13",
+  marketplace: "ebay.com",
+  condition: "used",
+  sort: "newly_listed"
+)
+```
+
+</CodeGroup>
 
 ### Supported marketplaces
 

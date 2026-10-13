@@ -1,0 +1,516 @@
+---
+title: "Glassdoor plugin"
+description: "Glassdoor as clean JSON - job listings with pay ranges, employee reviews with ratings and the employer summary, and salary estimates by job title for any company."
+sidebarTitle: "Glassdoor"
+---
+
+The **Glassdoor** plugin turns Glassdoor into structured JSON. It has three endpoints:
+
+- **Job search** (`/jobs/glassdoor`) - a keyword and an optional location in, the job listings out: title, company with rating and logo, location, posting age, pay range with pay period and source, snippet, skills and the Easy Apply and sponsored flags.
+- **Company reviews** (`/reviews/glassdoor`) - a company in, its employee reviews out: overall and six sub-ratings, recommend, CEO approval and business outlook, pros, cons and advice, job title, employment status, location and date, plus the employer's rating summary and company details.
+- **Company salaries** (`/salaries/glassdoor`) - a company in, its salary estimates by job title out: base and total pay at five percentiles, currency, the number of salaries behind each estimate and the latest report.
+
+For reviews and salaries, give the company as a Glassdoor employer id (`1651`), a Glassdoor company URL or a plain company name (`Microsoft`). No Glassdoor account is needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Job search
+
+```
+POST /jobs/glassdoor
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keyword` | yes | Job title or keywords, e.g. `data analyst`. |
+| `location` | no | Location name, e.g. `New York, NY`. Resolved to Glassdoor's location id automatically; a name Glassdoor does not know returns `400`. |
+| `loc_id` | no | Glassdoor numeric location id. Skips the name lookup. |
+| `loc_type` | no | Type of `loc_id`: `C` (city), `S` (state), `N` (nation) or `M` (metro). |
+| `sort` | no | `recency` (default) or `relevance`. |
+| `job_type` | no | `fulltime`, `parttime`, `contract`, `internship`, `temporary` or `apprenticeship`. Omit for any. |
+| `experience` | no | `internship`, `entrylevel`, `midseniorlevel`, `director` or `executive`. Omit for any. |
+| `from_age` | no | Posted within this many days: `1`, `3`, `7`, `14` or `30`. |
+| `min_salary` | no | Minimum annual salary. |
+| `remote` | no | `true` for remote jobs only. Default `false`. |
+| `radius` | no | Search radius in miles around the location. |
+| `max_results` | no | How many jobs to collect across pages (about 30 per page). Default `30`, max `900`. |
+| `page` | no | 1-based results page to start from. Default `1`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Defaults to US. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/jobs/glassdoor?keyword=data%20analyst&location=New%20York%2C%20NY&from_age=7" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.glassdoor_jobs("data analyst", location="New York, NY", from_age=7)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.glassdoorJobs("data analyst", {
+  location: "New York, NY",
+  fromAge: 7,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->glassdoorJobs('data analyst', [
+    'location' => 'New York, NY',
+    'from_age' => 7,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.glassdoor_jobs("data analyst", location: "New York, NY", from_age: 7)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "keyword": "data analyst",
+  "location": "New York, NY",
+  "jobs": [
+    {
+      "jobId": 1010288751867,
+      "title": "Data Analyst",
+      "url": "https://www.glassdoor.com/job-listing/data-analyst-capgemini-JV_IC1132348_KO0,12_KE13,22.htm?jl=1010288751867",
+      "company": "CapGemini SE",
+      "companyId": 3803,
+      "companyRating": 4.3,
+      "companyLogo": "https://media.glassdoor.com/sql/3803/capgemini-squareLogo-1761658128846.png",
+      "location": "New York, NY",
+      "locationType": "C",
+      "countryId": 1,
+      "ageInDays": 5,
+      "salary": {
+        "min": 100000,
+        "median": 120000,
+        "max": 140000,
+        "payPeriod": "ANNUAL",
+        "currency": "USD",
+        "source": "EMPLOYER_PROVIDED"
+      },
+      "snippet": "AML/Sanctions program reviews and audits covering program design, staffing, documentation, policies, procedures, and overall effec...",
+      "skills": ["Project team coordination", "Commission pay", "Transaction monitoring"],
+      "easyApply": false,
+      "sponsored": false,
+      "category": "data analyst"
+    }
+  ],
+  "resultsCollected": 30,
+  "totalJobsCount": 72,
+  "query": {
+    "sort": "recency",
+    "job_type": null,
+    "experience": null,
+    "from_age": 7,
+    "min_salary": null,
+    "remote": false,
+    "radius": null,
+    "loc_id": 1132348,
+    "loc_type": "C",
+    "location_resolved": true,
+    "proxy_country": "us"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `jobId` / `title` / `url` | Glassdoor job id, job title and listing URL. |
+| `company` / `companyId` / `companyRating` / `companyLogo` | Hiring company, its Glassdoor id, overall rating and logo. |
+| `location` / `locationType` / `countryId` | Job location as Glassdoor shows it, its type (`C` city, `S` state, `N` nation, `M` metro) and country id. |
+| `ageInDays` | Days since the job was posted. |
+| `salary` | Pay range: `min`, `median` and `max` (the 10th, 50th and 90th percentile of the range Glassdoor shows), `payPeriod` (`ANNUAL`, `HOURLY`, `MONTHLY`), `currency` and `source` (`EMPLOYER_PROVIDED` or `ESTIMATED`). Missing when Glassdoor shows no pay. |
+| `snippet` | Short extract of the job description. |
+| `skills` | Skills and benefits Glassdoor tags the job with. |
+| `easyApply` / `sponsored` | Easy Apply flag and whether the listing is a sponsored placement. |
+| `category` | Glassdoor's job category. |
+
+`totalJobsCount` is the number of matches Glassdoor reports, and `query` echoes the resolved filters, including the `loc_id` the location name resolved to.
+
+## Company reviews
+
+```
+POST /reviews/glassdoor
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `company` | yes | A Glassdoor employer id (`9079`), any Glassdoor company URL (`https://www.glassdoor.com/Reviews/Google-Reviews-E9079.htm`) or a company name (`Bank of America`, matched with Glassdoor's company search). No match returns `404`. |
+| `sort` | no | `recent` (default), `helpful`, `highest` or `lowest`. |
+| `rating` | no | Only reviews with this overall star rating, `1`-`5`. |
+| `job_title` | no | Only reviews from job titles matching this text, e.g. `software engineer`. |
+| `keyword` | no | Only reviews mentioning this keyword, e.g. `remote`. |
+| `topic` | no | Only reviews about one topic: `compensation`, `culture`, `career_development`, `management`, `work_life_balance` or `diversity_and_inclusion`. |
+| `employment_status` | no | Comma list of `full_time`, `part_time`, `contract`, `intern`, `freelance`. Default `full_time,part_time` (Glassdoor's own view). |
+| `language` | no | Comma list of review languages (ISO 639-3): `eng`, `fra`, `deu`, `nld`, `por`, `spa`, `ita`. Default `eng`. |
+| `current_only` | no | `true` for reviews by current employees only. Default `false`. |
+| `max_results` | no | How many reviews to return, `1`-`25`. Default `3`. Above 3 the call also reads the other sort orders and each star rating and merges the distinct reviews. |
+| `proxy_country` | no | Only `US` (or blank, the default) is accepted: Glassdoor sends visitors from other countries to their local site, where these pages do not exist. |
+
+<Note>
+Glassdoor shows signed-out visitors only the first page (3 reviews) of each sort or filter view, so there is no `page` parameter. Use `sort`, `rating` and the filters to reach other reviews, or raise `max_results` to read several views in one call. `publicLimitReached` is `true` when fewer reviews came back than you asked for because those views ran out. The plugin returns a sample of an employer's reviews, not its full review history.
+</Note>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/reviews/glassdoor?company=Microsoft&sort=recent&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.glassdoor_reviews("Microsoft", sort="recent", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.glassdoorReviews("Microsoft", {
+  sort: "recent",
+  maxResults: 3,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->glassdoorReviews('Microsoft', ['sort' => 'recent', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.glassdoor_reviews("Microsoft", sort: "recent", max_results: 3)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "company": "Microsoft",
+  "employerId": 1651,
+  "slug": "Microsoft",
+  "companyMeta": {
+    "employerId": 1651,
+    "name": "Microsoft Corporation",
+    "shortName": "Microsoft",
+    "overallRating": 3.9,
+    "logo": "https://media.glassdoor.com/sql/1651/microsoft-squarelogo-1479856042252.png",
+    "website": "https://www.microsoft.com/en-gb/",
+    "industry": "Computer Hardware Development",
+    "sector": "Information Technology",
+    "headquarters": "Redmond, WA",
+    "size": "10000+ Employees",
+    "salaryCount": 199983
+  },
+  "summary": {
+    "overallRating": 3.9,
+    "reviewCount": 57617,
+    "allReviewsCount": 69620,
+    "ratedReviewsCount": 57617,
+    "recommendToFriendPercent": 74,
+    "ceoApprovalPercent": 73,
+    "businessOutlookPercent": 66,
+    "ceo": {
+      "name": "Satya Nadella",
+      "title": "CEO",
+      "photo": "https://media.glassdoor.com/people/sql/1651/microsoft-satya-nadella.png"
+    },
+    "subratings": {
+      "workLifeBalance": 3.9,
+      "cultureAndValues": 3.8,
+      "diversityAndInclusion": 4.1,
+      "careerOpportunities": 3.7,
+      "compensationAndBenefits": 3.8,
+      "seniorManagement": 3.3
+    },
+    "ratingDistribution": {
+      "overall": { "1": 491, "2": 680, "3": 2379, "4": 5507, "5": 6577 },
+      "recommendToFriend": { "recommend": 6656, "wont_recommend": 1592 }
+    },
+    "reviewsLast7Days": 46,
+    "reviewsLast30Days": 281
+  },
+  "totalReviews": 54864,
+  "reviews": [
+    {
+      "id": 105922156,
+      "url": "https://www.glassdoor.com/Reviews/Employee-Review-Microsoft-E1651-RVW105922156.htm",
+      "title": "Exciting AI projects overshadowed by office politics",
+      "rating": 2,
+      "subratings": {
+        "workLifeBalance": 4,
+        "cultureAndValues": 1,
+        "diversityAndInclusion": 3,
+        "careerOpportunities": 3,
+        "compensationAndBenefits": 3,
+        "seniorManagement": 1
+      },
+      "recommendToFriend": false,
+      "ceoApproval": "disapprove",
+      "businessOutlook": "negative",
+      "pros": "Get to work on AI products",
+      "cons": "Too much politics. Frequent reorgs, top leaders are continuously trying to get people out.",
+      "advice": null,
+      "jobTitle": "Product Manager 2",
+      "employmentStatus": "full_time",
+      "isCurrentEmployee": true,
+      "yearsOfEmployment": 0,
+      "location": "Mountain View, CA",
+      "date": "2026-10-10T17:19:31.953",
+      "helpfulCount": 0,
+      "notHelpfulCount": 0,
+      "featured": false,
+      "employerResponse": null,
+      "view": "recent"
+    }
+  ],
+  "resultsCollected": 3,
+  "viewsFetched": ["recent"],
+  "pagesFetched": 1,
+  "hasMore": false,
+  "nextPage": null,
+  "publicLimitReached": false,
+  "publicLimit": "Glassdoor shows anonymous visitors only the first page (3 reviews) of each sort / filter view; deeper pages redirect to sign-in. Change sort...",
+  "query": {
+    "company": "Microsoft",
+    "sort": "recent",
+    "rating": null,
+    "job_title": null,
+    "keyword": null,
+    "topic": null,
+    "employment_status": ["full_time", "part_time"],
+    "language": ["eng"],
+    "current_only": false,
+    "max_results": 3
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` / `title` | Review id, link and headline. |
+| `rating` | Overall star rating, `1`-`5`. |
+| `subratings` | Work/life balance, culture and values, diversity and inclusion, career opportunities, compensation and benefits, senior management. |
+| `recommendToFriend` | `true` / `false`, or `null` when the reviewer did not answer. |
+| `ceoApproval` / `businessOutlook` | e.g. `approve` / `disapprove` and `positive` / `negative`, or `null`. |
+| `pros` / `cons` / `advice` | The review text; `advice` is the advice to management. |
+| `jobTitle` / `employmentStatus` / `isCurrentEmployee` / `yearsOfEmployment` | Who wrote it: job title, `full_time` / `part_time` / ..., current or former employee, years at the company. |
+| `location` / `date` | Reviewer location and review date. |
+| `helpfulCount` / `notHelpfulCount` / `featured` | Votes and Glassdoor's featured flag. |
+| `employerResponse` | The employer's reply, when there is one. |
+| `view` | The sort or filter view the review came from. |
+
+The response also carries:
+
+- `summary` - overall rating, recommend / CEO approval / business outlook percentages, the CEO, sub-rating averages, `ratingDistribution` and reviews in the last 7 and 30 days.
+- `companyMeta` - company name, logo, website, industry, sector, headquarters and size.
+- Three counts that measure different sets: `totalReviews` is the number of reviews matching every filter of the call; `summary.allReviewsCount` is every review Glassdoor holds for the employer, in any language or status; `summary.reviewCount` is the number of ratings behind `overallRating`. `ratingDistribution` covers only part of the reviews for large employers, so read it as proportions, not totals.
+
+Every field is always present and is `null` when Glassdoor does not show it.
+
+## Company salaries
+
+```
+POST /salaries/glassdoor
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `company` | yes | A Glassdoor employer id (`9079`), any Glassdoor company URL or a company name (`Bank of America`). No match returns `404`. |
+| `job_title` | no | Narrow to job titles matching this text, using Glassdoor's own job-title search, e.g. `software engineer`. |
+| `max_results` | no | How many job-title rows to return, `1`-`100` (10 per Glassdoor page, most-reported titles first). Default `20`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Defaults to US, so pay is reported for the US market in USD. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/salaries/glassdoor?company=Microsoft&job_title=software%20engineer&max_results=10" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.glassdoor_salaries(
+    "Microsoft",
+    job_title="software engineer",
+    max_results=10,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.glassdoorSalaries("Microsoft", {
+  jobTitle: "software engineer",
+  maxResults: 10,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->glassdoorSalaries('Microsoft', [
+    'job_title' => 'software engineer',
+    'max_results' => 10,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.glassdoor_salaries(
+  "Microsoft",
+  job_title: "software engineer",
+  max_results: 10
+)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "company": "Microsoft",
+  "employerId": 1651,
+  "slug": "Microsoft",
+  "companyMeta": {
+    "employerId": 1651,
+    "name": "Microsoft Corporation",
+    "shortName": "Microsoft",
+    "overallRating": 3.9,
+    "logo": "https://media.glassdoor.com/sql/1651/microsoft-squarelogo-1479856042252.png",
+    "website": "https://www.microsoft.com/en-gb/",
+    "industry": "Computer Hardware Development",
+    "sector": "Information Technology",
+    "headquarters": "Redmond, WA",
+    "size": "10000+ Employees",
+    "salaryCount": 199983
+  },
+  "queryLocation": "United States",
+  "salaries": [
+    {
+      "jobTitle": "Software Engineer",
+      "jobTitleId": 4279,
+      "basePay": {
+        "P10": 120975.31,
+        "P25": 138584.69,
+        "P50": 161192.71,
+        "P75": 187488.9,
+        "P90": 214780.12
+      },
+      "totalPay": {
+        "P10": 153947.14,
+        "P25": 181220.68,
+        "P50": 218040.69,
+        "P75": 267076.07,
+        "P90": 318811.92
+      },
+      "currency": "USD",
+      "salaryCount": 44777,
+      "mostRecent": "2026-10-11T00:30:51.143"
+    },
+    {
+      "jobTitle": "Software Developer",
+      "jobTitleId": 30270,
+      "basePay": {
+        "P10": 91834.97,
+        "P25": 109809.27,
+        "P50": 133957.37,
+        "P75": 163415.87,
+        "P90": 195400.26
+      },
+      "totalPay": {
+        "P10": 98438.15,
+        "P25": 118347.87,
+        "P50": 145342.17,
+        "P75": 179354.59,
+        "P90": 216234.44
+      },
+      "currency": "USD",
+      "salaryCount": 570,
+      "mostRecent": "2026-09-11T10:34:01.320"
+    }
+  ],
+  "resultsCollected": 10,
+  "jobTitleCount": 16,
+  "numPages": 2,
+  "pagesFetched": 1,
+  "query": {
+    "company": "Microsoft",
+    "job_title": "software engineer",
+    "max_results": 10,
+    "proxy_country": "us"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `jobTitle` / `jobTitleId` | Job title and its Glassdoor id. |
+| `basePay` | Base pay at the 10th, 25th, 50th, 75th and 90th percentile (`P10` to `P90`). |
+| `totalPay` | Total pay at the same percentiles, including bonus and stock where Glassdoor reports them. |
+| `currency` | Pay currency. |
+| `salaryCount` | Number of salaries behind the estimate. |
+| `mostRecent` | Date of the latest salary report. |
+
+The response also carries `companyMeta` (with the company's total `salaryCount`), `queryLocation` (the market the pay is for), `jobTitleCount` (job titles matching the call) and `numPages`. Every field is always present and is `null` when Glassdoor does not show it.
+
+## What you can build
+
+- **Compensation benchmarking** - compare base and total pay percentiles for the same job title across employers.
+- **Employer brand monitoring** - track a company's ratings, recommend and CEO approval shares and new reviews over time.
+- **Hiring signals** - follow how many roles a company posts, where and at what pay through job search.
+- **Job boards and aggregators** - pull fresh listings with pay ranges for a keyword and location.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Glassdoor search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

@@ -1,0 +1,567 @@
+---
+title: "Wellfound plugin"
+description: "Wellfound startup jobs and companies as clean JSON - jobs with salary and equity ranges, remote policy and the hiring startup, full job pages, company profiles with funding and founders, and the startup directory."
+sidebarTitle: "Wellfound"
+---
+
+The **Wellfound** plugin turns Wellfound (formerly AngelList Talent) into structured JSON. It covers two endpoints in four modes:
+
+- **Job search** (`/jobs/wellfound`, `mode=search`) - jobs by role, location or remote role: title, link, full description, compensation parsed into a salary range and an equity range, job type, locations, remote policy, accepted remote regions, years of experience, posting date and the hiring startup.
+- **Job page** (`/jobs/wellfound`, `mode=job`) - one job in full: description as text and HTML, salary with its period, skills, visa sponsorship, relocation, remote hiring regions, preferred timezones, hiring contact and the company with its funding and founders.
+- **Company profile** (`/companies/wellfound`, `mode=profile`) - a startup's profile: description, website and social links, size, stage, markets, locations, total raised and funding rounds, founders, perks, open jobs by role, its first open jobs and similar companies.
+- **Startup directory** (`/companies/wellfound`, `mode=search`) - Wellfound's startup directory by location or industry, 10 companies per page.
+
+Role, location and company accept plain text (`software engineer`, `new york`) or Wellfound slugs (`software-engineer`, `new-york`). No Wellfound account is needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Job search
+
+```
+POST /jobs/wellfound
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `search` by `wellfoundJobs`. |
+| `role` | no | Role as text or Wellfound slug, e.g. `software engineer`, `product-manager` or `data-scientist`. |
+| `location` | no | Location as text or slug, e.g. `new york`, `san-francisco`, `london` or `berlin`. |
+| `remote` | no | `true` for remote jobs only (needs `role`, no `location`). Default `false`. |
+| `url` | no | A Wellfound search URL instead of `role` / `location` / `remote`, e.g. `https://wellfound.com/role/l/software-engineer/san-francisco`. |
+| `page` | no | 1-based listing page to start from, `1`-`500`. Default `1`. Use `nextPage` from a previous response to continue. |
+| `max_results` | no | How many jobs to collect across pages, `1`-`500`. Default: the whole first page (20 companies with up to 3 jobs each, usually 30-60 jobs). Each page fetched is one billed request (`pagesFetched`). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/jobs/wellfound?mode=search&role=software%20engineer&location=new%20york" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wellfound_jobs("software engineer", location="new york")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.wellfoundJobs("software engineer", { location: "new york" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->wellfoundJobs('software engineer', ['location' => 'new york']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wellfound_jobs("software engineer", location: "new york")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": { "role": "software-engineer", "location": "new-york", "remote": false },
+  "totalJobs": 752,
+  "totalCompanies": 334,
+  "page": 1,
+  "pageCount": 17,
+  "jobs": [
+    {
+      "id": "4787364",
+      "title": "Software Engineer",
+      "slug": "software-engineer",
+      "url": "https://wellfound.com/jobs/4787364-software-engineer",
+      "primaryRole": "Software Engineer",
+      "jobType": "full-time",
+      "compensation": "$170k - $250k",
+      "salary": { "min": 170000, "max": 250000, "currency": "USD" },
+      "equity": null,
+      "locations": ["New York City", "San Francisco"],
+      "remote": false,
+      "remotePolicy": "ONSITE",
+      "wfhFlexible": false,
+      "acceptedRemoteLocations": [],
+      "yearsExperienceMin": 4,
+      "yearsExperienceMax": null,
+      "postedAt": "2026-09-30T23:42:54Z",
+      "autoPosted": false,
+      "atsSource": null,
+      "description": "**About Chalk**\n\nChalk is building the data platform that powers the future of machine learning applications....",
+      "company": {
+        "id": "8887646",
+        "name": "Chalk",
+        "slug": "chalk-ai",
+        "url": "https://wellfound.com/company/chalk-ai",
+        "tagline": "Building machine learning infrastructure to answer the world's hardest questions",
+        "logoUrl": "https://photos.wellfound.com/startups/i/8887646-f35c5c1d88595ca051fddbec6e486edd-medium_jpg.jpg?buster=1652299292",
+        "companySize": "51-200",
+        "stage": "Early Stage",
+        "badges": ["Actively Hiring", "Top 10% of responders"]
+      }
+    }
+  ],
+  "resultsCollected": 40,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `title` / `slug` / `url` | Wellfound job id, title, slug and link. Pass `url` to job page mode. |
+| `primaryRole` / `jobType` | Role category and `full-time`, `part-time`, `contract` or `internship`. |
+| `compensation` | Compensation line as Wellfound prints it. |
+| `salary` | Parsed `min`, `max` and `currency`, or `null`. |
+| `equity` | Parsed `min` and `max` in percent (and `offered`), or `null` when no equity is listed. |
+| `locations` / `remote` | Job locations and the remote flag. |
+| `remotePolicy` / `wfhFlexible` | `ONSITE`, `REMOTE`, `ONSITE_OR_REMOTE` or `HYBRID`, and Wellfound's flexible-WFH flag. |
+| `acceptedRemoteLocations` | Regions a remote job accepts. |
+| `yearsExperienceMin` / `yearsExperienceMax` | Years of experience asked for. |
+| `postedAt` | Posting time (ISO 8601). |
+| `autoPosted` / `atsSource` | Wellfound's flag for jobs imported automatically, and the applicant tracking system they came from when known. |
+| `description` | The full job description (Markdown). |
+| `company` | Hiring startup: `id`, `name`, `slug`, `url`, `tagline`, `logoUrl`, `companySize`, `stage` and `badges`. |
+
+`totalJobs`, `totalCompanies` and `pageCount` are the totals for the search; `nextPage` and `hasMore` drive paging. A listing page holds 20 companies with up to 3 matching jobs each.
+
+## Job page
+
+```
+POST /jobs/wellfound
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `job` by `wellfoundJob`. |
+| `job` | yes | The job URL (`https://wellfound.com/jobs/4787364-software-engineer`) or `<id>-<slug>`, as returned in `jobs[].url` by job search. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/jobs/wellfound?mode=job&job=https%3A%2F%2Fwellfound.com%2Fjobs%2F4787364-software-engineer" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wellfound_job("https://wellfound.com/jobs/4787364-software-engineer")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.wellfoundJob("https://wellfound.com/jobs/4787364-software-engineer");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->wellfoundJob('https://wellfound.com/jobs/4787364-software-engineer');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wellfound_job("https://wellfound.com/jobs/4787364-software-engineer")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "job": {
+    "id": "4787364",
+    "title": "Software Engineer",
+    "slug": "software-engineer",
+    "url": "https://wellfound.com/jobs/4787364-software-engineer",
+    "jobType": "full-time",
+    "employmentType": "FULL_TIME",
+    "datePosted": "2026-09-30T23:42:54Z",
+    "validThrough": null,
+    "directApply": true,
+    "industry": "Machine Learning and Computer Science",
+    "salary": { "min": 170000, "max": 250000, "currency": "USD", "period": "YEAR" },
+    "experienceYearsMin": 4.0,
+    "jobLocations": [
+      {
+        "city": "New York",
+        "region": "New York",
+        "country": "United States",
+        "latitude": 40.7128,
+        "longitude": -74.0059
+      }
+    ],
+    "descriptionHtml": "<p><strong>About Chalk</strong></p>\n\n<p>Chalk is building the data platform that powers the future o...",
+    "description": "About Chalk\n\nChalk is building the data platform that powers the future of machine learning applicat...",
+    "compensation": "$170k - $250k",
+    "equity": null,
+    "postedAgo": "1 week ago",
+    "recruiterActivity": "Recruiter recently active",
+    "locations": ["New York City", "San Francisco"],
+    "remotePolicy": "ONSITE",
+    "remotePolicyText": "In office",
+    "wfhFlexible": false,
+    "hiresRemotelyIn": [],
+    "companyLocations": [],
+    "preferredTimezones": [],
+    "visaSponsorship": false,
+    "relocation": true,
+    "skills": ["Python", "C++"],
+    "hiringContact": null,
+    "company": {
+      "name": "Chalk",
+      "slug": "chalk-ai",
+      "url": "https://wellfound.com/company/chalk-ai",
+      "website": "https://chalk.ai/about",
+      "logoUrl": "https://photos.wellfound.com/startups/i/8887646-f35c5c1d88595ca051fddbec6e486edd-medium_jpg.jpg?buster=1652299292",
+      "tagline": "Building machine learning infrastructure to answer the world's hardest questions",
+      "companySize": "51-200",
+      "locations": ["New York City"],
+      "companyTypes": ["Information Technology"],
+      "markets": ["Machine Learning", "Computer Science"],
+      "badges": ["Top 10% of responders", "Responds within a week"],
+      "totalRaisedText": "$10M",
+      "fundingRoundsCount": 1,
+      "founders": [
+        {
+          "name": "Marc F.",
+          "url": "https://wellfound.com/p/...",
+          "role": "Founder",
+          "tenure": null,
+          "location": "San Francisco"
+        }
+      ]
+    }
+  },
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `jobType` / `employmentType` | `full-time`, `part-time`, `contract` or `internship`, and the schema.org employment type. |
+| `datePosted` / `validThrough` / `postedAgo` | Posting date, expiry date when set, and the age as printed. |
+| `salary` | `min`, `max`, `currency` and pay `period`, or `null`. |
+| `compensation` / `equity` | Compensation line as printed and the equity range. |
+| `experienceYearsMin` | Minimum years of experience. |
+| `jobLocations` / `locations` | Structured locations (city, region, country, coordinates) and the location names. |
+| `description` / `descriptionHtml` | Full description as text and as HTML. |
+| `remotePolicy` / `remotePolicyText` / `wfhFlexible` | Remote policy value, the page's wording for it, and the flexible-WFH flag. |
+| `hiresRemotelyIn` / `preferredTimezones` | Countries a remote role hires in and preferred timezones. |
+| `visaSponsorship` / `relocation` | Visa sponsorship and relocation flags. |
+| `skills` | Skills listed on the job. |
+| `directApply` / `recruiterActivity` / `hiringContact` | Apply flag, the recruiter-activity line and the hiring contact when shown. |
+| `industry` | Industry of the hiring company. |
+| `company` | Name, link, website, tagline, size, locations, company types, markets, badges, `totalRaisedText`, `fundingRoundsCount` and `founders`. |
+
+## Company profile
+
+```
+POST /companies/wellfound
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `profile` by `wellfoundCompany`. |
+| `company` | yes | The company slug (`stripe`) or URL (`https://wellfound.com/company/stripe`). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+A profile call can take up to about a minute, so give your HTTP client a generous timeout.
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/companies/wellfound?mode=profile&company=stripe" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wellfound_company("stripe")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.wellfoundCompany("stripe");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->wellfoundCompany('stripe');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wellfound_company("stripe")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "company": {
+    "id": "37232",
+    "name": "Stripe",
+    "slug": "stripe",
+    "url": "https://wellfound.com/company/stripe",
+    "tagline": "A new, comprehensive and clean standard for online payment processing",
+    "logoUrl": "https://photos.wellfound.com/startups/i/37232-b86e6247bcd9846c18c91fe65ca0355d-medium_jpg.jpg?buster=1610581275",
+    "companySize": "5000+",
+    "stage": "Scale Stage",
+    "badges": ["Actively Hiring", "B2B"],
+    "description": "Stripe is a software platform for starting and running internet businesses. Millions of businesses r...",
+    "website": "https://stripe.com",
+    "twitterUrl": "http://twitter.com/stripe",
+    "facebookUrl": "https://www.facebook.com/stripehq",
+    "blogUrl": "https://stripe.com/blog",
+    "productHuntUrl": "https://www.producthunt.com/posts/stripe-elements-2",
+    "markets": ["Internet", "SaaS"],
+    "locations": ["Chicago", "New York City"],
+    "companyTypes": ["Startup", "Web Development"],
+    "hiring": true,
+    "openJobs": 138,
+    "openJobsByRole": [{"role": "Designer", "count": 7}, {"role": "Engineering", "count": 69}],
+    "totalRaised": 8138000000,
+    "fundingRoundsCount": 15,
+    "fundingRounds": [
+      { "type": "Series I", "date": "2023-03-16", "valuation": null },
+      { "type": "Series G", "date": "2020-04-16", "valuation": null }
+    ],
+    "founders": [
+      {
+        "name": "John Collison",
+        "slug": "collision",
+        "url": "https://wellfound.com/p/collision",
+        "avatarUrl": "https://photos.wellfound.com/users/47880-medium_jpg?1405470059",
+        "role": "Founder",
+        "title": null,
+        "bio": "Co-founder at @Stripe",
+        "location": "San Francisco"
+      }
+    ],
+    "pastFounders": [],
+    "teamMembersCount": null,
+    "perks": [
+      {
+        "category": "healthcare",
+        "title": "Inclusive coverage",
+        "description": "We offer comprehensive mental, physical, and medical health plans, supporting Stripes' financial fut..."
+      }
+    ],
+    "media": [
+      {
+        "section": "overview",
+        "type": "video",
+        "url": "https://www.youtube.com/watch?v=ck0u5OdyDdo",
+        "thumbnailUrl": "https://img.youtube.com/vi/ck0u5OdyDdo/hqdefault.jpg"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "4823135",
+        "title": "Machine Learning Engineer, Radar",
+        "slug": "machine-learning-engineer-radar",
+        "url": "https://wellfound.com/jobs/4823135-machine-learning-engineer-radar",
+        "primaryRole": null,
+        "jobType": "full-time",
+        "compensation": null,
+        "salary": null,
+        "equity": null,
+        "locations": ["Seattle"],
+        "remote": false,
+        "remotePolicy": "ONSITE",
+        "wfhFlexible": null,
+        "acceptedRemoteLocations": [],
+        "yearsExperienceMin": 2,
+        "yearsExperienceMax": null,
+        "postedAt": "2026-10-07T17:44:52Z",
+        "autoPosted": true,
+        "atsSource": null,
+        "descriptionSnippet": "- Build, train, evaluate, and deploy ML models that detect fraud across Stripe's global payments net..."
+      }
+    ],
+    "jobsTotal": 138,
+    "similarCompanies": [
+      {
+        "name": "AngelList",
+        "slug": "angellist",
+        "url": "https://wellfound.com/company/angellist",
+        "logoUrl": "https://photos.wellfound.com/startups/i/6702-766d1ce00c99ce9a5cbc19d0c87a436e-medium_jpg.jpg?buster=1668525121"
+      }
+    ]
+  },
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `name` / `tagline` / `description` | Company name, tagline and description. |
+| `website`, `twitterUrl`, `facebookUrl`, `blogUrl`, `productHuntUrl` | Website and social links (`null` when not set). |
+| `companySize` / `stage` / `badges` | Size band, funding stage and Wellfound badges. |
+| `markets` / `locations` / `companyTypes` | Markets, office locations and company types. |
+| `hiring` / `openJobs` / `openJobsByRole` | Hiring flag, open job count and open jobs per role. |
+| `totalRaised` / `fundingRoundsCount` / `fundingRounds` | Total raised as a number, the number of rounds and each round's `type`, `date` and `valuation`. |
+| `founders` / `pastFounders` | Founders with name, profile link, role, bio and location. |
+| `teamMembersCount` | Team size Wellfound lists, when shown. |
+| `perks` | Perks by category with title and description. |
+| `media` | Photos and videos on the profile. |
+| `jobs` / `jobsTotal` | The first 10 open jobs (job search fields, with a `descriptionSnippet` instead of the full description) and the total open jobs. |
+| `similarCompanies` | Companies Wellfound lists as similar. |
+
+## Startup directory
+
+```
+POST /companies/wellfound
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `search` by `wellfoundCompanySearch`. |
+| `location` | no | Location as text or slug, e.g. `new york` or `london`. |
+| `industry` | no | Wellfound industry slug, e.g. `saas`, `fintech-2`, `artificial-intelligence`, `health-care` or `e-commerce`. Common names such as `fintech`, `healthcare`, `crypto` or `edtech` are mapped to their slug. |
+| `url` | no | A Wellfound directory URL instead of `location` / `industry`, e.g. `https://wellfound.com/startups/location/new-york`. |
+| `page` | no | 1-based page to start from (10 companies per page). Default `1`. |
+| `max_results` | no | How many companies to collect, `1`-`100`. Default `10`. Each page fetched is one billed request (`pagesFetched`). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/companies/wellfound?mode=search&industry=fintech&max_results=10" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wellfound_company_search(industry="fintech", max_results=10)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.wellfoundCompanySearch({ industry: "fintech", maxResults: 10 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->wellfoundCompanySearch(['industry' => 'fintech', 'max_results' => 10]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wellfound_company_search(industry: "fintech", max_results: 10)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": { "location": null, "industry": "fintech-2" },
+  "totalCompanies": 382,
+  "page": 1,
+  "pageCount": 39,
+  "companies": [
+    {
+      "id": "28804",
+      "name": "HomeLight",
+      "slug": "homelight",
+      "url": "https://wellfound.com/company/homelight",
+      "tagline": "Our vision is a world where every real estate transaction is simple, certain, and satisfyi",
+      "logoUrl": "https://photos.wellfound.com/startups/i/28804-00e4e7d1013076846b81724c74c417e0-medium_jpg.jpg?buster=1589639645",
+      "companySize": "501-1000",
+      "stage": "Scale Stage",
+      "badges": ["Top 10% of responders", "Responds within a few days"],
+      "website": "https://www.homelight.com",
+      "description": "We're the essential technology platform used by hundreds of thousands of homebuyers and sellers to partner wit...",
+      "markets": ["Real Estate", "Marketplaces"],
+      "locations": ["San Francisco", "Scottsdale"],
+      "openJobs": 14,
+      "openJobsByRole": [{"role": "Marketing", "count": 2}, {"role": "Product", "count": 1}]
+    }
+  ],
+  "resultsCollected": 10,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `name` / `slug` / `url` | Company id, name, slug and Wellfound link. Pass `slug` to company profile mode. |
+| `tagline` / `description` / `website` / `logoUrl` | Company tagline, description, website and logo. |
+| `companySize` / `stage` / `badges` | Size band, stage and Wellfound badges. |
+| `markets` / `locations` | Markets and office locations. |
+| `openJobs` / `openJobsByRole` | Open job count and open jobs per role. |
+
+`totalCompanies` and `pageCount` are the totals for the directory view; `query.industry` shows the slug a common name was mapped to.
+
+## What you can build
+
+- **Startup job boards** - pull jobs by role and location with salary and equity ranges.
+- **Compensation research** - compare salary and equity ranges by role, stage and company size.
+- **Deal and market research** - list startups by industry or city with funding rounds, total raised and founders.
+- **Hiring signals** - track `openJobs` and `openJobsByRole` for a list of startups over time.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Wellfound search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

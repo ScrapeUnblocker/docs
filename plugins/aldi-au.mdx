@@ -1,0 +1,501 @@
+---
+title: "ALDI Australia plugin"
+description: "ALDI Australia groceries as clean JSON - search and category listings with price, unit price and badges, the weekly Special Buys with on-sale dates and themes, and one product in full with ingredients, allergens and storage."
+sidebarTitle: "ALDI Australia"
+---
+
+The **ALDI Australia** plugin returns aldi.com.au product data as structured JSON. One endpoint covers four methods: **search** by keyword, list a **category** (including ALDI's Lower Prices group), list a **Special Buys** drop with its on-sale date and themes, or fetch one **product** in full with its ingredients, allergens, claims and storage.
+
+Every product carries its SKU, name, brand, size and link, the price as a number and as ALDI shows it, any was-price, the unit price, a bottle deposit where one applies, the Special Buys on-sale date, badges, availability, online-sale and age-restricted flags, the image and its categories. ALDI Australia does not sell groceries online, so the prices are ALDI's **in-store prices** in AUD. Listings return 60 products per page; `max_results` collects up to 600 across pages, and each page fetched is one billed unit (`pagesFetched`).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+Products matching a keyword.
+
+```
+POST /groceries/aldi-au
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `search` by `aldiAuSearch`. In a raw request `search` is the default. |
+| `query` | yes | What to search for, e.g. `milk`, `chocolate` or `nappies`. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc`, `name_asc` or `name_desc`. |
+| `page` | no | 1-based listing page to start from (60 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`600`. Default `60`. Each page fetched is one billed unit. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `AU`). ALDI answers every country, so leave it blank unless you need one. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/aldi-au?mode=search&query=milk&sort=price_asc" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aldi_au_search("milk", sort="price_asc")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.aldiAuSearch("milk", { sort: "price_asc" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->aldiAuSearch('milk', ['sort' => 'price_asc']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aldi_au_search("milk", sort: "price_asc")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "search",
+  "query": "milk",
+  "category": null,
+  "specialBuys": null,
+  "sort": "price_asc",
+  "totalResults": 89,
+  "totalPages": 2,
+  "page": 1,
+  "pageSize": 60,
+  "nextPage": 2,
+  "resultsCollected": 60,
+  "products": [
+    {
+      "id": "000000000000371077",
+      "name": "Milk Arrowroot Biscuits 250g",
+      "brand": "BELMONT BISCUIT CO.",
+      "size": "250 g",
+      "url": "https://www.aldi.com.au/product/belmont-biscuit-co-milk-arrowroot-biscuits-250g-000000000000371077",
+      "price": 1.39,
+      "priceText": "$1.39",
+      "wasPrice": null,
+      "currency": "AUD",
+      "onSale": false,
+      "savings": null,
+      "unitPrice": { "price": 0.56, "per": "100 g", "text": "$0.56 per 100 g" },
+      "bottleDeposit": null,
+      "specialBuy": null,
+      "badges": [],
+      "available": true,
+      "soldOnline": false,
+      "ageRestricted": false,
+      "image": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/1000/c0ca4201-.../belmont-biscuit-co-milk-arrowroot-biscuits-250g",
+      "categories": ["Pantry", "Biscuit & Cookies"],
+      "categoryKeys": ["970000000", "1111111184"]
+    }
+  ],
+  "pagesFetched": 1,
+  "spellingSuggestion": null
+}
+```
+
+The search, category and specials methods return the same product objects:
+
+| Field | Notes |
+| --- | --- |
+| `id` | ALDI SKU (18 digits). Pass it to [Product](#product). |
+| `name` / `brand` / `size` / `url` | Product name, brand, pack size and product page link. |
+| `price` / `priceText` | In-store price as a number and as ALDI prints it. |
+| `wasPrice` / `onSale` / `savings` | The previous price and saving when ALDI shows a price drop. |
+| `unitPrice` | Price per unit: `price`, `per` (e.g. `1 L`, `100 g`) and the label `text`. `null` for items sold by the piece. |
+| `bottleDeposit` | Container deposit where one applies, else `null`. |
+| `specialBuy` | For Special Buys: `onSaleDate` and ALDI's label `text` (e.g. `While Stocks Last`). `null` for the regular range. |
+| `badges` | ALDI's badges on the product tile. |
+| `available` / `soldOnline` / `ageRestricted` | Availability, whether ALDI sells it online, and the age-restricted flag. |
+| `image` / `categories` / `categoryKeys` | Product image URL, category names and ALDI's category keys (usable as `category` in [Category](#category)). |
+
+`totalResults`, `totalPages` and `nextPage` page through the rest; pass `nextPage` as `page` to continue. `spellingSuggestion` carries ALDI's suggestion when it has one.
+
+## Category
+
+One category listing, such as Milk, or ALDI's Lower Prices group.
+
+```
+POST /groceries/aldi-au
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `category` by `aldiAuCategory`. In a raw request it is implied when `category` is given. |
+| `category` | yes | A category link (`https://www.aldi.com.au/products/dairy-eggs-fridge/milk/k/1111111160`) or its key (`1111111160`). `1588161425841179` is Lower Prices. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc`, `name_asc` or `name_desc`. |
+| `page` | no | 1-based listing page to start from (60 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`600`. Default `60`. Each page fetched is one billed unit. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `AU`). Leave blank unless you need one. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/aldi-au?mode=category&category=1111111160&sort=price_asc" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aldi_au_category("1111111160", sort="price_asc")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.aldiAuCategory("1111111160", { sort: "price_asc" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->aldiAuCategory('1111111160', ['sort' => 'price_asc']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aldi_au_category("1111111160", sort: "price_asc")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "category",
+  "query": null,
+  "category": { "key": "1111111160" },
+  "specialBuys": null,
+  "sort": "price_asc",
+  "totalResults": 20,
+  "totalPages": 1,
+  "page": 1,
+  "pageSize": 60,
+  "nextPage": null,
+  "resultsCollected": 20,
+  "products": [
+    {
+      "id": "000000000000405299",
+      "name": "Soy Light Milk 1L",
+      "brand": "INNER GOODNESS",
+      "size": "1 l",
+      "url": "https://www.aldi.com.au/product/inner-goodness-soy-light-milk-1l-000000000000405299",
+      "price": 1.59,
+      "priceText": "$1.59",
+      "wasPrice": null,
+      "currency": "AUD",
+      "onSale": false,
+      "savings": null,
+      "unitPrice": { "price": 1.59, "per": "1 L", "text": "$1.59 per 1 L" },
+      "bottleDeposit": null,
+      "specialBuy": null,
+      "badges": [],
+      "available": true,
+      "soldOnline": false,
+      "ageRestricted": false,
+      "image": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/1000/a27d8d40-.../inner-goodness-soy-light-milk-1l",
+      "categories": ["Dairy, Eggs & Fridge", "Milk"],
+      "categoryKeys": ["960000000", "1111111160"]
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `category` | The category listed, by its `key`. |
+| `products` | Product objects with the fields listed under [Search](#search). |
+
+## Special Buys
+
+One Special Buys drop - the current one by default - with every drop ALDI has announced.
+
+```
+POST /groceries/aldi-au
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `specials` by `aldiAuSpecials`. In a raw request send `mode=specials`. |
+| `category` | no | Which Special Buys drop: its date (`2026-10-14`) or link. Default: the current drop. |
+| `theme` | no | Keep one theme of the drop, e.g. `Gardening`. The themes of each drop are in `promotions[].themes`. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc`, `name_asc` or `name_desc`. |
+| `page` | no | 1-based listing page to start from (60 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`600`. Default `60`. Each page fetched is one billed unit. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `AU`). Leave blank unless you need one. |
+
+To list another announced drop, pass its date or link as `category`, e.g. `su.aldi_au_specials(category="2026-10-14")` (`https://www.aldi.com.au/special-buys/2026-10-14` also works). A date with no drop returns `404`.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/aldi-au?mode=specials&theme=Gardening" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aldi_au_specials(theme="Gardening")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.aldiAuSpecials({ theme: "Gardening" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->aldiAuSpecials(['theme' => 'Gardening']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aldi_au_specials(theme: "Gardening")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "specials",
+  "query": null,
+  "category": null,
+  "specialBuys": {
+    "date": "2026-10-10",
+    "title": "Available from Sat 10th October",
+    "theme": "Gardening",
+    "url": "https://www.aldi.com.au/special-buys/2026-10-10?theme=Gardening"
+  },
+  "sort": "relevance",
+  "totalResults": 16,
+  "totalPages": 1,
+  "page": 1,
+  "pageSize": 60,
+  "nextPage": null,
+  "resultsCollected": 16,
+  "products": [
+    {
+      "id": "000000000000574158",
+      "name": "Weed Extractor",
+      "brand": "GARDENLINE",
+      "size": null,
+      "url": "https://www.aldi.com.au/product/gardenline-weed-extractor-000000000000574158",
+      "price": 39.99,
+      "priceText": "$39.99",
+      "wasPrice": null,
+      "currency": "AUD",
+      "onSale": false,
+      "savings": null,
+      "unitPrice": null,
+      "bottleDeposit": null,
+      "specialBuy": { "onSaleDate": "2026-10-10", "text": "While Stocks Last" },
+      "badges": [],
+      "available": true,
+      "soldOnline": false,
+      "ageRestricted": false,
+      "image": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/1000/39f132ec-.../gardenline-weed-extractor",
+      "categories": [],
+      "categoryKeys": []
+    }
+  ],
+  "pagesFetched": 1,
+  "promotions": [
+    {
+      "date": "2026-10-10",
+      "key": "2026-10-10",
+      "title": "Available from Sat 10th October",
+      "themes": ["Gardening", "Home Entertainment", "Pest Control"]
+    },
+    {
+      "date": "2026-10-14",
+      "key": "2026-10-14",
+      "title": "Available from Wed 14th October",
+      "themes": ["Beauty", "Body Care", "European Specialty Biscuits & Sweets", "Grocery Specials"]
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `specialBuys` | The drop listed: its `date`, ALDI's `title`, the `theme` filter and its `url`. |
+| `products` | Product objects with the fields listed under [Search](#search); `specialBuy.onSaleDate` is the day they go on sale. |
+| `promotions` | Every drop ALDI has announced: `date`, `key`, `title` and its `themes`. Use them to ask for a coming drop or a theme. |
+
+## Product
+
+One product in full, with ingredients, allergens, claims and storage.
+
+```
+POST /groceries/aldi-au
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `product` by `aldiAuProduct`. In a raw request it is implied when `product` is given. |
+| `product` | yes | An ALDI SKU (`000000000000371077`) or a product link (`https://www.aldi.com.au/product/farmdale-light-milk-2l-000000000000398691`). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `AU`). Leave blank unless you need one. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/aldi-au?mode=product&product=000000000000371077" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aldi_au_product("000000000000371077")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.aldiAuProduct("000000000000371077");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->aldiAuProduct('000000000000371077');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aldi_au_product("000000000000371077")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "product": {
+    "id": "000000000000371077",
+    "name": "Milk Arrowroot Biscuits 250g",
+    "brand": "BELMONT BISCUIT CO.",
+    "size": "250 g",
+    "url": "https://www.aldi.com.au/product/belmont-biscuit-co-milk-arrowroot-biscuits-250g-000000000000371077",
+    "price": 1.39,
+    "priceText": "$1.39",
+    "wasPrice": null,
+    "currency": "AUD",
+    "onSale": false,
+    "savings": null,
+    "unitPrice": { "price": 0.56, "per": "100 g", "text": "$0.56 per 100 g" },
+    "bottleDeposit": null,
+    "specialBuy": null,
+    "badges": [],
+    "available": true,
+    "soldOnline": false,
+    "ageRestricted": false,
+    "image": "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/1000/c0ca4201-.../belmont-biscuit-co-milk-arrowroot-biscuits-250g",
+    "categories": ["Pantry", "Biscuit & Cookies"],
+    "categoryKeys": ["970000000", "1111111184"],
+    "description": "Dunk these lightly textured classic milk arrowroot biscuits in milk, tea or coffee.",
+    "ingredients": null,
+    "allergens": [],
+    "claims": [
+      { "label": "Contains", "value": "Milk" }
+    ],
+    "storage": "Shelf Stable (stable after opening): Store in a cool, dry place. Once opened, store in an airtight container.",
+    "usage": "N/A",
+    "warnings": null,
+    "countryOfOrigin": null,
+    "legalDisclaimer": null,
+    "images": [
+      "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/1000/c0ca4201-.../belmont-biscuit-co-milk-arrowroot-biscuits-250g",
+      "https://dm.apac.cms.aldi.cx/is/image/aldiprodapac/product/jpg/scaleWidth/1000/5a79a183-.../belmont-biscuit-co-milk-arrowroot-biscuits-250g"
+    ]
+  },
+  "pagesFetched": 1,
+  "query": { "product": "000000000000371077" }
+}
+```
+
+`product` carries every field listed under [Search](#search), plus:
+
+| Field | Notes |
+| --- | --- |
+| `description` / `ingredients` | Product description and the ingredient list, `null` when ALDI publishes none. |
+| `allergens` / `claims` | Allergen list, and ALDI's labelled statements as `label` / `value` pairs (e.g. `Contains`, `May contain`). |
+| `storage` / `usage` / `warnings` | Storage and usage instructions and warnings, as ALDI prints them. |
+| `countryOfOrigin` | Country of origin, when ALDI lists it. |
+| `legalDisclaimer` | ALDI's disclaimer text, when the page carries one. |
+| `images` | All product images. |
+
+## What you can build
+
+- **In-store price tracking** - follow ALDI's shelf prices and unit prices for a basket of SKUs.
+- **Special Buys calendar** - list every announced drop with its themes and products before it goes on sale.
+- **Cross-retailer comparison** - compare unit prices against [Woolworths](/plugins/woolworths) and [Coles](/plugins/coles).
+- **Product and allergen catalogs** - collect descriptions, ingredients, allergens and storage for the ALDI range.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an ALDI search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

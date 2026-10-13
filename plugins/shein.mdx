@@ -1,0 +1,145 @@
+---
+title: "SHEIN Search plugin"
+description: "SHEIN product search as clean JSON - goods ID, SKU, title, price, list price, discount, rating, review count, category, image and sold-out state."
+sidebarTitle: "SHEIN Search"
+---
+
+The **SHEIN Search** plugin turns a SHEIN (US store) search into structured JSON. Give it a keyword and it returns the products SHEIN shows - each with its goods `id` and `sku`, title, the current price and the list price it is discounted from, the discount, currency, star rating, review count, category, an image, sold-out state, store code and a clean product URL - plus the total result count.
+
+Order by relevance or price and filter by a USD price range. Each call returns SHEIN's first results page, up to 20 products, so `page` must stay `1`. SHEIN limits bursts of searches, so spread large runs over time instead of sending thousands at once.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/shein-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search, e.g. `summer dress` or `phone case`. |
+| `sort` | no | `relevance` (default), `price_low` or `price_high`. |
+| `min_price` / `max_price` | no | Price range in USD (whole dollars). |
+| `max_results` | no | How many products to return. Default `20`, which is also the most a call returns (SHEIN's first results page). |
+| `page` | no | Must be `1`: SHEIN does not serve deeper results pages. |
+| `proxy_country` | no | Proxy country (ISO-2). Optional. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/shein-search?query=summer%20dress&sort=price_low&max_price=30" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.shein_search("summer dress", sort="price_low", max_price=30)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.sheinSearch("summer dress", { sort: "price_low", maxPrice: 30 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->sheinSearch('summer dress', ['sort' => 'price_low', 'max_price' => 30]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.shein_search("summer dress", sort: "price_low", max_price: 30)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "summer dress",
+  "sort": "price_low",
+  "resultsCollected": 20,
+  "totalResults": 17869,
+  "products": [
+    {
+      "id": "551140948",
+      "sku": "sc260809122379322028366",
+      "title": "Heart Print Women's Crew Neck TShirt Dress, Outfits, Loungewear, Travel ...",
+      "url": "https://us.shein.com/Heart-Print-Women-s-Crew-Neck-TShirt-Dress-Outfits-Loungewear-Travel-Fashionable-Comfortable-Wear-Street-Style-Short-Sleeve-Summer-Casual-Chic-W-p-551140948.html",
+      "price": 1.7,
+      "originalPrice": 11.3,
+      "currency": "USD",
+      "discountPercent": 85,
+      "rating": null,
+      "reviewCount": 0,
+      "category": "Petticoats",
+      "categoryId": "3284",
+      "image": "https://img.ltwebstatic.com/v4/j/spmp/2026/08/09/eb/17862494339cf764407b3df0ca4b4c89177eaba5b5_thumbnail_405x552.jpg",
+      "soldOut": false,
+      "storeCode": "2475940400"
+    },
+    {
+      "id": "29160692",
+      "sku": "sz2312042025515952",
+      "title": "Travachic Navy Blue Summer Tropical Print Sleeveless Round Neck Vacation Dress ...",
+      "url": "https://us.shein.com/Travachic-Navy-Blue-Summer-Tropical-Print-Sleeveless-Round-Neck-Vacation-Dress-Women-s-Elegant-Beach-Holiday-Boho-Outfits-Bohemian-Style-For-Wedding-Season-p-29160692.html",
+      "price": 3.75,
+      "originalPrice": 10.09,
+      "currency": "USD",
+      "discountPercent": 63,
+      "rating": 4.89,
+      "reviewCount": 1001,
+      "category": "Women Mini Dresses",
+      "categoryId": "12475",
+      "image": "https://img.ltwebstatic.com/v4/j/pi/2025/04/10/21/174429927030e1f1ba718ce19a851586f05b03e747_thumbnail_405x552.jpg",
+      "soldOut": false,
+      "storeCode": "1137542320"
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` | SHEIN goods id, the number at the end of the product URL (`-p-<id>.html`). |
+| `sku` | SHEIN's SKU code for the product. |
+| `title` / `url` | Product title and a clean product URL. |
+| `price` / `currency` | Current price and ISO currency (USD). |
+| `originalPrice` / `discountPercent` | The list price the product is discounted from and the discount in percent. |
+| `rating` / `reviewCount` | Star rating (out of 5) and number of reviews. `rating` is `null` for a product with no reviews. |
+| `category` / `categoryId` | SHEIN's category name and id for the product. |
+| `image` | Product image URL. |
+| `soldOut` | `true` when the product is sold out. |
+| `storeCode` | Code of the SHEIN store (seller) that lists the product. |
+
+## What you can build
+
+- **Fast-fashion price tracking** - follow prices and discounts for a keyword over time.
+- **Trend research** - see which styles and categories SHEIN ranks for a search, with review counts as a demand signal.
+- **Competitor monitoring** - compare SHEIN prices with your own catalog for the same product types.
+- **Stock watch** - flag products that go `soldOut`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a SHEIN search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

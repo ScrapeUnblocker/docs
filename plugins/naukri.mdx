@@ -1,0 +1,144 @@
+---
+title: "Naukri plugin"
+description: "Naukri job listings as clean JSON - title, company, location and work mode, experience range, salary with parsed min and max, skills, company rating and posted date."
+sidebarTitle: "Naukri"
+---
+
+The **Naukri** plugin turns a search on India's largest job board into structured JSON. Give it a keyword and, optionally, a city, and get the jobs back: title, company with its rating and review count, location with the work mode (hybrid, remote or on-site), the experience range with parsed minimum and maximum years, the salary with parsed minimum and maximum where the employer discloses it, skills, a short snippet, the posted date and a clean job URL.
+
+Filter by experience, posting age and remote, sort by relevance or date, and collect up to 1,000 jobs in one call. No Naukri account is needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Job search
+
+```
+POST /jobs/naukri
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `keyword` | yes | What to search, e.g. `python developer` or `data analyst`. |
+| `location` | no | City to search in, e.g. `Bangalore` or `Mumbai`. |
+| `experience` | no | Candidate experience in years, `0`-`30`. |
+| `days` | no | Maximum posting age in days: `1`, `3`, `7`, `15` or `30`. |
+| `remote` | no | `true` for work-from-home / remote jobs only. Default `false`. |
+| `sort` | no | `relevance` (default) or `date`. |
+| `max_results` | no | How many jobs to collect across pages (about 20 per page). Default `40`, max `1000`. |
+| `page` | no | 1-based results page to start from. Default `1`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/jobs/naukri?keyword=python%20developer&location=Bangalore&max_results=20" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.naukri_jobs("python developer", location="Bangalore", max_results=20)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.naukriJobs("python developer", {
+  location: "Bangalore",
+  maxResults: 20,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->naukriJobs('python developer', [
+    'location' => 'Bangalore',
+    'max_results' => 20,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.naukri_jobs("python developer", location: "Bangalore", max_results: 20)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "keyword": "python developer",
+  "location": "Bangalore",
+  "jobs": [
+    {
+      "jobId": "050925009110",
+      "title": "Python Software Developer AWS",
+      "url": "https://www.naukri.com/job-listings-python-software-developer-aws-capgemini-bengaluru-mumbai-all-areas-7-to-12-years-050925009110",
+      "company": "Capgemini",
+      "companyUrl": "https://www.naukri.com/capgemini-jobs-careers-649",
+      "companyRating": 3.6,
+      "reviewsCount": 58279,
+      "experience": "7-12 Yrs",
+      "experienceMinYears": 7,
+      "experienceMaxYears": 12,
+      "location": "Hybrid - Bengaluru, Mumbai (All Areas)",
+      "locations": ["Bengaluru", "Mumbai (All Areas)"],
+      "workMode": "hybrid",
+      "workFromHome": true,
+      "salary": { "text": "15-30 Lacs PA", "unit": "lacs_pa", "min": 15.0, "max": 30.0 },
+      "skills": ["AWS Lambda", "cloud watch", "FASTAPi", "python developer"],
+      "description": "Experience working with containerization technologies like Kubernetes for deployment on...",
+      "postedDate": "2 weeks ago",
+      "companyLogo": "https://img.naukimg.com/logo_images/groups/v1/1288.gif"
+    }
+  ],
+  "resultsCollected": 20,
+  "totalResults": 10332,
+  "query": { "experience": null, "days": null, "remote": false, "sort": "relevance" }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `jobId` / `title` / `url` | Naukri job id, job title and a clean job URL. |
+| `company` / `companyUrl` / `companyLogo` | Hiring company, its Naukri page and logo. |
+| `companyRating` / `reviewsCount` | Company rating and number of reviews on Naukri. |
+| `experience` | Experience range as printed (e.g. `7-12 Yrs`), parsed into `experienceMinYears` / `experienceMaxYears`. |
+| `location` / `locations` | Location line as printed and the list of cities. |
+| `workMode` / `workFromHome` | `hybrid`, `remote` or `on-site`, and a work-from-home flag. |
+| `salary` | `text` as printed (e.g. `15-30 Lacs PA`), `unit` (e.g. `lacs_pa`) and parsed `min` / `max`. Present only when the employer discloses pay. |
+| `skills` | Skills tagged on the job. |
+| `description` | Short snippet of the job description. |
+| `postedDate` | Posting age as Naukri prints it, e.g. `2 weeks ago` or `Just now`. |
+
+`totalResults` is the number of matches Naukri reports for the search.
+
+## What you can build
+
+- **Salary benchmarking** - compare disclosed salary ranges by role, city and experience.
+- **Skills demand tracking** - count which `skills` appear most for a role over time.
+- **Hiring signals** - follow which companies post the most jobs for a keyword.
+- **Job aggregation** - feed fresh Indian job listings into your own board or alerts with `sort=date`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Naukri search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

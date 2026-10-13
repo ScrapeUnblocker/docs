@@ -1,0 +1,180 @@
+---
+title: "ImmobilienScout24 plugin"
+description: "German property listings from ImmobilienScout24 as clean JSON - cold and warm rent or purchase price, rooms, living area, address, coordinates, energy class and realtor."
+sidebarTitle: "ImmobilienScout24"
+---
+
+The **ImmobilienScout24** plugin turns a search on Germany's largest property portal into structured JSON. Give it a German city, a state or an ImmobilienScout24 region path, choose rent or buy and apartment or house, and get the listings back: title, price with its type (cold rent, warm rent or purchase price), warm rent, living area, rooms, plot area, street, postcode, district and coordinates, construction year, energy efficiency class, the realtor, images and a clean listing URL.
+
+Filter by price, rooms and living area, and collect up to 500 listings in one call. No ImmobilienScout24 account is needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Property search
+
+```
+POST /realestate/immobilienscout24
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `location` | yes | German city (`Berlin`, `Muenchen`, `Köln`, `Frankfurt am Main`), a state (`Bayern`) or an ImmobilienScout24 region path such as `berlin/berlin/mitte` or `bayern/muenchen-kreis/unterschleissheim`. An unknown location returns `400`. |
+| `channel` | no | `rent` (default) or `buy`. |
+| `property_type` | no | `apartment` (default) or `house`. |
+| `min_price` / `max_price` | no | Price range in EUR: cold rent per month, or purchase price with `channel=buy`. |
+| `min_rooms` / `max_rooms` | no | Room range. Half rooms are allowed, e.g. `2.5`. |
+| `min_area` / `max_area` | no | Living area range in m². |
+| `max_results` | no | How many listings to collect across pages (20 per page). Default `20`, max `500`. |
+| `page` | no | 1-based results page to start from. Default `1`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/realestate/immobilienscout24?location=Berlin&channel=rent&min_rooms=2&max_results=20" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.immobilienscout24_search(
+    "Berlin",
+    channel="rent",
+    min_rooms=2,
+    max_results=20,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.immobilienscout24Search("Berlin", {
+  channel: "rent",
+  minRooms: 2,
+  maxResults: 20,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->immobilienscout24Search('Berlin', [
+    'channel' => 'rent',
+    'min_rooms' => 2,
+    'max_results' => 20,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.immobilienscout24_search(
+  "Berlin",
+  channel: "rent",
+  min_rooms: 2,
+  max_results: 20
+)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "location": "Berlin",
+  "regionPath": "berlin/berlin",
+  "channel": "rent",
+  "property_type": "apartment",
+  "listings": [
+    {
+      "id": "168052908",
+      "url": "https://www.immobilienscout24.de/expose/168052908",
+      "title": "Naturverbunden wohnen in kompakter 2-Zimmer-Gartenwohnung mit WBS-140-Förderung",
+      "propertyType": "ApartmentRent",
+      "price": 362,
+      "currency": "EUR",
+      "priceType": "rent_cold",
+      "priceOnRequest": false,
+      "warmRent": 569,
+      "livingArea": 51.7,
+      "rooms": 2,
+      "plotArea": null,
+      "address": "Hellersdorfer Straße 91, Hellersdorf, Berlin",
+      "street": "Hellersdorfer Straße 91",
+      "postcode": "12619",
+      "city": "Berlin",
+      "district": "Kaulsdorf (Hellersdorf)",
+      "coordinates": { "lat": 52.52485, "lng": 13.58695 },
+      "image": "https://pictures.immobilienscout24.de/listings/7059e813-0eb0-4e71-82d6-e98b247a3755-2033933665.jpg/ORIG/legacy_thumbnail/800x600/format/jpg/quality/50",
+      "images": [
+        "https://pictures.immobilienscout24.de/listings/7059e813-0eb0-4e71-82d6-e98b247a3755-2033933665.jpg/ORIG/legacy_thumbnail/800x600/format/jpg/quality/50"
+      ],
+      "realtor": "GESOBAU AG",
+      "privateOffer": false,
+      "constructionYear": 2025,
+      "energyEfficiencyClass": "B",
+      "tags": [],
+      "isNew": true,
+      "publishedAt": "2026-10-07T12:56:54.000+02:00"
+    }
+  ],
+  "resultsCollected": 20,
+  "totalResults": 9131,
+  "truncated": false,
+  "query": {
+    "minPrice": null,
+    "maxPrice": null,
+    "minRooms": 2.0,
+    "maxRooms": null,
+    "minArea": null,
+    "maxArea": null,
+    "page": 1
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` / `title` | Listing (expose) id, clean URL and title. |
+| `propertyType` | ImmobilienScout24's type, e.g. `ApartmentRent`. |
+| `price` / `currency` / `priceType` | Price in EUR and what it is: `rent_cold`, `rent_warm` or `purchase`. |
+| `priceOnRequest` | `true` when the advertiser shows no price. |
+| `warmRent` | Warm rent (rent including running costs), when shown. |
+| `livingArea` / `rooms` / `plotArea` | Living area in m², rooms and plot area in m² (houses). |
+| `address`, `street`, `postcode`, `city`, `district` | Address parts. |
+| `coordinates` | `lat` / `lng`. |
+| `image` / `images` | Main photo and the listing photos. |
+| `realtor` / `privateOffer` | Advertiser name and whether it is a private offer. |
+| `constructionYear` / `energyEfficiencyClass` | Year built and energy class. |
+| `tags` | Feature tags such as `Balkon/Terrasse`, `Einbauküche` or `Aufzug`. |
+| `isNew` / `publishedAt` | ImmobilienScout24's "new" flag and the publish time. |
+
+The response also carries the resolved `regionPath`, `totalResults` (matches ImmobilienScout24 reports) and `truncated`, which is `true` when the call stopped paging early to stay within its time limit; continue from the next `page` to get the rest.
+
+## What you can build
+
+- **Rent indexes** - track cold and warm rent per m² by city and district.
+- **Housing supply monitoring** - count new listings by region, rooms and price band with `isNew` and `publishedAt`.
+- **Investment screening** - compare purchase prices, living area, construction year and energy class across cities.
+- **Realtor analysis** - see which realtors list the most in a region.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an ImmobilienScout24 search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

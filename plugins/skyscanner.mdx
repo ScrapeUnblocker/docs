@@ -4,7 +4,7 @@ description: "Live Skyscanner flights, hotels and car-hire data as clean JSON - 
 sidebarTitle: "Skyscanner"
 ---
 
-Three plugins turn live Skyscanner results into structured JSON: **Flights**, **Hotels** and **Car Hire**. Each one resolves free-text place names for you, runs the search on warm, anti-bot-cleared sessions, and returns a full, sorted result set.
+Three plugins turn live Skyscanner results into structured JSON: **Flights**, **Hotels** and **Car Hire**. Each one resolves free-text place names for you, runs the search on anti-bot-cleared sessions, and returns a full, sorted result set.
 
 All three share one API key and honour the parameters that drive real pricing:
 
@@ -30,10 +30,66 @@ Live itineraries for a route and date. Every option returns with price, airline,
 | `cabin` | no | `economy`, `premium_economy`, `business`, `first`. |
 | `market` / `locale` / `currency` | no | See above. |
 
-```bash
-curl -X POST "https://api.scrapeunblocker.com/flights/skyscanner-quotes?origin=London&dest=Krakow&depart_date=2026-09-11&market=UK&locale=en-GB&currency=EUR&adults=1" \
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/flights/skyscanner-quotes?origin=London&dest=Krakow&depart_date=2026-12-11&currency=EUR" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.skyscanner.flights(
+    origin="London",
+    dest="Krakow",
+    depart_date="2026-12-11",
+    currency="EUR",
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.skyscanner.flights({
+  origin: "London",
+  dest: "Krakow",
+  depart_date: "2026-12-11",
+  currency: "EUR",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->skyscanner->flights([
+    'origin' => 'London',
+    'dest' => 'Krakow',
+    'depart_date' => '2026-12-11',
+    'currency' => 'EUR',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.skyscanner.flights(
+  origin: "London",
+  dest: "Krakow",
+  depart_date: "2026-12-11",
+  currency: "EUR"
+)
+```
+
+</CodeGroup>
 
 The response contains `itineraries.results[]`, each with `price`, `legs[]` (times, airports, carriers, stop count) and `pricingOptions[]` - the `pricingOptions[].items[].url` is the deep link to that fare.
 
@@ -51,10 +107,66 @@ Every hotel for a city and check-in/check-out window, with nightly price, total 
 | `max_results` | no | More results = more pages walked (~35/page, up to `300`). |
 | `market` / `locale` / `currency` | no | See above. |
 
-```bash
-curl -X POST "https://api.scrapeunblocker.com/hotels/skyscanner-quotes?destination=London&checkin=2026-08-12&checkout=2026-08-14&adults=2&rooms=1&market=UK&locale=en-GB&currency=GBP&max_results=100" \
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/hotels/skyscanner-quotes?destination=London&checkin=2026-12-14&checkout=2026-12-16&max_results=100" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.skyscanner.hotels(
+    destination="London",
+    checkin="2026-12-14",
+    checkout="2026-12-16",
+    max_results=100,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.skyscanner.hotels({
+  destination: "London",
+  checkin: "2026-12-14",
+  checkout: "2026-12-16",
+  max_results: 100,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->skyscanner->hotels([
+    'destination' => 'London',
+    'checkin' => '2026-12-14',
+    'checkout' => '2026-12-16',
+    'max_results' => 100,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.skyscanner.hotels(
+  destination: "London",
+  checkin: "2026-12-14",
+  checkout: "2026-12-16",
+  max_results: 100
+)
+```
+
+</CodeGroup>
 
 The response contains a `hotels[]` list with `name`, per-night and total price, `stars`, review score and count, `distance`, `image` and a link.
 
@@ -77,10 +189,66 @@ Give the location either as a **name** (`pickup`, resolved via autosuggest) or a
 
 A place name that can't be resolved returns an error instead of silently searching a different location - pass `pickup_entity` / `dropoff_entity` to target a location exactly. The `X-Pickup-Entity` / `X-Pickup-Name` (and `X-Dropoff-Entity` / `X-Dropoff-Name`) response headers report the location that was actually searched.
 
-```bash
-curl -X POST "https://api.scrapeunblocker.com/carhire/skyscanner-quotes?pickup=Madrid&pickup_datetime=2026-09-11T10:00&dropoff_datetime=2026-09-13T10:00&market=UK&locale=en-GB&currency=EUR&driver_age=30" \
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/carhire/skyscanner-quotes?pickup=Madrid&pickup_datetime=2026-12-11T10:00&dropoff_datetime=2026-12-13T10:00&currency=EUR" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.skyscanner.carhire(
+    pickup="Madrid",
+    pickup_datetime="2026-12-11T10:00",
+    dropoff_datetime="2026-12-13T10:00",
+    currency="EUR",
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.skyscanner.carhire({
+  pickup: "Madrid",
+  pickup_datetime: "2026-12-11T10:00",
+  dropoff_datetime: "2026-12-13T10:00",
+  currency: "EUR",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->skyscanner->carhire([
+    'pickup' => 'Madrid',
+    'pickup_datetime' => '2026-12-11T10:00',
+    'dropoff_datetime' => '2026-12-13T10:00',
+    'currency' => 'EUR',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.skyscanner.carhire(
+  pickup: "Madrid",
+  pickup_datetime: "2026-12-11T10:00",
+  dropoff_datetime: "2026-12-13T10:00",
+  currency: "EUR"
+)
+```
+
+</CodeGroup>
 
 The response is Skyscanner's raw car-hire JSON: a `quotes[]` list plus a `providers` map and a `query` echo. Each quote includes `car_name`, `vndr` (rental company), `price`, `seat`, `bags`, `fuel_pol`, `sipp`, `pickup_type`, `dplnk` (booking deeplink path - prefix with `https://www.skyscanner.net`), `prv_id` (booking-provider code, resolved to a name via the top-level `providers` map) and an `adds` object of extras (`unlim_mlg`, `incl_mlg`, `free_cancel`, `excess_insr`, and other coverage flags).
 

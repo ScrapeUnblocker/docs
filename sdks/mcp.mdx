@@ -27,6 +27,8 @@ Requires Node.js 18+. Published on npm as [`scrapeunblocker-mcp`](https://www.np
 | `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
 | `google_search` | Run a Google search and return organic results as JSON. |
 | `list_elements` | List a page's interactive elements (buttons, inputs, links, forms) with ready-to-use selectors. |
+| `list_plugins` | List the ready-made [site plugins](/plugins/overview) (Amazon, Walmart, Zillow, Booking.com, Indeed, Google Trends, YouTube, App Store, Ahrefs and 100+ more) with their parameters. Free - it calls nothing. |
+| `run_plugin` | Run one site plugin and return its structured JSON. Each run is billed like an API request. |
 
 ## Get an API key
 
@@ -160,6 +162,8 @@ See the full, screenshot-by-screenshot [ChatGPT setup guide](/sdks/chatgpt).
 - "This page keeps blocking me: `https://example-shop.com/product/123`. Use `fetch_html` to get it and list the price."
 - "Fetch the parsed data for `https://www.amazon.com/dp/B08N5WRWNW` and summarise the product."
 - "Search Google for `best running shoes 2026` and give me the top 5 links, then fetch the first one."
+- "Find coffee makers on Target under $50 and compare them with Walmart's." (uses `run_plugin`)
+- "Show Google Trends for `coffee` vs `tea` in the US over the last year."
 
 ## Configuration
 

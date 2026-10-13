@@ -1,0 +1,171 @@
+---
+title: "AutoScout24 plugin"
+description: "AutoScout24 car listings as clean JSON - make, model, price with price rating, mileage, first registration, fuel, gearbox, power, location and seller, with full search filters."
+sidebarTitle: "AutoScout24"
+---
+
+The **AutoScout24** plugin turns a car search on Europe's largest car marketplace into structured JSON. Pass a make and model and the filters you need, and get the listings back: title, make, model and variant, condition, price (amount, formatted price and AutoScout24's price rating), mileage, first registration, fuel, transmission, power in kW and hp, engine size, location (country, ZIP, city, street), the seller (type, name, phones) and the listing images.
+
+Filter by fuel, transmission, price, registration year, mileage, power and seller country, sort the results, and collect up to 400 listings in one call. No AutoScout24 account is needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Car search
+
+```
+POST /vehicles/autoscout24
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `make` | no | Make slug, e.g. `bmw`, `volkswagen` or `audi`. |
+| `model` | no | Model slug, e.g. `x5` or `golf`. Requires `make`. |
+| `fuel` | no | `gasoline`, `diesel`, `electric`, `hybrid`, `lpg` or `cng` (or a raw AutoScout24 fuel code). |
+| `transmission` | no | `automatic`, `manual` or `semi-automatic`. |
+| `price_from` / `price_to` | no | Price range in EUR. |
+| `year_from` / `year_to` | no | First-registration year range. |
+| `mileage_to` | no | Maximum mileage in km. |
+| `power_from` / `power_to` | no | Power range, in the unit set by `power_unit`. |
+| `power_unit` | no | `kw` (default) or `hp`. |
+| `country` | no | Seller country (ISO-2), e.g. `DE`, `IT` or `NL`. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc`, `newest`, `mileage_asc`, `year_desc` or `power_desc`. |
+| `max_results` | no | How many listings to collect across pages (about 20 per page). Default `40`, max `400`. |
+| `page` | no | 1-based results page to start from. Default `1`, max `20`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/vehicles/autoscout24?make=bmw&model=x5&fuel=diesel" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.autoscout24_search(make="bmw", model="x5", fuel="diesel")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.autoscout24Search({ make: "bmw", model: "x5", fuel: "diesel" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->autoscout24Search([
+    'make' => 'bmw',
+    'model' => 'x5',
+    'fuel' => 'diesel',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.autoscout24_search(make: "bmw", model: "x5", fuel: "diesel")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "make": "bmw",
+  "model": "x5",
+  "listings": [
+    {
+      "id": "b3fc1dd2-17a4-42e4-9da2-f2868795cc70",
+      "url": "https://www.autoscout24.com/offers/bmw-x5-xdrive-30d-m-sport-garantie-finanzierung-diesel-black-cat_ma13mo16406-b3fc1dd2-17a4-42e4-9da2-f2868795cc70",
+      "title": "xDrive 30d M-Sport *Garantie*Finanzierung*",
+      "make": "BMW",
+      "model": "X5",
+      "modelGroup": "X5",
+      "variant": "X5",
+      "condition": "used",
+      "isNewListing": false,
+      "price": { "raw": 29990, "formatted": "€ 29,990", "label": "top-price" },
+      "mileageKm": 96418,
+      "firstRegistration": "05/2017",
+      "fuel": "Diesel",
+      "transmission": "Automatic",
+      "powerKw": 190,
+      "powerHp": 258,
+      "engineCc": 2993,
+      "location": { "country": "DE", "zip": "88471", "city": "Laupheim", "street": "Neue Welt 16" },
+      "seller": {
+        "type": "Dealer",
+        "name": "Premium Cars Group GmbH",
+        "id": "41125668",
+        "phones": ["+497392..."]
+      },
+      "images": [
+        "https://prod.pictures.autoscout24.net/listing-images/b3fc1dd2-17a4-42e4-9da2-f2868795cc70_934a1c1a-aab2-498a-8f54-ae56b5fce76d.jpg/250x188.webp"
+      ]
+    }
+  ],
+  "resultsCollected": 40,
+  "totalResults": 4487,
+  "totalPages": 200,
+  "query": {
+    "fuel": "diesel",
+    "transmission": null,
+    "priceFrom": null,
+    "priceTo": null,
+    "yearFrom": null,
+    "yearTo": null,
+    "mileageTo": null,
+    "powerFrom": null,
+    "powerTo": null,
+    "powerUnit": "kw",
+    "country": null,
+    "sort": "relevance"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` | AutoScout24 listing id and a clean listing URL. |
+| `title` | Listing title (the version line the seller wrote). |
+| `make` / `model` / `modelGroup` / `variant` | Make and model as AutoScout24 names them. |
+| `condition` | `used`, `new`, `demonstration`, `old-timer` or `employee-car`. |
+| `isNewListing` | `true` when the listing was posted recently (not a new car). |
+| `price` | `raw` (number, EUR), `formatted` (as printed) and `label`, AutoScout24's price rating (e.g. `top-price`, `good-price`, `fair-price`, `expensive`). |
+| `mileageKm` / `firstRegistration` | Mileage in km and first registration (`MM/YYYY`). |
+| `fuel` / `transmission` | Fuel type and gearbox. |
+| `powerKw` / `powerHp` / `engineCc` | Power in kW and hp, engine size in cc. |
+| `location` | Seller `country`, `zip`, `city` and `street`. |
+| `seller` | Seller `type` (e.g. `Dealer`), `name`, AutoScout24 `id` and `phones`. |
+| `images` | Listing photo URLs. |
+
+`totalResults` and `totalPages` are the counts AutoScout24 reports for the search.
+
+## What you can build
+
+- **Used-car pricing** - build price curves by make, model, year, mileage and power across European markets.
+- **Deal finding** - sort by price and filter on AutoScout24's `top-price` and `good-price` ratings.
+- **Dealer and stock analysis** - track listings and prices per seller and country.
+- **Market alerts** - run a search on a schedule with `sort=newest` and flag new listings.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an AutoScout24 search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

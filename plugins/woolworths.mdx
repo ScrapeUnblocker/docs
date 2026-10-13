@@ -1,0 +1,519 @@
+---
+title: "Woolworths plugin"
+description: "Woolworths Australia groceries as clean JSON - search, category and specials listings with price, was-price, unit price and promotions, and one product in full with ingredients, allergens and nutrition."
+sidebarTitle: "Woolworths"
+---
+
+The **Woolworths** plugin returns Woolworths Australia (woolworths.com.au) grocery data as structured JSON. One endpoint covers four methods: **search** by keyword, list a **category**, list a **specials** page (Half Price by default), or fetch one **product** in full with its ingredients, allergens and nutrition panel.
+
+Every product carries its stockcode, name, brand, size, barcode and link, the price with any was-price and saving, the promotion (half price, special, multibuy or offer), the unit price, stock and purchase limit, the health star rating and its categories. Prices are Woolworths' online prices in AUD. Listings return 36 products per page; `max_results` collects up to 360 across pages, and each page fetched is one billed unit (`pagesFetched`).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+Products matching a keyword.
+
+```
+POST /groceries/woolworths
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `search` by `woolworthsSearch`. In a raw request `search` is the default. |
+| `query` | yes | What to search for, e.g. `milk`, `tim tam` or `chicken breast`. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc`, `unit_price_asc`, `unit_price_desc` or `name`. |
+| `specials_only` | no | `true` keeps only products on special. Default `false`. |
+| `page` | no | 1-based listing page to start from (36 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`360`. Default `36`. Each page fetched is one billed unit. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `AU`). Woolworths answers every country, so leave it blank unless you need one. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/woolworths?mode=search&query=milk&sort=unit_price_asc&max_results=36" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.woolworths_search("milk", sort="unit_price_asc", max_results=36)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.woolworthsSearch("milk", { sort: "unit_price_asc", maxResults: 36 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->woolworthsSearch('milk', ['sort' => 'unit_price_asc', 'max_results' => 36]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.woolworths_search("milk", sort: "unit_price_asc", max_results: 36)
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "search",
+  "query": "milk",
+  "category": null,
+  "sort": "unit_price_asc",
+  "specialsOnly": false,
+  "totalResults": 112,
+  "totalPages": 4,
+  "page": 1,
+  "pageSize": 36,
+  "nextPage": 2,
+  "resultsCollected": 36,
+  "products": [
+    {
+      "id": "694751",
+      "name": "Woolworths Essentials Coconut Milk 400mL",
+      "brand": "Woolworths Essentials",
+      "size": "400mL",
+      "url": "https://www.woolworths.com.au/shop/productdetails/694751/woolworths-essentials-coconut-milk",
+      "barcode": "9300633292393",
+      "price": 1.7,
+      "wasPrice": null,
+      "currency": "AUD",
+      "onSale": false,
+      "savings": null,
+      "promotion": null,
+      "unitPrice": { "price": 0.43, "per": "100ML", "text": "$0.43 / 100ML" },
+      "soldBy": "Each",
+      "inStock": true,
+      "available": true,
+      "purchaseLimit": 36,
+      "isNew": false,
+      "onlineOnly": false,
+      "sponsored": false,
+      "image": "https://cdn1.woolworths.media/content/wowproductimages/large/694751.jpg",
+      "categories": ["International Foods", "Pantry", "Asian"],
+      "healthStarRating": 3.0,
+      "rating": null
+    }
+  ],
+  "pagesFetched": 1,
+  "suggestedTerm": null
+}
+```
+
+The search, category and specials methods return the same product objects:
+
+| Field | Notes |
+| --- | --- |
+| `id` | Woolworths stockcode. Pass it to [Product](#product). |
+| `name` / `brand` / `size` | Product name, brand and pack size as Woolworths shows them. |
+| `url` / `barcode` | Product page link and the EAN barcode. |
+| `price` / `wasPrice` / `savings` | Current price, the struck-through price and the saving, in AUD. `wasPrice` and `savings` are `null` when the product is not on special. |
+| `onSale` / `promotion` | Whether the product is on special, and the deal: `type` (`half_price`, `special`, `multibuy` or `offer`) and `text`; multibuy deals add `quantity` and `price`. |
+| `unitPrice` | Price per unit: `price`, `per` (e.g. `1L`, `100G`) and the label `text`. |
+| `soldBy` / `inStock` / `available` / `purchaseLimit` | How it is sold, stock and availability flags, and the maximum per order. |
+| `isNew` / `onlineOnly` / `sponsored` | Woolworths' flags. Sponsored products are placed by Woolworths and can repeat across pages; repeats are dropped. |
+| `image` / `categories` | Product image URL and the categories it belongs to. |
+| `healthStarRating` / `rating` | Health Star Rating (out of 5) and the shopper rating, `null` when Woolworths shows none. |
+
+`totalResults`, `totalPages` and `nextPage` page through the rest; pass `nextPage` as `page` to continue. `suggestedTerm` carries Woolworths' spelling suggestion when it has one.
+
+<Note>
+Woolworths shows tobacco products only to signed-in shoppers. A tobacco search returns `200` with no products and an entry in `warnings` explaining why.
+</Note>
+
+## Category
+
+One category listing, such as Milk or Bakery.
+
+```
+POST /groceries/woolworths
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `category` by `woolworthsCategory`. In a raw request it is implied when `category` is given. |
+| `category` | yes | A browse link (`https://www.woolworths.com.au/shop/browse/dairy-eggs-fridge/milk`), its path (`dairy-eggs-fridge/milk`) or a category id (`1_6E4F4E4`). |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc`, `unit_price_asc`, `unit_price_desc` or `name`. |
+| `page` | no | 1-based listing page to start from (36 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`360`. Default `36`. Each page fetched is one billed unit. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `AU`). Leave blank unless you need one. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/woolworths?mode=category&category=dairy-eggs-fridge/milk&sort=price_asc" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.woolworths_category("dairy-eggs-fridge/milk", sort="price_asc")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.woolworthsCategory("dairy-eggs-fridge/milk", { sort: "price_asc" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->woolworthsCategory('dairy-eggs-fridge/milk', ['sort' => 'price_asc']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.woolworths_category("dairy-eggs-fridge/milk", sort: "price_asc")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "category",
+  "query": null,
+  "category": {
+    "id": "1_223D9D6",
+    "name": "Milk",
+    "url": "https://www.woolworths.com.au/shop/browse/dairy-eggs-fridge/milk"
+  },
+  "sort": "price_asc",
+  "specialsOnly": null,
+  "totalResults": 282,
+  "totalPages": 8,
+  "page": 1,
+  "pageSize": 36,
+  "nextPage": 2,
+  "resultsCollected": 36,
+  "products": [
+    {
+      "id": "310679",
+      "name": "Devondale Pure Full Cream Long Life Milk 150mL",
+      "brand": "Devondale",
+      "size": "150mL",
+      "url": "https://www.woolworths.com.au/shop/productdetails/310679/devondale-pure-full-cream-long-life-milk",
+      "barcode": "9300639601106",
+      "price": 1.4,
+      "wasPrice": null,
+      "currency": "AUD",
+      "onSale": false,
+      "savings": null,
+      "promotion": null,
+      "unitPrice": { "price": 9.33, "per": "1L", "text": "$9.33 / 1L" },
+      "soldBy": "Each",
+      "inStock": true,
+      "available": true,
+      "purchaseLimit": 36,
+      "isNew": false,
+      "onlineOnly": false,
+      "sponsored": false,
+      "image": "https://cdn1.woolworths.media/content/wowproductimages/large/310679.jpg",
+      "categories": ["Dairy, Eggs & Fridge", "Drinks", "Pantry", "Milk", "Long Life Milk"],
+      "healthStarRating": null,
+      "rating": null
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `category` | The resolved category: Woolworths' `id`, its `name` and browse `url`. |
+| `products` | Product objects with the fields listed under [Search](#search). |
+
+## Specials
+
+A Woolworths specials page: Half Price by default, or another specials group.
+
+```
+POST /groceries/woolworths
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `specials` by `woolworthsSpecials`. In a raw request send `mode=specials`. |
+| `category` | no | The specials page: `half-price` (default), `lower-shelf-price`, `everyday-low-price`, `seasonal-price`, `buy-more-save-more`, `online-only-specials`, or a specials link. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc`, `unit_price_asc`, `unit_price_desc` or `name`. |
+| `page` | no | 1-based listing page to start from (36 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`360`. Default `36`. Each page fetched is one billed unit. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `AU`). Leave blank unless you need one. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/woolworths?mode=specials&category=half-price" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.woolworths_specials(category="half-price")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.woolworthsSpecials({ category: "half-price" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->woolworthsSpecials(['category' => 'half-price']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.woolworths_specials(category: "half-price")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "specials",
+  "query": null,
+  "category": {
+    "id": "specialsgroup.3676",
+    "name": "Half Price",
+    "url": "https://www.woolworths.com.au/shop/browse/specials/half-price"
+  },
+  "sort": "relevance",
+  "specialsOnly": null,
+  "totalResults": 2013,
+  "totalPages": 56,
+  "page": 1,
+  "pageSize": 36,
+  "nextPage": 2,
+  "resultsCollected": 36,
+  "products": [
+    {
+      "id": "6063002",
+      "name": "The Natural Confectionery Co. Mini Party Mix Bags 160g 8 pack",
+      "brand": "The Natural Confectionery Co.",
+      "size": "160g 8 pack",
+      "url": "https://www.woolworths.com.au/shop/productdetails/6063002/the-natural-confectionery-co-mini-party-mix-bags",
+      "barcode": "9310434006976",
+      "price": 3.75,
+      "wasPrice": 7.5,
+      "currency": "AUD",
+      "onSale": true,
+      "savings": 3.75,
+      "promotion": { "type": "half_price", "text": "Save $3.75" },
+      "unitPrice": { "price": 2.34, "per": "100G", "text": "$2.34 / 100G" },
+      "soldBy": "Each",
+      "inStock": true,
+      "available": true,
+      "purchaseLimit": 36,
+      "isNew": false,
+      "onlineOnly": false,
+      "sponsored": true,
+      "image": "https://cdn1.woolworths.media/content/wowproductimages/large/6063002.jpg",
+      "categories": ["Halloween", "Snacks & Confectionery", "Buckets & Treats", "Confectionery"],
+      "healthStarRating": 1.5,
+      "rating": null
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `category` | The specials group listed: its `id`, `name` and `url`. |
+| `products` | Product objects with the fields listed under [Search](#search). On specials, `onSale`, `wasPrice`, `savings` and `promotion` are filled. |
+
+## Product
+
+One product in full, with ingredients, allergens and the nutrition panel.
+
+```
+POST /groceries/woolworths
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `product` by `woolworthsProduct`. In a raw request it is implied when `product` is given. |
+| `product` | yes | A stockcode (`888137`) or a product link (`https://www.woolworths.com.au/shop/productdetails/888137/woolworths-full-cream-milk`). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `AU`). Leave blank unless you need one. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/woolworths?mode=product&product=888137" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.woolworths_product("888137")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.woolworthsProduct("888137");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->woolworthsProduct('888137');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.woolworths_product("888137")
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "product": {
+    "id": "888137",
+    "name": "Woolworths Full Cream Milk 2L",
+    "brand": "Woolworths",
+    "size": "2L",
+    "url": "https://www.woolworths.com.au/shop/productdetails/888137/woolworths-full-cream-milk",
+    "barcode": "9300633556143",
+    "price": 3.4,
+    "wasPrice": null,
+    "currency": "AUD",
+    "onSale": false,
+    "savings": null,
+    "promotion": null,
+    "unitPrice": { "price": 1.7, "per": "1L", "text": "$1.70 / 1L" },
+    "soldBy": "Each",
+    "inStock": true,
+    "available": true,
+    "purchaseLimit": 36,
+    "isNew": false,
+    "onlineOnly": false,
+    "sponsored": false,
+    "image": "https://cdn0.woolworths.media/content/wowproductimages/large/888137.jpg",
+    "categories": ["Dairy, Eggs & Fridge", "Milk", "Full Cream Milk"],
+    "healthStarRating": 4.0,
+    "rating": null,
+    "description": "Woolworths Full Cream Milk 2L",
+    "ingredients": "Pasteurised and Homogenised Full Cream Milk.",
+    "allergens": {
+      "contains": ["Milk"],
+      "mayContain": [],
+      "freeFrom": ["Egg Free", "Fish Free", "Gluten Free"]
+    },
+    "dietary": ["Gluten Free", "Low Salt", "Source of Protein"],
+    "nutrition": [
+      { "name": "Energy", "perServing": "660.0kJ", "per100": "264.0kJ" },
+      { "name": "Protein", "perServing": "8.2g", "per100": "3.3g" },
+      { "name": "Fat, Total", "perServing": "8.5g", "per100": "3.4g" }
+    ],
+    "servingSize": "250.0 ML",
+    "servingsPerPack": "8.0",
+    "storage": null,
+    "directions": null,
+    "warnings": null,
+    "countryOfOrigin": "Australia",
+    "countryOfOriginLabel": "Product of Australia",
+    "australianIngredientsPercent": 100.0,
+    "department": "dairy",
+    "aisle": "full cream milk",
+    "images": [
+      "https://cdn0.woolworths.media/content/wowproductimages/large/888137.jpg",
+      "https://cdn0.woolworths.media/content/wowproductimages/large/888137_1.jpg"
+    ],
+    "variants": []
+  },
+  "pagesFetched": 1,
+  "query": { "product": "888137" }
+}
+```
+
+`product` carries every field listed under [Search](#search), plus:
+
+| Field | Notes |
+| --- | --- |
+| `description` / `ingredients` | Product description and the ingredient list as printed. |
+| `allergens` | `contains`, `mayContain` and `freeFrom` lists. |
+| `dietary` | Dietary and nutrition claims, e.g. `Gluten Free`. |
+| `nutrition` | Nutrition panel rows: `name`, `perServing` and `per100` (per 100 g or mL). |
+| `servingSize` / `servingsPerPack` | Serving size and servings per pack. |
+| `storage` / `directions` / `warnings` | Storage, usage directions and label warnings, `null` when absent. |
+| `countryOfOrigin` / `countryOfOriginLabel` / `australianIngredientsPercent` | Country of origin, the label text and the share of Australian ingredients. |
+| `department` / `aisle` | Where Woolworths files the product. |
+| `images` / `variants` | All product images, and other sizes or versions of the product. |
+
+## What you can build
+
+- **Grocery price monitoring** - track `price`, `wasPrice` and `unitPrice` for a basket of stockcodes over time.
+- **Specials and promotion tracking** - pull the Half Price and multibuy pages each week and see what goes on deal.
+- **Cross-retailer comparison** - compare unit prices against [Coles](/plugins/coles) and [ALDI Australia](/plugins/aldi-au).
+- **Nutrition and allergen databases** - build a product catalog keyed by barcode with ingredients, allergens and the nutrition panel.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Woolworths search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

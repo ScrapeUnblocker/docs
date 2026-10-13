@@ -6,7 +6,7 @@ sidebarTitle: "Mobile.de Cars"
 
 The **Mobile.de Car** plugin turns any mobile.de search into structured JSON. Give it a make (BMW, Volkswagen, Audi, ...) and it returns the cars mobile.de shows - each with title, make and model, price in EUR, first registration, mileage, power in kW and PS, fuel type and a clean listing URL. Filter by price, year, mileage and fuel, and page through to `max_results`.
 
-It runs on the same fetch chain that serves `getPageSource`. mobile.de is Germany's #1 used-car marketplace and sits behind a strong anti-bot wall, so the plugin renders the result list on a warm, challenge-cleared browser session and reads the cars from mobile.de's own result cards - no mobile.de developer account needed.
+It runs on the same fetch chain that serves `getPageSource`. mobile.de is Germany's #1 used-car marketplace and sits behind a strong anti-bot wall, so the plugin renders the result list in a challenge-cleared browser session and reads the cars from mobile.de's own result cards - no mobile.de developer account needed.
 
 <Note>
 Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
@@ -28,12 +28,57 @@ POST /vehicles/mobile-de
 | `mileage_max` | no | Maximum mileage in km. |
 | `fuel` | no | `petrol`, `diesel`, `electric` or `hybrid`. |
 | `max_results` | no | How many listings to collect across pages (~20 per page). Default `20`, max `500`. |
-| `proxy_country` | no | Exit-IP country (ISO-2). Leave blank for a smart exit. |
+| `page` | no | 1-based results page to start from. Default `1`, max `20`. |
+| `proxy_country` | no | Proxy country (ISO-2). Leave blank to let the API pick. |
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/vehicles/mobile-de?make=bmw&price_max=30000&fuel=diesel&max_results=40" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.mobile_de("bmw", price_max=30000, fuel="diesel", max_results=40)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.mobileDe("bmw", {
+  priceMax: 30000,
+  fuel: "diesel",
+  maxResults: 40,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->mobileDe('bmw', [
+    'price_max' => 30000,
+    'fuel' => 'diesel',
+    'max_results' => 40,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.mobile_de("bmw", price_max: 30000, fuel: "diesel", max_results: 40)
+```
+
+</CodeGroup>
 
 ### Supported makes
 

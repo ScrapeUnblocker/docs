@@ -1,0 +1,133 @@
+---
+title: "Best Buy Search plugin"
+description: "Best Buy product search as clean JSON - SKU, title, brand, model, price, regular price, currency, rating, review count, image and a product link."
+sidebarTitle: "Best Buy Search"
+---
+
+The **Best Buy Search** plugin turns a Best Buy (US) search into structured JSON. Give it a keyword and it returns the products Best Buy shows - each with its `sku`, title, brand, model number, current price and the regular price it is discounted from, currency, star rating, review count, an image and a clean product URL - plus Best Buy's `totalResults`.
+
+Sort by relevance, best selling, price, rating, newest or discount, filter by a USD price range, and collect up to `max_results` products across pages (48 per page) starting from any `page`.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/bestbuy-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search, e.g. `laptop` or `noise cancelling headphones`. |
+| `sort` | no | `relevance` (default), `best_selling`, `price_low`, `price_high`, `rating`, `newest` or `discount`. |
+| `min_price` / `max_price` | no | Price range in USD (whole dollars). |
+| `max_results` | no | How many products to collect across pages. Default `24`, max `500`. |
+| `page` | no | 1-based results page to start from (48 per page, up to 40). Default `1`. |
+| `proxy_country` | no | Proxy country (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/bestbuy-search?query=laptop&sort=price_low&max_results=48" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bestbuy_search("laptop", sort="price_low", max_results=48)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.bestbuySearch("laptop", { sort: "price_low", maxResults: 48 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->bestbuySearch('laptop', ['sort' => 'price_low', 'max_results' => 48]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bestbuy_search("laptop", sort: "price_low", max_results: 48)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "laptop",
+  "sort": "price_low",
+  "resultsCollected": 48,
+  "totalResults": 7084,
+  "products": [
+    {
+      "sku": "10969754",
+      "title": "HP - Refurbished Excellent - Chromebook 11A G8 EE Certified AMD A4-9120C 4 GB DDR4 RAM, 32 GB SSD ...",
+      "brand": "HP",
+      "model": "REF-11AG8",
+      "price": 90.13,
+      "currency": "USD",
+      "rating": 4.0,
+      "reviewCount": 2,
+      "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/de3adfe4-e551-464e-8194-fdbe530d86b4.jpg",
+      "url": "https://www.bestbuy.com/product/hp-chromebook-11a-g8-ee-certified-amd-a4-9120c-4-gb-ddr4-ram-32-gb-ssd-retina-laptop-black/JX9LPJRLHV/sku/10969754"
+    },
+    {
+      "sku": "12077288",
+      "title": "Lenovo - Refurbished Excellent - ThinkPad Yoga 11e Gen 5 11.6\" Touch Laptop 2-in-1 ...",
+      "brand": "Lenovo",
+      "price": 139.99,
+      "originalPrice": 169.99,
+      "currency": "USD",
+      "rating": 0.0,
+      "reviewCount": 0,
+      "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/0906bf5e-5efe-4589-8bc5-7720305a9040.jpg",
+      "url": "https://www.bestbuy.com/product/lenovo-thinkpad-yoga-11e-gen-5-11-6-touch-laptop-2-in-1-celeron-n4100-4gb-ram-128gb-solid-state-drive-windows-11-pro/CLX253SWP7/sku/12077288"
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `sku` | Best Buy's product id, also the last segment of the product URL. |
+| `title` / `brand` / `model` | Product title, brand and model number. |
+| `price` / `currency` | Current price and ISO currency (USD). |
+| `originalPrice` | The regular price, present only when the product is on sale. |
+| `rating` / `reviewCount` | Star rating (out of 5) and number of reviews. A product with no reviews has `rating` `0.0` and `reviewCount` `0`. |
+| `image` / `url` | Product image and a clean product URL. |
+
+A field with no value is left out of that product (for example `model` or `originalPrice`).
+
+## What you can build
+
+- **Price monitoring** - track `price` and `originalPrice` for a SKU to catch sales and price drops.
+- **Assortment research** - pull every laptop, TV or headphone in a category with brand and model.
+- **Repricing and MAP checks** - compare Best Buy prices against your own listings by model number.
+- **Deal feeds** - sort by `discount` to build a live list of the biggest markdowns.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Best Buy search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

@@ -1,0 +1,145 @@
+---
+title: "Google Jobs plugin"
+description: "Google Jobs listings as clean JSON - title, company, location, source, salary, employment type, remote flag, posting age, benefits, logo, a stable job id and a share link."
+sidebarTitle: "Google Jobs"
+---
+
+The **Google Jobs** plugin runs a search on Google's jobs vertical and returns the job cards Google shows as structured JSON. Give it a job search term and, optionally, a location, and each job comes back with its title, company, location, the board it was posted on (`via`), salary and employment type when Google lists them, a remote flag, how long ago it was posted, benefits, the company logo, a stable `jobId` and a `shareUrl` that opens the same job on Google.
+
+Job results depend on the market, so pick it with `gl` (Google country), `hl` (language) and `proxy_country` (the country the search is sent from).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Job search
+
+```
+POST /jobs/google-jobs
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | yes | Job search term, e.g. `software engineer` or `nurse`. |
+| `location` | no | Narrows the search to a place, e.g. `Austin, TX`. It is appended to the query. |
+| `hl` | no | Google interface language, e.g. `en`, `de`. Default `en`. |
+| `gl` | no | Google country of the search (ISO-2, lowercase), e.g. `us`. Default `us`. |
+| `max_results` | no | How many jobs to return, `1`-`100`. Default `10`. One search currently yields about 10 jobs. |
+| `proxy_country` | no | Proxy country the search is sent from (ISO-2, e.g. `US`, `DE`). Jobs are location-sensitive, so pick the market you want. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/jobs/google-jobs?q=software%20engineer&location=Austin%2C%20TX&proxy_country=US" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_jobs("software engineer", location="Austin, TX", proxy_country="US")
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleJobs("software engineer", { location: "Austin, TX", proxyCountry: "US" });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleJobs('software engineer', ['location' => 'Austin, TX', 'proxy_country' => 'US']);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_jobs("software engineer", location: "Austin, TX", proxy_country: "US")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "software engineer",
+  "proxyCountry": "US",
+  "resultsCollected": 10,
+  "jobs": [
+    {
+      "jobId": "FdVlaIRG_oVB7zZqAAAAAA==",
+      "title": "Full-Stack Software Engineer - In Vitro Diagnostics (IVD)",
+      "company": "Signature Science, LLC",
+      "location": "Austin, TX",
+      "via": "Indeed",
+      "postedAge": "4 days ago",
+      "employmentType": "Full-time",
+      "salary": "$105K a year",
+      "remote": false,
+      "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaUS8Ci_sUxs6ftY...",
+      "shareUrl": "https://www.google.com/search?ibp=htl;jobs&q=software+engineer+Austin,+TX&htidocid=FdVlaIRG_oVB7zZqA...",
+      "position": 2
+    },
+    {
+      "jobId": "cwGUVjVZfhpcOT-4AAAAAA==",
+      "title": "Senior Software Engineer, Advanced Development",
+      "company": "Roku",
+      "location": "Austin, TX",
+      "via": "Roku Jobs",
+      "postedAge": "4 days ago",
+      "employmentType": "Full-time",
+      "remote": false,
+      "benefits": ["Paid time off", "Dental insurance", "Health insurance"],
+      "shareUrl": "https://www.google.com/search?ibp=htl;jobs&q=software+engineer+Austin,+TX&htidocid=cwGUVjVZfhpcOT-4A...",
+      "position": 3
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `jobId` | Google's stable id for the job. Use it to deduplicate jobs across searches. |
+| `position` | 1-based position of the job in the results. |
+| `title` / `company` / `location` | The job title, the hiring company and the job location as Google shows them. |
+| `via` | The site the job was posted on, e.g. `Indeed` or the company's own careers site. |
+| `postedAge` | How long ago the job was posted, as Google prints it (e.g. `4 days ago`). |
+| `employmentType` | e.g. `Full-time`, `Part-time`, `Contractor`. |
+| `salary` | The pay as Google shows it (e.g. `$105K a year`), when the job lists one. |
+| `remote` | `true` when Google marks the job as remote. |
+| `qualifications` / `benefits` | Lists Google highlights for the job (e.g. `Health insurance`), when present. |
+| `logo` | Company logo URL. |
+| `shareUrl` | A Google link that opens this job. |
+
+<Note>
+A field Google does not show for a job (salary, benefits, logo) is left out of that job, so check for its presence rather than for `null`.
+</Note>
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `403` | Google kept answering with a CAPTCHA. Retry, or try another `proxy_country`. |
+| `502` | No jobs were collected (no matches, or the search did not finish in time). Retry. |
+
+## What you can build
+
+- **Job market monitoring** - track which companies hire for a role in a city, and how often.
+- **Salary research** - collect the pay Google lists for a role across locations.
+- **Job board aggregation** - pull listings from many boards through one search, deduplicated by `jobId`.
+- **Hiring signals** - watch a company's new postings as a sales or investment signal.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Google Jobs search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

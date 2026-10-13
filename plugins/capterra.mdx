@@ -1,0 +1,344 @@
+---
+title: "Capterra plugin"
+description: "Capterra software reviews as clean JSON - product rating, four sub-ratings, pricing and categories, and each review's ratings, pros, cons, reviewer role and company size - plus catalog search."
+sidebarTitle: "Capterra"
+---
+
+The **Capterra** plugin turns a Capterra product and its reviews into structured JSON. Give it a product - its numeric id such as `135003`, `id/slug` such as `135003/Slack`, or a capterra.com product URL - and it returns the product (name, vendor, overall rating, review count, the four sub-ratings, categories, description and pricing with its plans) plus the reviews: title, overall and sub-ratings, likelihood to recommend, date, the reviewer's job title, industry, company size and time using the product, comments, pros, cons, reasons for choosing or switching, the incentive and source badges, and the vendor's response.
+
+Reviews come in Capterra's "Most Helpful" order, 25 to a page; one call collects up to 500. The same endpoint also searches Capterra's product catalog by keyword.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Product reviews
+
+```
+POST /reviews/capterra
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product` | yes | Capterra product: numeric id (`135003`), `id/slug` (`135003/Slack`) or a capterra.com product URL such as `https://www.capterra.com/p/135003/Slack/reviews/`. |
+| `mode` | - | Set to `reviews` by `capterraReviews`. |
+| `slug` | no | Product slug to go with a bare id, e.g. `Slack`. Capterra finds the product by id alone; the canonical slug is returned. |
+| `page` | no | 1-based review page to start from: 25 reviews per page, at most 100 pages per product. Pass the `nextPage` of a previous response to continue. Default `1`. |
+| `max_results` | no | How many reviews to collect across pages, `1`-`500`. Default `25`. Each page fetched is one billed unit. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank for the country chosen for the site. |
+
+<Tip>
+Pass `id/slug` (such as `135003/Slack`) rather than a bare id when you start past page 1. With a bare id, Capterra first redirects to the canonical slug, which costs one extra fetch.
+</Tip>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/reviews/capterra?mode=reviews&product=135003%2FSlack&max_results=25" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.capterra_reviews("135003/Slack", max_results=25)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.capterraReviews("135003/Slack", { maxResults: 25 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->capterraReviews('135003/Slack', ['max_results' => 25]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.capterra_reviews("135003/Slack", max_results: 25)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "product": {
+    "id": "135003",
+    "uuid": "964a02e4-2901-4992-aea5-a6d200b696d4",
+    "slug": "Slack",
+    "name": "Slack",
+    "vendor": {
+      "name": "Slack",
+      "id": "816f42a9-fcd6-4d6f-8f50-75ba9325f1e4"
+    },
+    "rating": 4.7,
+    "reviewCount": 24222,
+    "ratings": {
+      "easeOfUse": 4.6,
+      "customerSupport": 4.4,
+      "features": 4.6,
+      "valueForMoney": 4.5
+    },
+    "categories": [
+      {
+        "name": "Collaboration",
+        "slug": "collaboration-software",
+        "url": "https://www.capterra.com/collaboration-software/"
+      },
+      {
+        "name": "Team Communication",
+        "slug": "team-communication-software",
+        "url": "https://www.capterra.com/team-communication-software/"
+      }
+    ],
+    "description": "Slack is where work happens for millions of people everyday. Slack transforms ho...",
+    "targetMarket": "Slack is used by engineering departments, IT professionals, customer service tea...",
+    "pricing": {
+      "startingPrice": 8.75,
+      "currency": "USD",
+      "plan": "Pro",
+      "pricingModel": "Per User",
+      "paymentFrequency": "Per Month",
+      "freeTrial": true,
+      "freeVersion": true,
+      "plans": [
+        {
+          "name": "Free",
+          "startingPrice": null,
+          "pricingModel": "Flat Rate",
+          "paymentFrequency": "Per Month"
+        },
+        {
+          "name": "Pro",
+          "startingPrice": 8.75,
+          "pricingModel": "Per User",
+          "paymentFrequency": "Per Month"
+        }
+      ]
+    },
+    "videoReviewCount": 20,
+    "logo": "https://gdm-catalog-fmapi-prod.imgix.net/ProductLogo/91f6489...",
+    "url": "https://www.capterra.com/p/135003/Slack/",
+    "reviewsUrl": "https://www.capterra.com/p/135003/Slack/reviews/"
+  },
+  "reviews": [
+    {
+      "id": "7209002",
+      "globalId": "Capterra___7209002",
+      "url": "https://www.capterra.com/p/135003/Slack/#Capterra___7209002",
+      "title": "Slack: Essential for remote work productivity...and employee engagement",
+      "rating": 5.0,
+      "ratings": {
+        "easeOfUse": 5.0,
+        "customerSupport": 5.0,
+        "features": 5.0,
+        "valueForMoney": 5.0,
+        "likelihoodToRecommend": 10
+      },
+      "date": "2026-09-03",
+      "reviewer": {
+        "name": "Alicia R.",
+        "anonymous": false,
+        "title": "Director, Business Development",
+        "industry": "Information Technology and Services",
+        "companySize": "201-500 employees",
+        "timeUsedProduct": "2+ years",
+        "profilePicture": "https://reviews.capterra.com/cdn/profile-images/...",
+        "verifiedLinkedIn": true,
+        "validated": true,
+        "validations": [
+          "LinkedIn",
+          "ProofOfLink"
+        ]
+      },
+      "comments": "Slack has been part of the corporate toolkits of the companies I've wo...",
+      "pros": "Since 2020, I've worked remotely as a business developer across two di...",
+      "cons": "Honestly, not much. The only time I get frustrated with it is when I n...",
+      "reasonsForChoosing": null,
+      "reasonsForSwitching": null,
+      "advice": null,
+      "alternativesConsidered": [],
+      "switchedFrom": [],
+      "answers": [
+        {
+          "question": "Overall",
+          "answer": "Slack has been part of the corporate toolkits of the companies I've wo..."
+        }
+      ],
+      "text": "Slack has been part of the corporate toolkits of the companies I've wo...",
+      "incentive": "NoIncentive",
+      "incentivized": false,
+      "vendorReferred": false,
+      "reviewSource": {
+        "code": "NO",
+        "description": "No Incentive Offered: This review was submitted organically."
+      },
+      "source": "Capterra",
+      "vendorResponse": null
+    }
+  ],
+  "resultsCollected": 25,
+  "totalResults": 24222,
+  "page": 1,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "viewLimitReached": false,
+  "query": {
+    "product": "135003",
+    "slug": "Slack",
+    "order": "most_helpful"
+  }
+}
+```
+
+The `product` carries the overall `rating`, `reviewCount`, the sub-`ratings` (`easeOfUse`, `customerSupport` - Capterra's "Customer Service" rating - `features` and `valueForMoney`), `categories`, `description`, `targetMarket` and `pricing` with its `plans`. `hasMore` and `nextPage` tell you where to continue; `viewLimitReached` is `true` at Capterra's 100-page limit. A product with only a few reviews has no review pages, so its reviews come from its profile in one page. A product without reviews answers `200` with an empty `reviews` list, and an unknown id returns `404`.
+
+### Review fields
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` | Capterra's review id and a link to it. |
+| `title` / `rating` / `date` | Review headline, overall rating (out of 5) and date. |
+| `ratings` | The sub-ratings plus `likelihoodToRecommend` (`0`-`10`). |
+| `reviewer` | `name` (as Capterra shows it, e.g. first name and initial), job `title`, `industry`, `companySize`, `timeUsedProduct` and how the reviewer was validated (`validated`, `validations`). |
+| `comments` / `pros` / `cons` / `advice` | The overall comments and the reviewer's pros, cons and advice. `answers` lists every question and answer; `text` joins them. |
+| `reasonsForChoosing` / `reasonsForSwitching` | Why the reviewer picked the product, or switched to it, with `alternativesConsidered` and `switchedFrom`. |
+| `incentive` / `incentivized` / `vendorReferred` / `reviewSource` | Capterra's incentive and source badges. |
+| `source` | The site the review was collected on: Capterra, GetApp or Software Advice. |
+| `vendorResponse` | The vendor's reply, or `null`. |
+
+## Catalog search
+
+```
+POST /reviews/capterra
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | Product name or keyword to search for, e.g. `crm` or `project management`. |
+| `mode` | - | Set to `search` by `capterraSearch`. |
+| `max_results` | no | How many products to return, `1`-`20`. Default `20`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank for the country chosen for the site. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/reviews/capterra?mode=search&query=project%20management&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.capterra_search("project management", max_results=5)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.capterraSearch("project management", { maxResults: 5 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->capterraSearch('project management', ['max_results' => 5]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.capterra_search("project management", max_results: 5)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "project management",
+  "results": [
+    {
+      "id": "10184060",
+      "uuid": "57662a62-bed9-4ae3-a254-e51f2b54174d",
+      "slug": "Project-Management-Business-Intelligence-PMBI",
+      "name": "Project Management Business Intelligence (PMBI)",
+      "position": 1,
+      "rating": null,
+      "reviewCount": 0,
+      "description": "Project Management Business Intelligence (PMBI) is software that converts projec...",
+      "logo": "https://gdm-catalog-fmapi-prod.imgix.net/ProductLogo/d91a1f9...",
+      "url": "https://www.capterra.com/p/10184060/Project-Management-Business-Intelligence-PMBI/",
+      "reviewsUrl": "https://www.capterra.com/p/10184060/Project-Management-Business-Intelligence-PMBI/reviews/"
+    },
+    {
+      "id": "10017371",
+      "uuid": "24b5a16a-6c12-41cc-9d13-234dd8c944f3",
+      "slug": "Project-Management-Cloud",
+      "name": "Project Management Cloud",
+      "position": 2,
+      "rating": 4.5,
+      "reviewCount": 2,
+      "description": "The only Project Management Software you need to run your projects.\nUnlimited Pr...",
+      "logo": "https://gdm-catalog-fmapi-prod.imgix.net/ProductLogo/4d7cbc4...",
+      "url": "https://www.capterra.com/p/10017371/Project-Management-Cloud/",
+      "reviewsUrl": "https://www.capterra.com/p/10017371/Project-Management-Cloud/reviews/"
+    }
+  ],
+  "resultsCollected": 5,
+  "categories": [
+    {
+      "name": "Nonprofit Project Management",
+      "slug": "project-management-software-for-nonprofits-software",
+      "url": "https://www.capterra.com/project-management-software-for-nonprofits-software/"
+    },
+    {
+      "name": "Agile Project Management",
+      "slug": "agile-project-management-tools-software",
+      "url": "https://www.capterra.com/agile-project-management-tools-software/"
+    }
+  ],
+  "pagesFetched": 1,
+  "hasMore": false,
+  "nextPage": null
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `slug` | Pass them as `id/slug` to `capterraReviews` to fetch the product's reviews. |
+| `name` / `position` | Product name and its rank in Capterra's search results. |
+| `rating` / `reviewCount` | Overall rating (`null` without reviews) and number of reviews. |
+| `description` / `logo` | Short product description and logo URL. |
+| `url` / `reviewsUrl` | The product page and its reviews page. |
+| `categories` | Capterra categories that match the keyword, with their pages. |
+
+## What you can build
+
+- **Review monitoring** - collect new reviews for your product and competitors and track the sub-ratings.
+- **Switching analysis** - mine `reasonsForSwitching` and `switchedFrom` to see which tools buyers leave and why.
+- **Pricing research** - compare `pricing` plans, free trials and free versions across a category.
+- **Buyer persona insight** - break ratings down by reviewer industry, company size and time using the product.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Pull a product's Capterra reviews and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

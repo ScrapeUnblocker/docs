@@ -1,0 +1,320 @@
+---
+title: "Redfin plugin"
+description: "Redfin listings as clean JSON - price, beds, baths, sqft, lot size, address, MLS status and days on market, plus one home in full with price history, tax values and the Redfin Estimate."
+sidebarTitle: "Redfin"
+---
+
+The **Redfin** plugin turns Redfin into structured JSON. One endpoint, `/realestate/redfin`, works in two modes:
+
+- **Search** (`mode=search`) - give it a ZIP or a city and state and get the listings back: price, beds, baths, living area and lot size, address and coordinates, property type, MLS status and number, days on market, price per sqft and a clean listing URL. Filter by status (for sale or sold), price, beds, baths and property type, and collect up to 1,750 listings in one call.
+- **Detail** (`mode=detail`) - give it a listing URL and get one home in full: status, the Redfin Estimate, listing brokerage, tax and assessed values, the full price history and the photo gallery.
+
+No Redfin account or API key is needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search listings
+
+```
+POST /realestate/redfin
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `search` by `redfinSearch`. |
+| `location` | yes | ZIP or city and state, e.g. `78704` or `Austin, TX`. A ZIP resolves most reliably; a plain city and state is best effort, and a location Redfin cannot resolve returns `400`. |
+| `status` | no | `for_sale` (default) or `sold`. |
+| `sold_within_days` | no | With `status=sold`: how many days to look back. Default `90`, max `1825`. |
+| `property_type` | no | `houses`, `condos`, `townhomes`, `multi_family`, `land`, `manufactured` or `other`. Omit for all types. |
+| `min_price` / `max_price` | no | Price range in USD. |
+| `beds` | no | Minimum bedrooms. |
+| `baths` | no | Minimum bathrooms. |
+| `sort` | no | `recommended` (default), `newest`, `price_asc`, `price_desc`, `sqft` or `price_per_sqft`. |
+| `max_results` | no | How many listings to collect across pages (about 350 per page). Default `350`, max `1750`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Defaults to US. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/realestate/redfin?mode=search&location=78704&status=for_sale&beds=3&max_results=10" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.redfin_search("78704", status="for_sale", beds=3, max_results=10)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.redfinSearch("78704", {
+  status: "for_sale",
+  beds: 3,
+  maxResults: 10,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->redfinSearch('78704', [
+    'status' => 'for_sale',
+    'beds' => 3,
+    'max_results' => 10,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.redfin_search("78704", status: "for_sale", beds: 3, max_results: 10)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "search",
+  "location": "78704",
+  "status": "for_sale",
+  "region": { "region_id": "34098", "region_type": "2", "market": "austin" },
+  "homes": [
+    {
+      "propertyId": 31618165,
+      "listingId": 224316485,
+      "mlsId": "2722679",
+      "mlsStatus": "Active",
+      "searchStatus": 1,
+      "listingType": 1,
+      "price": 2195000,
+      "pricePerSqFt": 779,
+      "beds": 4,
+      "baths": 3.5,
+      "fullBaths": 3,
+      "partialBaths": 1,
+      "sqFt": 2817,
+      "lotSize": 6882,
+      "yearBuilt": 2008,
+      "stories": 2.0,
+      "streetLine": "1801 Nickerson St",
+      "city": "Austin",
+      "state": "TX",
+      "zip": "78704",
+      "countryCode": "US",
+      "latitude": 30.2455379,
+      "longitude": -97.7496432,
+      "propertyType": "Single Family Residential",
+      "propertyTypeId": 1,
+      "rawPropertyType": 6,
+      "daysOnMarket": 1,
+      "soldDate": "2020-12-16",
+      "listingRemarks": "The quintessential South Congress experience situated on a corner lot 1 block East of the South Congress Hotel...",
+      "numPhotos": 12,
+      "photoFormat": "webp",
+      "garageSpaces": 2,
+      "parkingSpaces": 2,
+      "hasVirtualTour": false,
+      "has3DTour": false,
+      "hasVideoTour": false,
+      "isNewConstruction": false,
+      "isHot": false,
+      "url": "https://www.redfin.com/TX/Austin/1801-Nickerson-St-78704/home/31618165"
+    }
+  ],
+  "resultsCollected": 10,
+  "totalResults": null,
+  "aggregates": {},
+  "query": {
+    "sort": "recommended",
+    "property_type": null,
+    "min_price": null,
+    "max_price": null,
+    "beds": 3,
+    "baths": null,
+    "sold_within_days": null
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `propertyId` / `listingId` | Redfin property and listing ids. |
+| `mlsId` / `mlsStatus` | MLS listing number and status (e.g. `Active`). |
+| `price` / `pricePerSqFt` | Price in USD and price per square foot. |
+| `beds`, `baths`, `fullBaths`, `partialBaths` | Bedroom and bathroom counts. |
+| `sqFt` / `lotSize` | Living area and lot size in square feet. |
+| `yearBuilt` / `stories` | Year built and number of stories. |
+| `streetLine`, `city`, `state`, `zip`, `countryCode` | Address parts. |
+| `latitude` / `longitude` | Coordinates. |
+| `propertyType` | Property type as Redfin labels it, e.g. `Single Family Residential`. |
+| `daysOnMarket` | Days the listing has been on the market. |
+| `soldDate` | Date of the last recorded sale. |
+| `listingRemarks` | The listing remarks as Redfin previews them on the search card. |
+| `numPhotos` | Number of listing photos. |
+| `garageSpaces` / `parkingSpaces` | Parking counts. |
+| `hasVirtualTour` / `has3DTour` / `hasVideoTour` | Media flags. |
+| `isNewConstruction` / `isHot` | New-construction flag and Redfin's "hot home" flag. |
+| `url` | Clean listing URL. Pass it to detail mode. |
+
+## Home detail
+
+```
+POST /realestate/redfin
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | Set to `detail` by `redfinDetail`. |
+| `url` | yes | Redfin listing URL, e.g. the `url` of a search result. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Defaults to US. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/realestate/redfin?mode=detail&url=https%3A%2F%2Fwww.redfin.com%2FTX%2FAustin%2F1801-Nickerson-St-78704%2Fhome%2F31618165" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.redfin_detail("https://www.redfin.com/TX/Austin/1801-Nickerson-St-78704/home/31618165")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.redfinDetail("https://www.redfin.com/TX/Austin/1801-Nickerson-St-78704/home/31618165");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->redfinDetail('https://www.redfin.com/TX/Austin/1801-Nickerson-St-78704/home/31618165');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.redfin_detail("https://www.redfin.com/TX/Austin/1801-Nickerson-St-78704/home/31618165")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "mode": "detail",
+  "home": {
+    "propertyId": 31618165,
+    "address": "1801 Nickerson St",
+    "city": "Austin",
+    "state": "TX",
+    "zip": "78704",
+    "countryCode": "US",
+    "latitude": 30.2455379,
+    "longitude": -97.7496432,
+    "status": {
+      "displayValue": "Active",
+      "definition": "This listing is for sale and the sellers are accepting offers.",
+      "longerDefinitionToken": "active"
+    },
+    "propertyType": "Single Family Residential",
+    "price": 2195000,
+    "priceLabel": "Price",
+    "beds": 4,
+    "baths": 3.5,
+    "sqFt": 2817,
+    "pricePerSqFt": 779,
+    "lotSize": 6882,
+    "yearBuilt": 2008,
+    "apn": "283185",
+    "fips": "48453",
+    "soldDate": "2020-12-16",
+    "redfinEstimate": 2195000,
+    "redfinEstimateLabel": "Price",
+    "listingAgents": [{"brokerName": "Compass RE Texas, LLC"}],
+    "taxableLandValue": 606621,
+    "taxableImprovementValue": 976243,
+    "taxesDue": 32393.07,
+    "taxRollYear": 2026,
+    "countyName": "Travis County",
+    "priceHistory": [
+      {
+        "date": "2026-10-12",
+        "event": "Listed",
+        "price": 2195000,
+        "source": "Unlock MLS",
+        "historyEventType": 1
+      },
+      {
+        "date": "2020-12-17",
+        "event": "Sold (Public Records)",
+        "source": "Public Records",
+        "historyEventType": 1
+      }
+    ],
+    "numPhotos": 12,
+    "photos": [
+      "https://ssl.cdn-redfin.com/photo/92/bigphoto/679/2722679_0.jpg",
+      "https://ssl.cdn-redfin.com/photo/92/bigphoto/679/2722679_1_0.jpg"
+    ],
+    "staticMapUrl": "https://maps.google.com/maps/api/staticmap?sensor=false&style=feature%3Aadministrative.lan...",
+    "url": "https://www.redfin.com/TX/Austin/1801-Nickerson-St-78704/home/31618165"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `status` | Listing status: `displayValue` (e.g. `Active`) and Redfin's definition of it. |
+| `price` / `priceLabel` | Current price and Redfin's label for it. |
+| `redfinEstimate` / `redfinEstimateLabel` | The Redfin Estimate and its label. |
+| `beds`, `baths`, `sqFt`, `pricePerSqFt`, `lotSize`, `yearBuilt` | Home facts. |
+| `address`, `city`, `state`, `zip`, `countryCode`, `countyName` | Address parts and county. |
+| `latitude` / `longitude` | Coordinates. |
+| `apn` / `fips` | Assessor parcel number and county FIPS code. |
+| `soldDate` | Date of the last recorded sale. |
+| `listingAgents` | Listing brokerage (and agent, when Redfin shows one). |
+| `taxableLandValue` / `taxableImprovementValue` | Assessed land and improvement values. |
+| `taxesDue` / `taxRollYear` | Annual property tax and the tax roll year. |
+| `priceHistory` | Dated events (`Listed`, `Pending`, `Sold (Public Records)` and so on) with `price` where Redfin shows one, and the `source`. |
+| `numPhotos` / `photos` | Photo count and the photo URLs. |
+| `staticMapUrl` | A static map image of the location. |
+
+## What you can build
+
+- **Comparable sales** - search `status=sold` with `sold_within_days` to pull recent sold prices for a ZIP.
+- **Pricing models** - feed `price`, `sqFt`, `lotSize`, `yearBuilt` and `pricePerSqFt` into valuation or rent models.
+- **Listing monitoring** - track `mlsStatus` and `daysOnMarket` for a market and flag new or stale listings.
+- **Property research** - add tax values, the Redfin Estimate and the full price history to a home through detail mode.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Redfin search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

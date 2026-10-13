@@ -1,0 +1,328 @@
+---
+title: "1688 plugin"
+description: "1688.com wholesale data as clean JSON - search results with yuan prices, quantity price tiers, units sold, repurchase rate and the supplier, plus one offer in full with SKU variants, stock, MOQ, attributes, shipping and ratings."
+sidebarTitle: "1688"
+---
+
+The **1688** plugin turns 1688.com - China's B2B wholesale marketplace, where factories and wholesalers sell in yuan and by quantity - into structured JSON. It is two endpoints:
+
+- **`/marketplace/1688-search`** - a keyword search (Chinese or English): offer id, title, URL, images, the price in yuan with the quantity price ladder (`priceTiers`), units sold, repurchase rate, service and promotion tags, a sponsored flag and the supplier - company name, shop URL, years on 1688, province and city, factory and business inspection, super factory flag and trade-service scores.
+- **`/marketplace/1688-product`** - one offer by id or link in full: status, brand, category, price ladder or per-SKU prices, prices before a promotion, unit, minimum order, stock, units sold, the SKU matrix with every SKU's price and stock, attributes, images, video, shipping origin and dispatch promise, service guarantees, the buyer rating summary and the supplier.
+
+Text comes back in Chinese, as 1688 publishes it, and prices are in yuan (CNY). No 1688 account, login or API key is involved. For the international B2B site, see the [Alibaba plugin](/plugins/alibaba).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/1688-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | yes | What to search, in Chinese or English, e.g. `手机壳`, `连衣裙` or `bluetooth earphones`. Chinese keywords match the most offers. |
+| `page` | no | 1-based results page to start from, `1`-`34`. Default `1`. Pass the `nextPage` of a previous response to continue. |
+| `max_results` | no | Offers to collect across pages, `1`-`300`. Default `60`. 1688 serves 60 per page and each page fetched is billed as one request (`pagesFetched`). |
+| `sort` | no | `relevance` (default), `sales` (most sold in the last 30 days first), `price_asc` or `price_desc`. |
+| `price_min` / `price_max` | no | Only offers priced within this range, in yuan (CNY). |
+| `province` | no | Only suppliers in this Chinese province, by its Chinese name, e.g. `广东` (Guangdong), `浙江` (Zhejiang), `江苏` (Jiangsu). |
+| `proxy_country` | no | Proxy country (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/1688-search?q=%E6%89%8B%E6%9C%BA%E5%A3%B3&sort=sales&max_results=60" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.alibaba1688_search("手机壳", sort="sales", max_results=60)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.alibaba1688Search("手机壳", { sort: "sales", maxResults: 60 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->alibaba1688Search('手机壳', ['sort' => 'sales', 'max_results' => 60]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.alibaba1688_search("手机壳", sort: "sales", max_results: 60)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "手机壳",
+  "filters": { "sort": "sales", "price_min": null, "price_max": null, "province": null },
+  "page": 1,
+  "products": [
+    {
+      "offerId": "1046932411868",
+      "title": "流光磁吸大视窗适用苹果18promax手机壳iPhone17高级感防摔保护套",
+      "url": "https://detail.1688.com/offer/1046932411868.html",
+      "image": "https://cbu01.alicdn.com/img/ibank/O1CN01gNu7Kf1OFCY2Eestd_!!3872131675-0-cib.jpg",
+      "images": ["https://cbu01.alicdn.com/img/ibank/O1CN01gNu7Kf1OFCY2Eestd_!!3872131675-0-cib.jpg"],
+      "price": 15.0,
+      "currency": "CNY",
+      "priceTiers": [
+        { "quantityText": "1~499个", "minQuantity": 1, "maxQuantity": 499, "price": 15.0 },
+        { "quantityText": "500~2999个", "minQuantity": 500, "maxQuantity": 2999, "price": 14.5 },
+        { "quantityText": "≥3000个", "minQuantity": 3000, "maxQuantity": null, "price": 13.5 }
+      ],
+      "soldText": "已售1.4万+件",
+      "sold": 14000,
+      "repurchaseRatePercent": 57.0,
+      "serviceTags": ["深度验商"],
+      "promotionTags": [],
+      "tags": ["退货包运费", "先采后付", "回头率57%"],
+      "brand": null,
+      "sponsored": false,
+      "supplier": {
+        "name": "深圳市亿佳合兴科技有限公司",
+        "loginId": "深圳亿佳合兴科技有限公司",
+        "memberId": "b2b-38721316754ec7c",
+        "shopUrl": "https://shop764420m281617.1688.com",
+        "yearsOnPlatform": 9,
+        "province": "广东",
+        "city": "深圳市",
+        "factoryInspected": false,
+        "businessInspected": true,
+        "superFactory": false,
+        "tradeScores": { "composite": 4.0, "consultation": 3.5, "logistics": 3.14, "disputes": 4.0, "returns": 4.0, "goods": 3.67 }
+      }
+    }
+  ],
+  "resultsCollected": 60,
+  "totalResults": 2000,
+  "currency": "CNY",
+  "pagesFetched": 1,
+  "lastPageFetched": 1,
+  "droppedFromLastPage": 0,
+  "hasMore": true,
+  "nextPage": 2
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `offerId` / `url` | 1688 offer id and the offer page URL. Pass the id to [Offer](#offer) for the full listing. |
+| `title` / `image` / `images` | Offer title (Chinese) and images. |
+| `price` / `currency` | Lowest listed price, in yuan (`CNY`). |
+| `priceTiers` | The quantity price ladder: `quantityText`, `minQuantity`, `maxQuantity` (`null` = and up) and `price`. Empty when the card shows one price. |
+| `sold` / `soldText` | Units sold as a number (the lower bound 1688 shows, e.g. `已售1.4万+件` -> `14000`) and the original text. |
+| `repurchaseRatePercent` | Share of buyers who reorder, in percent. |
+| `serviceTags` / `promotionTags` / `tags` | 1688's service badges, promotion labels and other card tags. |
+| `brand` / `sponsored` | Brand when listed, and whether the card is a paid placement. |
+| `supplier` | `name`, `loginId`, `memberId`, `shopUrl`, `yearsOnPlatform`, `province`, `city`, `factoryInspected`, `businessInspected`, `superFactory` and `tradeScores` (composite, consultation, logistics, disputes, returns, goods). |
+
+Paging fields: `nextPage` is the next 1688 page not yet returned (pass it as `page` to continue) and `hasMore` says whether there is one. When `max_results` ends inside a page, the rest of that page is not returned (`droppedFromLastPage`), so ask in multiples of 60 to get every offer.
+
+## Offer
+
+```
+POST /marketplace/1688-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `offer_id` | one of `offer_id` / `url` | Numeric 1688 offer id, e.g. `735353578254` (the number in `detail.1688.com/offer/<id>.html`). |
+| `url` | one of `offer_id` / `url` | 1688 offer link, e.g. `https://detail.1688.com/offer/735353578254.html`. Mobile `m.1688.com` and `offerId=` links work too. |
+| `proxy_country` | no | Proxy country (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/1688-product?offer_id=735353578254" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.alibaba1688_product("735353578254")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.alibaba1688Product("735353578254");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->alibaba1688Product('735353578254');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.alibaba1688_product("735353578254")
+```
+</CodeGroup>
+
+To pass a link instead of an id, use the `url` option, e.g. `su.alibaba1688_product(url="https://detail.1688.com/offer/735353578254.html")` in Python. A removed or unknown offer returns `404`.
+
+### Response
+
+```json
+{
+  "product": {
+    "offerId": "735353578254",
+    "url": "https://detail.1688.com/offer/735353578254.html",
+    "title": "适用iphone18PRO大视窗磁吸手机壳15磨砂漏标苹果11秒变17保护套",
+    "status": "PUBLISHED",
+    "brand": "潮虹兔",
+    "category": { "id": "1046694", "name": "iPhone保护套", "topCategoryId": "7" },
+    "currency": "CNY",
+    "priceText": "¥7.50-9.00",
+    "priceMin": 7.5,
+    "priceMax": 9.0,
+    "pricing": "tiers",
+    "priceTiers": [
+      { "minQuantity": 2, "price": 9.0, "maxQuantity": 499 },
+      { "minQuantity": 500, "price": 8.5, "maxQuantity": 4999 },
+      { "minQuantity": 5000, "price": 7.5, "maxQuantity": null }
+    ],
+    "originalPriceTiers": [],
+    "unit": "个",
+    "moq": 2,
+    "available": 2695352,
+    "sold": 17979,
+    "soldText": "1.7万+",
+    "soldPeriod": "一年内",
+    "variantOptions": [
+      {
+        "name": "颜色",
+        "values": [
+          { "name": "樱桃红【纳米磨砂防指纹手汗】", "image": "https://cbu01.alicdn.com/img/ibank/O1CN01mLerzF1OFCHJw6Hvh_!!3872131675-0-cib.jpg" }
+        ]
+      },
+      {
+        "name": "适用型号",
+        "values": [
+          { "name": "iPhone 18promax", "image": null },
+          { "name": "iPhone 18pro", "image": null }
+        ]
+      }
+    ],
+    "variants": [
+      {
+        "skuId": "5994388491383",
+        "specId": "98e86beefde58d786aee5f4f60f4e140",
+        "name": "海军蓝【纳米磨砂防指纹手汗】 / iPhone 15PLUS",
+        "options": { "颜色": "海军蓝【纳米磨砂防指纹手汗】", "适用型号": "iPhone 15PLUS" },
+        "price": null,
+        "originalPrice": null,
+        "available": 9999,
+        "sold": 0
+      }
+    ],
+    "variantsTotal": 270,
+    "images": [
+      "https://cbu01.alicdn.com/img/ibank/O1CN01lAdPke1OFCTM0qUJK_!!3872131675-0-cib.jpg",
+      "https://cbu01.alicdn.com/img/ibank/O1CN01Y6UOuGbwKnH1chua_!!3872131675-0-cib.jpg"
+    ],
+    "video": {
+      "url": "https://cloud.video.taobao.com/play/u/3872131675/p/2/e/6/t/1/533538773043.mp4",
+      "cover": "https://img.alicdn.com/imgextra/i2/6000000007760/O1CN01z8hkWP27C8Ym7Yjnd_!!6000000007760-0-tbvideo.jpg"
+    },
+    "attributes": [
+      { "name": "材质", "value": "PC" },
+      { "name": "功能", "value": "其它,磁吸,防摔,抗指纹" },
+      { "name": "品牌", "value": "潮虹兔" }
+    ],
+    "descriptionUrl": "https://itemcdn.tmall.com/1688offer/icoss337144554689d923164203a83e",
+    "shipping": { "from": "广东省深圳市", "dispatch": "承诺48小时发货·常发韵达快递", "unitWeightKg": 0.03, "freeShipping": false },
+    "services": ["晚发必赔"],
+    "labels": ["一件代发", "镇店之宝"],
+    "rating": {
+      "goodRatePercent": 99.6,
+      "score": 5.0,
+      "reviewCount": 21328,
+      "reviewsWithPhotos": 160,
+      "tags": [{ "name": "价格很便宜", "count": 222 }, { "name": "质量不错", "count": 161 }]
+    },
+    "favorites": 310,
+    "supplier": {
+      "name": "深圳市亿佳合兴科技有限公司",
+      "loginId": "深圳亿佳合兴科技有限公司",
+      "memberId": "b2b-38721316754ec7c",
+      "userId": "3872131675",
+      "shopUrl": "https://shop764420m281617.1688.com",
+      "serviceScore": 4.0,
+      "repeatPurchaseRate3m": 57.18,
+      "factory": false,
+      "tpMember": true,
+      "location": "广东省深圳市"
+    },
+    "createdAt": "2023-08-23T14:56:37Z",
+    "updatedAt": "2026-10-13T03:59:41Z"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `status` / `brand` / `category` | Offer status, brand and category (`id`, `name`, `topCategoryId`). |
+| `priceText` / `priceMin` / `priceMax` / `currency` | Price range in yuan (`CNY`). |
+| `pricing` | `tiers` when every SKU is priced by the quantity ladder `priceTiers` (SKU prices are then `null`), `sku` when each SKU carries its own `price`. |
+| `priceTiers` / `originalPriceTiers` | The quantity price ladder, and the ladder before a promotion (empty when there is none). |
+| `unit` / `moq` | Selling unit and minimum order quantity. |
+| `available` | Units in stock across all SKUs. |
+| `sold` / `soldText` / `soldPeriod` | Units sold, the text 1688 shows and the period it covers (e.g. `一年内`, within a year). |
+| `variantOptions` | Option names and their values, with images where the seller set them. |
+| `variants` / `variantsTotal` | Every SKU with `skuId`, `options`, `price`, `originalPrice`, `available` (stock) and `sold`, and the SKU count. |
+| `attributes` / `images` / `video` / `descriptionUrl` | Specifications, image URLs, the product video and the link to the full description. |
+| `shipping` | `from` (origin), `dispatch` promise, `unitWeightKg` and `freeShipping`. |
+| `services` / `labels` | Service guarantees and offer labels. |
+| `rating` | `goodRatePercent`, `score`, `reviewCount`, `reviewsWithPhotos` and the review `tags` with counts. |
+| `favorites` | How many buyers saved the offer. |
+| `supplier` | `name`, `loginId`, `memberId`, `userId`, `shopUrl`, `serviceScore`, `repeatPurchaseRate3m`, `factory`, `tpMember` and `location`. |
+
+## What you can build
+
+- **Factory sourcing** - find manufacturers for a product with prices, MOQ and inspection flags.
+- **Cost benchmarking** - compare 1688 yuan prices with Alibaba.com and retail prices for the same item.
+- **SKU-level stock and price checks** - monitor every variant's stock and price for an offer you buy from.
+- **Supplier scoring** - rank suppliers by repurchase rate, trade scores and years on 1688.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a 1688 search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

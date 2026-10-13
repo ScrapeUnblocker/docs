@@ -1,0 +1,142 @@
+---
+title: "Tripadvisor Places plugin"
+description: "Tripadvisor restaurant, hotel and attraction lists as clean JSON - name, rating, review count, price range, cuisine, phone, address, coordinates and a direct place link."
+sidebarTitle: "Tripadvisor Places"
+---
+
+The **Tripadvisor Places** plugin turns a Tripadvisor list page - the Restaurants, Hotels or Attractions of a city or area - into structured JSON. Give it the list URL and it returns each place with its name, type, rating, review count, price range, cuisine, phone, address, country, coordinates, an image and a direct link to the place's review page.
+
+It pages through the list for you (about 30 places per page) up to `max_results`, so one call can collect a whole city's top restaurants. Pass any place link it returns to [Tripadvisor Reviews](/plugins/tripadvisor-reviews) to read that place's reviews.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Place list
+
+```
+POST /travel/tripadvisor
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `url` | yes | Tripadvisor list URL (Restaurants, Hotels or Attractions), e.g. `https://www.tripadvisor.com/Restaurants-g60763-New_York_City_New_York.html`. |
+| `max_results` | no | How many places to collect across pages (about 30 per page), `1`-`1020`. Default `30`. Large values take longer. |
+| `page` | no | 1-based results page to start from, `1`-`34`. Default `1`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). Leave blank to let the API pick. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/travel/tripadvisor?url=https%3A%2F%2Fwww.tripadvisor.com%2FRestaurants-g60763-New_York_City_New_York.html&max_results=30" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.tripadvisor_list("https://www.tripadvisor.com/Restaurants-g60763-New_York_City_New_York.html", max_results=30)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.tripadvisorList("https://www.tripadvisor.com/Restaurants-g60763-New_York_City_New_York.html", { maxResults: 30 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->tripadvisorList('https://www.tripadvisor.com/Restaurants-g60763-New_York_City_New_York.html', ['max_results' => 30]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.tripadvisor_list("https://www.tripadvisor.com/Restaurants-g60763-New_York_City_New_York.html", max_results: 30)
+```
+
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "url": "https://www.tripadvisor.com/Restaurants-g60763-New_York_City_New_York.html",
+  "category": "restaurants",
+  "places": [
+    {
+      "name": "Los Tacos No. 1",
+      "type": "Restaurant",
+      "url": "https://www.tripadvisor.com/Restaurant_Review-g60763-d12874338-Reviews-Los_Tacos_No_1-New_York_City_New_York.html",
+      "image": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1d/42/42/2f/caption.jpg",
+      "rating": 4.7,
+      "reviewCount": 945,
+      "priceRange": "$",
+      "cuisine": ["Mexican", "Latin"],
+      "phone": "+1 212-574-4696",
+      "address": "229 W 43rd St, New York City, NY 10036-3982",
+      "postalCode": "10036-3982",
+      "country": "United States",
+      "coordinates": { "lat": 40.75732, "lng": -73.987656 }
+    },
+    {
+      "name": "Kuu Ramen",
+      "type": "Restaurant",
+      "url": "https://www.tripadvisor.com/Restaurant_Review-g60763-d7890999-Reviews-Kuu_Ramen-New_York_City_New_York.html",
+      "image": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/19/f9/0a/9c/kuu-chili-chicken-and.jpg",
+      "rating": 4.6,
+      "reviewCount": 309,
+      "priceRange": "$",
+      "cuisine": ["Japanese", "Asian"],
+      "phone": "+1 212-571-7177",
+      "address": "20 John St, New York City, NY 10038",
+      "postalCode": "10038",
+      "country": "United States",
+      "coordinates": { "lat": 40.709805, "lng": -74.00893 }
+    }
+  ],
+  "resultsCollected": 30
+}
+```
+
+### Place fields
+
+| Field | Notes |
+| --- | --- |
+| `name` / `type` | Place name and its type (e.g. `Restaurant`, `Hotel`). |
+| `url` | The place's Tripadvisor review page. Pass it to [Tripadvisor Reviews](/plugins/tripadvisor-reviews). |
+| `image` | Main photo URL. |
+| `rating` / `reviewCount` | Average rating (out of 5) and number of reviews. |
+| `priceRange` | Tripadvisor's price range, e.g. `$` or `$$ - $$$`. |
+| `cuisine` | Cuisines, for restaurants. |
+| `phone` / `address` / `postalCode` / `country` | Contact details and location. |
+| `coordinates` | `lat` / `lng`. |
+
+The top-level `category` says which kind of list was read (`restaurants`, `hotels` or `attractions`). A field Tripadvisor does not publish for a place comes back `null` or is left out.
+
+## What you can build
+
+- **Local market research** - list every restaurant in a city with cuisine, price range and rating.
+- **Lead lists for hospitality** - collect names, phones, addresses and coordinates of hotels or attractions in an area.
+- **Ranking monitoring** - track how places move in a city's list and how their review counts grow.
+- **Review pipelines** - feed each place `url` into [Tripadvisor Reviews](/plugins/tripadvisor-reviews) to read its reviews.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Tripadvisor list and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

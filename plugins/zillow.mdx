@@ -1,0 +1,339 @@
+---
+title: "Zillow plugin"
+description: "Zillow listings and full property records as clean JSON - price, beds, baths, area, address, Zestimate and rent Zestimate, plus price history, facts and photos for one home."
+sidebarTitle: "Zillow"
+---
+
+The **Zillow** plugin turns Zillow into structured JSON. It has two endpoints:
+
+- **Search** (`/realestate/zillow`) - give it a city and state or a ZIP and get the listings back: price, beds, baths, living area, lot size, address and coordinates, home type, Zestimate and rent Zestimate, tax-assessed value, days on Zillow, broker and a clean listing URL. Filter by status (for sale, for rent or sold), price, beds, baths and home type, and collect up to 820 listings in one call.
+- **Property detail** (`/realestate/zillow-detail`) - give it a `zpid` or a property URL and get one home in full: description, facts, parking, price history, tax history, schools, MLS and broker, the photo gallery and the 3D tour link.
+
+Use search to find homes and their `zpid`, then read each one in full through the detail endpoint. No Zillow account or API key is needed.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search listings
+
+```
+POST /realestate/zillow
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `location` | yes | City and state or ZIP, e.g. `Austin, TX` or `78704`. |
+| `status` | no | `for_sale` (default), `for_rent` or `sold`. |
+| `home_type` | no | `houses`, `condos`, `townhomes`, `multi_family`, `apartments`, `manufactured` or `lots_land`. Omit for all types. |
+| `min_price` / `max_price` | no | Price range in USD (monthly rent with `status=for_rent`). |
+| `beds` | no | Minimum bedrooms. |
+| `baths` | no | Minimum bathrooms. |
+| `sort` | no | `newest` (default), `price_asc`, `price_desc`, `relevant`, `beds`, `sqft` or `lot`. |
+| `max_results` | no | How many listings to collect across pages (about 41 per page). Default `41`, max `820`. |
+| `page` | no | 1-based results page to start from. Default `1`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Defaults to US. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/realestate/zillow?location=Austin%2C%20TX&status=for_sale&beds=3&max_results=10" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.zillow_search("Austin, TX", status="for_sale", beds=3, max_results=10)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.zillowSearch("Austin, TX", {
+  status: "for_sale",
+  beds: 3,
+  maxResults: 10,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->zillowSearch('Austin, TX', [
+    'status' => 'for_sale',
+    'beds' => 3,
+    'max_results' => 10,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.zillow_search("Austin, TX", status: "for_sale", beds: 3, max_results: 10)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "location": "Austin, TX",
+  "status": "for_sale",
+  "homes": [
+    {
+      "zpid": "29459905",
+      "price": 205000,
+      "priceText": "$205,000",
+      "currency": "$",
+      "beds": 3,
+      "baths": 2,
+      "area": 1519,
+      "lotArea": 5619.24,
+      "lotAreaUnit": "sqft",
+      "homeType": "SINGLE_FAMILY",
+      "status": "FOR_SALE",
+      "statusText": "Active",
+      "address": "14303 Kincheloe St, Austin, TX 78725",
+      "street": "14303 Kincheloe St",
+      "city": "Austin",
+      "state": "TX",
+      "zipcode": "78725",
+      "latitude": 30.244099,
+      "longitude": -97.58517,
+      "zestimate": 203200,
+      "rentZestimate": 1749,
+      "taxAssessedValue": 259892,
+      "daysOnZillow": 0,
+      "broker": "Golden Apple Realty LLC",
+      "isZillowOwned": false,
+      "hasImage": true,
+      "has3DModel": false,
+      "hasVideo": false,
+      "image": "https://photos.zillowstatic.com/fp/875dfcc2d45c03067c5cb3343406bd99-p_e.jpg",
+      "url": "https://www.zillow.com/homedetails/14303-Kincheloe-St-Austin-TX-78725/29459905_zpid/"
+    }
+  ],
+  "resultsCollected": 10,
+  "totalResults": 3969,
+  "query": {
+    "sort": "newest",
+    "home_type": null,
+    "min_price": null,
+    "max_price": null,
+    "beds": 3,
+    "baths": null
+  }
+}
+```
+
+`totalResults` is the number of matches Zillow reports for the search; `resultsCollected` is how many listings came back in `homes`.
+
+| Field | Notes |
+| --- | --- |
+| `zpid` | Zillow property id. Pass it to the property detail endpoint. |
+| `price` / `priceText` | Numeric price (monthly rent for rentals) and the price as Zillow prints it. |
+| `currency` | Currency as Zillow sends it on search cards (`$`). |
+| `beds` / `baths` / `area` | Bedrooms, bathrooms and living area in sqft. |
+| `lotArea` / `lotAreaUnit` | Lot size and its unit. |
+| `homeType` / `status` / `statusText` | Home type (e.g. `SINGLE_FAMILY`), listing status (e.g. `FOR_SALE`) and Zillow's status label. |
+| `address`, `street`, `city`, `state`, `zipcode` | Full address and its parts. |
+| `latitude` / `longitude` | Coordinates. |
+| `zestimate` / `rentZestimate` | Zillow's value and rent estimates, when shown. |
+| `taxAssessedValue` | Tax-assessed value, when shown. |
+| `daysOnZillow` | Days since the listing went live on Zillow. |
+| `broker` | Listing brokerage. |
+| `hasImage` / `has3DModel` / `hasVideo` | Media flags for the listing. |
+| `image` / `url` | Main photo and a clean listing URL. |
+
+<Note>
+Rental searches can return apartment buildings (`isBuilding: true`). They have no `zpid` and carry `lotId`, `buildingName`, a rent range (`price` to `maxPrice`), `units` and `availableUnits` instead.
+</Note>
+
+## Property detail
+
+```
+POST /realestate/zillow-detail
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `url` | one of `url` / `zpid` | Zillow property URL, e.g. `https://www.zillow.com/homedetails/.../29429575_zpid/`. |
+| `zpid` | one of `url` / `zpid` | Zillow property id, e.g. `29429575` (the `zpid` from a search result). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/realestate/zillow-detail?zpid=29429575" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.zillow_detail(zpid="29429575")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.zillowDetail({ zpid: "29429575" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->zillowDetail(['zpid' => '29429575']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.zillow_detail(zpid: "29429575")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "property": {
+    "zpid": "29429575",
+    "url": "https://www.zillow.com/homedetails/8804-Little-Laura-Dr-Austin-TX-78757/29429575_zpid/",
+    "status": "PENDING",
+    "statusText": "Pending",
+    "price": 660000,
+    "priceText": "$660,000",
+    "currency": "USD",
+    "zestimate": null,
+    "rentZestimate": null,
+    "priceChange": null,
+    "priceChangeDate": null,
+    "lastSoldPrice": null,
+    "dateSold": null,
+    "taxAssessedValue": null,
+    "propertyTaxRate": null,
+    "beds": 3,
+    "baths": 2,
+    "bathsFull": 2,
+    "bathsHalf": 0,
+    "area": 1597,
+    "areaUnit": "sqft",
+    "lotSize": 5959.008,
+    "lotSizeUnit": "Square Feet",
+    "lotSizeText": "5,959 sqft",
+    "yearBuilt": 1998,
+    "homeType": "SINGLE_FAMILY",
+    "propertySubType": ["Single Family Residence"],
+    "pricePerSqft": 413,
+    "monthlyHoaFee": null,
+    "daysOnZillow": 18,
+    "description": "Warm, light-filled, and full of character, this single-story North Shoal Creek home offers classic charm, rece...",
+    "address": "8804 Little Laura Dr, Austin, TX 78757",
+    "street": "8804 Little Laura Dr",
+    "city": "Austin",
+    "state": "TX",
+    "zipcode": "78757",
+    "county": null,
+    "neighborhood": "North Shoal Creek",
+    "parcelId": null,
+    "latitude": 30.3726,
+    "longitude": -97.73293,
+    "mlsid": "2541366",
+    "mlsName": "Unlock MLS",
+    "brokerName": "Christies Intl Real Estate Lone Star",
+    "brokerPhone": null,
+    "listingAgent": { "name": null, "phone": "...", "email": null, "licenseNumber": null },
+    "photoCount": 30,
+    "photos": ["https://photos.zillowstatic.com/fp/66453dd79e36bf193ef84073937f2b3e-cc_ft_1536.jpg"],
+    "virtualTourUrl": "https://www.zillow.com/view-3d-home/651214bd-6245-40cc-ac29-8bf497d9846b",
+    "facts": [
+      { "label": "Type", "value": "Single Family Residence" },
+      { "label": "Year Built", "value": "1998" },
+      { "label": "Heating", "value": "Central, Natural Gas" }
+    ],
+    "parking": {
+      "hasGarage": true,
+      "hasCarport": null,
+      "hasAttachedGarage": true,
+      "garageSpaces": 2,
+      "parkingCapacity": 2,
+      "features": ["Attached", "Door-Single", "Garage Door Opener"]
+    },
+    "priceHistory": [
+      {
+        "date": "2026-10-07",
+        "event": null,
+        "price": 660000,
+        "pricePerSquareFoot": null,
+        "priceChangeRate": null,
+        "source": null
+      }
+    ],
+    "taxHistory": null,
+    "schools": null,
+    "isShowcaseListing": true,
+    "newConstruction": null,
+    "timeZone": "America/Chicago"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `status` / `statusText` | Listing status (e.g. `FOR_SALE`, `PENDING`) and Zillow's label for it. |
+| `price` / `priceText` / `currency` | Current price (monthly rent for rentals), the price as printed, and ISO currency. |
+| `priceChange` / `priceChangeDate` | Latest price change and its date, when Zillow shows one. |
+| `lastSoldPrice` / `dateSold` | Last sale price and date. |
+| `zestimate` / `rentZestimate` / `taxAssessedValue` | Zillow's estimates and the tax-assessed value. |
+| `beds`, `baths`, `bathsFull`, `bathsHalf` | Bedroom and bathroom counts. |
+| `area` / `areaUnit`, `lotSize` / `lotSizeUnit` / `lotSizeText` | Living area and lot size with their units. |
+| `yearBuilt`, `homeType`, `propertySubType` | Year built and property type. |
+| `pricePerSqft`, `monthlyHoaFee`, `daysOnZillow` | Price per square foot, HOA fee and days on Zillow. |
+| `description` | The listing description. |
+| `address`, `street`, `city`, `state`, `zipcode`, `county`, `neighborhood` | Address parts. |
+| `latitude` / `longitude` / `timeZone` | Coordinates and the local time zone. |
+| `mlsid` / `mlsName` | MLS listing id and the MLS it comes from. |
+| `brokerName` / `brokerPhone` / `listingAgent` | Listing brokerage and agent contact as Zillow shows them. |
+| `photoCount` / `photos` / `virtualTourUrl` | Photo count, the photo gallery and the 3D tour link. |
+| `facts` | Zillow's facts list as `label` / `value` pairs. |
+| `parking` | Garage and parking details. |
+| `priceHistory` | Dated price events with `date`, `event`, `price`, `pricePerSquareFoot`, `priceChangeRate` and `source`. |
+| `taxHistory` / `schools` | Tax history and nearby schools, when the page carries them. |
+
+<Note>
+Every field is always present and is `null` when Zillow does not show it for that listing. Rental pages carry more sections (Zestimates, tax history, parking, schools) than for-sale and sold pages.
+</Note>
+
+## What you can build
+
+- **Market analytics** - pull listings for a city or ZIP and track price, price per sqft and days on Zillow over time.
+- **Investment screening** - compare `price` with `zestimate` and `rentZestimate` to rank homes by estimated yield.
+- **New-listing alerts** - run the same search on a schedule with `sort=newest` and flag `zpid`s you have not seen.
+- **Property enrichment** - add price history, facts, schools and photos to your own records through the detail endpoint.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Zillow search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

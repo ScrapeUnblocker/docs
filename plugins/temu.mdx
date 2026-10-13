@@ -31,8 +31,8 @@ other Temu page still works through `getPageSource`.
 Temu meters the crawler view, so this plugin is built for **targeted** use (price
 checks, monitoring, comparison), not bulk crawling. It enforces its own
 fleet-wide rate limit and answers `429` immediately when the budget is spent -
-retry shortly rather than hammering. Price `currency` follows the exit IP's
-region, so the same product can come back in `USD`, `EUR` or `AED`.
+retry shortly rather than hammering. Price `currency` follows the
+region the request is served in, so the same product can come back in `USD`, `EUR` or `AED`.
 </Warning>
 
 ## Product
@@ -47,10 +47,46 @@ POST /goods/temu-product
 | --- | --- | --- |
 | `url` | yes | Full Temu product URL. Must be a product page - its path ends in `-g-<id>.html`. Search / category URLs are rejected with `400`. |
 
+<CodeGroup>
+
 ```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/goods/temu-product?url=https%3A%2F%2Fwww.temu.com%2Fexample-g-601099512345678.html" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.temu_product("https://www.temu.com/example-g-601099512345678.html")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.temuProduct("https://www.temu.com/example-g-601099512345678.html");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->temuProduct('https://www.temu.com/example-g-601099512345678.html');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.temu_product("https://www.temu.com/example-g-601099512345678.html")
+```
+
+</CodeGroup>
 
 ### Response
 
@@ -89,7 +125,7 @@ curl -X POST "https://api.scrapeunblocker.com/goods/temu-product?url=https%3A%2F
 | `brand` | Brand name, if present. |
 | `sku` | Source SKU when Temu includes one, else `null`. |
 | `price` | Price as a string, as Temu serves it. |
-| `priceCurrency` | ISO currency of `price`. Follows the exit IP region. |
+| `priceCurrency` | ISO currency of `price`. Follows the region the request is served in. |
 | `availability` | schema.org availability URL, e.g. `.../InStock`. |
 | `itemCondition` | schema.org condition URL, e.g. `.../NewCondition`. `null` if absent. |
 | `rating` | Average rating (out of 5). |
@@ -116,10 +152,46 @@ POST /goods/temu-search
 | `limit` | no | Max product URLs to return, default `40`, max `100`. One search page carries ~40. |
 | `sort` | no | Result order, using Temu's own sort. One of `relevance` (default), `best_selling`, `recent`, `price_asc` (price low to high) or `price_desc` (price high to low). Server-side, so the whole result set is sorted, not just a re-order of the page. |
 
+<CodeGroup>
+
 ```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/goods/temu-search?keyword=kids%20toys&limit=40&sort=price_asc" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.temu_search("kids toys", limit=40, sort="price_asc")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.temuSearch("kids toys", { limit: 40, sort: "price_asc" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->temuSearch('kids toys', ['limit' => 40, 'sort' => 'price_asc']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.temu_search("kids toys", limit: 40, sort: "price_asc")
+```
+
+</CodeGroup>
 
 ### Response
 
