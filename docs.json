@@ -210,14 +210,12 @@
                 ]
               },
               {
-                "group": "Video, Music & Communities",
+                "group": "Video & Music",
                 "icon": "circle-play",
                 "expanded": false,
                 "pages": [
                   "plugins/youtube",
-                  "plugins/spotify",
-                  "plugins/telegram",
-                  "plugins/quora"
+                  "plugins/spotify"
                 ]
               },
               {
@@ -422,6 +420,14 @@
     },
     {
       "source": "/plugins/tiktok",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/plugins/telegram",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/plugins/quora",
       "destination": "/plugins/overview"
     }
   ]

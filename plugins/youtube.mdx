@@ -1,14 +1,13 @@
 ---
 title: "YouTube plugin"
-description: "YouTube as clean JSON - a channel's videos with views and publish dates, search results with channel, views and duration, a video's comments with likes and replies, and timestamped transcripts."
+description: "YouTube as clean JSON - a channel's videos with views and publish dates, search results with channel, views and duration, and timestamped transcripts."
 sidebarTitle: "YouTube"
 ---
 
-The **YouTube** plugin turns YouTube into structured JSON through four endpoints:
+The **YouTube** plugin turns YouTube into structured JSON through three endpoints:
 
 - **Channel videos** - a channel's latest videos (title, views, likes, comments, publish date, duration, thumbnail) plus the channel's name, handle and subscriber, video and view counts.
 - **Search** - results for a query with the video id, title, channel, view count, duration, publish age, thumbnails, a description snippet and badges, filtered by type and sorted.
-- **Comments** - a video's comments with author, text, like and reply counts, publish time and the pinned, hearted, verified and uploader flags.
 - **Transcript** - a video's captions as timestamped segments and as one joined text, in the language you pick.
 
 Pass channels as a handle (`@mkbhd`), a channel id (`UC...`) or a URL, and videos as an id (`dQw4w9WgXcQ`) or any video URL. No YouTube API key or login is involved.
@@ -237,115 +236,6 @@ result = su.youtube_search("python tutorial", sort: "views", max_results: 5)
 
 `estimatedResults` is YouTube's estimate of all matches; `hasMore` says whether more pages exist.
 
-## Video comments
-
-```
-POST /content/youtube-comments
-```
-
-| Field | Required | Notes |
-| --- | --- | --- |
-| `video` | yes | Video id (`dQw4w9WgXcQ`) or any YouTube video URL. |
-| `sort` | no | Comment order: `top` (default) or `newest`. |
-| `max_results` | no | How many comments to collect across pages (about 20 per page), `1`-`2000`. Default `20`. |
-| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Defaults to `US`. |
-
-<CodeGroup>
-```bash cURL
-curl -X POST "https://api.scrapeunblocker.com/content/youtube-comments?video=dQw4w9WgXcQ&sort=top&max_results=5" \
-  -H "x-scrapeunblocker-key: YOUR_API_KEY"
-```
-```python Python
-from scrapeunblocker import Client
-
-su = Client()  # reads SCRAPEUNBLOCKER_KEY
-
-result = su.youtube_comments("dQw4w9WgXcQ", sort="top", max_results=5)
-```
-```ts Node.js
-import { ScrapeUnblockerClient } from "scrapeunblocker";
-
-const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
-
-const result = await su.youtubeComments("dQw4w9WgXcQ", { sort: "top", maxResults: 5 });
-```
-```php PHP
-use ScrapeUnblocker\Client;
-
-$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
-
-$result = $su->youtubeComments('dQw4w9WgXcQ', ['sort' => 'top', 'max_results' => 5]);
-```
-```ruby Ruby
-require "scrapeunblocker"
-
-su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
-
-result = su.youtube_comments("dQw4w9WgXcQ", sort: "top", max_results: 5)
-```
-</CodeGroup>
-
-### Response
-
-```json
-{
-  "videoId": "dQw4w9WgXcQ",
-  "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
-  "sort": "top",
-  "commentCountText": "2,458,983 Comments",
-  "commentCount": 2458983,
-  "comments": [
-    {
-      "commentId": "Ugw10bSluCDSZMIxUSB4AaABAg",
-      "author": "@LK...",
-      "authorChannelId": "UCHpvH...",
-      "authorThumbnail": "https://yt3.ggpht.com/...",
-      "text": "Let’s put the meme aside, this is actually a banging song.",
-      "likeCount": 219000,
-      "likeCountText": "219K",
-      "publishedTimeText": "6 years ago",
-      "replyCount": 588,
-      "isPinned": false,
-      "isHearted": false,
-      "isAuthorVerified": false,
-      "isUploader": false,
-      "replyLevel": 0
-    },
-    {
-      "commentId": "Ugw_ueQKh1eJhMfZF6B4AaABAg",
-      "author": "@dm...",
-      "authorChannelId": "UCZtAC...",
-      "authorThumbnail": "https://yt3.ggpht.com/...",
-      "text": "They found a new way to Rick Roll in 2026 😭😭😭",
-      "likeCount": 16000,
-      "likeCountText": "16K",
-      "publishedTimeText": "2 months ago",
-      "replyCount": 124,
-      "isPinned": false,
-      "isHearted": false,
-      "isAuthorVerified": false,
-      "isUploader": false,
-      "replyLevel": 0
-    }
-  ],
-  "resultsCollected": 5,
-  "hasMore": true
-}
-```
-
-| Field | Notes |
-| --- | --- |
-| `commentId` | YouTube's comment id. |
-| `author` / `authorChannelId` / `authorThumbnail` | The commenter's handle, channel id and avatar. |
-| `text` | Comment text. |
-| `likeCount` / `likeCountText` | Likes as a number and as YouTube prints them. |
-| `replyCount` | Number of replies. |
-| `publishedTimeText` | Relative publish time, e.g. `2 months ago`. |
-| `isPinned` / `isHearted` | Pinned by the creator, hearted by the creator. |
-| `isAuthorVerified` / `isUploader` | The commenter has a verified channel, the commenter is the video's uploader. |
-
-The top level carries the video's `title` and total `commentCount`. A video with comments turned off returns `404`.
-
 ## Video transcript
 
 ```
@@ -452,7 +342,6 @@ A video without captions returns `404`.
 
 - **Channel monitoring** - track new uploads and their views, likes and comments for the channels you follow.
 - **Rank tracking** - record where videos place for your keywords with `sort` and `type`.
-- **Audience and sentiment research** - collect top or newest comments and run them through a classifier.
 - **LLM and RAG pipelines** - turn videos into searchable, timestamped text with the transcript endpoint.
 
 ## Next steps
