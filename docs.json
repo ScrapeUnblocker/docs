@@ -115,7 +115,6 @@
                   "plugins/best-buy",
                   "plugins/home-depot",
                   "plugins/etsy",
-                  "plugins/temu",
                   "plugins/shein",
                   "plugins/zalando",
                   "plugins/aliexpress",
@@ -424,6 +423,10 @@
     },
     {
       "source": "/plugins/telegram",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/plugins/temu",
       "destination": "/plugins/overview"
     },
     {
