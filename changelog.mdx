@@ -3,6 +3,18 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-15" description="parsed_data: full spec sheet and Schema.org facts on detail pages">
+  [`parsed_data=true`](/guides/parsed-data) detail pages (`listing_detail`,
+  `product_detail`, `recipe_detail`, ...) now carry the page's whole spec sheet
+  as **`specifications`** (`"label": "value"`, as the page prints it) and the
+  facts the page publishes as Schema.org data - price, brand, mileage, rating,
+  recipe ingredients and steps, job salary, film cast, ... - as English
+  `snake_case` fields. `article_detail` pages gain **`content`**, the article's
+  main text. The same site served in another language (a German and an English
+  mobile.de page) no longer loses most of its fields. List pages return a
+  link for every result. Existing fields keep their names.
+</Update>
+
 <Update label="2026-10-15" description="429 responses carry Retry-After">
   A request over your [concurrent requests limit](/rate-limits) still returns
   `429 Concurrency limit exceeded` with `X-SU-Deny-Reason: concurrency`, and now

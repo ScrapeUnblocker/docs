@@ -47,15 +47,24 @@ const payload = await res.json();
 ```json
 {
   "data": {
-    "page_type": "product",
+    "page_type": "listing_detail",
     "data": {
-      "title": "Echo Dot (4th Gen)",
-      "price": "49.99",
-      "currency": "USD",
-      "brand": "Amazon",
-      "availability": "InStock",
-      "rating": 4.7,
-      "review_count": 123456
+      "title": "Volvo XC90 2.0 D5 Inscription AWD",
+      "price": { "value": 31250, "currency": "EUR" },
+      "brand": "Volvo",
+      "model": "XC90",
+      "mileage": "79,748 km",
+      "power": "173 kW (235 hp)",
+      "fuel_type": "Diesel",
+      "transmission": "Automatic",
+      "first_registration": "09/2018",
+      "images": ["https://img.example.com/1.jpg", "https://img.example.com/2.jpg"],
+      "specifications": {
+        "Mileage": "79,748 km",
+        "Power": "173 kW (235 hp)",
+        "First Registration": "09/2018",
+        "Trailer load braked": "2,700 kg"
+      }
     }
   }
 }
@@ -63,20 +72,38 @@ const payload = await res.json();
 
 ### `page_type`
 
-Detected category of the page. Common values:
+Detected category of the page:
 
-- `product` - e-commerce product detail page
-- `listing` - search results or category page
-- `article` - news, blog, or editorial content
-- `job` - job posting
-- `real_estate` - property listing
-- `social_profile` - a creator or brand profile page
-- `social_post` - a single social media post
-- `unknown` - extractor could not classify the page
+- `product_detail` - a single product (also films, books, apps)
+- `listing_detail` - a single classified listing: vehicle, property, job, event, place
+- `recipe_detail` - a recipe
+- `article_detail` - a news story, blog post or wiki article
+- `search_list` - search results or a listing grid
+- `article_list` - a list of articles or posts (news front page, forum)
+- `category_index` - a category navigation page
+- `homepage` - a site's home page
+- `review_list` - a page of reviews (Trustpilot, G2, Yelp, ...)
+- `social_profile` / `social_post` - a creator or brand profile, a single post
+- `not_found` - the target answered `404` / `410` (see below)
+- `unknown` - the page could not be classified
 
 ### `data`
 
-The extracted fields. Schema depends on `page_type`. Field names are normalized - a `product` always has `title` and `price`, however the data was extracted.
+The extracted fields. Field names are English `snake_case` whatever the language of the page, and every price is normalized to `{ "value": <number>, "currency": "<code>" }`.
+
+**List pages** (`search_list`, `article_list`, ...) return the results as `items`, plus `total` and `next_page` (the URL of the next results page, or `null` on the last one).
+
+**Detail pages** (`*_detail`) return the item's fields at the top level, filled from the page's own spec table, its labelled values and the Schema.org data it publishes (price, brand, rating, mileage, ingredients, salary, ...). Next to them:
+
+| Key | When present | What it holds |
+|-----|--------------|---------------|
+| `images` | the page has a photo gallery | image URLs, main image first |
+| `features` | the page lists equipment / amenities | labels such as `"Heated seats"` |
+| `specifications` | the page has a spec sheet | every row of it as `"label": "value"`, exactly as the page prints it (original language, values not normalized) |
+| `reviews` | the page publishes reviews as Schema.org data | up to 10 reviews: `author`, `rating`, `date`, `title`, `text` |
+| `content` | `article_detail` | the article's main text, paragraphs separated by blank lines |
+
+Use the top-level fields for values you read across many sites; use `specifications` when you need a row the page shows that has no top-level field.
 
 ## When nothing can be extracted
 
@@ -100,7 +127,7 @@ A dead URL is different: when the target itself answers `404` / `410`, you get t
 
 ## When parsed data is the right choice
 
-<Check>**Use it when** you're scraping a known page type at scale - products, articles, listings, jobs. Saves you from writing per-site parsers.</Check>
+<Check>**Use it when** you're scraping a known page type at scale - products, listings, articles, recipes, jobs. Saves you from writing per-site parsers.</Check>
 <Warning>**Skip it when** you need a field the extractor doesn't expose, or when you need raw HTML for downstream tooling. Fetch the HTML and parse it yourself instead.</Warning>
 
 ## Combining with `get_cookies`
