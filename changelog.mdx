@@ -3,6 +3,15 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-15" description="Google Images: time filter">
+  [Google Images](/plugins/google-images) takes Google's own time filter:
+  **`time_range`** (`hour`, `day`, `week`, `month`, `year`) returns only the
+  images Google found in that recent period, and **`date_from`** /
+  **`date_to`** (`YYYY-MM-DD`) set a fixed window. A query you scan on a
+  schedule now returns what is new since the last run instead of the same top
+  results. Calls without these parameters are unchanged.
+</Update>
+
 <Update label="2026-10-15" description="getPageSource: slow and apex-only sites, the target's own 204 / 401 / 451 / 500">
   [`/getPageSource`](/guides/page-source) no longer reports a live site as down when
   it is only slow: a target that takes longer than a few seconds to answer used

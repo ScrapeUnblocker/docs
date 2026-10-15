@@ -25,6 +25,9 @@ POST /images/google-search
 | `pages` | no | How many result pages to fetch, `1`-`5`. Each page has ~100 results; Google stops at roughly 400-500 per query. **Each page fetched is billed as one request** (see `pagesFetched`). Default `1`. |
 | `gl` | no | Optional Google market override (ISO-2 lowercase, e.g. `de`). Leave it empty to follow `proxy_country`; set it only for a different market than the IP country. |
 | `max_results` | no | Optional cap on the number of results returned, `1`-`500`. Default: everything the fetched pages return. |
+| `time_range` | no | Only images Google found within this recent period: `hour`, `day`, `week`, `month` or `year` (Google Images' **Tools > Time** filter). See [Only new images](#only-new-images). Cannot be combined with `date_from` / `date_to`. |
+| `date_from` | no | Only images Google found on or after this date, `YYYY-MM-DD`. Works alone or with `date_to`. |
+| `date_to` | no | Only images Google found on or before this date, `YYYY-MM-DD`. Works alone or with `date_from`. |
 
 <CodeGroup>
 
@@ -69,6 +72,44 @@ require "scrapeunblocker"
 su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
 
 result = su.google_images("eiffel tower", proxy_country: "US", pages: 3)
+```
+
+</CodeGroup>
+
+### Only new images
+
+Without a time filter, the same query returns mostly the same top results on every run. When you scan a query on a schedule (brand or content monitoring, takedown work), set `time_range` to the interval between scans - `day` for a daily scan - and you get only the images Google found in that period. For a fixed window, use `date_from` and `date_to` instead. An unknown `time_range` value, a date not in `YYYY-MM-DD` format, or `date_from` after `date_to` returns `400` with a plain-text message.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/images/google-search?q=eiffel%20tower&proxy_country=US&time_range=day" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+result = su.google_images("eiffel tower", proxy_country="US", time_range="day")
+
+# a fixed window instead
+result = su.google_images("eiffel tower", date_from="2026-10-01", date_to="2026-10-07")
+```
+
+```ts Node.js
+const result = await su.googleImages("eiffel tower", {
+  proxyCountry: "US",
+  timeRange: "day",
+});
+```
+
+```php PHP
+$result = $su->googleImages('eiffel tower', [
+    'proxy_country' => 'US',
+    'time_range' => 'day',
+]);
+```
+
+```ruby Ruby
+result = su.google_images("eiffel tower", proxy_country: "US", time_range: "day")
 ```
 
 </CodeGroup>
