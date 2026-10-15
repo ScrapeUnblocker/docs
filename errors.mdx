@@ -9,7 +9,7 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 
 | Code | Meaning | Billed | Where to look |
 | --- | --- | --- | --- |
-| `200` | The page was delivered. Also used for a dead origin's own `5xx` error page - then the `X-Origin-Status` header carries the target's status. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Response body; `X-Origin-Status` if present |
+| `200` | The page was delivered. Also used for a dead origin's own `5xx` error page and for the target's own `401`, `451` or empty `500` - then the `X-Origin-Status` header carries the target's status. A target that answers `204` (no content) comes back as an empty `200`. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Response body; `X-Origin-Status` if present |
 | `400` | Bad request: the `x-scrapeunblocker-key` header is missing, the URL is malformed or not `http`/`https`, an unsupported `proxy_country`, or `Hostname cannot be resolved` (the domain does not exist) | Only `Hostname cannot be resolved` | Check the URL and the key header |
 | `401` | Authentication problem - the key is not recognised, or the account behind it has no valid subscription | No | See [401 unauthorized](#401-unauthorized) below and [Authentication](/authentication) |
 | `402` | Billing problem - quota exceeded, credit limit exceeded, repeated payment failures, or your own monthly budget limit reached | No | See [402 payment required](#402-payment-required) below |
@@ -24,7 +24,7 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 | `502` | Our load balancer lost the connection to an API node (HTML body). Dedicated plugin endpoints also return `502` with a plain-text message when the target returned no usable results or the call did not finish in time (`... timed out.`) | No | Retry with backoff |
 | `503` | No API capacity right now (`No server is available to handle this request`, or `Render unavailable.`) - a problem on our side, not the target's | No | Retry with backoff |
 | `504` | The request reached its time cap: `Request timed out.` (60 s on `/getPageSource`, 90 s with `steps`, 75 s on `/getImage`) or a SERP timeout. Usually a slow target | No | Retry. If persistent for one domain, contact support |
-| `523` | `Origin unreachable` - the target answered nobody over any of our exits (down, or refusing connections in bursts). Not a bot block | No | Retry after a pause |
+| `523` | `Origin unreachable` - the target answered nobody over any of our exits (down, or refusing connections in bursts). Not a bot block. A target that accepts the connection but is slow to answer is not a `523`: we keep waiting for it within the time cap | No | Retry after a pause |
 
 ## Dead URLs: `X-Origin-Status`
 
@@ -49,6 +49,8 @@ if r.status_code in (404, 410) and r.headers.get("X-Origin-Status"):
 ```
 
 When the target's origin server returns its own `5xx` error page (for example nginx `502 Bad Gateway`), you get a `200` with that page, `X-Origin-Status` carrying the origin's status and `X-Upstream-Unavailable: true`, also billed. It stays a `200` on purpose: most HTTP clients retry `5xx` automatically, and every retry would be billed.
+
+The target's own `401` (the page needs a login), `451` (unavailable for legal reasons) and a `500` with no body at all come back the same way, once a second exit has seen the same answer: a `200` with the body exactly as the target served it (often empty) and `X-Origin-Status: 401`, `451` or `500`, billed. They are never passed through as the status itself - our own `401` always means a problem with your API key, and our own `500` an error on our side.
 
 <Note>
 Until 2026-09-30 a target's `404` / `410` also came back as a `200` with `X-Origin-Status`. Code that checks `r.status_code == 200` first should now handle `404` / `410` with the header as a dead URL, not as an error to retry.

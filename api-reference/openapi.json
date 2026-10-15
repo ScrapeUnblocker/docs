@@ -79,7 +79,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success — body is HTML (or JSON when `parsed_data=true` / `get_cookies=true`). With `parsed_data=true` a page that rendered but yielded no structured data is still a 200: `data.data` is empty, `data_extracted` is `false` and `html` carries the rendered page. Also a dead-origin 5xx page, as served (can be empty): then the `X-Origin-Status` header carries the target's status. Billed.",
+            "description": "Success — body is HTML (or JSON when `parsed_data=true` / `get_cookies=true`). With `parsed_data=true` a page that rendered but yielded no structured data is still a 200: `data.data` is empty, `data_extracted` is `false` and `html` carries the rendered page. Also a dead-origin 5xx page, as served (can be empty): then the `X-Origin-Status` header carries the target's status. The same for the target's own 401, 451 or empty 500, confirmed from more than one exit. A target that answers 204 (or another 2xx with no body) comes back as an empty 200. Billed.",
             "content": {
               "application/json": {
                 "schema": {}

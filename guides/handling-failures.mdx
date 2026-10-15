@@ -56,13 +56,13 @@ def get_with_backoff(url, key, max_attempts=5):
 
 ## 523 - the target is unreachable
 
-The target site answered nobody over any of our exits: it is down, or it refuses connections in bursts. This is not a bot block, and it is not billed.
+The target site answered nobody over any of our exits: it is down, or it refuses connections in bursts. This is not a bot block, and it is not billed. A site that accepts the connection but is slow to answer is not a `523` - we keep waiting for it within the call's time cap.
 
 **Recovery:** retry after a pause (tens of seconds to minutes). Rotating `proxy_country` rarely helps - the site itself is not answering.
 
 ## Dead URLs - `X-Origin-Status`
 
-If the target says the page does not exist, you get the target's own `404` or `410` with its page as the body (it can be empty) and an `X-Origin-Status` header carrying that status. If its origin returns its own `5xx` error page, you get a `200` with that page and the same header. Either way we reached the site; the URL is dead. It is billed like any delivered page, and **retrying will not change it** - check the header and drop or fix the URL. A `404` without `X-Origin-Status` is ours (a wrong API path), not the target's. A URL whose domain does not exist returns `400 Hostname cannot be resolved` (also billed). See [Errors](/errors#dead-urls-x-origin-status).
+If the target says the page does not exist, you get the target's own `404` or `410` with its page as the body (it can be empty) and an `X-Origin-Status` header carrying that status. If its origin returns its own `5xx` error page - or the target answers its own `401`, `451` or an empty `500` - you get a `200` with that body and the same header. Either way we reached the site; the URL is dead. It is billed like any delivered page, and **retrying will not change it** - check the header and drop or fix the URL. A `404` without `X-Origin-Status` is ours (a wrong API path), not the target's. A URL whose domain does not exist returns `400 Hostname cannot be resolved` (also billed). See [Errors](/errors#dead-urls-x-origin-status).
 
 ## 504 - timeout
 

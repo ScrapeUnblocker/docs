@@ -3,6 +3,23 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-15" description="getPageSource: slow and apex-only sites, the target's own 204 / 401 / 451 / 500">
+  [`/getPageSource`](/guides/page-source) no longer reports a live site as down when
+  it is only slow: a target that takes longer than a few seconds to answer used
+  to come back as `523 Origin unreachable`, and now gets more time within the
+  call's 60 s cap.
+
+  A URL on a domain that only exists without `www` (for example
+  `httpbingo.org`) used to get a billed `400 Hostname cannot be resolved`; it is
+  now fetched on the domain as you sent it. Only a domain that does not resolve
+  at all still gets that `400`.
+
+  The target's own `204` comes back as an empty `200`, and its own `401`, `451`
+  or empty `500` as a `200` with the target's body and `X-Origin-Status` (see
+  [Dead URLs](/errors#dead-urls-x-origin-status)). These used to come back as
+  `403`, as if bot protection had blocked the page.
+</Update>
+
 <Update label="2026-10-15" description="getImage returns the original image">
   [`/getImage`](/guides/image-fetching) now returns the image's bytes **exactly
   as the image host serves them**, with the image's own `Content-Type` (JPEG,
