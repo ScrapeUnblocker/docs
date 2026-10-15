@@ -72,12 +72,14 @@ curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=pizza&pages_to_che
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
-## Fetch a single image as PNG
+## Fetch an image
+
+The bytes come back unchanged, in the image's original format.
 
 ```bash
 curl -X POST "https://api.scrapeunblocker.com/getImage?url=https://example.com/photo.jpg" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY" \
-  --output photo.png
+  --output photo.jpg
 ```
 
 ## Bash one-liner with API key from environment

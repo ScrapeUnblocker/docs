@@ -1,15 +1,13 @@
 ---
 title: "Image fetching"
-description: "Fetch images through a real browser context when plain GET returns a challenge or tracking pixel."
+description: "Download an image in its original format, through rotating proxies, past bot protection on the image host."
 ---
 
-The `/getImage` endpoint navigates to an image URL through a real browser with a residential proxy, draws the first `<img>` to a canvas, and returns the resulting PNG bytes. Use it when a plain `GET https://host/image.jpg` returns:
+The `/getImage` endpoint downloads the image at `url` and returns its bytes **exactly as the image host serves them**, with the host's own `Content-Type`. Nothing is re-encoded: a JPEG comes back as the same JPEG, a WebP as WebP, an animated GIF keeps its animation, an SVG stays an SVG.
 
-- A bot-protection challenge page (Cloudflare, hCaptcha)
-- A 1x1 tracking pixel
-- A redirect to a login wall
+The request goes out through rotating proxies. When the image host answers with a bot challenge (Cloudflare, DataDome and the like), a real browser opens the image, clears the challenge and hands back the image's own bytes.
 
-For images that load fine with a normal HTTP GET, **don't use this endpoint** - it's slower and more expensive. A regular `requests.get(url)` is the right choice there.
+Use it when a plain `GET https://host/image.jpg` from your servers is blocked, rate-limited or geo-fenced.
 
 ## Request
 
@@ -18,10 +16,11 @@ For images that load fine with a normal HTTP GET, **don't use this endpoint** - 
 ```bash cURL
 curl -X POST "https://api.scrapeunblocker.com/getImage?url=https://example.com/photo.jpg" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY" \
-  --output photo.png
+  --output photo.jpg
 ```
 
 ```python Python
+import mimetypes
 import requests
 
 r = requests.post(
@@ -30,7 +29,9 @@ r = requests.post(
     headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
     timeout=120,
 )
-with open("photo.png", "wb") as f:
+r.raise_for_status()
+ext = mimetypes.guess_extension(r.headers["Content-Type"].split(";")[0]) or ".bin"
+with open("photo" + ext, "wb") as f:
     f.write(r.content)
 ```
 
@@ -44,39 +45,44 @@ const res = await fetch(
     headers: { "x-scrapeunblocker-key": "YOUR_API_KEY" },
   }
 );
-const bytes = Buffer.from(await res.arrayBuffer());
-await writeFile("photo.png", bytes);
+if (!res.ok) throw new Error(`getImage ${res.status}`);
+console.log(res.headers.get("content-type")); // e.g. image/jpeg
+await writeFile("photo.jpg", Buffer.from(await res.arrayBuffer()));
 ```
 
 </CodeGroup>
 
 ## Response
 
-`200` returns raw PNG bytes with `Content-Type: image/png`. Save them directly to a file or pipe them into your image pipeline.
+`200` returns the image bytes unchanged. `Content-Type` is the image's real type (`image/jpeg`, `image/png`, `image/webp`, `image/avif`, `image/gif`, `image/svg+xml`, ...), checked against the bytes themselves, so a host that labels everything `application/octet-stream` still gives you the right type. `X-Destination-URL` holds the final URL after redirects.
 
-The output is **always PNG** regardless of the source image format. Width and height match the source.
+Image hosts often negotiate the format: a CDN may serve WebP or AVIF to a browser even when the URL ends in `.jpg`. Read `Content-Type` (or the first bytes) rather than trusting the extension.
 
 ## Country targeting
 
-Pass `proxy_country` (ISO 3166-1 alpha-2) to force a specific country. Some image CDNs geo-fence by IP region, returning empty or watermarked images outside the expected country:
+Pass `proxy_country` (ISO 3166-1 alpha-2) to fetch from a specific country. Some image CDNs geo-fence by IP region and return nothing, or a different image, outside the expected country:
 
 ```bash
 curl -X POST "https://api.scrapeunblocker.com/getImage?url=https://example.com/photo.jpg&proxy_country=us" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY" \
-  --output photo.png
+  --output photo.jpg
 ```
 
 ## Errors
 
-| Code | Meaning |
-| --- | --- |
-| `404` | The page at `url` loaded but contained no `<img>` element |
-| `403` | Image-processing failure (e.g. canvas tainted by CORS) or upstream block |
-| `408` | Browser run timed out |
-| `422` | Missing `url` parameter |
+| Code | Meaning | Billed |
+| --- | --- | --- |
+| `400` | Invalid URL or `proxy_country`, or the domain does not exist (`Hostname cannot be resolved`) | Only the non-existent domain |
+| `403` | Blocked by bot protection on every proxy and in the browser. Also when the image host itself refuses the URL, such as an expired signed link; then `X-Origin-Status` is set | No |
+| `404` / `410` | The image does not exist: the image host answered 404 / 410. `X-Origin-Status` tells it apart from a wrong API path | Yes |
+| `413` | The file is larger than 50 MB | No |
+| `415` | The URL is not an image (for example an HTML page); `X-Resource-Content-Type` names what it is | No |
+| `422` | Missing `url` parameter | No |
+| `504` | The call reached its 75 s time cap | No |
+| `523` | The image host is unreachable or answered 5xx on every attempt (`X-Origin-Status` carries its status). Retry later | No |
 
 ## Tips
 
-- **Pass an image URL, not a page URL.** The endpoint expects to navigate directly to something that resolves to an `<img>` (either as the document, or with one prominent `<img>` on the page). Pointing it at a full product page is unreliable.
-- **Expect 5-30s latency.** Real-browser navigation is intrinsically slow. Batch image fetches with a worker pool, don't do them synchronously in a hot path.
-- **Cache aggressively.** The same image URL returns the same bytes - you only need to fetch once per image.
+- **Pass the image URL, not the page it sits on.** A page URL returns `415`. To get the images of a page, fetch the page with [`/getPageSource`](/api-reference/scraping/fetch-the-html-or-parsed-json-for-any-url) and take the `src` / `srcset` URLs from its HTML.
+- **Typical latency is 1-3 s.** A host that challenges every request takes longer (a browser has to clear it), up to the 75 s cap.
+- **Cache aggressively.** The same image URL returns the same bytes - you only need to fetch it once.

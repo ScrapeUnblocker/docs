@@ -28,8 +28,8 @@ The public API has three endpoints. All other paths on `api.scrapeunblocker.com`
   <Card title="POST /serpApi" icon="magnifying-glass" href="/api-reference/scraping/scrape-a-google-search-serp-for-organic-+-ad-results">
     Scrape Google search results. Returns organic results, top ads, bottom ads, total result count, and the proxy country actually used. Supports 1-10 page pagination.
   </Card>
-  <Card title="POST /getImage" icon="image" href="/api-reference/scraping/fetch-a-single-image-as-raw-png-bytes">
-    Fetch a single image as PNG bytes via a real browser context. For hosts that return challenge pages or tracking pixels to non-browsers.
+  <Card title="POST /getImage" icon="image" href="/api-reference/scraping/fetch-an-image-in-its-original-format">
+    Download an image exactly as the image host serves it (original format and `Content-Type`), through rotating proxies and past bot challenges.
   </Card>
 </CardGroup>
 
@@ -39,7 +39,7 @@ The public API has three endpoints. All other paths on `api.scrapeunblocker.com`
 
 - `/getPageSource` returns `text/html` by default, or `application/json` when `parsed_data=true` or `get_cookies=true`.
 - `/serpApi` always returns `application/json`.
-- `/getImage` always returns `image/png`.
+- `/getImage` returns the image's own type (`image/jpeg`, `image/webp`, `image/png`, `image/gif`, `image/svg+xml`, ...), bytes unchanged.
 
 Error responses (`4xx`, `5xx`) are `application/json` with a `detail` field describing the issue. See [Errors](/errors) for the full list.
 

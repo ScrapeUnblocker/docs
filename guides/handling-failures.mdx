@@ -62,7 +62,7 @@ The target site answered nobody over any of our exits: it is down, or it refuses
 
 ## Dead URLs - `X-Origin-Status`
 
-If the target says the page does not exist, you get the target's own `404` or `410` with its page as the body (it can be empty) and an `X-Origin-Status` header carrying that status. If its origin returns its own `5xx` error page, you get a `200` with that page and the same header. Either way we reached the site; the URL is dead. It is billed like any delivered page, and **retrying will not change it** - check the header and drop or fix the URL. A `404` without `X-Origin-Status` is ours (a wrong API path, or `/getImage` finding no image), not the target's. A URL whose domain does not exist returns `400 Hostname cannot be resolved` (also billed). See [Errors](/errors#dead-urls-x-origin-status).
+If the target says the page does not exist, you get the target's own `404` or `410` with its page as the body (it can be empty) and an `X-Origin-Status` header carrying that status. If its origin returns its own `5xx` error page, you get a `200` with that page and the same header. Either way we reached the site; the URL is dead. It is billed like any delivered page, and **retrying will not change it** - check the header and drop or fix the URL. A `404` without `X-Origin-Status` is ours (a wrong API path), not the target's. A URL whose domain does not exist returns `400 Hostname cannot be resolved` (also billed). See [Errors](/errors#dead-urls-x-origin-status).
 
 ## 504 - timeout
 
@@ -75,12 +75,6 @@ The request reached its time cap: `Request timed out.` on `/getPageSource` (60 s
 3. **On `/serpApi`, lower `pages_to_check`.** Each additional page extends the time needed.
 
 A `504` with an HTML body comes from our load balancer - that one is on our side. If `504`s hit many different domains at once, treat it like a `503`.
-
-## 408 - browser timeout
-
-Only returned by `/getImage`. Means the real-browser navigation took too long.
-
-**Recovery:** retry. If persistent, the image URL may not point to something the browser can resolve - confirm the URL works in a regular browser first.
 
 ## 422 - validation error
 

@@ -105,17 +105,17 @@ curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=best+running+shoes
 
 Returns `topAds`, `bottomAds`, `organic`, `totalResults`, and the proxy country used. Up to 10 pages per call. Details in the [SERP guide](/guides/serp-scraping).
 
-## Fetch an image through a browser
+## Fetch an image
 
-For hosts that block plain image GETs (or serve a tracking pixel to non-browsers):
+For image hosts that block plain GETs from your servers:
 
 ```bash
 curl -X POST "https://api.scrapeunblocker.com/getImage?url=https://example.com/photo.jpg" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY" \
-  --output photo.png
+  --output photo.jpg
 ```
 
-Returns raw PNG bytes. See the [image fetching guide](/guides/image-fetching).
+Returns the image bytes in their original format, with the image's own `Content-Type`. See the [image fetching guide](/guides/image-fetching).
 
 ## What's next
 

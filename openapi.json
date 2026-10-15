@@ -796,8 +796,8 @@
         "tags": [
           "Scraping"
         ],
-        "summary": "Fetch a single image as raw PNG bytes",
-        "description": "Navigates to the given image URL via a real browser and a proxy, draws the first `<img>` to a canvas, and returns the resulting PNG. Use this when a regular GET against the image returns a challenge page or a tiny tracking pixel because the host requires a real browser context.",
+        "summary": "Fetch an image in its original format",
+        "description": "Downloads the image at `url` through rotating proxies and returns its bytes exactly as the image host serves them, with the host's own `Content-Type` (JPEG, PNG, WebP, AVIF, GIF incl. animation, SVG, ICO, ...). Nothing is re-encoded. When the host answers with a bot challenge, a real browser opens the image and clears it. `url` must point at the image itself - for a page, use /getPageSource and take the image URL from its HTML.",
         "operationId": "get_image_getImage_post",
         "parameters": [
           {
@@ -821,21 +821,42 @@
         ],
         "responses": {
           "200": {
-            "description": "PNG bytes (`image/png`).",
+            "description": "The image bytes, unchanged, with the image's own `Content-Type`. `X-Destination-URL` carries the final URL after redirects. Billed.",
             "content": {
               "application/json": {
                 "schema": {}
+              },
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
-          "404": {
-            "description": "No image element found on the target URL."
+          "400": {
+            "description": "Invalid URL, unsupported scheme or `proxy_country`, or `Hostname cannot be resolved` - the domain does not exist (billed)."
           },
           "403": {
-            "description": "Image-processing failure (e.g. canvas tainted by CORS) or upstream block."
+            "description": "Blocked by bot protection on every exit and in the browser, or the image host refused the URL itself (expired signed link; then `X-Origin-Status` is set). Not billed."
           },
-          "408": {
-            "description": "Browser run timed out."
+          "404": {
+            "description": "The image host answered 404 (the image does not exist); `X-Origin-Status: 404` tells it apart from a wrong API path. Billed."
+          },
+          "410": {
+            "description": "The image host answered 410 (gone), with `X-Origin-Status: 410`. Billed."
+          },
+          "413": {
+            "description": "The file is larger than 50 MB. Not billed."
+          },
+          "415": {
+            "description": "The URL is not an image (an HTML page or another file type); `X-Resource-Content-Type` names what it is. Not billed."
+          },
+          "504": {
+            "description": "Request timed out (75 s cap). Not billed."
+          },
+          "523": {
+            "description": "Image host unreachable or answering 5xx on every exit (`X-Origin-Status` carries its status when it answered). Not a bot block, not billed - retry later."
           },
           "422": {
             "description": "Validation Error",

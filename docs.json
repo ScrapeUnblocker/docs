@@ -432,6 +432,10 @@
     {
       "source": "/plugins/quora",
       "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/scraping/fetch-a-single-image-as-raw-png-bytes",
+      "destination": "/api-reference/scraping/fetch-an-image-in-its-original-format"
     }
   ]
 }
