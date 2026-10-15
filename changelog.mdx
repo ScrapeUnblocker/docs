@@ -3,6 +3,14 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-15" description="429 responses carry Retry-After">
+  A request over your [concurrent requests limit](/rate-limits) still returns
+  `429 Concurrency limit exceeded` with `X-SU-Deny-Reason: concurrency`, and now
+  also the header **`Retry-After: 1`** - the number of seconds to wait before
+  retrying. Nothing else changes; clients that already back off on `429` keep
+  working.
+</Update>
+
 <Update label="2026-10-13" description="Every plugin documented, in all four SDKs and the MCP server">
   **51 new plugin pages** - [the plugins overview](/plugins/overview) now lists
   every public plugin in 14 categories: e-commerce (Walmart, Target, Best Buy,

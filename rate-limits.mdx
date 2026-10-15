@@ -20,14 +20,14 @@ Your monthly request quota is separate - see [Monthly quota](#monthly-quota) bel
 
 ## When you hit the limit
 
-A request over the limit is refused immediately with `429 Too Many Requests` (body `Concurrency limit exceeded`, header `X-SU-Deny-Reason: concurrency`) - it is not queued. Wait for one of your running requests to finish, then send the next.
+A request over the limit is refused immediately with `429 Too Many Requests` (body `Concurrency limit exceeded`, headers `X-SU-Deny-Reason: concurrency` and `Retry-After: 1`) - it is not queued. Wait for one of your running requests to finish, then send the next.
 
 `429` responses are not billed.
 
 The recommended client behavior:
 
 1. Run a fixed worker pool no larger than your concurrent requests limit.
-2. On `429`, back off (for example 1-5 seconds) and retry. Use the `Retry-After` header if it is present.
+2. On `429`, wait the number of seconds in the `Retry-After` header, then retry. If it is missing, back off (for example 1-5 seconds).
 3. Resume.
 
 ```python
