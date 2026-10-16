@@ -3,6 +3,18 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-16" description="MCP: popular plugins as their own tools">
+  The [MCP server](/sdks/mcp) (**0.4.0** on npm) and the hosted connector
+  (`mcp.scrapeunblocker.com`, **0.5.0**) expose the 15 most-used site plugins
+  as tools of their own: Amazon search, product and reviews, Walmart, eBay,
+  Google Shopping, Google Local, Google Maps place details, Google Images,
+  YouTube search and transcripts, Zillow, Indeed, Trustpilot and Booking.com.
+  Their parameters are part of the tool schema, so an assistant calls them in
+  one step instead of looking them up with `list_plugins` first. Every plugin,
+  these included, still runs through `run_plugin`. The hosted connector is
+  also listed on [Smithery](https://smithery.ai/servers/scrapeunblocker/scrapeunblocker).
+</Update>
+
 <Update label="2026-10-16" description="Scrapy middleware 0.1.0">
   The [Scrapy middleware](/sdks/scrapy) is now open source on
   [GitHub](https://github.com/ScrapeUnblocker/scrapeunblocker-scrapy-middleware):
