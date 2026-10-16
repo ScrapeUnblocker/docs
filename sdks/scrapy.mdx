@@ -1,12 +1,12 @@
 ---
 title: "Scrapy middleware"
-description: "Drop-in Scrapy downloader middleware that routes every request through ScrapeUnblocker."
+description: "Drop-in Scrapy downloader middleware that routes your spider's requests through ScrapeUnblocker."
 ---
 
-If you already have a Scrapy project, the `scrapeunblocker-scrapy-middleware` package lets you keep your spiders unchanged - every `Request` is silently rewritten to go through `/getPageSource`, with HTML returned to your callbacks as if the spider had fetched the URL directly.
+If you already have a Scrapy project, the `scrapeunblocker-scrapy-middleware` package lets you keep your spiders unchanged - every routed `Request` is rewritten to go through `/getPageSource`, and your callbacks receive the HTML as if the spider had fetched the URL directly.
 
 <Note>
-  The middleware is maintained at [github.com/scrapeunblocker/scrapeunblocker-scrapy-middleware](https://github.com/scrapeunblocker). For the most up-to-date install and configuration instructions, check the README there.
+  The middleware is open source at [github.com/ScrapeUnblocker/scrapeunblocker-scrapy-middleware](https://github.com/ScrapeUnblocker/scrapeunblocker-scrapy-middleware) and published on [PyPI](https://pypi.org/project/scrapeunblocker-scrapy-middleware/). The README there has the full reference.
 </Note>
 
 ## Install
@@ -15,6 +15,8 @@ If you already have a Scrapy project, the `scrapeunblocker-scrapy-middleware` pa
 pip install scrapeunblocker-scrapy-middleware
 ```
 
+Requires Python 3.9+ and Scrapy 2.8+.
+
 ## Enable in `settings.py`
 
 ```python
@@ -22,7 +24,7 @@ DOWNLOADER_MIDDLEWARES = {
     "scrapeunblocker_middleware.ScrapeUnblockerMiddleware": 543,
 }
 
-SCRAPEUNBLOCKER_API_KEY = "su_live_..."
+SCRAPEUNBLOCKER_API_KEY = "YOUR_API_KEY"   # or set the SCRAPEUNBLOCKER_API_KEY env var
 
 # Optional defaults applied to every request unless overridden via Request.meta
 SCRAPEUNBLOCKER_DEFAULTS = {
@@ -30,9 +32,17 @@ SCRAPEUNBLOCKER_DEFAULTS = {
 }
 ```
 
+| Setting | Default | Description |
+| --- | --- | --- |
+| `SCRAPEUNBLOCKER_API_KEY` | - | Your API key. Falls back to the `SCRAPEUNBLOCKER_API_KEY` and then the `SCRAPEUNBLOCKER_KEY` environment variable. Without a key the middleware disables itself and requests go out directly. |
+| `SCRAPEUNBLOCKER_DEFAULTS` | `{}` | API options sent with every routed request (a dict, or a JSON string). |
+| `SCRAPEUNBLOCKER_API_URL` | `https://api.scrapeunblocker.com/getPageSource` | The endpoint to call. |
+| `SCRAPEUNBLOCKER_ENABLED` | `True` | `False` turns the middleware off. |
+| `SCRAPEUNBLOCKER_ORIGIN_STATUS` | `True` | Use the target site's own status (`X-Origin-Status`) as `response.status`. |
+
 ## Per-request overrides
 
-Pass options via `Request.meta["scrapeunblocker"]` to override defaults for a single request:
+Pass options via `Request.meta["scrapeunblocker"]` to override defaults for a single request. A value of `None` removes a default.
 
 ```python
 import scrapy
@@ -42,52 +52,91 @@ class PriceSpider(scrapy.Spider):
     start_urls = ["https://example.com/product/123"]
 
     def parse(self, response):
-        yield {"price": response.css(".price::text").get()}
+        yield {"price": response.css(".price::text").get(default="").strip()}
 
         yield scrapy.Request(
             "https://example.com/product/124",
             meta={
                 "scrapeunblocker": {
                     "proxy_country": "de",
-                    "parsed_data": True,
-                    "time_sleep": 3,
+                    "steps": [{"action": "wait_for", "selector": ".price"}],
                 }
             },
             callback=self.parse,
         )
 ```
 
+The options are the `/getPageSource` parameters: `proxy_country`, `parsed_data`, `get_cookies`, `steps` (a list of [browser actions](/guides/browser-steps)) and `list_elements`. Booleans are sent as `true` / `false` and `steps` as a JSON array. Browser rendering always happens, so there is no option for it. A key the API does not know has no effect, so the middleware logs a warning for it.
+
+To send a request directly, without ScrapeUnblocker, set `meta={"scrapeunblocker": False}` (or `meta={"dont_scrapeunblocker": True}`).
+
 ## What the middleware does
 
-For every outgoing request, the middleware:
+For every routed request, the middleware:
 
 1. Rewrites the URL to `https://api.scrapeunblocker.com/getPageSource?url=<original>`.
 2. Changes the method to `POST`.
-3. Adds the `x-scrapeunblocker-key` header.
+3. Adds the `x-scrapeunblocker-key` header. The target site's own headers and cookies are not sent to the API.
 4. Merges `SCRAPEUNBLOCKER_DEFAULTS` and `meta["scrapeunblocker"]` into the query string.
-5. On response, restores the original URL on the Scrapy `Response` object so your selectors see the URL you requested, not the proxy URL.
+5. On response, restores the original URL and request on the Scrapy `Response`, so selectors, `response.follow()` and relative links work against the URL you requested, not the API URL.
+
+The API call keeps the target site as its download slot, so `CONCURRENT_REQUESTS_PER_DOMAIN` and `DOWNLOAD_DELAY` still apply per target site. Requests already addressed to the API host are never wrapped twice, so retries are safe.
+
+These requests are sent directly, because `/getPageSource` cannot serve them:
+
+- requests that are not `GET` (for example a `FormRequest` post) - to submit a form through ScrapeUnblocker, use [browser steps](/guides/browser-steps);
+- requests Scrapy components make for themselves: `robots.txt` and `FilesPipeline` / `ImagesPipeline` downloads;
+- URLs that are not `http` / `https`.
+
+<Note>
+  The API returns the HTML re-indented, so text nodes carry surrounding whitespace and newlines. Strip them with `.get(default="").strip()` or `normalize-space()` in XPath.
+</Note>
 
 ## Handling parsed data
 
-When `parsed_data=True` is set, the response body is JSON, not HTML. Use the convenience accessor:
+When `parsed_data` is set, the response body is JSON, not HTML, and `response.json()` works as usual. `response.meta["scrapeunblocker_params"]` holds the options the response was fetched with, defaults included:
 
 ```python
 def parse(self, response):
-    if response.meta.get("scrapeunblocker", {}).get("parsed_data"):
+    if response.meta["scrapeunblocker_params"].get("parsed_data"):
         data = response.json()["data"]["data"]
-        yield {"title": data["title"], "price": data["price"]}
+        yield {"title": data.get("title"), "price": data.get("price")}
     else:
-        yield {"price": response.css(".price::text").get()}
+        yield {"price": response.css(".price::text").get(default="").strip()}
 ```
+
+The body is `{"data": {"page_type": ..., "data": {...}}}` - see [parsed data](/guides/parsed-data) for the fields, and for the `200` with `data_extracted: false` and the page's `html` when nothing could be extracted.
+
+## Status codes
+
+When the target site itself answers with an error, the API adds an `X-Origin-Status` header and the middleware makes it the response status, so Scrapy handles it as it would the site's own answer:
+
+- a dead URL (`404` / `410` with `X-Origin-Status`) reaches your spider as `404` / `410`;
+- an origin error page or the target's own `401` / `451` / `500` (a `200` with `X-Origin-Status`) becomes that status.
+
+These calls are billed and a retry returns the same answer, so the middleware marks them `dont_retry`. Scrapy's `HttpErrorMiddleware` drops them unless you allow the status, for example `meta={"handle_httpstatus_list": [404, 410]}`. See [dead URLs](/errors#dead-urls-x-origin-status).
+
+API errors (`401`, `402`, `403`, `429`, `5xx`, `523`, ...) keep their status and are logged with the API's message and a hint. See [errors](/errors).
 
 ## Retry behavior
 
-The middleware does **not** override Scrapy's `RetryMiddleware`. Configure retries in `settings.py` as you would for any other downloader:
+The middleware does **not** override Scrapy's `RetryMiddleware`. Scrapy's default `RETRY_HTTP_CODES` already retry `429` and the `5xx` failures; add `523` (target unreachable for the moment) and, if you like, `403`:
 
 ```python
 RETRY_ENABLED = True
 RETRY_TIMES = 3
-RETRY_HTTP_CODES = [403, 408, 500, 502, 503, 504]
+RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 523, 524, 408, 429]
 ```
 
-A `403` retry from Scrapy will hit ScrapeUnblocker again, which independently rotates through bypass routes - so a second `403` usually means the target is truly hard-blocked on that day. See [handling failures](/guides/handling-failures).
+None of these statuses is billed, so retrying them costs nothing. A `403` retry hits ScrapeUnblocker again, which independently rotates through bypass routes - so a second `403` usually means the target is truly hard-blocked on that day. A request with `steps` runs its actions again on every retry. See [handling failures](/guides/handling-failures).
+
+## Recommended settings
+
+```python
+CONCURRENT_REQUESTS = 20             # at most your plan's concurrent requests limit
+CONCURRENT_REQUESTS_PER_DOMAIN = 20  # Scrapy's default 8 caps a single-site crawl
+DOWNLOAD_TIMEOUT = 180               # Scrapy's default; a call can take its time cap plus queueing
+AUTOTHROTTLE_ENABLED = False         # calls take seconds; cap throughput with concurrency instead
+```
+
+Requests over your plan's limit answer `429` - see [concurrency limits](/rate-limits).

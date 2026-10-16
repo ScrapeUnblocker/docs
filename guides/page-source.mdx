@@ -131,7 +131,7 @@ When you add `parsed_data=true` or `get_cookies=true`, the response becomes JSON
 | --- | --- |
 | `400` | Invalid URL, unsupported scheme, or a Google search URL - use [`/serpApi`](/guides/serp-scraping) instead |
 | `403` | Every bypass path was blocked - try `proxy_country` or wait |
-| `503` | Target site is serving a server-side outage page |
+| `503` | No capacity on our side right now - retry with backoff (not billed) |
 | `422` | One of your parameters failed validation |
 
 Full reference in [errors](/errors).

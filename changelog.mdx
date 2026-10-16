@@ -3,6 +3,17 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-16" description="Scrapy middleware 0.1.0">
+  The [Scrapy middleware](/sdks/scrapy) is now open source on
+  [GitHub](https://github.com/ScrapeUnblocker/scrapeunblocker-scrapy-middleware):
+  add one line to `DOWNLOADER_MIDDLEWARES` and your existing spiders fetch every
+  page through `/getPageSource`. `response.url`, `response.follow()` and
+  relative links keep pointing at the target site, a dead URL reaches your
+  spider as a normal `404` / `410`, and `429` / `5xx` go through Scrapy's own
+  retries. The guide now lists every setting, the options you can pass per
+  request and the recommended concurrency and timeout settings.
+</Update>
+
 <Update label="2026-10-15" description="Google Images: time filter">
   [Google Images](/plugins/google-images) takes Google's own time filter:
   **`time_range`** (`hour`, `day`, `week`, `month`, `year`) returns only the
