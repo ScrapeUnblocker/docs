@@ -70,28 +70,6 @@ You don't pick the route. It's chosen automatically per request based on what ha
 
 ## Useful parameters
 
-### `method` and `value`
-
-For domains with custom plugins, `method` selects a specific extraction strategy and `value` passes a parameter to it. Common patterns:
-
-- `method=ajax&value=<endpoint>` - hit a site's internal JSON API and return the JSON instead of HTML.
-- `method=scroll&value=3` - scroll the page N times before returning HTML, for infinite-scroll listings.
-
-The exact methods supported depend on the domain plugin. Check the [help center](https://scrapeunblocker.com/contact) for per-domain documentation.
-
-### `time_sleep`
-
-Number of seconds to wait *after* the page loads before returning HTML. Useful for sites that hydrate content lazily after first paint.
-
-```bash
-curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com&time_sleep=5" \
-  -H "x-scrapeunblocker-key: YOUR_API_KEY"
-```
-
-### `method_timeout`
-
-Hard cap on how long ScrapeUnblocker will spend on a single bypass attempt before moving to the next one. Default is 60 seconds. Lower it for fast-failing crawls; raise it for slow targets you really need.
-
 ### `proxy_country`
 
 Two-letter ISO country code forcing the request through that country's proxy pool. See [country targeting](/guides/country-targeting).
@@ -103,6 +81,8 @@ type into, a "load more" button to click, content that appears only after
 scrolling. Pass `steps` (a JSON array of browser actions - `click`, `type`,
 `scroll`, `wait_for`, `press_key`, ...) and ScrapeUnblocker runs them in a real
 browser after the page loads, then returns the resulting HTML.
+The same goes for content that arrives late: a `wait_for` step (wait until a
+selector appears) or a `wait` step holds the HTML back until it is there.
 
 To discover the selectors those actions need, add `list_elements=true`: instead
 of HTML you get back the page's interactive elements as JSON, each with a
