@@ -7,7 +7,7 @@ ScrapeUnblocker tries every available bypass route before giving up. When it doe
 
 ## 403 - blocked on every route
 
-We tried every bypass we have for this domain - direct, residential, stealth browser, fallback provider - and every path was blocked.
+We tried every bypass route we have for this domain, and every one of them was blocked.
 
 **Recovery:**
 
@@ -30,7 +30,7 @@ We tried every bypass we have for this domain - direct, residential, stealth bro
 
 ## 503 - no capacity on our side
 
-We had no API capacity for the request right now: every node was busy past the queue limit, or none was up (`No server is available to handle this request`), or the render path was unavailable (`Render unavailable.`). This is a problem on our side, not the target's - and it is not billed.
+We had no API capacity for the request right now: all capacity was busy past the queue limit, or none was available (`No server is available to handle this request`), or the render path was unavailable (`Render unavailable.`). This is a problem on our side, not the target's - and it is not billed.
 
 **Recovery:** wait and retry. Exponential backoff is appropriate:
 
@@ -52,7 +52,7 @@ def get_with_backoff(url, key, max_attempts=5):
     return r
 ```
 
-`500` (internal error) and `502` with an HTML body (our load balancer lost the node) are the same class - ours, free, retry with backoff.
+`500` (internal error) and `502` with an HTML body (our gateway lost the connection to the scraping backend) are the same class - ours, free, retry with backoff.
 
 ## 523 - the target is unreachable
 
@@ -74,7 +74,7 @@ The request reached its time cap: `Request timed out.` on `/getPageSource` (60 s
 2. **Pick a different `proxy_country`.** Some country pools are slower or under heavier rotation.
 3. **On `/serpApi`, lower `pages_to_check`.** Each additional page extends the time needed.
 
-A `504` with an HTML body comes from our load balancer - that one is on our side. If `504`s hit many different domains at once, treat it like a `503`.
+A `504` with an HTML body comes from our gateway - that one is on our side. If `504`s hit many different domains at once, treat it like a `503`.
 
 ## 422 - validation error
 

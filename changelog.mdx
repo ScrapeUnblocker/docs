@@ -233,7 +233,7 @@ description: "Notable changes to the ScrapeUnblocker API."
   came back as `403 Blocked by bot protection.`, which read as a block. These
   calls are billed like any delivered page; a URL whose domain does not exist
   returns `400 Hostname cannot be resolved` and is billed too. Responses our
-  load balancer generates itself (`502` / `503` / `504`) are never billed.
+  gateway generates itself (`502` / `503` / `504`) are never billed.
   [Errors](/errors) now lists every status with whether it is billed, and
   explains how to tell a target problem from an outage on our side;
   [Handling failures](/guides/handling-failures) covers `503`, `504`, `523` and

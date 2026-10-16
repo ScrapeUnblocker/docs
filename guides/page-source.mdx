@@ -44,20 +44,14 @@ const html = await res.text();
 ScrapeUnblocker keeps a per-domain success history and picks the cheapest path that has worked recently:
 
 <Steps>
-  <Step title="Domain plugin">
-    If we have a custom-built plugin for the target domain (Mobile.de, Zillow, Amazon, etc.), we use it. Plugins ship hardcoded knowledge about that site's protection - cookie order, headers, anti-fingerprinting tweaks.
+  <Step title="Site plugin">
+    If we have a dedicated plugin for the target site (Mobile.de, Zillow, Amazon, etc.), we use it. Plugins carry site-specific knowledge about how that site is protected.
   </Step>
-  <Step title="Direct fetch">
-    For unprotected origins, a plain HTTP fetch is tried first. Fastest and cheapest.
+  <Step title="Fast fetch">
+    For unprotected pages, a lightweight fetch is tried first. Fastest response.
   </Step>
-  <Step title="Residential proxy">
-    If direct fails, the request is rotated through a residential IP in a relevant country.
-  </Step>
-  <Step title="Stealth browser">
-    For JavaScript-rendered pages or sites with browser fingerprint checks, we spin up a real browser with a randomized profile.
-  </Step>
-  <Step title="Upstream fallback">
-    If all in-house paths fail, the request falls back to a third-party provider as a last resort.
+  <Step title="Real browser">
+    For JavaScript-rendered pages or sites with bot checks, the page is rendered in a real browser behind rotating premium proxies, with challenges solved automatically.
   </Step>
 </Steps>
 
