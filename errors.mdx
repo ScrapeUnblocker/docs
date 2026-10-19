@@ -13,7 +13,7 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 | `400` | Bad request: the `x-scrapeunblocker-key` header is missing, the URL is malformed or not `http`/`https`, an unsupported `proxy_country`, or `Hostname cannot be resolved` (the domain does not exist) | Only `Hostname cannot be resolved` | Check the URL and the key header |
 | `401` | Authentication problem - the key is not recognised, or the account behind it has no valid subscription | No | See [401 unauthorized](#401-unauthorized) below and [Authentication](/authentication) |
 | `402` | Billing problem - quota exceeded, credit limit exceeded, repeated payment failures, or your own monthly budget limit reached | No | See [402 payment required](#402-payment-required) below |
-| `403` | Blocked by the target site's bot protection on every available bypass path | No | Try a different `proxy_country`, or see [handling failures](/guides/handling-failures) |
+| `403` | Either the target blocked us on every bypass path, **or** the URL is a login / authentication / payment page we do not fetch (`X-SU-Error-Code: restricted_target`), or a `steps` action tried to fill a password or payment-card field (`X-SU-Error-Code: restricted_action`) | No | `X-SU-Error-Code` header; [restricted targets](#restricted-targets) or [handling failures](/guides/handling-failures) |
 | `404` | With `X-Origin-Status: 404`: the target site itself says the page does not exist; the body is the target's page. See [Dead URLs](#dead-urls-x-origin-status). Without the header: a plugin found no such item, or the API path is wrong | Only with `X-Origin-Status` | `X-Origin-Status` header, then the body |
 | `410` | The target site itself says the page is gone (`X-Origin-Status: 410`); the body is the target's page. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Drop the URL |
 | `413` | `/getImage`: the file is larger than 50 MB | No | - |
@@ -223,15 +223,56 @@ When you send an invalid request body, `/getPageSource`, `/serpApi`, and `/getIm
 
 `loc` is the path to the problem field. `msg` is human-readable. `type` is a stable machine-readable identifier.
 
+## Restricted targets
+
+ScrapeUnblocker does not fetch sign-in or payment surfaces, and it does not fill
+credential or payment forms. Two refusals enforce this. Both are returned at our
+edge (or before any action runs), are **never billed**, and carry an
+`X-SU-Error-Code` header so you can tell them apart from an ordinary bot block.
+
+| `X-SU-Error-Code` | When | Endpoints |
+| --- | --- | --- |
+| `restricted_target` | The URL is a login, authentication or payment / checkout page - a known identity or payment host (for example `accounts.google.com`, `checkout.stripe.com`), or a path whose segment is one of `login`, `sign-in`, `oauth`, `checkout`, `payment`, and similar. The request is refused before a browser is launched | `/getPageSource`, `/getImage` |
+| `restricted_action` | A [`steps`](/guides/browser-steps) `type` action is about to fill a field the page marks as a password or a payment-card field. The run stops on that step | `/getPageSource` with `steps` |
+
+A `restricted_target` refusal is a plain-text `403`:
+
+```
+HTTP/1.1 403 Forbidden
+Content-Type: text/plain
+X-SU-Error-Code: restricted_target
+
+This target is a login, authentication or payment page. ScrapeUnblocker does not fetch sign-in or payment surfaces...
+```
+
+A `restricted_action` refusal is a JSON `403` naming the step:
+
+```json
+{
+  "error": "restricted_action",
+  "detail": "This step would enter a password or payment-card field. ScrapeUnblocker does not fill credential or payment forms.",
+  "step_index": 1,
+  "field": "password"
+}
+```
+
+Matching is deliberately narrow: a whole path segment must match, so an article at
+`/payment-policies` or `/how-to-login-safely` is fetched normally - only the login
+or payment surface itself is refused. Ordinary `steps` into search boxes, filters
+and forms are unaffected. If you have a legitimate need for such a target, contact
+[support](https://scrapeunblocker.com/contact).
+
 ## 403 - blocked vs. invalid key
 
-A `403` from ScrapeUnblocker **never** means your API key is wrong. Invalid keys return `401`. A `403` always means: the target site blocked us on every bypass route we tried.
+A `403` from ScrapeUnblocker **never** means your API key is wrong. Invalid keys return `401`. Otherwise a `403` is one of two things, which the `X-SU-Error-Code` header tells apart: a [restricted target](#restricted-targets) (the header is set), or the target site blocked us on every bypass route we tried (no such header).
 
-When you see `403`:
+When you see a `403` with no `X-SU-Error-Code` (a bot block):
 
 1. **Try a different `proxy_country`.** Some sites geo-fence or geo-rotate their bot protection. A US site may be unreachable from EU IPs and vice versa.
 2. **Wait and retry.** Rate-based blocks expire after a few minutes.
 3. **Contact support** if the same URL repeatedly fails - we may need to add a custom plugin for that domain.
+
+A `403` **with** an `X-SU-Error-Code` is a policy refusal, not a bot block - retrying or changing `proxy_country` will not help. See [restricted targets](#restricted-targets).
 
 More detail in the [handling failures guide](/guides/handling-failures).
 

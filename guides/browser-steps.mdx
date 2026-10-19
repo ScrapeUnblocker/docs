@@ -140,6 +140,24 @@ Scroll to the bottom, wait for the next batch to load, repeat:
 - Per-step `timeout_ms` bounds how long an individual `wait_for` / `click` / etc.
   waits for its element, within the overall budget.
 
+## What steps may not do
+
+ScrapeUnblocker does not sign in or pay on your behalf. Two guardrails apply to
+every `steps` request, and both refuse the call free of charge:
+
+- **Login, authentication and payment pages are not fetched at all.** If the URL
+  is a sign-in, authentication or payment/checkout page, the request is refused
+  with `403` and `X-SU-Error-Code: restricted_target` before the browser is even
+  launched - `steps` never run. See [restricted targets](/errors#restricted-targets).
+- **A `type` action may not fill a password or a payment-card field.** When an
+  action is about to type into a field the page marks as a password or a
+  payment-card field, the request stops with `403` and
+  `X-SU-Error-Code: restricted_action`. Ordinary fields - search boxes, filters,
+  forms - are unaffected.
+
+Use `steps` to reach content behind interaction (search, "load more", filters),
+not to operate an account.
+
 ## When a step fails
 
 If any step can't complete - the selector never appears, a click has no target,
