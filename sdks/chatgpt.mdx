@@ -76,9 +76,13 @@ bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
 | Tool | What it does |
 |------|--------------|
 | `fetch_html` | Fetch the fully rendered HTML of any URL. |
+| `fetch_markdown` | Fetch a page as clean Markdown, usually 2-25% the size of the HTML. |
 | `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
 | `google_search` | Run a Google search and return organic results as JSON. |
+| `search_and_read` | Search Google and read the top 1-5 results as Markdown in one call. |
 | `list_elements` | List a page's interactive elements (buttons, inputs, links, forms) with ready-to-use selectors. |
+| `browse_page` | Run browser steps on a page (click, type, select, scroll, wait), then return the resulting HTML. The one tool not marked read-only, because it acts on the website. |
+| `list_plugins` / `run_plugin` | Find and run any of the 100+ [site plugins](/plugins/overview); the 15 most-used are also tools of their own. |
 
 ## Example prompts
 
@@ -102,9 +106,8 @@ bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
 - **No "Plugins" or "Developer mode" in Settings** - you're likely in the ChatGPT
   **desktop app**. Open [chatgpt.com](https://chatgpt.com) in a browser instead.
   (OpenAI renamed "Connectors" to "Plugins" in 2026.)
-- **The connector shows fewer than four tools** - reopen it from **Plugins** and
-  check again; all four (`fetch_html`, `fetch_parsed`, `google_search`,
-  `list_elements`) should be listed.
+- **The connector shows only a few tools** - reopen it from **Plugins** and
+  check again; the full list is on the [MCP page](/sdks/mcp#tools).
 
 ## Source
 

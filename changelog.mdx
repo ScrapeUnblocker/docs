@@ -3,6 +3,15 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-20" description="MCP: browser steps have their own tool">
+  Browser steps moved from `fetch_html` to a new MCP tool, **`browse_page`**
+  ([MCP server](/sdks/mcp) **0.6.0** on npm, hosted connector **0.7.0**). Steps
+  click, type and submit on the target website, so the tool that runs them is
+  the one tool annotated as not read-only, and assistants that ask before such
+  actions now ask before it; `fetch_html` and every other tool stay read-only.
+  Pass the same `steps` to `browse_page` that you passed to `fetch_html`.
+</Update>
+
 <Update label="2026-10-20" description="MCP: read pages as Markdown, search and read in one call">
   The [MCP server](/sdks/mcp) (**0.5.0** on npm) and the hosted connector
   (`mcp.scrapeunblocker.com`, **0.6.0**) have two new tools.

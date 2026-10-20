@@ -25,8 +25,13 @@ Claude Code asks for your API key while enabling the plugin. Get one from the [d
 | Tool | What it does |
 |------|--------------|
 | `fetch_html` | Fetch the fully rendered HTML of any URL. |
+| `fetch_markdown` | Fetch a page as clean Markdown, usually 2-25% the size of the HTML. |
 | `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
 | `google_search` | Run a Google search and return organic results as JSON. |
+| `search_and_read` | Search Google and read the top 1-5 results as Markdown in one call. |
+| `list_elements` | List a page's interactive elements (buttons, inputs, links, forms) with ready-to-use selectors. |
+| `browse_page` | Run browser steps on a page (click, type, select, scroll, wait), then return the resulting HTML. The one tool not marked read-only, because it acts on the website. |
+| `list_plugins` / `run_plugin` | Find and run any of the 100+ [site plugins](/plugins/overview); the 15 most-used are also tools of their own. |
 
 **Command** - for when you want an explicit one-off fetch:
 
