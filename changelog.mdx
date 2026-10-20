@@ -3,6 +3,18 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-20" description="MCP: read pages as Markdown, search and read in one call">
+  The [MCP server](/sdks/mcp) (**0.5.0** on npm) and the hosted connector
+  (`mcp.scrapeunblocker.com`, **0.6.0**) have two new tools.
+  **`fetch_markdown`** returns a page as clean Markdown: the main content with
+  absolute links and tables, without scripts, styles, navigation or footer. It
+  is usually 2-25% the size of the HTML, so an assistant can read far more pages
+  in the same context. **`search_and_read`** runs a Google search and reads the
+  top 1-5 results as Markdown in one call, with Google's AI Overview when there
+  is one; it is billed as one search plus one request per page read. The MCP
+  page now also shows how to install the server in Cursor and VS Code.
+</Update>
+
 <Update label="2026-10-16" description="MCP: popular plugins as their own tools">
   The [MCP server](/sdks/mcp) (**0.4.0** on npm) and the hosted connector
   (`mcp.scrapeunblocker.com`, **0.5.0**) expose the 15 most-used site plugins

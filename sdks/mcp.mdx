@@ -26,6 +26,8 @@ Requires Node.js 18+. Published on npm as [`scrapeunblocker-mcp`](https://www.np
 | `fetch_html` | Fetch the fully rendered HTML of any URL. |
 | `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
 | `google_search` | Run a Google search and return organic results as JSON. |
+| `fetch_markdown` | Fetch a page and return it as clean Markdown: the main content with absolute links, without scripts, styles, navigation or footer. Usually 2-25% the size of the HTML, so it is the cheap way for the assistant to read a page. Billed as one request. |
+| `search_and_read` | Search Google and read the top results in one call: Google's AI Overview (when there is one), the first 1-5 result pages as Markdown, and the other results as title, URL and snippet. Billed as one search plus one request per page read. |
 | `list_elements` | List a page's interactive elements (buttons, inputs, links, forms) with ready-to-use selectors. |
 | `list_plugins` | List the ready-made [site plugins](/plugins/overview) (Amazon, Walmart, Zillow, Booking.com, Indeed, Google Trends, YouTube, App Store, Ahrefs and 100+ more) with their parameters. Free - it calls nothing. |
 | `run_plugin` | Run one site plugin and return its structured JSON. Each run is billed like an API request. |
@@ -63,6 +65,59 @@ Grab your key from the [dashboard](https://app.scrapeunblocker.com). The server 
     }
     ```
   </Tab>
+  <Tab title="Cursor">
+    <a href="cursor://anysphere.cursor-deeplink/mcp/install?name=scrapeunblocker&config=eyJ1cmwiOiJodHRwczovL21jcC5zY3JhcGV1bmJsb2NrZXIuY29tL21jcCIsImhlYWRlcnMiOnsieC1zY3JhcGV1bmJsb2NrZXIta2V5IjoiWU9VUl9BUElfS0VZIn19">Add to Cursor</a>
+    installs the hosted server. Then open **Cursor Settings → MCP**, edit
+    `scrapeunblocker` and replace `YOUR_API_KEY` with your key.
+
+    Or add it to `~/.cursor/mcp.json` (all projects) or `.cursor/mcp.json` (one project) yourself:
+
+    ```json
+    {
+      "mcpServers": {
+        "scrapeunblocker": {
+          "url": "https://mcp.scrapeunblocker.com/mcp",
+          "headers": {
+            "x-scrapeunblocker-key": "YOUR_API_KEY"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="VS Code">
+    Add the server from a terminal. VS Code asks for your key the first time the
+    server starts and keeps it in its secret storage:
+
+    ```bash
+    code --add-mcp '{"name":"scrapeunblocker","type":"stdio","command":"npx","args":["-y","scrapeunblocker-mcp"],"env":{"SCRAPEUNBLOCKER_KEY":"${input:scrapeunblocker-key}"}}'
+    ```
+
+    Or put this in `.vscode/mcp.json`:
+
+    ```json
+    {
+      "inputs": [
+        {
+          "type": "promptString",
+          "id": "scrapeunblocker-key",
+          "description": "ScrapeUnblocker API key",
+          "password": true
+        }
+      ],
+      "servers": {
+        "scrapeunblocker": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "scrapeunblocker-mcp"],
+          "env": {
+            "SCRAPEUNBLOCKER_KEY": "${input:scrapeunblocker-key}"
+          }
+        }
+      }
+    }
+    ```
+  </Tab>
   <Tab title="Any MCP client">
     The server speaks MCP over stdio. Start it with your key in the environment:
 
@@ -72,7 +127,7 @@ Grab your key from the [dashboard](https://app.scrapeunblocker.com). The server 
   </Tab>
 </Tabs>
 
-Once connected, the four tools appear automatically and the assistant calls them when it needs to reach a page that would otherwise be blocked.
+Once connected, the tools appear automatically and the assistant calls them when it needs to read a page, search the web or reach a page that would otherwise be blocked.
 
 ## Hosted connector (claude.ai web & mobile)
 
@@ -163,6 +218,8 @@ See the full, screenshot-by-screenshot [ChatGPT setup guide](/sdks/chatgpt).
 - "This page keeps blocking me: `https://example-shop.com/product/123`. Use `fetch_html` to get it and list the price."
 - "Fetch the parsed data for `https://www.amazon.com/dp/B08N5WRWNW` and summarise the product."
 - "Search Google for `best running shoes 2026` and give me the top 5 links, then fetch the first one."
+- "Read `https://en.wikipedia.org/wiki/Web_scraping` as Markdown and summarise it in five bullets." (uses `fetch_markdown`)
+- "Search the web for the current population of Vilnius and cite the pages you read." (uses `search_and_read`)
 - "Find coffee makers on Target under $50 and compare them with Walmart's." (uses `run_plugin`)
 - "Show Google Trends for `coffee` vs `tea` in the US over the last year."
 
