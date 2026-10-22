@@ -80,7 +80,7 @@ While a job runs, this shows its newest lines. Once it has ended - finished, fai
 
 A very large log keeps its start and its end and drops the middle, with a line marking the gap. A spider left on `DEBUG` is the usual cause; `INFO` keeps the whole log.
 
-From the API, `GET /jobs/{key}/logs` takes `lines` (up to 5000), `level` (only lines at that level or above, for example `WARNING`) and `contains` (case-insensitive text). The two filters search the whole stored log, not only its end, because the warning that explains a failure can be hours before it. `GET /jobs/{key}/logs/download` returns the whole stored log as a `.log.gz`.
+From the API, `GET /jobs/{key}/logs` takes `lines` (up to 5000), `level` (only lines at that level or above, for example `WARNING`) and `contains` (case-insensitive text). The two filters search the whole stored log, not only its end, because the warning that explains a failure can be hours before it. `GET /jobs/{key}/logs/download` returns the whole stored log as a `.log.gz`. The [CLI](/spider-cloud/sdk) has the same: `su-cloud logs <key> --level WARNING --contains 403` and `su-cloud log-download <key>`.
 
 ### Items
 

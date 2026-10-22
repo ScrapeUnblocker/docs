@@ -43,6 +43,9 @@ su-cloud run products -a category=shoes --unblock --wait
 su-cloud jobs --state running
 su-cloud job j1699999999abc                 # one job's detail
 su-cloud logs j1699999999abc --lines 200
+su-cloud logs j1699999999abc --level WARNING      # why did it fail? searches the whole log
+su-cloud logs j1699999999abc --contains "403"
+su-cloud log-download j1699999999abc        # the whole log as j1699999999abc.log.gz
 su-cloud items j1699999999abc > out.jsonl   # scraped items to stdout, one JSON per line
 su-cloud download j1699999999abc -o out.jsonl.gz
 su-cloud stats j1699999999abc
@@ -86,13 +89,17 @@ Org and project set on the client are the defaults for every call, so a single-p
 | `client.projects` | `list`, `create`, `settings`, `update_settings` |
 | `client.deploys` | `list`, `upload`, `from_git` |
 | `client.jobs` | `run`, `list`, `get` |
-| `Job` | `wait`, `refresh`, `logs`, `items`, `items_page`, `download`, `stats`, `cancel`, `.state`, `.done` |
+| `Job` | `wait`, `refresh`, `logs`, `logs_page`, `download_log`, `items`, `items_page`, `download`, `stats`, `cancel`, `.state`, `.done` |
 | `client.schedules` | `list`, `create`, `toggle`, `delete` |
 | `client.destinations` | `list`, `create`, `delete` |
 
 ### Pulling data
 
 `job.items()` pages through the whole dataset by cursor and yields one item at a time - it works while the job is still running, returning what has been flushed so far. For a full export as a file, use `job.download("out.jsonl.gz")` (a byte-for-byte `.jsonl.gz`, or `fmt="jsonl"` for plain lines). `job.stats()` returns the crawl statistics - responses by outcome, retries, items and elapsed time.
+
+### Reading logs
+
+`job.logs(lines=100)` returns the end of the log - for a finished job, the end of its stored log, which stays readable for your plan's retention period. `level="WARNING"` keeps only lines at that level or above and `contains="403"` only lines with that text; either one searches the whole stored log, not only its end. `job.logs_page()` returns the same lines with a `note` saying why a result is empty (no match, data past retention, job never started), and `job.download_log("job.log.gz")` saves the whole log. Requires `scrapeunblocker-cloud` 0.2.0 or newer.
 
 ## Errors
 
