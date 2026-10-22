@@ -76,6 +76,12 @@ Jobs also die on their ceilings: each container has a memory limit and a hard ti
 
 The spider's own output. Scrapy's stats dump at the end of a run lands here too, which is where the `su_cloud/*` [routing counters](/spider-cloud/routing#checking-how-much-was-actually-routed) can be read.
 
+While a job runs, this shows its newest lines. Once it has ended - finished, failed or killed - it shows the end of the job's stored log, which is kept with the rest of its data for your plan's retention period. That is what makes a failed run readable the next morning: the reason it stopped is at the end of the log. A failed job also carries the last error it logged in its error field, next to the exit code.
+
+A very large log keeps its start and its end and drops the middle, with a line marking the gap. A spider left on `DEBUG` is the usual cause; `INFO` keeps the whole log.
+
+From the API, `GET /jobs/{key}/logs` takes `lines` (up to 5000), `level` (only lines at that level or above, for example `WARNING`) and `contains` (case-insensitive text). The two filters search the whole stored log, not only its end, because the warning that explains a failure can be hours before it. `GET /jobs/{key}/logs/download` returns the whole stored log as a `.log.gz`.
+
 ### Items
 
 The scraped items, as JSON, **while the job is still running**. The runner writes items to storage in large chunks, so what is readable trails what the spider has scraped - the header shows both numbers and names the difference as *"still buffered on the runner"*.
