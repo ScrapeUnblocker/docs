@@ -13,7 +13,7 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 | `400` | Bad request: the `x-scrapeunblocker-key` header is missing, the URL is malformed or not `http`/`https`, an unsupported `proxy_country`, or `Hostname cannot be resolved` (the domain does not exist) | Only `Hostname cannot be resolved` | Check the URL and the key header |
 | `401` | Authentication problem - the key is not recognised, or the account behind it has no valid subscription | No | See [401 unauthorized](#401-unauthorized) below and [Authentication](/authentication) |
 | `402` | Billing problem - quota exceeded, credit limit exceeded, repeated payment failures, or your own monthly budget limit reached | No | See [402 payment required](#402-payment-required) below |
-| `403` | Either the target blocked us on every bypass path, **or** the URL is a login / authentication / payment page we do not fetch (`X-SU-Error-Code: restricted_target`), or a `steps` action tried to fill a password or payment-card field (`X-SU-Error-Code: restricted_action`) | No | `X-SU-Error-Code` header; [restricted targets](#restricted-targets) or [handling failures](/guides/handling-failures) |
+| `403` | Either the target blocked us on every bypass path, **or** the URL is a login / authentication / payment page we do not fetch (`X-SU-Error-Code: restricted_target`), or a government site (`X-SU-Error-Code: government_target`), or a `steps` action tried to fill a password or payment-card field (`X-SU-Error-Code: restricted_action`) | No | `X-SU-Error-Code` header; [restricted targets](#restricted-targets) or [handling failures](/guides/handling-failures) |
 | `404` | With `X-Origin-Status: 404`: the target site itself says the page does not exist; the body is the target's page. See [Dead URLs](#dead-urls-x-origin-status). Without the header: a plugin found no such item, or the API path is wrong | Only with `X-Origin-Status` | `X-Origin-Status` header, then the body |
 | `410` | The target site itself says the page is gone (`X-Origin-Status: 410`); the body is the target's page. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Drop the URL |
 | `413` | `/getImage`: the file is larger than 50 MB | No | - |
@@ -225,14 +225,16 @@ When you send an invalid request body, `/getPageSource`, `/serpApi`, and `/getIm
 
 ## Restricted targets
 
-ScrapeUnblocker does not fetch sign-in or payment surfaces, and it does not fill
-credential or payment forms. Two refusals enforce this. Both are returned at our
-edge (or before any action runs), are **never billed**, and carry an
-`X-SU-Error-Code` header so you can tell them apart from an ordinary bot block.
+ScrapeUnblocker does not fetch sign-in or payment surfaces or government sites,
+and it does not fill credential or payment forms. Three refusals enforce this.
+All are returned at our edge (or before any action runs), are **never billed**,
+and carry an `X-SU-Error-Code` header so you can tell them apart from an
+ordinary bot block.
 
 | `X-SU-Error-Code` | When | Endpoints |
 | --- | --- | --- |
 | `restricted_target` | The URL is a login, authentication or payment / checkout page - a known identity or payment host (for example `accounts.google.com`, `checkout.stripe.com`), or a path whose segment is one of `login`, `sign-in`, `oauth`, `checkout`, `payment`, and similar. The request is refused before a browser is launched | `/getPageSource`, `/getImage` |
+| `government_target` | The URL is a government, military or intergovernmental site (for example `*.gov`, `*.mil`, `*.int`, `gov.uk`, `gouv.fr`, `go.jp`), or a URL that only wraps one: a redirect link whose query carries the government URL, a `*.translate.goog` proxy page, or an archive copy such as `web.archive.org/web/.../https://www.irs.gov/`. The request is refused before anything is fetched | `/getPageSource`, `/getImage` |
 | `restricted_action` | A [`steps`](/guides/browser-steps) `type` action is about to fill a field the page marks as a password or a payment-card field. The run stops on that step | `/getPageSource` with `steps` |
 
 A `restricted_target` refusal is a plain-text `403`:
