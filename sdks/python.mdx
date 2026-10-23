@@ -122,11 +122,12 @@ html = su.get_page_source(
 )
 ```
 
-Discover the selectors first with `list_elements()`, which returns the page's
-interactive elements as parsed JSON:
+Discover the selectors first with `list_elements=True`, which makes
+`get_page_source()` return the page's interactive elements as a parsed dict
+instead of HTML:
 
 ```python
-page = su.list_elements("https://example.com")
+page = su.get_page_source("https://example.com", list_elements=True)
 
 for el in page["elements"]:
     print(el["tag"], el["selector"], el["text"])

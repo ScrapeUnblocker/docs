@@ -104,11 +104,12 @@ html = su.get_page_source(
 )
 ```
 
-Discover the selectors first with `list_elements`, which returns the page's
-interactive elements as parsed JSON:
+Discover the selectors first with `list_elements: true`, which makes
+`get_page_source` return the page's interactive elements as a parsed Hash
+instead of HTML:
 
 ```ruby
-page = su.list_elements("https://example.com")
+page = su.get_page_source("https://example.com", list_elements: true)
 
 page["elements"].each do |el|
   puts [el["tag"], el["selector"], el["text"]].join(" | ")

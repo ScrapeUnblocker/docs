@@ -116,13 +116,15 @@ const html = await su.getPageSource("https://example.com", {
 });
 ```
 
-Discover the selectors first with `listElements()`, which returns the page's
-interactive elements as parsed JSON:
+Discover the selectors first with `listElements: true`, which makes
+`getPageSource()` return the page's interactive elements as parsed JSON instead
+of HTML:
 
 ```ts
-const page = await su.listElements("https://example.com");
+const page = await su.getPageSource("https://example.com", { listElements: true });
 
-for (const el of page.elements) {
+// The SDK types elements as unknown[]; the fields are listed in the browser steps guide.
+for (const el of page.elements as { tag: string; selector: string; text: string }[]) {
   console.log(el.tag, el.selector, el.text);
 }
 ```
