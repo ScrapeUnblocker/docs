@@ -58,6 +58,16 @@ Until 2026-09-30 a target's `404` / `410` also came back as a `200` with `X-Orig
 
 A URL whose **domain** does not exist gets `400 Hostname cannot be resolved` instead, also billed.
 
+## Served variant: `X-SU-Served-Url`
+
+A few sites refuse automated access to a page but serve the same content through an alternate rendering of it, such as the page's AMP version. For those, `/getPageSource` fetches the alternate rendering and says so:
+
+| Header | Value |
+| --- | --- |
+| `X-SU-Served-Url` | The URL that was actually fetched, e.g. `https://www.olx.co.id/amp/motor-bekas_c200/q-vespa` for `https://www.olx.co.id/motor-bekas_c200/q-vespa` |
+
+The body is that page, billed like any delivered page. The alternate rendering carries the same listing but can be lighter than the regular page (fewer items, less markup). The header is absent on every other call.
+
 ## Is it the target, or is ScrapeUnblocker down?
 
 If you run failover to another provider, only these mean a problem on our side: connection errors, read timeouts, `500`, `502`, `503`, and `504` when it hits many different domains at the same time. All other codes above describe the target site or the request.

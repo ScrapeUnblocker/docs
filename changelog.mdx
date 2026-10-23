@@ -41,6 +41,17 @@ description: "Notable changes to the ScrapeUnblocker API."
   `currencyCode` (ISO 4217) next to the currency symbol, and Google's own ids
   `productId`, `catalogId` and `offerId`, which stay the same across searches.
   A product Google repeats on the page is listed once.
+
+  **`/getPageSource`:** URLs with non-ASCII characters in the path or query
+  (Thai, Arabic, Korean, Hindi and so on) no longer fail with `500`; they are
+  percent-encoded the way a browser sends them. Challenge, deny and
+  region-lock pages that some sites answer with a `200` ("Client Challenge",
+  "Verifying your browser", "not available in your country", an empty app
+  shell) are now recognised as blocks: the call goes on to a path that gets
+  the page, or ends as a free `403` instead of a billed `200`. For a few sites
+  whose regular page cannot be fetched but whose alternate rendering can, the
+  answer comes from that rendering and names it in the new `X-SU-Served-Url`
+  header - see [Served variant](/errors#served-variant-x-su-served-url).
 </Update>
 
 <Update label="2026-10-23" description="Markdown for LLMs: markdown=true">
