@@ -1,12 +1,12 @@
 ---
 title: "Google Shopping plugin"
-description: "Google Shopping product listings as clean JSON - title, price, currency, original price, discount, merchant, rating and review count, for any market."
+description: "Google Shopping product listings as clean JSON - title, price, currency and ISO currency code, original price, discount, merchant, rating, review count and Google's own product ids, for any market."
 sidebarTitle: "Google Shopping"
 ---
 
-The **Google Shopping** plugin runs a Google Shopping search and returns the product cards as structured JSON: title, price (as a number and as Google prints it), currency, the original price and discount when the product is on sale, the merchant, rating and review count.
+The **Google Shopping** plugin runs a Google Shopping search and returns the product cards as structured JSON: title, price (as a number and as Google prints it), currency (the symbol and its ISO 4217 code), the original price and discount when the product is on sale, the merchant, rating and review count, and Google's own ids for the product.
 
-Give it a search term and pick the market with `gl` (and `proxy_country`), because prices and merchants on Google Shopping are region-specific. Filter by a price range in that market's currency. Each call returns the first page of products. Google Shopping has no per-product URL on its result cards, so products come without a `url`.
+Give it a search term and pick the market with `gl` (and `proxy_country`), because prices and merchants on Google Shopping are region-specific. Filter by a price range in that market's currency. Each call returns the first page of products. Google Shopping has no per-product URL on its result cards, so products come without a `url`; use `productId` instead, which stays the same across searches. A product Google repeats on the page (for example in a topic shelf) is listed once.
 
 <Note>
 Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
@@ -28,7 +28,7 @@ POST /goods/google-shopping
 
 <CodeGroup>
 ```bash cURL
-curl -X POST "https://api.scrapeunblocker.com/goods/google-shopping?q=wireless%20headphones&gl=us&max_results=5" \
+curl -X POST "https://api.scrapeunblocker.com/goods/google-shopping?q=wireless%20headphones&gl=us&max_results=3" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
@@ -37,7 +37,7 @@ from scrapeunblocker import Client
 
 su = Client()  # reads SCRAPEUNBLOCKER_KEY
 
-result = su.google_shopping("wireless headphones", gl="us", max_results=5)
+result = su.google_shopping("wireless headphones", gl="us", max_results=3)
 ```
 
 ```ts Node.js
@@ -45,7 +45,7 @@ import { ScrapeUnblockerClient } from "scrapeunblocker";
 
 const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
 
-const result = await su.googleShopping("wireless headphones", { gl: "us", maxResults: 5 });
+const result = await su.googleShopping("wireless headphones", { gl: "us", maxResults: 3 });
 ```
 
 ```php PHP
@@ -53,7 +53,7 @@ use ScrapeUnblocker\Client;
 
 $su = new Client(); // reads SCRAPEUNBLOCKER_KEY
 
-$result = $su->googleShopping('wireless headphones', ['gl' => 'us', 'max_results' => 5]);
+$result = $su->googleShopping('wireless headphones', ['gl' => 'us', 'max_results' => 3]);
 ```
 
 ```ruby Ruby
@@ -61,7 +61,7 @@ require "scrapeunblocker"
 
 su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
 
-result = su.google_shopping("wireless headphones", gl: "us", max_results: 5)
+result = su.google_shopping("wireless headphones", gl: "us", max_results: 3)
 ```
 </CodeGroup>
 
@@ -74,32 +74,45 @@ A `403` means Google kept answering with a CAPTCHA; retry, or try another `proxy
   "query": "wireless headphones",
   "hl": "en",
   "gl": "us",
-  "proxyCountry": "US",
-  "resultsCollected": 5,
+  "proxyCountry": "NL",
+  "resultsCollected": 3,
   "products": [
     {
-      "title": "Sony WH-CH520 Wireless Bluetooth Headphones",
-      "price": 68.0,
-      "priceRaw": "$68.00",
+      "title": "JLab Go Lux ANC On-Ear Headphones",
+      "price": 36.99,
+      "priceRaw": "$36.99",
       "currency": "$",
-      "merchant": "Best Buy",
-      "rating": 4.8,
-      "reviewCount": "32K"
+      "currencyCode": "USD",
+      "originalPrice": 53.0,
+      "discount": "30%OFF",
+      "merchant": "Target",
+      "rating": 4.6,
+      "reviewCount": "722",
+      "productId": "2234762454628267099",
+      "catalogId": "13569929308372191534",
+      "offerId": "13057013143515727384"
     },
     {
-      "title": "JBL Tune 680NC Wireless Noise-Cancelling On-Ear Headphones",
-      "price": 109.95,
-      "priceRaw": "$109.95",
+      "title": "JLab JBuds Lux ANC Over-Ear Headphones",
+      "price": 84.99,
+      "priceRaw": "$84.99",
       "currency": "$",
-      "merchant": "Sweetwater",
-      "rating": 4.5,
-      "reviewCount": "167"
+      "currencyCode": "USD",
+      "merchant": "JLab",
+      "rating": 4.6,
+      "reviewCount": "7.5K",
+      "productId": "12900113148285530832",
+      "catalogId": "11574618317741635000",
+      "offerId": "864590345446300271"
     },
     {
-      "title": "JBL Black JBL Live 680NC Wireless Noise Cancelling Headphones Headset On-Ear ...",
-      "price": 119.94,
-      "priceRaw": "$119.94",
-      "currency": "$"
+      "title": "JLab Go Lux ANC On-Ear Headphones - Black",
+      "price": 42.39,
+      "priceRaw": "$42.39",
+      "currency": "$",
+      "currencyCode": "USD",
+      "productId": "18306036751585839002",
+      "offerId": "18306036751585839002"
     }
   ]
 }
@@ -109,17 +122,19 @@ A `403` means Google kept answering with a CAPTCHA; retry, or try another `proxy
 | --- | --- |
 | `title` | Product title as Google shows it. |
 | `price` / `priceRaw` | Numeric price and the price text as Google prints it. |
-| `currency` | The currency as Google displays it on the card (e.g. `$`). |
+| `currency` / `currencyCode` | The currency as Google displays it on the card (e.g. `$`), and its ISO 4217 code (`USD`). For a symbol several currencies share (`$`, `¥`, `kr`), the code follows the market (`gl`): `$` is `CAD` with `gl=ca`. |
 | `originalPrice` / `discount` | The price before a sale and the discount, when the card shows one. |
 | `merchant` | The store selling the product, when Google names one. |
 | `rating` / `reviewCount` | Star rating (out of 5) and the review count as Google prints it (a string such as `32K`). |
 | `image` | Product image, when available. |
+| `productId` / `catalogId` / `offerId` | Google's own ids for the product, its catalog entry and the offer. They stay the same across searches, so use `productId` to follow one product over time or to merge results; the list is already deduplicated by it. |
 
 A field with no value is left out of that product, so a card may carry only `title` and price.
 
 ## What you can build
 
 - **Price comparison** - see which merchants sell a product and at what price, per market.
+- **Price history** - follow one product by `productId` across daily searches.
 - **MAP and reseller monitoring** - track the prices merchants advertise for your brand's products.
 - **Market pricing research** - compare price levels for a product type across countries with `gl`.
 - **Retail coverage** - combine with the [Amazon](/plugins/amazon) and [Walmart](/plugins/walmart) plugins for a broader price view.

@@ -26,7 +26,7 @@ The public API has three endpoints. All other paths on `api.scrapeunblocker.com`
     Return the rendered HTML for any URL, or extracted structured JSON when `parsed_data=true`. Supports country targeting, cookie retrieval, custom wait times, and per-domain bypass routing.
   </Card>
   <Card title="POST /serpApi" icon="magnifying-glass" href="/api-reference/scraping/scrape-a-google-search-serp-for-organic-+-ad-results">
-    Scrape Google search results. Returns organic results, top ads, bottom ads, total result count, and the proxy country actually used. Supports 1-10 page pagination.
+    Scrape Google search results. Returns organic results, top ads, bottom ads, Google's AI Overview with the pages it cites, total result count, and the proxy country actually used. Supports 1-10 page pagination.
   </Card>
   <Card title="POST /getImage" icon="image" href="/api-reference/scraping/fetch-an-image-in-its-original-format">
     Download an image exactly as the image host serves it (original format and `Content-Type`), through rotating proxies and past bot challenges.

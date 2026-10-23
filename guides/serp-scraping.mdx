@@ -72,7 +72,9 @@ const data = await res.json();
   ],
   "aiOverview": {
     "text": "Running shoes are generally chosen by gait, cushioning and...",
-    "sources": ["runnersworld.com", "reddit.com"]
+    "markdown": "Running shoes are generally chosen by gait, cushioning and...",
+    "sources": ["runnersworld.com", "reddit.com"],
+    "references": [ ... ]
   }
 }
 ```
@@ -86,11 +88,60 @@ the three result lists (`topAds`, `bottomAds`, `organic`) and `aiOverview`. On a
 
 ### `aiOverview`
 
-Google's AI-written summary above the results, plus the hostnames it cites, or
-`null` when the search does not have one. Whether Google generates an overview
-depends on the query and the region, so treat this as an extra rather than a
-guarantee - a commercial query usually has none, an informational one usually
-does.
+Google's AI-written summary above the results, or `null` when the search does
+not have one. Whether Google generates an overview depends on the query and the
+region, so treat this as an extra rather than a guarantee - a commercial query
+usually has none, an informational one usually does.
+
+| Field | Notes |
+| --- | --- |
+| `text` | The overview as plain text, one paragraph, heading or list item per line. |
+| `markdown` | The same overview as Markdown: headings, nested lists, and formulas written as LaTeX (`$...$`), ready to display or to pass to an LLM. |
+| `sources` | The hostnames the overview cites, e.g. `energysage.com`. Google's own sites, such as YouTube, are left out. |
+| `references` | The pages the overview cites: `title`, `url`, `source` (the site's name), `domain` and `snippet`. `url` is the real page URL, or `null` when Google exposes no address for that page. A cited URL that cannot be tied to one of the cards is listed on its own, with `title` and `snippet` `null`. |
+
+A real example, trimmed, for `keyword=how do solar panels work`:
+
+```json
+{
+  "aiOverview": {
+    "text": "Solar panels convert sunlight into usable electricity through a process called the photovoltaic effect, using semiconductor materials inside individual solar cells.\nStep-by-Step How Solar Panels Work\nAbsorbing Photons: Sunlight ...",
+    "markdown": "Solar panels convert sunlight into usable electricity through a process called the photovoltaic effect, using semiconductor materials inside individual solar cells.\n\n### Step-by-Step How Solar Panels Work\n\n- Absorbing Photons: Sunlight is made of tiny packets of energy called photons. When photons strike a Solar panel, they are absorbed by the solar cells.\n- Creating an Electric Field: Most solar cells are made of silicon treated with two different layers: an N-doped layer (with extra electrons) and a P-doped layer (with \"holes\" for electrons), creating a PN junction. This junction forms an internal electric field.\n...",
+    "sources": [
+      "energysage.com",
+      "renewableenergyhub.co.uk",
+      "maxeon.com",
+      "en.wikipedia.org",
+      "reddit.com",
+      "environmentamerica.org",
+      "iberdrola.com"
+    ],
+    "references": [
+      {
+        "title": "How Do Solar Panels Work? Solar Power Explained | EnergySage",
+        "url": "https://www.energysage.com/solar/solar-panels-work/",
+        "source": "EnergySage",
+        "domain": "energysage.com",
+        "snippet": "Core Process: Solar panels utilize silicon solar cells to absorb photons from sunlight, generating direct current (DC) electricity..."
+      },
+      {
+        "title": "How Do Solar Panels Work? A Simple Guide (With Facts for Kids)",
+        "url": null,
+        "source": "The Renewable Energy Hub",
+        "domain": "renewableenergyhub.co.uk",
+        "snippet": "Solar panels work by harnessing the energy from the sun and converting it into electricity through a process known as the photovol..."
+      },
+      {
+        "title": null,
+        "url": "https://www.renewableenergyhub.co.uk/main/solar-panels/how-do-solar-panels-work-for-kids",
+        "source": "The Renewable Energy Hub",
+        "domain": "renewableenergyhub.co.uk",
+        "snippet": null
+      }
+    ]
+  }
+}
+```
 
 It is read from the page we already fetched and never waited for, so it costs
 you no extra time. In rare cases where the overview is still being written when
@@ -115,7 +166,7 @@ curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=running+shoes&page
 
 Results from all pages are concatenated into `topAds`, `bottomAds`, and `organic` with `position` reflecting cross-page ordering.
 
-**Billing:** each result page rendered is charged as one API request - a `pages_to_check=3` call that returns three pages counts as 3 requests, not 1. The `pagesFetched` field in the response tells you exactly how many were charged (it can be lower than `pages_to_check` when Google has fewer pages). This per-page charge is unique to `/serpApi`; every other endpoint bills a flat 1 per request regardless of how many results it returns.
+**Billing:** each result page rendered is charged as one API request - a `pages_to_check=3` call that returns three pages counts as 3 requests, not 1. The `pagesFetched` field in the response tells you exactly how many were charged (it can be lower than `pages_to_check` when Google has fewer pages). `/getPageSource` and `/getImage` bill a flat 1 per request; plugins that page through results count pages the same way as `/serpApi`, and each plugin page says how its calls are counted.
 
 ### `proxy_country`
 

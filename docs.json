@@ -88,7 +88,10 @@
                   "plugins/google-maps-place",
                   "plugins/google-trends",
                   "plugins/google-shopping",
-                  "plugins/google-jobs"
+                  "plugins/google-jobs",
+                  "plugins/google-hotels",
+                  "plugins/google-news",
+                  "plugins/google-ads-transparency"
                 ]
               },
               {
@@ -121,7 +124,11 @@
                   "plugins/alibaba",
                   "plugins/1688",
                   "plugins/tiktok-shop",
-                  "plugins/oopbuy-search"
+                  "plugins/oopbuy-search",
+                  "plugins/smyths",
+                  "plugins/wish",
+                  "plugins/shopee",
+                  "plugins/taobao"
                 ]
               },
               {
@@ -174,7 +181,8 @@
                   "plugins/glassdoor",
                   "plugins/naukri",
                   "plugins/wellfound",
-                  "plugins/career-site"
+                  "plugins/career-site",
+                  "plugins/upwork"
                 ]
               },
               {

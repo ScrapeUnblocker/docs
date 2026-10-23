@@ -3,6 +3,46 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-23" description="Google Hotels, Google News, Ads Transparency, Shopee, Taobao and Upwork plugins; SDKs 0.14.0">
+  **Six new plugins:** [Google Hotels](/plugins/google-hotels) (properties
+  for a place and dates with the price for the stay, and every booking site's
+  offer and room rates for one property), [Google News](/plugins/google-news)
+  (a search or a section, with the publisher's own article URL),
+  [Google Ads Transparency](/plugins/google-ads-transparency) (an advertiser's
+  Google ads with regions, targeting and the ad's texts, plus advertiser
+  lookup), [Shopee](/plugins/shopee) (search in 8 markets and one product),
+  [Taobao & Tmall](/plugins/taobao) (keyword or category listings and one
+  item) and [Upwork](/plugins/upwork) (job posts, with proposals and client
+  stats on request). The [Wish](/plugins/wish) and
+  [Smyths Toys](/plugins/smyths) plugins, already live, now have their pages
+  too.
+
+  **SDKs 0.14.0** ([Python](/sdks/python), [Node.js](/sdks/nodejs),
+  [PHP](/sdks/php), [Ruby](/sdks/ruby)) add 16 plugin methods:
+  `google_hotels`, `google_hotels_property`, `google_news`,
+  `google_ads_transparency`, `google_ads_transparency_advertisers`,
+  `shopee_search`, `shopee_product`, `taobao_search`, `taobao_product`,
+  `upwork_jobs`, `smyths_inventory`, `smyths_details`, `smyths_search`,
+  `smyths_category`, `wish_search` and `wish_product` (camelCase in Node.js and
+  PHP). The Temu methods stay in the SDKs for existing code but are
+  deprecated. The [MCP server](/sdks/mcp) (**0.8.0** on npm) and the hosted
+  connector (**0.9.0**) have the new plugins in their catalog, so
+  `list_plugins` lists them and `run_plugin` runs them.
+
+  **`/serpApi`:** `aiOverview` now also has `markdown` (headings, lists and
+  formulas as LaTeX) and `references`, the pages the overview cites, each with
+  `title`, the real page `url` (`null` when Google exposes none), `source`,
+  `domain` and `snippet`. `text` no longer carries Google's interface labels
+  and citation chips, and `sources` is filled again: Google started linking
+  cited pages through a redirect, which had left it empty. See
+  [SERP scraping](/guides/serp-scraping).
+
+  **[Google Shopping](/plugins/google-shopping):** every product now carries
+  `currencyCode` (ISO 4217) next to the currency symbol, and Google's own ids
+  `productId`, `catalogId` and `offerId`, which stay the same across searches.
+  A product Google repeats on the page is listed once.
+</Update>
+
 <Update label="2026-10-23" description="Markdown for LLMs: markdown=true">
   `/getPageSource` returns any page as clean Markdown with `markdown=true`:
   headings, lists, tables, absolute links and images with alt text, without

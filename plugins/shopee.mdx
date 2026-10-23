@@ -1,0 +1,303 @@
+---
+title: "Shopee plugin"
+description: "Shopee search and product data as clean JSON in 8 markets - price, original price, discount, rating, seller location and promotion labels, plus one product with the shop's profile and, in 4 markets, the full listing."
+sidebarTitle: "Shopee"
+---
+
+The **Shopee** plugin turns Shopee, which runs a separate marketplace site for each of its markets, into structured JSON. It is two endpoints:
+
+- **`/marketplace/shopee-search`** - one results page of up to 40 products for a keyword in one market (Singapore, Indonesia, Malaysia, Thailand, Vietnam, the Philippines, Taiwan or Brazil): item and shop ids, name, link and image, the price in the market's currency, the crossed-out price and discount where Shopee shows them, the average rating, where the seller ships from and the promotion labels. Sort, filter by price, keep one shop's products, or pass a Shopee search or category link as it is.
+- **`/marketplace/shopee-product`** - one product: price, rating, labels and images, and the shop's public profile (rating and rating count, followers, number of products, response rate, official and preferred flags, join date). In Singapore, Malaysia, Taiwan and Brazil it also returns the full listing: description, brand, condition, categories, videos, variations and models, attributes, pre-order flag, estimated shipping days and listing date.
+
+What Shopee does not show: Shopee serves one results page per search, so one call returns at most 40 products; run several sort orders or price ranges for more. In Indonesia, Thailand, Vietnam and the Philippines a product comes back with its title and main image only, plus price, rating, labels and shop (`dataLevel` says which you got). Stock, units sold, a product's rating count and reviews are not included, because Shopee leaves them out of every page it shows signed-out visitors. `price` is what Shopee shows a signed-out shopper, which can be a promotional or new-customer price (see `labels`). No Shopee account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/shopee-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | one of `q` / `shop_id` / `url` | What to search for, e.g. `iphone case` or `air fryer`. |
+| `country` | no | Shopee market: `sg` (shopee.sg), `id` (shopee.co.id), `my` (shopee.com.my), `th` (shopee.co.th), `vn` (shopee.vn), `ph` (shopee.ph), `tw` (shopee.tw) or `br` (shopee.com.br). Default `sg`. Prices are in that market's currency. |
+| `shop_id` | one of `q` / `shop_id` / `url` | Only this shop's products (the number in a shop's links, e.g. `442800909`). Without `q` it lists the shop. |
+| `url` | one of `q` / `shop_id` / `url` | A Shopee search or category link, e.g. `https://shopee.sg/search?keyword=lego`, used as it is; `q`, `country`, `shop_id`, `sort` and the price filters are then ignored. |
+| `sort` | no | `relevance` (default), `sales`, `newest`, `price_asc` or `price_desc`. |
+| `min_price` / `max_price` | no | Price range in whole units of the market's currency. |
+| `max_results` | no | Products to return, `1`-`40` (one Shopee results page). Default `40`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/shopee-search?q=iphone%20case&country=sg&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.shopee_search("iphone case", country="sg", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.shopeeSearch("iphone case", { country: "sg", maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->shopeeSearch('iphone case', ['country' => 'sg', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.shopee_search("iphone case", country: "sg", max_results: 3)
+```
+</CodeGroup>
+
+To list one shop, leave the keyword out and pass `shop_id`, e.g. `su.shopee_search(shop_id="442800909")` in Python. Each search is billed as one request.
+
+### Response
+
+```json
+{
+  "query": "iphone case",
+  "shopId": null,
+  "sort": "relevance",
+  "minPrice": null,
+  "maxPrice": null,
+  "country": "sg",
+  "url": "https://shopee.sg/search?keyword=iphone%20case",
+  "currency": "SGD",
+  "resultsCollected": 3,
+  "products": [
+    {
+      "position": 1,
+      "itemId": 40270108836,
+      "shopId": 442800909,
+      "name": "Beats iPhone 17 Drenched Case with MagSafe and Camera Control",
+      "url": "https://shopee.sg/Beats-iPhone-17-Drenched-Case-with-MagSafe-and-Camera-Control-i.442800909.40270108836",
+      "image": "https://down-sg.img.susercontent.com/file/sg-11134301-824it-mep5fifb7v29e1",
+      "price": 34.9,
+      "originalPrice": null,
+      "discountPercent": 41,
+      "currency": "SGD",
+      "rating": 4.4,
+      "location": "SG",
+      "labels": ["10.25 PRICE: $34.90"]
+    },
+    {
+      "position": 2,
+      "itemId": 43169956291,
+      "shopId": 442800909,
+      "name": "Beats iPhone 17 Rugged Case with MagSafe and Camera Control",
+      "url": "https://shopee.sg/Beats-iPhone-17-Rugged-Case-with-MagSafe-and-Camera-Control-i.442800909.43169956291",
+      "image": "https://down-sg.img.susercontent.com/file/sg-11134301-824ii-mep5hz8443r891",
+      "price": 73.9,
+      "originalPrice": null,
+      "discountPercent": 32,
+      "currency": "SGD",
+      "rating": 4.9,
+      "location": "SG",
+      "labels": ["10.25 PRICE: $73.90"]
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `itemId` / `shopId` | Shopee's ids. Pass them (with `country`), or the `url`, to [Product](#product). |
+| `name` / `url` / `image` | Product name, link and main image. |
+| `price` / `currency` | The price in the market's currency, as Shopee shows a signed-out shopper. |
+| `originalPrice` / `discountPercent` | The crossed-out price and the discount, when Shopee shows them. |
+| `rating` | Average star rating. |
+| `location` | Where the seller ships from. |
+| `labels` | Promotion badges, e.g. a campaign price. |
+| `position` | Rank on the results page. |
+
+## Product
+
+```
+POST /marketplace/shopee-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `url` | one of `url` / `shop_id` + `item_id` | A Shopee product link, e.g. `https://shopee.sg/Beats-iPhone-17-Case-i.442800909.40270108836` or `https://shopee.co.id/product/1426163997/40581375446`. |
+| `shop_id` / `item_id` | one of `url` / `shop_id` + `item_id` | Instead of `url`: the shop id and the item id, the two numbers after `-i.` in a product link. |
+| `country` | no | With `shop_id` + `item_id`: the Shopee market, as in search. Default `sg`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/shopee-product?url=https%3A%2F%2Fshopee.sg%2FBeats-iPhone-17-Drenched-Case-with-MagSafe-and-Camera-Control-i.442800909.40270108836" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.shopee_product(
+    "https://shopee.sg/Beats-iPhone-17-Drenched-Case-with-MagSafe-and-Camera-Control-i.442800909.40270108836"
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.shopeeProduct(
+  "https://shopee.sg/Beats-iPhone-17-Drenched-Case-with-MagSafe-and-Camera-Control-i.442800909.40270108836"
+);
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->shopeeProduct(
+    'https://shopee.sg/Beats-iPhone-17-Drenched-Case-with-MagSafe-and-Camera-Control-i.442800909.40270108836'
+);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.shopee_product(
+  "https://shopee.sg/Beats-iPhone-17-Drenched-Case-with-MagSafe-and-Camera-Control-i.442800909.40270108836"
+)
+```
+</CodeGroup>
+
+To pass ids instead, leave the link out: `su.shopee_product(shop_id="442800909", item_id="40270108836", country="sg")` in Python. Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "itemId": 40270108836,
+    "shopId": 442800909,
+    "url": "https://shopee.sg/Beats-iPhone-17-Drenched-Case-with-MagSafe-and-Camera-Control-i.442800909.40270108836",
+    "title": "Beats iPhone 17 Drenched Case with MagSafe and Camera Control",
+    "price": 34.9,
+    "originalPrice": null,
+    "discountPercent": 41,
+    "currency": "SGD",
+    "rating": 4.4,
+    "labels": ["10.25 PRICE: $34.90"],
+    "images": [
+      "https://down-sg.img.susercontent.com/file/sg-11134301-824it-mep5fifb7v29e1",
+      "https://down-sg.img.susercontent.com/file/sg-11134301-824gc-mep5fm15a03nb8"
+    ],
+    "description": "Stylish double-shot hardshell case with soft microfiber lining\n\nBuilt to protect your ...",
+    "brand": "Apple",
+    "condition": "new",
+    "categories": [
+      { "id": 11013350, "name": "Mobile & Gadgets" },
+      { "id": 11013434, "name": "Mobile Accessories" },
+      { "id": 11027839, "name": "Cases & Covers" }
+    ],
+    "videos": [],
+    "variations": [
+      {
+        "name": "Colour",
+        "options": ["Granite Gray", "Lime Stone", "Pebble Pink"],
+        "images": ["https://down-sg.img.susercontent.com/file/sg-11134301-824gi-mesa45yt0xs739"]
+      },
+      { "name": "Size", "options": ["iPhone Air", "iPhone 17", "iPhone 17 Pro"] }
+    ],
+    "models": [
+      { "modelId": 261643873757, "name": "Lime Stone,iPhone Air" },
+      { "modelId": 261643873765, "name": "Bedrock Blue,iPhone Air" }
+    ],
+    "attributes": [],
+    "isOfficialShop": true,
+    "isPreOrder": false,
+    "estimatedShippingDays": 1,
+    "createdAt": "2025-09-19T17:00:58Z",
+    "shopLocation": "SG",
+    "shop": {
+      "shopId": 442800909,
+      "name": "Apple Flagship Store",
+      "username": "apple.flagshipstore",
+      "url": "https://shopee.sg/apple.flagshipstore",
+      "rating": 4.93,
+      "ratingCount": 308878,
+      "followers": 186585,
+      "itemCount": 165,
+      "responseRatePercent": 100,
+      "isOfficialShop": true,
+      "isPreferredPlusSeller": false,
+      "location": null,
+      "joinedAt": "2021-05-13T06:04:17Z"
+    }
+  },
+  "dataLevel": "full",
+  "country": "sg",
+  "query": {
+    "url": "https://shopee.sg/Beats-iPhone-17-Drenched-Case-with-MagSafe-and-Camera-Control-i.442800909.40270108836",
+    "shopId": 442800909,
+    "itemId": 40270108836
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `dataLevel` | `full`: the whole listing. `meta`: Shopee showed only the title and main image (Indonesia, Thailand, Vietnam and the Philippines); price, rating, labels and shop are still included. |
+| `title` / `images` / `price` / `originalPrice` / `discountPercent` / `currency` / `rating` / `labels` | As in search. |
+| `description` / `brand` / `condition` | Listing text, brand and condition (`full` only). |
+| `categories` | The category path, each with `id` and `name` (`full` only). |
+| `variations` / `models` | Option names with their values (and images where the seller set them), and every model with `modelId` and `name` (`full` only). |
+| `attributes` / `videos` | Specifications and product videos (`full` only). |
+| `isOfficialShop` / `isPreOrder` / `estimatedShippingDays` / `createdAt` | Official shop and pre-order flags, the shipping estimate in days and the listing date (`full` only). |
+| `shopLocation` | Where the shop ships from. |
+| `shop` | `shopId`, `name`, `username`, `url`, `rating`, `ratingCount`, `followers`, `itemCount`, `responseRatePercent`, `isOfficialShop`, `isPreferredPlusSeller`, `location` and `joinedAt`. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. none of `q`, `shop_id` and `url` on a search, or neither a product `url` nor `shop_id` + `item_id`. |
+| `404` | Shopee found no products for the search, or has no such product. |
+| `502` | Shopee blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Price monitoring across markets** - track a product's price and promotions in each Shopee market.
+- **Assortment research** - see which shops and brands rank for a keyword, by sales or by price.
+- **Seller vetting** - compare shops by rating, followers, response rate and official status.
+- **Catalogue enrichment** - pull descriptions, variations, attributes and images for products you list.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Shopee search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

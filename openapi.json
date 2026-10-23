@@ -151,7 +151,7 @@
           "Scraping"
         ],
         "summary": "Scrape a Google search SERP for organic + ad results",
-        "description": "Runs a Google web search for `keyword` and returns a normalized JSON structure with `topAds`, `bottomAds`, `organic` results, `totalResults`, `aiOverview` (Google's AI-written summary and the hostnames it cites, or `null` when the search has none), and the proxy country actually used. Set `pages_to_check` 1-10 to paginate. `wait_after_load` adds a delay after the SERP loads (useful for sites where ads render late); `captcha_pause` lets you eyeball / solve a CAPTCHA when running interactively.",
+        "description": "Runs a Google web search for `keyword` and returns a normalized JSON structure with `topAds`, `bottomAds`, `organic` results, `totalResults`, `aiOverview` (Google's AI-written summary as `text` and `markdown`, the hostnames it cites as `sources`, and the cited pages as `references` with title, real URL, source, domain and snippet; `null` when the search has none), and the proxy country actually used. Set `pages_to_check` 1-10 to paginate. `wait_after_load` adds a delay after the SERP loads (useful for sites where ads render late); `captcha_pause` lets you eyeball / solve a CAPTCHA when running interactively.",
         "operationId": "run_serp_serpApi_post",
         "parameters": [
           {
@@ -1820,6 +1820,338 @@
           },
           "502": {
             "description": "Blocked by Meta, no ads collected (proxy/anti-bot failure), or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/ads/google-ads-transparency": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Google ads (Ads Transparency Center)",
+        "description": "Returns an advertiser's Google ads (Search, YouTube, Display, Shopping, Maps, Play) from the Google Ads Transparency Center for competitor analysis: per ad `creativeId`, `advertiserId`/`advertiserName`, `format` (text/image/video), `firstShown`, `lastShown`, `daysShown`, `matchedDomain`, the preview (`imageUrl` with size, or `previewUrl`), `googleCreativeId`, `googleCustomerId`, `adGroupId` and `adUrl`. Pick ads by `advertiser` (name or id) or `domain`; filter with `region`, `platform`, `format` and `date_from`/`date_to`. `include_details` adds per-region reach and targeting, `include_preview` the ad's texts and YouTube video. Collects up to `max_results` (continue with `page_token`); billed one unit per page of up to 100 ads, plus one per detail and per preview fetched (`callUnits`).",
+        "operationId": "google_ads_transparency_ads_google_ads_transparency_post",
+        "parameters": [
+          {
+            "name": "advertiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Advertiser to pull ads for: a name (e.g. 'Nike') - resolved to the best-matching advertiser, reported in `advertisersUsed` (a single brand name no advertiser is named like falls back to its domain) - or an advertiser id ('AR16735076323512287233'). Comma-separate up to 10. Pass `advertiser` or `domain`.",
+              "title": "Advertiser"
+            },
+            "description": "Advertiser to pull ads for: a name (e.g. 'Nike') - resolved to the best-matching advertiser, reported in `advertisersUsed` (a single brand name no advertiser is named like falls back to its domain) - or an advertiser id ('AR16735076323512287233'). Comma-separate up to 10. Pass `advertiser` or `domain`."
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Website the ads point to, e.g. 'nike.com' (ads of every advertiser for that domain).",
+              "title": "Domain"
+            },
+            "description": "Website the ads point to, e.g. 'nike.com' (ads of every advertiser for that domain)."
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Where the ads were shown: a 2-letter country code ('US', 'DE'), a comma list of them, or 'anywhere' (default).",
+              "title": "Region"
+            },
+            "description": "Where the ads were shown: a 2-letter country code ('US', 'DE'), a comma list of them, or 'anywhere' (default)."
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only ads shown on these platforms (comma list): search, youtube, maps, play, shopping.",
+              "title": "Platform"
+            },
+            "description": "Only ads shown on these platforms (comma list): search, youtube, maps, play, shopping."
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only one ad format: text, image or video.",
+              "title": "Format"
+            },
+            "description": "Only one ad format: text, image or video."
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only ads shown on or after this date (YYYY-MM-DD).",
+              "title": "Date From"
+            },
+            "description": "Only ads shown on or after this date (YYYY-MM-DD)."
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only ads shown on or before this date (YYYY-MM-DD).",
+              "title": "Date To"
+            },
+            "description": "Only ads shown on or before this date (YYYY-MM-DD)."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Order of the ads: 'last_shown' (most recently shown first).",
+              "default": "last_shown",
+              "title": "Sort"
+            },
+            "description": "Order of the ads: 'last_shown' (most recently shown first)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Ads to collect, 1-1000. Pages of up to 100 are fetched as needed; each page is billed one unit.",
+              "default": 100,
+              "title": "Max Results"
+            },
+            "description": "Ads to collect, 1-1000. Pages of up to 100 are fetched as needed; each page is billed one unit."
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Continue a previous call: its `nextPageToken`.",
+              "title": "Page Token"
+            },
+            "description": "Continue a previous call: its `nextPageToken`."
+          },
+          {
+            "name": "include_details",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Add `details` per ad: regions shown with first/last date (plus impressions per platform for EU regions), EU reach, disclosed targeting and all preview variations. One unit per ad, for up to 300 ads per call.",
+              "default": false,
+              "title": "Include Details"
+            },
+            "description": "Add `details` per ad: regions shown with first/last date (plus impressions per platform for EU regions), EU reach, disclosed targeting and all preview variations. One unit per ad, for up to 300 ads per call."
+          },
+          {
+            "name": "include_preview",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Add `preview` per ad: what it shows - headline, description and display URL of text ads, product title and merchant of shopping ads, image URLs, the YouTube video of video ads. One unit per ad that has a preview script, for up to 40 ads per call. Search text ads often exist only as an image (`imageUrl`).",
+              "default": false,
+              "title": "Include Preview"
+            },
+            "description": "Add `preview` per ad: what it shows - headline, description and display URL of text ads, product title and merchant of shopping ads, image URLs, the YouTube video of video ads. One unit per ad that has a preview script, for up to 40 ads per call. Search text ads often exist only as an image (`imageUrl`)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `creatives` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "No advertiser matches the name, or no ads match the filters."
+          },
+          "502": {
+            "description": "Blocked on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/ads/google-ads-transparency-advertisers": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Look up Google advertisers (Ads Transparency Center)",
+        "description": "Finds advertisers on the Google Ads Transparency Center by name: `advertisers` (`advertiserId` to use with /ads/google-ads-transparency, `name`, `country`, `creativesMin`/`creativesMax` - how many ads they ran - and `verified`) and matching website `domains`. One unit per call.",
+        "operationId": "google_ads_transparency_advertisers_ads_google_ads_transparency_advertisers_post",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Advertiser name or brand to look up, e.g. 'nike'.",
+              "title": "Q"
+            },
+            "description": "Advertiser name or brand to look up, e.g. 'nike'."
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Count ads shown in these regions only: a 2-letter country code, a comma list, or 'anywhere' (default).",
+              "title": "Region"
+            },
+            "description": "Count ads shown in these regions only: a 2-letter country code, a comma list, or 'anywhere' (default)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Most advertisers (and domains) to return, 1-50.",
+              "default": 10,
+              "title": "Max Results"
+            },
+            "description": "Most advertisers (and domains) to return, 1-50."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `advertisers` and `domains`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Nothing matches the name."
+          },
+          "502": {
+            "description": "Blocked on every attempt, an unusable answer, or no answer in time."
           },
           "422": {
             "description": "Validation Error",
@@ -6774,6 +7106,178 @@
         ]
       }
     },
+    "/search/google-news": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Google News (search or section)",
+        "description": "Searches Google News for `q`, or lists a section with `topic` (world, nation, business, technology, entertainment, sports, science, health, top, or a topic id), and returns `articles`: `position`, `title`, `url` (the publisher's article URL), `source`, `sourceUrl`, `publishedAt` (ISO 8601 UTC), `imageUrl` (+ `imageWidth`/`imageHeight`), `authors`, `googleNewsId` and `googleNewsUrl`. Metadata only - no article text. Narrow a search with `when` (e.g. '1d') or `after`/`before` dates; pick the edition with `hl` and `gl`. Google News answers a search with up to about 100 articles (no paging - use date windows to go further back). One unit per call.",
+        "operationId": "google_news_search_google_news_post",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search query, e.g. 'tesla' or '\"web scraping\"'. Google News operators work: quotes, OR, -word, site:reuters.com, intitle:. Pass either `q` or `topic`.",
+              "title": "Q"
+            },
+            "description": "Search query, e.g. 'tesla' or '\"web scraping\"'. Google News operators work: quotes, OR, -word, site:reuters.com, intitle:. Pass either `q` or `topic`."
+          },
+          {
+            "name": "topic",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A section instead of a search: world, nation, business, technology, entertainment, sports, science, health, or top (the edition's headlines). A Google News topic id (the 'CAAq...' part of a news.google.com/topics/ URL) also works.",
+              "title": "Topic"
+            },
+            "description": "A section instead of a search: world, nation, business, technology, entertainment, sports, science, health, or top (the edition's headlines). A Google News topic id (the 'CAAq...' part of a news.google.com/topics/ URL) also works."
+          },
+          {
+            "name": "hl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Language of the Google News edition, e.g. 'en', 'en-GB', 'de', 'fr', 'pt-BR'.",
+              "default": "en",
+              "title": "Hl"
+            },
+            "description": "Language of the Google News edition, e.g. 'en', 'en-GB', 'de', 'fr', 'pt-BR'."
+          },
+          {
+            "name": "gl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Country of the Google News edition (2-letter code), e.g. 'us', 'gb', 'de'.",
+              "default": "us",
+              "title": "Gl"
+            },
+            "description": "Country of the Google News edition (2-letter code), e.g. 'us', 'gb', 'de'."
+          },
+          {
+            "name": "when",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only articles from the last period: '1h' to '720h', '1d', '7d', '2w', '1m', '1y'. Search (`q`) only.",
+              "title": "When"
+            },
+            "description": "Only articles from the last period: '1h' to '720h', '1d', '7d', '2w', '1m', '1y'. Search (`q`) only."
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only articles published after this date (YYYY-MM-DD). Search only.",
+              "title": "After"
+            },
+            "description": "Only articles published after this date (YYYY-MM-DD). Search only."
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only articles published before this date (YYYY-MM-DD). Search only.",
+              "title": "Before"
+            },
+            "description": "Only articles published before this date (YYYY-MM-DD). Search only."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Most articles to return, 1-250. Google News returns up to about 100 articles for a search and about 250 for a section; one call is billed one unit whatever the count.",
+              "default": 100,
+              "title": "Max Results"
+            },
+            "description": "Most articles to return, 1-250. Google News returns up to about 100 articles for a search and about 250 for a section; one call is billed one unit whatever the count."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with an `articles` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Google News has no articles for the query, or no such topic."
+          },
+          "502": {
+            "description": "Blocked by Google News on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
     "/seo/similarweb": {
       "post": {
         "tags": [
@@ -7941,7 +8445,7 @@
           "Plugins"
         ],
         "summary": "Scrape Google Shopping product listings",
-        "description": "Runs the Google Shopping vertical (`udm=28`) for `q` and returns the product cards as JSON: `title`, `price`, `currency`, `originalPrice`, `discount`, `merchant`, `rating` and `reviewCount`. Set `proxy_country`/`gl` to target a market (prices/merchants are region-specific) and `min_price`/`max_price` to filter. One render returns the first page of products (v1). Note: Google Shopping exposes no per-product URL, so `url` is omitted and `image` is best-effort.",
+        "description": "Runs the Google Shopping vertical (`udm=28`) for `q` and returns the product cards as JSON: `title`, `price`, `currency`, `currencyCode`, `originalPrice`, `discount`, `merchant`, `rating`, `reviewCount` and Google's own ids for the product (`productId`, `catalogId`, `offerId` - stable across searches, for tracking one product). Set `proxy_country`/`gl` to target a market (prices/merchants are region-specific) and `min_price`/`max_price` to filter. One render returns the first page of products (v1). Note: Google Shopping exposes no per-product URL, so `url` is omitted and `image` is best-effort.",
         "operationId": "google_shopping_goods_google_shopping_post",
         "parameters": [
           {
@@ -8661,11 +9165,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
+              "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
               "default": "segments",
               "title": "Format"
             },
-            "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext."
+            "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext."
           },
           {
             "name": "proxy_country",
@@ -13726,6 +14230,298 @@
         ]
       }
     },
+    "/jobs/upwork": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Upwork job posts",
+        "description": "Searches Upwork jobs for `q` (or lists the newest jobs without it) and returns `jobs`: `id`, `ciphertext`, `url`, `title`, `description` (full text), `publishedAt`, `createdAt`, `renewedAt`, `jobType` (hourly / fixed), `hourlyMin`, `hourlyMax`, `budget` (fixed price), `currency`, `experienceLevel`, `duration`, `workload`, `skills`, plus `totalResults` and `nextStart`. Filter with `job_type`, `experience`, `budget`, `hourly_rate`, `client_hires`, `workload`, `duration`, `location`, `category`, `contract_to_hire`; sort by `relevance` or `recency`. `details=true` adds, per job: `proposals`, `interviewing`, `invitesSent`, `hired`, `positionsToHire`, `lastClientActivity`, `category`, `qualifications` and `client` (`country`, `city`, `timezone`, `paymentVerified`, `rating`, `reviews`, `totalSpent`, `hires`, `memberSince`; no client names). A private listing is marked `privateListing: true` without those fields. Upwork shows signed-out visitors the first 5000 results of a search. Billing: one unit per results page of up to 50 jobs, plus one per job page fetched with `details=true` (`callUnits`).",
+        "operationId": "upwork_jobs_jobs_upwork_post",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search for, e.g. 'python' or 'logo design'. Leave empty with sort=recency for the newest jobs.",
+              "title": "Q"
+            },
+            "description": "What to search for, e.g. 'python' or 'logo design'. Leave empty with sort=recency for the newest jobs."
+          },
+          {
+            "name": "job_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "hourly or fixed.",
+              "title": "Job Type"
+            },
+            "description": "hourly or fixed."
+          },
+          {
+            "name": "experience",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Experience level, comma list of: entry, intermediate, expert.",
+              "title": "Experience"
+            },
+            "description": "Experience level, comma list of: entry, intermediate, expert."
+          },
+          {
+            "name": "budget",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Fixed-price budget in USD, comma list of ranges like '100-499', '1000-4999' or '5000-'.",
+              "title": "Budget"
+            },
+            "description": "Fixed-price budget in USD, comma list of ranges like '100-499', '1000-4999' or '5000-'."
+          },
+          {
+            "name": "hourly_rate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Hourly rate in USD, e.g. '25-50' or '40-'.",
+              "title": "Hourly Rate"
+            },
+            "description": "Hourly rate in USD, e.g. '25-50' or '40-'."
+          },
+          {
+            "name": "client_hires",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client's past hires, comma list of: 0, 1-9, 10-.",
+              "title": "Client Hires"
+            },
+            "description": "Client's past hires, comma list of: 0, 1-9, 10-."
+          },
+          {
+            "name": "workload",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "part_time (under 30 hrs/week) or full_time.",
+              "title": "Workload"
+            },
+            "description": "part_time (under 30 hrs/week) or full_time."
+          },
+          {
+            "name": "duration",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Project length, comma list of: week, month, semester, ongoing (under a month, 1-3 months, 3-6 months, over 6 months).",
+              "title": "Duration"
+            },
+            "description": "Project length, comma list of: week, month, semester, ongoing (under a month, 1-3 months, 3-6 months, over 6 months)."
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client location, comma list of regions or countries as Upwork names them, e.g. 'Europe' or 'United States'.",
+              "title": "Location"
+            },
+            "description": "Client location, comma list of regions or countries as Upwork names them, e.g. 'Europe' or 'United States'."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Job category, comma list of names (Accounting & Consulting, Admin Support, Customer Service, Data Science & Analytics, Design & Creative, Engineering & Architecture, It & Networking, Legal, Sales & Marketing, Translation, Web, Mobile & Software Dev, Writing) or category ids.",
+              "title": "Category"
+            },
+            "description": "Job category, comma list of names (Accounting & Consulting, Admin Support, Customer Service, Data Science & Analytics, Design & Creative, Engineering & Architecture, It & Networking, Legal, Sales & Marketing, Translation, Web, Mobile & Software Dev, Writing) or category ids."
+          },
+          {
+            "name": "contract_to_hire",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only contract-to-hire jobs.",
+              "default": false,
+              "title": "Contract To Hire"
+            },
+            "description": "Only contract-to-hire jobs."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "relevance (default with q) or recency (default without q).",
+              "title": "Sort"
+            },
+            "description": "relevance (default with q) or recency (default without q)."
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "0-based position of the first job, 0-4999 (Upwork shows signed-out visitors the first 5000 results); `nextStart` continues.",
+              "default": 0,
+              "title": "Start"
+            },
+            "description": "0-based position of the first job, 0-4999 (Upwork shows signed-out visitors the first 5000 results); `nextStart` continues."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Jobs to collect, 1-5000. Each results page (up to 50 jobs) is billed one unit.",
+              "default": 50,
+              "title": "Max Results"
+            },
+            "description": "Jobs to collect, 1-5000. Each results page (up to 50 jobs) is billed one unit."
+          },
+          {
+            "name": "details",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Add each job's page: proposals, client stats, qualifications. Up to 100 jobs; one more unit per job page fetched.",
+              "default": false,
+              "title": "Details"
+            },
+            "description": "Add each job's page: proposals, client stats, qualifications. Up to 100 jobs; one more unit per job page fetched."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `jobs` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Upwork found no jobs for the search."
+          },
+          "502": {
+            "description": "Blocked by Upwork on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
     "/marketplace/smyths-inventory": {
       "post": {
         "tags": [
@@ -13879,6 +14675,882 @@
           },
           "502": {
             "description": "Smyths refused every attempt or did not answer in time - retry. With `X-Origin-Status`, the body is Smyths' own JSON error, which Smyths also returns for a product code it does not know."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/travel/google-hotels": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Google Hotels search results (prices, ratings, amenities)",
+        "description": "Runs a Google Hotels search for `q` and returns the properties as JSON: `name`, `type` (hotel / vacation_rental), `propertyToken`, `price` for the stay (`perNight`, `perNightWithTaxes`, `total`, `totalWithTaxes`, `taxes`, Google's `display` string), `deal`, `rating`, `reviews`, `ratingsBreakdown`, `reviewTopics`, `hotelClass`, `stars`, `amenities`, `description`, `website`, `latitude`/`longitude`, `nearbyPlaces`, `thumbnail`, `images` and `mapsUrl`, plus the page's sponsored `ads`. A query naming one hotel returns just that hotel (`matchedProperty`). Set the stay with `check_in`/`check_out`, the party with `adults` and `children` (ages), and `currency`, `hl` (language) and `gl` (market). `applied` echoes the dates, currency and place Google actually used. Collect up to `max_results` across pages (each Google page is billed as one request, see `pagesFetched`); `nextPageToken` continues the list. Pass a `propertyToken` to `/travel/google-hotels-property` for every booking site's price.",
+        "operationId": "google_hotels_travel_google_hotels_post",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "What to search, as on Google Hotels: a place ('hotels in Paris', 'Lisbon'), an area or landmark, or a hotel name.",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "What to search, as on Google Hotels: a place ('hotels in Paris', 'Lisbon'), an area or landmark, or a hotel name."
+          },
+          {
+            "name": "check_in",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Check-in date, YYYY-MM-DD. Leave check_in and check_out empty for Google's default stay.",
+              "title": "Check In"
+            },
+            "description": "Check-in date, YYYY-MM-DD. Leave check_in and check_out empty for Google's default stay."
+          },
+          {
+            "name": "check_out",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Check-out date, YYYY-MM-DD (stays of up to 30 nights).",
+              "title": "Check Out"
+            },
+            "description": "Check-out date, YYYY-MM-DD (stays of up to 30 nights)."
+          },
+          {
+            "name": "adults",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Number of adults (1-10).",
+              "default": 2,
+              "title": "Adults"
+            },
+            "description": "Number of adults (1-10)."
+          },
+          {
+            "name": "children",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Ages of the children, comma-separated, e.g. '7,10' (up to 6).",
+              "title": "Children"
+            },
+            "description": "Ages of the children, comma-separated, e.g. '7,10' (up to 6)."
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Price currency, ISO 4217 (USD, EUR, GBP, ...).",
+              "default": "USD",
+              "title": "Currency"
+            },
+            "description": "Price currency, ISO 4217 (USD, EUR, GBP, ...)."
+          },
+          {
+            "name": "hl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Language of names, amenities and price formats, e.g. 'en', 'de', 'fr'.",
+              "default": "en",
+              "title": "Hl"
+            },
+            "description": "Language of names, amenities and price formats, e.g. 'en', 'de', 'fr'."
+          },
+          {
+            "name": "gl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Market (2-letter country). Google localizes the booking sites to it.",
+              "default": "us",
+              "title": "Gl"
+            },
+            "description": "Market (2-letter country). Google localizes the booking sites to it."
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "`nextPageToken` of a previous response, to continue where it stopped.",
+              "title": "Page Token"
+            },
+            "description": "`nextPageToken` of a previous response, to continue where it stopped."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Properties to collect (1-100). Google serves about 20 per page; each page is billed as one request.",
+              "default": 20,
+              "title": "Max Results"
+            },
+            "description": "Properties to collect (1-100). Google serves about 20 per page; each page is billed as one request."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `properties` array, `ads`, paging and the search Google applied.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Google Hotels returned no properties for the search."
+          },
+          "502": {
+            "description": "Blocked by Google on every attempt, no results page returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/travel/google-hotels-property": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape one Google Hotels property: prices from every booking site",
+        "description": "Returns one property from Google Hotels as JSON, identified by the `property_token` of a `/travel/google-hotels` result: `offers` from every booking site Google lists for the stay (`provider`, `official` for the hotel's own site, `perNight`/`perNightWithTaxes`, `total`/`totalWithTaxes`, a Google `link` to book), `rooms` with room-level rates and free-cancellation deadlines where Google shows them, the lowest `price`, `address`, `phone`, `website`, `description` and `about`, `rating`, `reviews`, `ratingsBreakdown`, `reviewTopics`, `hotelClass`, `latitude`/`longitude`, `nearbyPlaces`, `images`, `placeId` and `mapsUrl`. Set the stay with `check_in`/`check_out`, the party with `adults`/`children`, and `currency`, `hl`, `gl`. Billed as one request.",
+        "operationId": "google_hotels_property_travel_google_hotels_property_post",
+        "parameters": [
+          {
+            "name": "property_token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "`propertyToken` of a /travel/google-hotels result.",
+              "default": "",
+              "title": "Property Token"
+            },
+            "description": "`propertyToken` of a /travel/google-hotels result."
+          },
+          {
+            "name": "check_in",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Check-in date, YYYY-MM-DD. Leave check_in and check_out empty for Google's default stay.",
+              "title": "Check In"
+            },
+            "description": "Check-in date, YYYY-MM-DD. Leave check_in and check_out empty for Google's default stay."
+          },
+          {
+            "name": "check_out",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Check-out date, YYYY-MM-DD (stays of up to 30 nights).",
+              "title": "Check Out"
+            },
+            "description": "Check-out date, YYYY-MM-DD (stays of up to 30 nights)."
+          },
+          {
+            "name": "adults",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Number of adults (1-10).",
+              "default": 2,
+              "title": "Adults"
+            },
+            "description": "Number of adults (1-10)."
+          },
+          {
+            "name": "children",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Ages of the children, comma-separated, e.g. '7,10' (up to 6).",
+              "title": "Children"
+            },
+            "description": "Ages of the children, comma-separated, e.g. '7,10' (up to 6)."
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Price currency, ISO 4217 (USD, EUR, GBP, ...).",
+              "default": "USD",
+              "title": "Currency"
+            },
+            "description": "Price currency, ISO 4217 (USD, EUR, GBP, ...)."
+          },
+          {
+            "name": "hl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Language, e.g. 'en', 'de', 'fr'.",
+              "default": "en",
+              "title": "Hl"
+            },
+            "description": "Language, e.g. 'en', 'de', 'fr'."
+          },
+          {
+            "name": "gl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Market (2-letter country). Google localizes the booking sites to it.",
+              "default": "us",
+              "title": "Gl"
+            },
+            "description": "Market (2-letter country). Google localizes the booking sites to it."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `property` object (offers, rooms, details).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Google Hotels has no property for this token."
+          },
+          "502": {
+            "description": "Blocked by Google on every attempt, no property page returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/shopee-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Shopee product search",
+        "description": "Searches a Shopee market (Singapore, Indonesia, Malaysia, Thailand, Vietnam, Philippines, Taiwan or Brazil - `country`) for `q` and returns one page of results: up to 40 `products`, each with `position`, `itemId`, `shopId`, `name`, `url`, `image`, `price`, `originalPrice` (when Shopee shows the crossed-out price), `discountPercent`, `currency`, `rating` (average stars), `location` (where the seller ships from) and `labels` (promotion badges). `sort` orders the results, `min_price` / `max_price` filter them, `shop_id` keeps one shop's products (or lists the shop without `q`), and `url` takes a Shopee search or category link instead. Shopee shows one page per search, so run several sort orders or price ranges for more products. `price` is what Shopee shows a signed-out shopper, which can be a promotional or new-customer price (see `labels`). Not available: stock, units sold, rating counts and reviews (Shopee does not publish them on the pages these endpoints read). One unit per call.",
+        "operationId": "shopee_search_marketplace_shopee_search_post",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search for, e.g. 'iphone case' or 'air fryer'. Optional with `shop_id`.",
+              "title": "Q"
+            },
+            "description": "What to search for, e.g. 'iphone case' or 'air fryer'. Optional with `shop_id`."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Shopee market: 'sg' (shopee.sg), 'id' (shopee.co.id), 'my' (shopee.com.my), 'th' (shopee.co.th), 'vn' (shopee.vn), 'ph' (shopee.ph), 'tw' (shopee.tw), 'br' (shopee.com.br). Default 'sg'. Prices are in that market's currency.",
+              "title": "Country"
+            },
+            "description": "Shopee market: 'sg' (shopee.sg), 'id' (shopee.co.id), 'my' (shopee.com.my), 'th' (shopee.co.th), 'vn' (shopee.vn), 'ph' (shopee.ph), 'tw' (shopee.tw), 'br' (shopee.com.br). Default 'sg'. Prices are in that market's currency."
+          },
+          {
+            "name": "shop_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only this shop's products (the number in a shop's links, e.g. 442800909). Without `q` it lists the shop.",
+              "title": "Shop Id"
+            },
+            "description": "Only this shop's products (the number in a shop's links, e.g. 442800909). Without `q` it lists the shop."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A Shopee search or category link (e.g. https://shopee.sg/search?keyword=lego or https://shopee.sg/Cases-Covers-cat.11013350.11013434.11027839), used as it is; `q`, `country`, `shop_id`, `sort` and the price filters are then ignored.",
+              "title": "Url"
+            },
+            "description": "A Shopee search or category link (e.g. https://shopee.sg/search?keyword=lego or https://shopee.sg/Cases-Covers-cat.11013350.11013434.11027839), used as it is; `q`, `country`, `shop_id`, `sort` and the price filters are then ignored."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Result order: relevance, sales, newest, price_asc, price_desc.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Result order: relevance, sales, newest, price_asc, price_desc."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price, in the market's currency.",
+              "title": "Min Price"
+            },
+            "description": "Lowest price, in the market's currency."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price, in the market's currency.",
+              "title": "Max Price"
+            },
+            "description": "Highest price, in the market's currency."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to return, 1-40 (one Shopee results page).",
+              "default": 40,
+              "title": "Max Results"
+            },
+            "description": "Products to return, 1-40 (one Shopee results page)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Shopee found no products for this search."
+          },
+          "502": {
+            "description": "Blocked by Shopee on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/shopee-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape one Shopee product",
+        "description": "One Shopee product as JSON, from a product link (`url`) or `shop_id` + `item_id` + `country`: `title`, `price`, `originalPrice`, `discountPercent`, `currency`, `rating` (average stars), `labels`, `images`, `shopLocation` and `shop` (`name`, `username`, `url`, `rating`, `ratingCount`, `followers`, `itemCount`, `responseRatePercent`, `isOfficialShop`, `isPreferredPlusSeller`, `location`, `joinedAt`). With `dataLevel: full` it also has `description`, `brand`, `condition`, `categories`, `videos`, `variations` (option names), `models` (`modelId`, `name`), `attributes`, `isOfficialShop`, `isPreOrder`, `estimatedShippingDays` and `createdAt`; `dataLevel: meta` means Shopee showed only the product's title and main image (some markets), with price, rating and shop still included. `price` is what Shopee shows a signed-out shopper, which can be a promotional or new-customer price (see `labels`). Not available: stock, units sold, rating counts and reviews (Shopee does not publish them on the pages these endpoints read). One unit per call.",
+        "operationId": "shopee_product_marketplace_shopee_product_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A Shopee product link, e.g. https://shopee.sg/Beats-iPhone-17-Case-i.442800909.40270108836 or https://shopee.co.id/product/1426163997/40581375446.",
+              "title": "Url"
+            },
+            "description": "A Shopee product link, e.g. https://shopee.sg/Beats-iPhone-17-Case-i.442800909.40270108836 or https://shopee.co.id/product/1426163997/40581375446."
+          },
+          {
+            "name": "shop_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Instead of `url`: the shop id (the first number after '-i.' in a product link).",
+              "title": "Shop Id"
+            },
+            "description": "Instead of `url`: the shop id (the first number after '-i.' in a product link)."
+          },
+          {
+            "name": "item_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Instead of `url`: the item id (the second number after '-i.').",
+              "title": "Item Id"
+            },
+            "description": "Instead of `url`: the item id (the second number after '-i.')."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With `shop_id` + `item_id`: Shopee market: 'sg' (shopee.sg), 'id' (shopee.co.id), 'my' (shopee.com.my), 'th' (shopee.co.th), 'vn' (shopee.vn), 'ph' (shopee.ph), 'tw' (shopee.tw), 'br' (shopee.com.br). Default 'sg'. Prices are in that market's currency.",
+              "title": "Country"
+            },
+            "description": "With `shop_id` + `item_id`: Shopee market: 'sg' (shopee.sg), 'id' (shopee.co.id), 'my' (shopee.com.my), 'th' (shopee.co.th), 'vn' (shopee.vn), 'ph' (shopee.ph), 'tw' (shopee.tw), 'br' (shopee.com.br). Default 'sg'. Prices are in that market's currency."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `product` and `dataLevel`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Shopee has no such product."
+          },
+          "502": {
+            "description": "Blocked by Shopee on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/taobao-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Taobao / Tmall keyword or category listings",
+        "description": "Returns the products Taobao lists for a keyword `q` (or a `category`) as JSON: `products` (`position`, `itemId`, `title`, `url`, `image`, `price` in yuan with `currency` CNY, `priceLabel` (Taobao's price tag, e.g. 优惠价), `localPrices` (the same price in the storefront's currency, HKD and TWD), `shopId`, `shopName`, `descriptionMatchScore`, `freeShipping`, `categoryId`, `rootCategoryId`, `sellingPoints`, `reviewHighlights`), `totalResults` (how many listings Taobao reports), and `filterOptions` (brand and property facets; pass an option's `filter` value back as `filter`). Sort by relevance, sales or price and filter by a yuan price range (products whose listed price falls outside it are left out and counted in `droppedOutsidePriceRange`). Taobao shows signed-out visitors only the first 20 products of a list, so one call returns up to 20 (narrow with price ranges and filters to reach more). When Taobao has no list for the keyword, the call answers with the list of the closest keyword Taobao itself suggests and says so: `keywordSubstituted` true and `matchedKeyword`. Text comes in Chinese as sellers write it. Companion to `/marketplace/taobao-product`. One unit per call.",
+        "operationId": "taobao_search_marketplace_taobao_search_post",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Keyword, in Chinese or English, e.g. '手机壳', '连衣裙', 'phone case' (Chinese keywords match far more listings). A Taobao search or list link works too. Give `q` or `category`.",
+              "title": "Q"
+            },
+            "description": "Keyword, in Chinese or English, e.g. '手机壳', '连衣裙', 'phone case' (Chinese keywords match far more listings). A Taobao search or list link works too. Give `q` or `category`."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A Taobao category id, e.g. '50005050', or a category list link (https://www.taobao.com/list/category/50005050.htm). Returns the category's best sellers; sort and filters apply to keyword searches only.",
+              "title": "Category"
+            },
+            "description": "A Taobao category id, e.g. '50005050', or a category list link (https://www.taobao.com/list/category/50005050.htm). Returns the category's best sellers; sort and filters apply to keyword searches only."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Order: relevance, sales, price_asc, price_desc (price in yuan).",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Order: relevance, sales, price_asc, price_desc (price in yuan)."
+          },
+          {
+            "name": "price_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only products at or above this many yuan (CNY).",
+              "title": "Price Min"
+            },
+            "description": "Only products at or above this many yuan (CNY)."
+          },
+          {
+            "name": "price_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only products at or below this many yuan (CNY).",
+              "title": "Price Max"
+            },
+            "description": "Only products at or below this many yuan (CNY)."
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "One brand or property filter, as the `filter` value of an option in `filterOptions` of an earlier answer, e.g. '20000-88634403'.",
+              "title": "Filter"
+            },
+            "description": "One brand or property filter, as the `filter` value of an option in `filterOptions` of an earlier answer, e.g. '20000-88634403'."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array (up to 20).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Taobao has no public list for the keyword (nor for any keyword it suggests instead), the category, or the filters; not billed."
+          },
+          "502": {
+            "description": "Taobao refused every attempt, or no answer in time; not billed."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/taobao-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape one Taobao / Tmall item",
+        "description": "Returns one Taobao or Tmall item (by `item_id` or `url`) as JSON: `itemId`, `url`, `platform` (taobao / tmall), `title` (`titleTruncated` when Taobao shortens it, as it does for Tmall items), `price`, `originalPrice` and `priceMax` (for a price range) in yuan with `currency` CNY, `image`, `location` (ships from), `categoryId`, `rootCategoryId`, `categoryPath`, `freeShipping`, `paymentMethods`, `sellableLanguages`, `rating` (positive / neutral / negative split and counts; Taobao items only, Tmall does not publish it), `latestReview` (`rating`, `content`, `date`, `variant`, `hasMedia`, `followUps`; no reviewer identity, so no review photo or video URLs) and `shop` (`shopId`, `name`, `url`, `logo`, `sellerType` B = Tmall / C = Taobao, `creditLevel`, `openedAt`, `itemCount`, `scores` for description, service and delivery). This is what Taobao shows signed-out visitors: variants (SKUs), stock and monthly sales need a Taobao login and are not included. Companion to `/marketplace/taobao-search`. One unit per call.",
+        "operationId": "taobao_product_marketplace_taobao_product_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Numeric Taobao or Tmall item id, e.g. '765833709683' (the `id` in item.taobao.com/item.htm?id=...).",
+              "title": "Item Id"
+            },
+            "description": "Numeric Taobao or Tmall item id, e.g. '765833709683' (the `id` in item.taobao.com/item.htm?id=...)."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Taobao or Tmall item link, e.g. 'https://item.taobao.com/item.htm?id=765833709683' or 'https://detail.tmall.com/item.htm?id=1081364414020' (world.taobao.com, mobile and overseas item links work too). Either item_id or url is required.",
+              "title": "Url"
+            },
+            "description": "Taobao or Tmall item link, e.g. 'https://item.taobao.com/item.htm?id=765833709683' or 'https://detail.tmall.com/item.htm?id=1081364414020' (world.taobao.com, mobile and overseas item links work too). Either item_id or url is required."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `product`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing item_id / url."
+          },
+          "404": {
+            "description": "Taobao has no public page for the item (removed, or not shown to signed-out visitors); not billed."
+          },
+          "502": {
+            "description": "Taobao refused every attempt, or no answer in time; not billed."
           },
           "422": {
             "description": "Validation Error",

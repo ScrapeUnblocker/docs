@@ -1,0 +1,239 @@
+---
+title: "Upwork plugin"
+description: "Upwork job posts as clean JSON - title, full description, hourly range or fixed budget, experience level, duration, workload and skills, plus proposals, interviews and client stats on request."
+sidebarTitle: "Upwork"
+---
+
+The **Upwork** plugin turns Upwork's job search into structured JSON. Give it a search term, or leave it out for the newest jobs, and it returns the job posts: id, link, title, the full description, when the job was published, created and renewed, the job type with the hourly range or the fixed budget in USD, the experience level, the project length, the workload and the skills. Filter as on Upwork - job type, experience level, fixed-price budget, hourly rate, the client's past hires, workload, project length, client location, category and contract-to-hire - and sort by relevance or by newest.
+
+With `details=true` each job also gets what its own page shows signed-out visitors: proposals, interviews, invites sent, hires, positions to hire, the client's last activity, the category, the qualifications asked, and the client's stats - country, city, time zone, payment verification, rating, reviews, total spent, hires and member-since date. Client stats come only with `details=true`, and the client's name is never returned. Upwork shows signed-out visitors the first 5,000 results of a search, so that is as far as one search reaches. No Upwork account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /jobs/upwork
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | no | What to search for, e.g. `python` or `logo design`. Leave it empty with `sort=recency` for the newest jobs. |
+| `job_type` | no | `hourly` or `fixed`. |
+| `experience` | no | Experience level, comma list of `entry`, `intermediate`, `expert`. |
+| `budget` | no | Fixed-price budget in USD, comma list of ranges like `100-499`, `1000-4999` or `5000-`. |
+| `hourly_rate` | no | Hourly rate in USD, e.g. `25-50` or `40-`. |
+| `client_hires` | no | The client's past hires, comma list of `0`, `1-9`, `10-`. |
+| `workload` | no | `part_time` (under 30 hrs/week) or `full_time`. |
+| `duration` | no | Project length, comma list of `week` (under a month), `month` (1-3 months), `semester` (3-6 months), `ongoing` (over 6 months). |
+| `location` | no | Client location, comma list of regions or countries as Upwork names them, e.g. `Europe` or `United States`. |
+| `category` | no | Job category, comma list of names (`Accounting & Consulting`, `Admin Support`, `Customer Service`, `Data Science & Analytics`, `Design & Creative`, `Engineering & Architecture`, `It & Networking`, `Legal`, `Sales & Marketing`, `Translation`, `Web, Mobile & Software Dev`, `Writing`) or category ids. |
+| `contract_to_hire` | no | `true` for contract-to-hire jobs only. Default `false`. |
+| `sort` | no | `relevance` (the default with `q`) or `recency` (the default without `q`). |
+| `start` | no | 0-based position of the first job, `0`-`4999`. Default `0`. Pass the `nextStart` of a previous response to continue. |
+| `max_results` | no | Jobs to collect, `1`-`5000`. Default `50`. Upwork serves up to 50 jobs per page. |
+| `details` | no | `true` adds each job's page: proposals, client stats, qualifications. For up to 100 jobs per call. Default `false`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/jobs/upwork?q=python&max_results=3&details=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.upwork_jobs("python", max_results=3, details=True)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.upworkJobs("python", { maxResults: 3, details: true });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->upworkJobs('python', ['max_results' => 3, 'details' => true]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.upwork_jobs("python", max_results: 3, details: true)
+```
+</CodeGroup>
+
+For the newest jobs, leave the term out: `su.upwork_jobs(sort="recency")` in Python.
+
+<Note>
+Billing: one request per results page of up to 50 jobs, plus one per job page fetched with `details=true`. The call above counts as 3 requests: one results page and two job pages. The third job is a private listing, which comes back without details and is not billed, and neither is a job page that could not be fetched. `callUnits` in the response is the exact number.
+</Note>
+
+## Response
+
+```json
+{
+  "query": "python",
+  "filters": {},
+  "sort": "relevance",
+  "totalResults": 1825,
+  "start": 0,
+  "resultsCollected": 3,
+  "hasMore": true,
+  "nextStart": 3,
+  "pagesFetched": 1,
+  "callUnits": 3,
+  "detailsFetched": 2,
+  "jobs": [
+    {
+      "id": "2112181236302511171",
+      "ciphertext": "~022112181236302511171",
+      "url": "https://www.upwork.com/jobs/~022112181236302511171",
+      "title": "Python Expert",
+      "description": "FastAPI Qdrant Multi Tenant XTTS Voice Clone SadTalker Avatar Docker\n\nDescription:\n\nBuild secure multi tenant ...",
+      "publishedAt": "2026-10-19T14:16:56.680Z",
+      "createdAt": "2026-10-19T13:57:04.268Z",
+      "renewedAt": null,
+      "jobType": "fixed",
+      "hourlyMin": null,
+      "hourlyMax": null,
+      "budget": 150,
+      "weeklyRetainerBudget": null,
+      "currency": "USD",
+      "experienceLevel": "expert",
+      "duration": "1 to 3 months",
+      "workload": null,
+      "skills": ["Python", "Python Script", "API"],
+      "premium": false,
+      "enterprise": null,
+      "privateListing": false,
+      "category": "Scripts & Utilities",
+      "categoryGroup": "Web, Mobile & Software Dev",
+      "occupation": "Scripting & Automation",
+      "workloadText": null,
+      "durationWeeks": 9,
+      "proposals": 11,
+      "interviewing": 2,
+      "invitesSent": 5,
+      "unansweredInvites": 2,
+      "hired": 0,
+      "lastClientActivity": "2026-10-19T15:42:52.940Z",
+      "positionsToHire": 1,
+      "contractToHire": true,
+      "qualifications": {
+        "countries": null,
+        "minJobSuccessScore": null,
+        "minHoursOnUpwork": null,
+        "englishLevel": null,
+        "risingTalent": false,
+        "portfolioRequired": false
+      },
+      "client": {
+        "country": "India",
+        "city": "Ambala cantt",
+        "timezone": "Asia/Calcutta (UTC+05:30)",
+        "paymentVerified": true,
+        "rating": 4.48,
+        "reviews": 5,
+        "totalSpent": 401,
+        "hires": 6,
+        "totalAssignments": 7,
+        "activeAssignments": 0,
+        "hoursBilled": 0,
+        "jobsPosted": null,
+        "openJobs": null,
+        "memberSince": "2019-07-07T00:00:00.000Z",
+        "isTopClient": false,
+        "isEnterprise": false
+      }
+    },
+    {
+      "id": "2104962606393436896",
+      "ciphertext": "~022104962606393436896",
+      "url": "https://www.upwork.com/jobs/~022104962606393436896",
+      "title": "Python website development.",
+      "description": "Hello Im seeking help for an ongoing project concerning python. \n\nThank and let me know",
+      "publishedAt": "2026-09-29T18:54:18.702Z",
+      "createdAt": "2026-09-29T15:52:48.817Z",
+      "renewedAt": null,
+      "jobType": "hourly",
+      "hourlyMin": null,
+      "hourlyMax": null,
+      "budget": null,
+      "weeklyRetainerBudget": null,
+      "currency": "USD",
+      "experienceLevel": "intermediate",
+      "duration": "Less than 1 month",
+      "workload": "part_time",
+      "skills": ["Python", "Amazon Web Services", "Flask", "Django"],
+      "premium": false,
+      "enterprise": null,
+      "privateListing": true
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `totalResults` | Upwork's count of matching jobs. |
+| `nextStart` / `hasMore` | Pass `nextStart` as `start` to continue; `hasMore` says whether there are more within Upwork's first 5,000. |
+| `pagesFetched` / `detailsFetched` / `callUnits` | Results pages and job pages fetched, and the billed total. |
+| `jobs[].id` / `ciphertext` / `url` | Upwork's job ids and the job link. |
+| `jobs[].title` / `description` | Title and the full description. |
+| `jobs[].publishedAt` / `createdAt` / `renewedAt` | When the job was published, created and renewed (ISO 8601 UTC). |
+| `jobs[].jobType` | `hourly` or `fixed`. |
+| `jobs[].hourlyMin` / `hourlyMax` / `budget` / `currency` | The hourly range or the fixed budget, in USD; `null` when the client set none. |
+| `jobs[].experienceLevel` / `duration` / `workload` | Experience level (`entry`, `intermediate`, `expert`), project length and workload. |
+| `jobs[].skills` | Skills the job asks for. |
+| `jobs[].privateListing` | `true` for a private listing, which comes back without the `details=true` fields. |
+
+With `details=true` each job also has:
+
+| Field | Notes |
+| --- | --- |
+| `proposals` / `interviewing` / `invitesSent` / `unansweredInvites` / `hired` / `positionsToHire` | Activity on the job. |
+| `lastClientActivity` | When the client was last active on the job. |
+| `category` / `categoryGroup` / `occupation` | Upwork's classification of the job. |
+| `contractToHire` / `durationWeeks` | Contract-to-hire flag and the project length in weeks. |
+| `qualifications` | What the client asks for: `countries`, `minJobSuccessScore`, `minHoursOnUpwork`, `englishLevel`, `risingTalent` and `portfolioRequired`. |
+| `client` | `country`, `city`, `timezone`, `paymentVerified`, `rating`, `reviews`, `totalSpent` (USD), `hires`, `totalAssignments`, `activeAssignments`, `hoursBilled`, `memberSince`, `isTopClient` and `isEnterprise`. Never the client's name. |
+| `detailsError` | `unavailable` when the job's page could not be fetched. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. an unknown `experience` or `duration` value, or `start` above `4999`. The message says what to fix. |
+| `404` | Upwork found no jobs for the search. |
+| `502` | Upwork blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Lead feeds for freelancers and agencies** - get new jobs for your skills soon after they are posted, with `sort=recency`.
+- **Market research** - measure demand, budgets and hourly rates for a skill over time.
+- **Client checks** - see payment verification, spend, hires and rating before you apply, with `details=true`.
+- **Job boards and alerts** - power a niche board or alerts with filtered Upwork jobs.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Upwork search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

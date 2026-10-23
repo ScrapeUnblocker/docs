@@ -1,0 +1,341 @@
+---
+title: "Google Ads Transparency plugin"
+description: "An advertiser's Google ads from the Ads Transparency Center as clean JSON - Search, YouTube, Shopping, Maps and Play ads with format, first and last shown, preview, regions, targeting and the ad's texts, plus advertiser lookup."
+sidebarTitle: "Google Ads Transparency"
+---
+
+The **Google Ads Transparency** plugin returns an advertiser's Google ads from the [Google Ads Transparency Center](https://adstransparency.google.com) as structured JSON: Search, YouTube, Display, Shopping, Maps and Play ads, each with its creative id, format, when it was first and last shown, the preview image or preview script, Google's ids behind the creative and a link to the ad. It is two endpoints:
+
+- **`/ads/google-ads-transparency`** - the ads of an advertiser (by name or advertiser id) or of a website (`domain`), filtered by region, platform, format and dates. `include_details` adds each ad's reach per region and the targeting the advertiser disclosed; `include_preview` adds what the ad shows: headline, description, display URL, product, images or YouTube video.
+- **`/ads/google-ads-transparency-advertisers`** - look an advertiser up by name: matching advertisers with their id, country, ad-count range and verification, plus matching domains.
+
+Google serves up to 100 ads per page; one call collects up to 1,000. Most Search text ads exist only as an image of the ad (`imageUrl`), so their headline and description cannot always be read: `include_preview` returns them when Google keeps a preview script for the ad, as for the ad below. No Google account or API key is involved. For Facebook and Instagram ads, see the [Meta Ad Library plugin](/plugins/meta-ad-library).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Ads
+
+```
+POST /ads/google-ads-transparency
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `advertiser` | one of `advertiser` / `domain` | A name (e.g. `Nike`), resolved to the best-matching advertiser and reported in `advertisersUsed`, or an advertiser id (`AR16735076323512287233`). Comma-separate up to 10. A single brand name no advertiser is named like falls back to its domain. |
+| `domain` | one of `advertiser` / `domain` | The website the ads point to, e.g. `nike.com`: the ads of every advertiser for that domain. |
+| `region` | no | Where the ads were shown: a 2-letter country code (`US`, `DE`), a comma list of them, or `anywhere` (default). |
+| `platform` | no | Only ads shown on these platforms, comma list of `search`, `youtube`, `maps`, `play`, `shopping`. |
+| `format` | no | Only one ad format: `text`, `image` or `video`. |
+| `date_from` / `date_to` | no | Only ads shown on or after / on or before this date (`YYYY-MM-DD`). |
+| `sort` | no | `last_shown` (default): the most recently shown ads first. |
+| `max_results` | no | Ads to collect, `1`-`1000`. Default `100`. |
+| `page_token` | no | The `nextPageToken` of a previous response, to continue where it stopped. |
+| `include_details` | no | `true` adds `details` per ad: the regions where it was shown with first and last dates (plus impressions per platform for EU regions), the EU reach, the targeting the advertiser disclosed and every preview variation. For up to 300 ads per call. Default `false`. |
+| `include_preview` | no | `true` adds `preview` per ad: the headline, description and display URL of a text ad, the product title and merchant of a Shopping ad, image URLs, or the YouTube video of a video ad. For up to 40 ads per call. Default `false`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/ads/google-ads-transparency?advertiser=Nike&region=US&max_results=3&include_details=true&include_preview=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_ads_transparency(
+    advertiser="Nike",
+    region="US",
+    max_results=3,
+    include_details=True,
+    include_preview=True,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleAdsTransparency({
+  advertiser: "Nike",
+  region: "US",
+  maxResults: 3,
+  includeDetails: true,
+  includePreview: true,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleAdsTransparency([
+    'advertiser' => 'Nike',
+    'region' => 'US',
+    'max_results' => 3,
+    'include_details' => true,
+    'include_preview' => true,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_ads_transparency(
+  advertiser: "Nike",
+  region: "US",
+  max_results: 3,
+  include_details: true,
+  include_preview: true
+)
+```
+</CodeGroup>
+
+The SDK method takes no positional argument: pass `advertiser` or `domain` as an option.
+
+<Note>
+Billing: one request per page of up to 100 ads fetched, plus one per ad with `include_details` and one per preview fetched with `include_preview`. The call above returns 3 ads with both and counts as 7 requests (1 page, 3 details, 3 previews); `callUnits` in the response is the exact number. Resolving an advertiser name is free.
+</Note>
+
+### Response
+
+```json
+{
+  "advertiser": ["Nike"],
+  "domain": null,
+  "region": ["US"],
+  "platform": null,
+  "format": null,
+  "dateFrom": null,
+  "dateTo": null,
+  "sort": "last_shown",
+  "advertisersUsed": [
+    {
+      "query": "Nike",
+      "advertiserId": "AR16735076323512287233",
+      "name": "Nike, Inc.",
+      "country": "US",
+      "creativesMin": 8000,
+      "creativesMax": 9000,
+      "verified": true
+    }
+  ],
+  "totalResultsMin": 7000,
+  "totalResultsMax": 8000,
+  "maxResults": 3,
+  "resultsCollected": 3,
+  "hasMore": true,
+  "nextPageToken": "CgoAP7zmhggJsGpLEhCmYoigItrexpcilCMAAAAAGgn8+Ga++OYEN8M=",
+  "pagesFetched": 1,
+  "detailsFetched": 3,
+  "previewsFetched": 3,
+  "callUnits": 7,
+  "creatives": [
+    {
+      "creativeId": "CR10566257436702801921",
+      "advertiserId": "AR16735076323512287233",
+      "advertiserName": "Nike, Inc.",
+      "format": "text",
+      "firstShown": "2023-11-16T22:37:46Z",
+      "lastShown": "2026-10-23T08:53:14Z",
+      "daysShown": 907,
+      "matchedDomain": null,
+      "previewType": "image",
+      "previewUrl": null,
+      "imageUrl": "https://tpc.googlesyndication.com/archive/simgad/7818930978214938407",
+      "imageWidth": 348,
+      "imageHeight": 249,
+      "googleCreativeId": null,
+      "googleCustomerId": null,
+      "adGroupId": null,
+      "adUrl": "https://adstransparency.google.com/advertiser/AR16735076323512287233/creative/CR10566257436702801921?region=US",
+      "details": {
+        "lastShown": "2026-10-23T08:53:14Z",
+        "regions": [
+          {
+            "region": "US",
+            "regionId": 2840,
+            "firstShown": null,
+            "lastShown": "2026-10-23",
+            "impressionsMin": null,
+            "impressionsMax": null,
+            "platforms": []
+          }
+        ],
+        "eeaReach": null,
+        "targeting": null,
+        "variations": [
+          {
+            "previewType": "image",
+            "previewUrl": null,
+            "imageUrl": "https://tpc.googlesyndication.com/archive/simgad/7818930978214938407",
+            "imageWidth": 348,
+            "imageHeight": 249
+          },
+          {
+            "previewType": "script",
+            "previewUrl": "https://displayads-formats.googleusercontent.com/ads/preview/content.j...",
+            "imageUrl": null,
+            "imageWidth": null,
+            "imageHeight": null
+          }
+        ],
+        "payerName": "Nike, Inc."
+      },
+      "preview": {
+        "headline": "Shop Nike® Online",
+        "description": "Built on defiance, tradition, and a legacy larger than game. Shop Jordan.",
+        "displayUrl": "nike.com",
+        "productTitle": null,
+        "merchant": null,
+        "texts": [
+          "Shop Nike® Online",
+          "Built on defiance, tradition, and a legacy larger than game. Shop Jordan.",
+          "nike.com",
+          "Nike",
+          "Nike Clearance Store - Pasadena"
+        ],
+        "imageUrls": [],
+        "videoId": null,
+        "videoUrl": null
+      }
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `advertisersUsed` | How each `advertiser` name was resolved: `advertiserId`, `name`, `country`, the ad-count range (`creativesMin` / `creativesMax`) and `verified`. |
+| `totalResultsMin` / `totalResultsMax` | Google's range for how many ads match. |
+| `pagesFetched` / `detailsFetched` / `previewsFetched` / `callUnits` | What was fetched, and the billed total. |
+| `hasMore` / `nextPageToken` | Whether there are more ads, and the token to pass as `page_token`. |
+| `creatives[].creativeId` / `adUrl` | The ad's id and its page on adstransparency.google.com. |
+| `creatives[].advertiserId` / `advertiserName` | Who ran the ad. |
+| `creatives[].format` | `text`, `image` or `video`. |
+| `creatives[].firstShown` / `lastShown` / `daysShown` | When the ad was first and last shown (ISO 8601 UTC) and on how many days. |
+| `creatives[].matchedDomain` | The domain Google matched the ad to, when it reports one. |
+| `creatives[].previewType` / `imageUrl` / `imageWidth` / `imageHeight` / `previewUrl` | The preview: an image with its size (`image`), or Google's preview script (`script`). |
+| `creatives[].googleCreativeId` / `googleCustomerId` / `adGroupId` | The Google Ads ids behind the creative, when Google exposes them. |
+| `creatives[].details` | With `include_details`: `regions` (per region `firstShown`, `lastShown`, `impressionsMin` / `impressionsMax` and `platforms`; impressions are published for EU regions only), `eeaReach`, `targeting` (what the advertiser disclosed), `variations` (every preview of the ad) and `payerName`. |
+| `creatives[].preview` | With `include_preview`: `headline`, `description`, `displayUrl`, `productTitle`, `merchant`, all `texts` of the ad, `imageUrls`, and `videoId` / `videoUrl` for a YouTube ad. |
+
+## Advertiser lookup
+
+```
+POST /ads/google-ads-transparency-advertisers
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | yes | Advertiser name or brand to look up, e.g. `nike`. |
+| `region` | no | Count ads shown in these regions only: a 2-letter country code, a comma list, or `anywhere` (default). |
+| `max_results` | no | Most advertisers (and domains) to return, `1`-`50`. Default `10`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/ads/google-ads-transparency-advertisers?q=nike&region=US&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_ads_transparency_advertisers("nike", region="US", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleAdsTransparencyAdvertisers("nike", { region: "US", maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleAdsTransparencyAdvertisers('nike', ['region' => 'US', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_ads_transparency_advertisers("nike", region: "US", max_results: 3)
+```
+</CodeGroup>
+
+A lookup is billed as one request. A name matches every advertiser named like it, so pass the `advertiserId` of the one you mean to the ads endpoint.
+
+### Response
+
+```json
+{
+  "query": "nike",
+  "region": ["US"],
+  "resultsCollected": 3,
+  "advertisers": [
+    {
+      "advertiserId": "AR17365672681860497409",
+      "name": "NIKE SRL",
+      "country": "IT",
+      "creativesMin": 1,
+      "creativesMax": 1,
+      "verified": true
+    },
+    {
+      "advertiserId": "AR16735076323512287233",
+      "name": "Nike, Inc.",
+      "country": "US",
+      "creativesMin": 8000,
+      "creativesMax": 9000,
+      "verified": true
+    }
+  ],
+  "domains": ["nike.cl", "nike.sa", "nike.ae"]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `advertisers` | `advertiserId` (for the ads endpoint), `name`, `country`, `creativesMin` / `creativesMax` (how many ads they ran) and `verified`. |
+| `domains` | Website domains that match the name; pass one as `domain` to the ads endpoint. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. both or neither of `advertiser` and `domain`, more than 10 advertisers, or an unknown `platform` or `format`. The message says what to fix. |
+| `404` | No advertiser matches the name, or no ads match the filters. |
+| `502` | Blocked on every attempt, an unusable answer, or no answer in time. Retry. |
+
+## What you can build
+
+- **Competitor ad monitoring** - track which Google ads a competitor runs, in which format and region, and since when.
+- **Creative research** - collect the headlines, descriptions, images and YouTube videos of a brand's ads.
+- **Brand protection** - find who advertises on your domain or under a name like your brand's.
+- **Market scoping** - see which advertisers are active in a region before you spend.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Pull an advertiser's Google ads and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

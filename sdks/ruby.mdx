@@ -164,13 +164,14 @@ cars = su.skyscanner.carhire(pickup: "Madrid", pickup_datetime: "2026-09-01T10:0
 
 ## Every other plugin
 
-The gem has a method for every plugin (0.10.0 and later) - the plugin's main input goes in positionally, everything else as keyword options, and options you leave out are not sent, so the API's defaults apply. Each [plugin page](/plugins/overview) shows its method next to cURL.
+The gem has a method for every plugin (0.10.0 and later) - the plugin's main input goes in positionally, everything else as keyword options, and options you leave out are not sent, so the API's defaults apply. Each [plugin page](/plugins/overview) shows its method next to cURL. Methods for newer plugins come with newer releases: the Google Hotels, Google News, Google Ads Transparency, Shopee, Taobao, Upwork, Smyths Toys and Wish methods need 0.14.0 or later.
 
 ```ruby
 products = su.target_search("coffee maker", sort: "price_low", max_results: 48)
 milk = su.woolworths_product("888137")                     # one product, with nutrition
 trends = su.google_trends(%w[coffee tea], geo: "US")       # a list is sent comma-separated
 reviews = su.trustpilot_reviews("www.nike.com", stars: [4, 5])
+hotels = su.google_hotels("Lisbon", check_in: "2026-11-20", check_out: "2026-11-22") # 0.14.0+
 
 # Any plugin endpoint by path, parameters named as the API names them
 data = su.plugin("/marketplace/target-search", query: "tv", max_results: 24)

@@ -1,0 +1,523 @@
+---
+title: "Smyths Toys plugin"
+description: "Smyths Toys UK as JSON - a product's home delivery and click & collect stock and price as Smyths' own storefront reads them, product page details, and search and category listings that find product codes."
+sidebarTitle: "Smyths Toys"
+---
+
+The **Smyths Toys** plugin returns data from Smyths Toys UK (smythstoys.com) as JSON. One endpoint, `/marketplace/smyths-inventory`, works in four modes:
+
+- **Stock and price** (`mode=product`, the default when you pass `code`) - one product's stock and price as the JSON Smyths' own storefront reads: price, was-price, RRP and discount, home delivery stock and messages, click & collect stock, pre-order flags and expected stock dates, age suitability and the delivery type.
+- **Details** (`mode=details`) - the JSON Smyths' product page is built from: name, brand, EAN, description, key features, safety warnings, the image gallery with any videos, rating, review count and breadcrumb.
+- **Search** (`mode=search`) and **category** (`mode=category`) - the products of a search or a category with code, name, link, price, image and rating, 60 per page, so you can find product codes. A category also returns its breadcrumbs and subcategories with product counts.
+
+Stock and details come back as Smyths' own JSON, unchanged, so code written against Smyths' response keeps working. Prices are in GBP. Smyths' search returns its best 240 matches at most; list a category to get every product of a range. No Smyths account or API key is involved.
+
+The SDKs have one method per mode: `smyths_inventory`, `smyths_details`, `smyths_search` and `smyths_category` (`smythsInventory`, `smythsDetails`, `smythsSearch` and `smythsCategory` in Node.js and PHP).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Stock and price
+
+```
+POST /marketplace/smyths-inventory
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | `product`, the default when `code` is given. Set by `smythsInventory`. |
+| `code` | yes | Product code (`259087`), a product or bundle page link, or a product-inventory link. |
+| `bundle` | no | `true` to ask for a bundle. A bundle page link sets it, and a code Smyths does not answer as a product is asked again as a bundle. Default `false`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/smyths-inventory?code=259087" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.smyths_inventory("259087")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.smythsInventory("259087");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->smythsInventory('259087');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.smyths_inventory("259087")
+```
+</CodeGroup>
+
+One product is billed as one request.
+
+### Response
+
+```json
+{
+  "code": "259087",
+  "type": "REGULAR",
+  "ageSuitabilities": ["18 Years +"],
+  "primaryMarketingMessage": null,
+  "hdSection": {
+    "stockStatus": "INSTOCK",
+    "stockMessage": "In Stock",
+    "guestDeliveryMessage": "FREE Standard Delivery",
+    "registeredDeliveryMessage": "Free delivery on orders over £20",
+    "isAvailableForDelivery": true,
+    "isPreOrder": false,
+    "inStore": false,
+    "expectedStockDate": null
+  },
+  "ccSection": {
+    "stockStatus": "INSTOCK",
+    "stockMessage": "In Stock",
+    "deliveryMessage": "FREE collection within 2 hours",
+    "storeName": null,
+    "isPreOrder": false,
+    "expectedStockDate": null,
+    "storeClosed": false,
+    "isAvailableForDelivery": true
+  },
+  "carrierType": {
+    "name": "REGULAR",
+    "isGuestFreeDelivery": true,
+    "isRegisteredFreeDelivery": false,
+    "isSpecialDelivery": false
+  },
+  "prices": {
+    "price": "£116.99",
+    "thenPrice": null,
+    "wasPrice": null,
+    "rrpPrice": "£149.99",
+    "value": "116.99",
+    "sspPrice": null,
+    "discountedPercentage": null
+  },
+  "decals": null
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `prices` | `price` as Smyths prints it, `value` (the number, as text), `wasPrice`, `thenPrice`, `rrpPrice` and `discountedPercentage`. |
+| `hdSection` | Home delivery: `stockStatus` (e.g. `INSTOCK`, `OUTOFSTOCK`), `stockMessage`, `guestDeliveryMessage`, `registeredDeliveryMessage`, `isAvailableForDelivery`, `isPreOrder` and `expectedStockDate`. |
+| `ccSection` | Click & collect: the same stock fields plus `deliveryMessage`, `storeName` and `storeClosed`. |
+| `ageSuitabilities` / `carrierType` | Age range and the delivery type. |
+| `primaryMarketingMessage` / `secondaryMarketingMessage` / `decals` | Marketing messages and badges. |
+
+The response holds a few more of Smyths' own fields than the sample shows.
+
+## Details
+
+```
+POST /marketplace/smyths-inventory
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | yes | `details`. Set by `smythsDetails`. |
+| `code` | yes | Product code (`225095`), or a product or bundle page link. |
+| `bundle` | no | As for stock and price. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/smyths-inventory?mode=details&code=225095" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.smyths_details("225095")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.smythsDetails("225095");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->smythsDetails('225095');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.smyths_details("225095")
+```
+</CodeGroup>
+
+One product's details are billed as one request.
+
+### Response
+
+Trimmed; the page JSON has many more of Smyths' own fields.
+
+```json
+{
+  "code": "225095",
+  "name": "858 Drift Board",
+  "brand": "Skateboards & Accessories",
+  "ean": "0840148210097",
+  "description": "<p>Dare to be different with 858 Drift Board. These boards are designed for ...",
+  "webFeatures": [
+    "Easy pull hand brake",
+    "Super soft knee pads",
+    "360° rear caster wheels",
+    "Durable plastic deck",
+    "No assembly",
+    "Maximum User Weight: 50kgs",
+    "Helmet and safety gear not included",
+    "Contents: 1x 858 Drift board",
+    "Dimensions: 46L x 9W x 71.50H cm"
+  ],
+  "safetyText": null,
+  "urgentSafetyTextHeading": null,
+  "urgentSafetyTextDescription": null,
+  "prices": {
+    "price": "£39.99",
+    "thenPrice": null,
+    "wasPrice": null,
+    "rrpPrice": null,
+    "value": "39.99",
+    "sspPrice": null,
+    "discountedPercentage": null
+  },
+  "averageRating": 4.4,
+  "numberOfReviews": 12,
+  "productImages": [
+    {
+      "key": "thumbnail",
+      "value": {
+        "imageType": "GALLERY",
+        "format": "thumbnail",
+        "url": "https://image.smythstoys.com/thumbnail/desktop/225095",
+        "altText": "858 Drift Board",
+        "galleryIndex": 1,
+        "mime": "image",
+        "youtubeUrl": null,
+        "shortUrl": null
+      }
+    },
+    {
+      "key": "original",
+      "value": {
+        "imageType": "GALLERY",
+        "format": "original",
+        "url": "https://image.smythstoys.com/original/800/desktop/225095",
+        "altText": "858 Drift Board",
+        "galleryIndex": 1,
+        "mime": "image",
+        "youtubeUrl": null,
+        "shortUrl": null
+      }
+    }
+  ],
+  "breadcrumb": [
+    { "url": "/outdoor/c/SM0603", "name": "Outdoor" },
+    { "url": "/outdoor/skateboards/c/SM060306", "name": "Skateboards" }
+  ],
+  "categoryHierarchy": ["SM060306", "SM0603"],
+  "ageSuitabilities": null,
+  "assemblyRequired": false,
+  "url": "/outdoor/skateboards/858-drift-board/p/225095"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `name` / `brand` / `ean` | Product name, brand and EAN barcode. |
+| `description` | The product description, as HTML. |
+| `webFeatures` | The key features list. |
+| `euWarning` / `safetyText` / `urgentSafetyTextHeading` / `urgentSafetyTextDescription` | The safety warnings Smyths shows, e.g. a small-parts choking warning in `euWarning`. |
+| `productImages` | The gallery: `thumbnail`, `original` and `zoom` images per `galleryIndex`, videos as `youtubeUrl`. |
+| `prices` / `averageRating` / `numberOfReviews` | Price (as in stock and price), rating and review count. |
+| `breadcrumb` / `categoryHierarchy` / `url` | Category path and the product page path. `url` and `breadcrumb` paths are relative to `https://www.smythstoys.com/uk/en-gb`. |
+| `ageSuitabilities` / `assemblyRequired` | Age range and whether assembly is needed. |
+| `subProducts` | For a bundle: the products in it. |
+
+## Search and categories
+
+```
+POST /marketplace/smyths-inventory
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `mode` | - | `search` (the default with `query`, set by `smythsSearch`) or `category` (the default with `category`, set by `smythsCategory`). |
+| `query` | for a search | What to search for, e.g. `lego star wars`. Smyths returns its best 240 matches at most. |
+| `category` | for a category | A category code (`SM060101`) or a category page link. The top categories are Toys `SM0601`, Baby `SM0602`, Outdoor `SM0603` and Gaming & Tech `SM0604`; each listing names its subcategories. |
+| `sort` | no | Search: `relevance` (default), `bestsellers`, `price_asc`, `price_desc`, `rating_desc` or `newest`. Category: `bestsellers` (default), `price_asc`, `price_desc`, `rating_desc` or `newest`. |
+| `page` | no | 1-based listing page to start from (60 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`600`. Default `60`. Each page fetched is billed as one request (`pagesFetched`). |
+
+Search:
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/smyths-inventory?mode=search&query=lego%20star%20wars&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.smyths_search("lego star wars", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.smythsSearch("lego star wars", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->smythsSearch('lego star wars', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.smyths_search("lego star wars", max_results: 3)
+```
+</CodeGroup>
+
+```json
+{
+  "mode": "search",
+  "query": "lego star wars",
+  "category": null,
+  "sort": "relevance",
+  "totalResults": 45,
+  "totalPages": 1,
+  "page": 1,
+  "pageSize": 60,
+  "nextPage": null,
+  "resultsCollected": 3,
+  "products": [
+    {
+      "code": "259087",
+      "name": "LEGO Star Wars 75455 Boba Fett Set for Adults",
+      "url": "https://www.smythstoys.com/uk/en-gb/toys/lego-and-bricks/lego-star-wars/lego-star-wars-75455-boba-fett-set-for-adults/p/259087",
+      "prices": {
+        "wasPrice": null,
+        "price": "£116.99",
+        "discountedPercentage": null,
+        "rrpPrice": "£149.99",
+        "thenPrice": null,
+        "sspPrice": null,
+        "value": "116.99"
+      },
+      "currency": "GBP",
+      "image": "https://image.smythstoys.com/picture/desktop/259087",
+      "averageRating": 5,
+      "productType": "REGULAR",
+      "decals": []
+    },
+    {
+      "code": "259099",
+      "name": "LEGO Star Wars 75456 Advent Calendar 2026 Set",
+      "url": "https://www.smythstoys.com/uk/en-gb/toys/lego-and-bricks/lego-star-wars/lego-star-wars-75456-advent-calendar-2026-set/p/259099",
+      "prices": {
+        "wasPrice": null,
+        "price": "£22.99",
+        "discountedPercentage": null,
+        "rrpPrice": "£29.99",
+        "thenPrice": null,
+        "sspPrice": null,
+        "value": "22.99"
+      },
+      "currency": "GBP",
+      "image": "https://image.smythstoys.com/picture/desktop/259099",
+      "averageRating": 4,
+      "productType": "REGULAR",
+      "decals": []
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+Category:
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/smyths-inventory?mode=category&category=SM060101&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.smyths_category("SM060101", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.smythsCategory("SM060101", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->smythsCategory('SM060101', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.smyths_category("SM060101", max_results: 3)
+```
+</CodeGroup>
+
+```json
+{
+  "mode": "category",
+  "query": null,
+  "sort": "bestsellers",
+  "totalResults": 1391,
+  "totalPages": 24,
+  "page": 1,
+  "pageSize": 60,
+  "nextPage": 2,
+  "resultsCollected": 3,
+  "category": {
+    "code": "SM060101",
+    "title": "Action Figures & Playsets",
+    "url": "https://www.smythstoys.com/uk/en-gb/toys/action-figures-and-playsets/c/SM060101",
+    "breadcrumbs": [
+      { "name": "Toys", "code": "SM0601", "url": "https://www.smythstoys.com/uk/en-gb/toys/c/SM0601" },
+      {
+        "name": "Action Figures & Playsets",
+        "code": "SM060101",
+        "url": "https://www.smythstoys.com/uk/en-gb/toys/action-figures-and-playsets/c/SM060101"
+      }
+    ],
+    "subcategories": [
+      {
+        "name": "Adopt Me",
+        "code": "SM06010137",
+        "url": "https://www.smythstoys.com/uk/en-gb/toys/action-figures-and-playsets/adopt-me/c/SM06010137",
+        "count": 2
+      },
+      {
+        "name": "Amazing Digital Circus",
+        "code": "SM06010113",
+        "url": "https://www.smythstoys.com/uk/en-gb/toys/action-figures-and-playsets/amazing-digital-circus/c/SM06010113",
+        "count": 2
+      }
+    ]
+  },
+  "products": [
+    {
+      "code": "256135",
+      "name": "Marvel Spidey and His Amazing Friends Web-Spinners Web-Quarters Playset",
+      "url": "https://www.smythstoys.com/uk/en-gb/toys/action-figures-and-playsets/spidey-and-his-amazing-friends/marvel-spidey-and-his-amazing-friends-web-spinners-web-quarters-playset/p/256135",
+      "prices": {
+        "wasPrice": "£79.99",
+        "price": "£39.99",
+        "discountedPercentage": "50",
+        "rrpPrice": null,
+        "thenPrice": null,
+        "sspPrice": null,
+        "value": "39.99"
+      },
+      "currency": "GBP",
+      "image": "https://image.smythstoys.com/picture/desktop/256135",
+      "averageRating": 3,
+      "productType": "REGULAR",
+      "decals": ["-50%"]
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `products[].code` / `name` / `url` | Product code (pass it to stock and price or details), name and page link. |
+| `products[].prices` / `currency` | Price fields as in stock and price, in `GBP`. |
+| `products[].image` / `averageRating` | Image and rating. |
+| `products[].productType` | `REGULAR`, or `BUNDLE` for a bundle (pass `bundle=true` for its stock). |
+| `products[].decals` | Badges such as `-20%`. |
+| `totalResults` / `totalPages` / `nextPage` | Smyths' product count and page count; pass `nextPage` as `page` to continue. |
+| `category` | Category listings only: `code`, `title`, `url`, `breadcrumbs` and `subcategories` (`name`, `code`, `url` and product `count`). |
+
+A search with no matches is a `200` with an empty `products` list.
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, or none of `code`, `query` and `category`. |
+| `404` | Smyths has no product with that code, or no such category. |
+| `502` | Smyths refused every attempt or did not answer in time; retry. With `X-Origin-Status`, the body is Smyths' own JSON error, which Smyths also returns for some codes it does not know. That answer is not billed. |
+
+## What you can build
+
+- **Stock alerts** - watch home delivery and click & collect stock for sought-after toys and pre-orders.
+- **Price tracking** - follow price, was-price and RRP across a category.
+- **Catalogue sync** - pull descriptions, features, safety warnings and images for products you sell.
+- **Range analysis** - list a whole category with its subcategories and product counts.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Check a Smyths product's stock and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

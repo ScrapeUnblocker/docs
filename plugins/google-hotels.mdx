@@ -1,0 +1,495 @@
+---
+title: "Google Hotels plugin"
+description: "Google Hotels as clean JSON - properties for a place and dates with the price for the stay, rating breakdown, class, amenities and location, plus every booking site's offer and room rates for one property."
+sidebarTitle: "Google Hotels"
+---
+
+The **Google Hotels** plugin turns Google Hotels into structured JSON. It is two endpoints:
+
+- **`/travel/google-hotels`** - the properties Google lists for a place, an area, a landmark or a hotel name: name, type (hotel or vacation rental), class and stars, the price for your stay per night and in total with and without taxes, Google's deal badge, the rating with its 1-5 star breakdown and review topics, amenities, a short description, the website, coordinates, nearby places with travel times, images and a Google Maps link, plus the sponsored listings on the page.
+- **`/travel/google-hotels-property`** - one property, by the `propertyToken` of a search result: the offer of every booking site Google lists for the stay (the hotel's own site marked `official`), room-level rates with free-cancellation deadlines where Google shows them, and the address, phone, description and Google place id.
+
+Set the stay with `check_in` / `check_out`, the party with `adults` and `children`, and pick the `currency`, the language (`hl`) and the market (`gl`). Google serves about 20 properties per page; one call collects up to 100. No Google account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /travel/google-hotels
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | yes | What to search, as on Google Hotels: a place (`hotels in Paris`, `Lisbon`), an area or landmark, or a hotel name. A query naming one hotel returns just that hotel (`matchedProperty: true`). |
+| `check_in` / `check_out` | no | Stay dates, `YYYY-MM-DD`, for stays of up to 30 nights. Leave both empty for Google's default stay. |
+| `adults` | no | Number of adults, `1`-`10`. Default `2`. |
+| `children` | no | Ages of the children, comma-separated, e.g. `7,10` (up to 6 children). |
+| `currency` | no | Price currency, ISO 4217 (`USD`, `EUR`, `GBP`, ...). Default `USD`. |
+| `hl` | no | Language of names, amenities and price formats, e.g. `en`, `de`, `fr`. Default `en`. |
+| `gl` | no | Market, a 2-letter country code. Google localizes the booking sites to it. Default `us`. |
+| `max_results` | no | Properties to collect across pages, `1`-`100`. Default `20`. |
+| `page_token` | no | The `nextPageToken` of a previous response, to continue where it stopped. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/travel/google-hotels?q=hotels%20in%20Lisbon&check_in=2026-11-20&check_out=2026-11-22&currency=EUR&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_hotels(
+    "hotels in Lisbon",
+    check_in="2026-11-20",
+    check_out="2026-11-22",
+    currency="EUR",
+    max_results=3,
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleHotels("hotels in Lisbon", {
+  checkIn: "2026-11-20",
+  checkOut: "2026-11-22",
+  currency: "EUR",
+  maxResults: 3,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleHotels('hotels in Lisbon', [
+    'check_in' => '2026-11-20',
+    'check_out' => '2026-11-22',
+    'currency' => 'EUR',
+    'max_results' => 3,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_hotels(
+  "hotels in Lisbon",
+  check_in: "2026-11-20",
+  check_out: "2026-11-22",
+  currency: "EUR",
+  max_results: 3
+)
+```
+</CodeGroup>
+
+<Note>
+Each Google results page fetched is billed as one request. Google serves about 20 properties per page, so `max_results=60` usually takes three pages and counts as 3 requests; `pagesFetched` in the response is the exact number. A property call is one request.
+</Note>
+
+Name the city or area in `q`: a query Google cannot place returns hotels around the request's exit instead, and `warnings` says so.
+
+### Response
+
+```json
+{
+  "searchParameters": {
+    "q": "hotels in Lisbon",
+    "checkIn": "2026-11-20",
+    "checkOut": "2026-11-22",
+    "adults": 2,
+    "children": [],
+    "currency": "EUR",
+    "hl": "en",
+    "gl": "us",
+    "pageToken": null,
+    "maxResults": 3
+  },
+  "applied": {
+    "currency": "EUR",
+    "checkIn": "2026-11-20",
+    "checkOut": "2026-11-22",
+    "nights": 2,
+    "adults": 2,
+    "children": [],
+    "place": "Lisbon"
+  },
+  "matchedProperty": false,
+  "properties": [
+    {
+      "name": "Brown's | Avenue Hotel",
+      "propertyToken": "ChkIhLCQwvjO2IYWGg0vZy8xMXE0bTZieDkyEAE",
+      "type": "hotel",
+      "hotelClass": "5-star hotel",
+      "stars": 5,
+      "description": "Polished adults-only hotel offering a lounge & a restaurant, plus a rooftop pool with city views.",
+      "website": "https://www.brownshotelgroup.com/browns-avenue/",
+      "latitude": 38.7220236,
+      "longitude": -9.1456424,
+      "country": "PT",
+      "rating": 4.6,
+      "reviews": 283,
+      "ratingsBreakdown": [
+        { "stars": 5, "percent": 82, "count": 224 },
+        { "stars": 4, "percent": 10, "count": 30 },
+        { "stars": 3, "percent": 4, "count": 14 },
+        { "stars": 2, "percent": 2, "count": 7 },
+        { "stars": 1, "percent": 2, "count": 8 }
+      ],
+      "reviewTopics": [
+        { "name": "Service", "fullName": "Service", "mentions": 70, "positive": 57, "negative": 10, "sentiment": 0.427 },
+        { "name": "Fitness", "fullName": "Fitness", "mentions": 17, "positive": 10, "negative": 5, "sentiment": 0.0 }
+      ],
+      "nearbyPlaces": [
+        {
+          "name": "Carmo Archaeological Museum",
+          "kind": "attraction",
+          "travel": [{ "mode": "public_transport", "duration": "10 min" }]
+        },
+        { "name": "Avenida", "kind": "transit", "travel": [{ "mode": "walking", "duration": "5 min" }] }
+      ],
+      "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdYEQhj7Ia_y...",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLdYEQhj7Ia_y...",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfSX0lMQhJDc..."
+      ],
+      "mapsCid": "1589034509058447364",
+      "mapsUrl": "https://maps.google.com/?cid=1589034509058447364",
+      "hotelId": "4896003618326261334",
+      "price": {
+        "display": "€150",
+        "displayIncludesTaxes": false,
+        "perNight": 149.71,
+        "perNightWithTaxes": 166.7,
+        "total": 299.42,
+        "totalWithTaxes": 333.39,
+        "taxes": 33.97,
+        "perNightWithTaxesDisplay": "€167",
+        "totalWithTaxesDisplay": "€333"
+      },
+      "deal": null,
+      "amenities": [
+        "Breakfast",
+        "Free Wi-Fi",
+        "Parking ($)",
+        "Outdoor pool",
+        "Air conditioning",
+        "Restaurant",
+        "Airport shuttle",
+        "Full-service laundry"
+      ],
+      "amenityCodes": [54, 29, 17, 22, 2, 23, 1, 31],
+      "position": 2
+    }
+  ],
+  "ads": [
+    {
+      "name": "Hotel AS Lisboa",
+      "provider": "Booking.com",
+      "propertyToken": "CgoI9Me05ZL7l-dKEAE",
+      "price": {
+        "perNight": 140.16,
+        "perNightDisplay": "€140",
+        "perNightWithTaxesDisplay": "€157",
+        "totalWithTaxesDisplay": "€313"
+      },
+      "rating": 4.1,
+      "reviews": 1957,
+      "stars": 3,
+      "latitude": 38.737671,
+      "longitude": -9.1336,
+      "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmYn-p..."
+    }
+  ],
+  "resultsCollected": 3,
+  "totalResults": 15000,
+  "pagesFetched": 1,
+  "droppedFromLastPage": 17,
+  "hasMore": true,
+  "nextPageToken": "CBI=",
+  "googleUrl": "https://www.google.com/travel/search?q=hotels%20in%20Lisbon&hl=en&gl=us&ts=CAEaIAoCGgASGhIUCgcI6g8QCxgUEgcI6g8QCxgWGAIyAggBKgkKBToDRVVSGgA",
+  "exitCountry": "US",
+  "warnings": []
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `applied` | What Google actually used: `checkIn`, `checkOut`, `nights`, `adults`, `children`, `currency` and the `place` it searched. |
+| `matchedProperty` | `true` when `q` named one hotel and Google answered with just that hotel. |
+| `properties[].name` / `type` | Property name; `type` is `hotel` or `vacation_rental`. |
+| `properties[].propertyToken` | Pass it to [Property](#property) for every booking site's offer. |
+| `properties[].price` | The price for the stay in `currency`: `perNight`, `perNightWithTaxes`, `total`, `totalWithTaxes` and `taxes` as numbers, Google's own `display` string (`displayIncludesTaxes` says whether it includes taxes), and the formatted `perNightWithTaxesDisplay` / `totalWithTaxesDisplay`. |
+| `properties[].deal` | Google's deal badge, e.g. `{ "type": "deal", "description": "18% less than usual" }`, or `null`. |
+| `properties[].hotelClass` / `stars` | Google's class label (`5-star hotel`) and the star count; `null` for most vacation rentals. |
+| `properties[].rating` / `reviews` / `ratingsBreakdown` | Average rating out of 5, the review count, and the share and count of reviews per star. |
+| `properties[].reviewTopics` | What reviews mention: `name`, `fullName`, `mentions`, `positive`, `negative` and a `sentiment` score. |
+| `properties[].amenities` / `amenityCodes` | Amenities as Google lists them, and Google's numeric amenity codes. |
+| `properties[].description` / `website` | Google's one-line description and the property's own website. |
+| `properties[].latitude` / `longitude` / `country` | Location. |
+| `properties[].nearbyPlaces` | Nearby attractions, transit stops and airports, with the travel time per mode (`walking`, `public_transport`, `taxi`). |
+| `properties[].thumbnail` / `images` | Image URLs. |
+| `properties[].mapsUrl` / `mapsCid` / `hotelId` | The Google Maps link and Google's ids, when Google has them. |
+| `ads` | The sponsored listings on the page: `name`, the advertiser as `provider` (e.g. `Booking.com`), `propertyToken`, `price`, `rating`, `reviews`, `stars`, coordinates and `thumbnail`. |
+| `totalResults` | Google's count of matching properties. |
+| `pagesFetched` / `droppedFromLastPage` | Pages fetched (the billed number), and how many properties of the last page were left out because `max_results` was reached. |
+| `hasMore` / `nextPageToken` | Whether Google has more, and the token to pass as `page_token` to continue. |
+| `googleUrl` / `exitCountry` | The same search on google.com/travel, and the country of the exit that fetched it. |
+| `warnings` | Notes about the answer: Google priced in another currency or used other dates than you asked for, Google searched a place `q` does not seem to name, or a later page could not be fetched. Empty when there is nothing to note. |
+
+## Property
+
+```
+POST /travel/google-hotels-property
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `property_token` | yes | The `propertyToken` of a [search](#search) result. |
+| `check_in` / `check_out` | no | Stay dates, `YYYY-MM-DD` (up to 30 nights). Leave both empty for Google's default stay. |
+| `adults` | no | Number of adults, `1`-`10`. Default `2`. |
+| `children` | no | Ages of the children, comma-separated, e.g. `7,10` (up to 6 children). |
+| `currency` | no | Price currency, ISO 4217. Default `USD`. |
+| `hl` | no | Language, e.g. `en`, `de`, `fr`. Default `en`. |
+| `gl` | no | Market, a 2-letter country code. Google localizes the booking sites to it. Default `us`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/travel/google-hotels-property?property_token=ChkIhLCQwvjO2IYWGg0vZy8xMXE0bTZieDkyEAE&check_in=2026-11-20&check_out=2026-11-22&currency=EUR" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_hotels_property(
+    "ChkIhLCQwvjO2IYWGg0vZy8xMXE0bTZieDkyEAE",
+    check_in="2026-11-20",
+    check_out="2026-11-22",
+    currency="EUR",
+)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleHotelsProperty("ChkIhLCQwvjO2IYWGg0vZy8xMXE0bTZieDkyEAE", {
+  checkIn: "2026-11-20",
+  checkOut: "2026-11-22",
+  currency: "EUR",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleHotelsProperty('ChkIhLCQwvjO2IYWGg0vZy8xMXE0bTZieDkyEAE', [
+    'check_in' => '2026-11-20',
+    'check_out' => '2026-11-22',
+    'currency' => 'EUR',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_hotels_property(
+  "ChkIhLCQwvjO2IYWGg0vZy8xMXE0bTZieDkyEAE",
+  check_in: "2026-11-20",
+  check_out: "2026-11-22",
+  currency: "EUR"
+)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "searchParameters": {
+    "propertyToken": "ChkIhLCQwvjO2IYWGg0vZy8xMXE0bTZieDkyEAE",
+    "checkIn": "2026-11-20",
+    "checkOut": "2026-11-22",
+    "adults": 2,
+    "children": [],
+    "currency": "EUR",
+    "hl": "en",
+    "gl": "us"
+  },
+  "applied": {
+    "currency": "EUR",
+    "checkIn": "2026-11-20",
+    "checkOut": "2026-11-22",
+    "nights": 2,
+    "adults": null,
+    "children": [],
+    "place": null
+  },
+  "property": {
+    "name": "Brown's | Avenue Hotel",
+    "propertyToken": "ChkIhLCQwvjO2IYWGg0vZy8xMXE0bTZieDkyEAE",
+    "type": "hotel",
+    "hotelClass": "5-star hotel",
+    "stars": 5,
+    "description": "Polished adults-only hotel offering a lounge & a restaurant, plus a rooftop pool with city views.",
+    "website": "https://www.brownshotelgroup.com/browns-avenue/",
+    "latitude": 38.7220236,
+    "longitude": -9.1456424,
+    "country": "PT",
+    "rating": 4.6,
+    "reviews": 283,
+    "ratingsBreakdown": [{ "stars": 5, "percent": 82, "count": 224 }, { "stars": 4, "percent": 10, "count": 30 }],
+    "reviewTopics": [
+      { "name": "Service", "fullName": "Service", "mentions": 70, "positive": 57, "negative": 10, "sentiment": 0.427 }
+    ],
+    "nearbyPlaces": [
+      {
+        "name": "Castelo de São Jorge",
+        "kind": "attraction",
+        "travel": [{ "mode": "public_transport", "duration": "17 min" }, { "mode": "taxi", "duration": "18 min" }]
+      }
+    ],
+    "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLe-IH6jWUniQ...",
+    "images": ["https://lh3.googleusercontent.com/grass-cs/AABkmLe-IH6jWUniQ..."],
+    "mapsCid": "1589034509058447364",
+    "mapsUrl": "https://maps.google.com/?cid=1589034509058447364",
+    "hotelId": "4896003618326261334",
+    "address": "R. Rodrigues Sampaio 48, 1150-281 Lisboa, Portugal",
+    "phone": "+351 21 098 8970",
+    "about": [
+      "Set on a side street, this upscale adults-only hotel is 5 minutes on foot from Avenida metro station, 3 km ..."
+    ],
+    "neighborhood": null,
+    "placeId": "ChIJc5J8_TkzGQ0RBBhEiHdiDRY",
+    "amenityCodes": [28, 23, 54, 33, 31, 22, 15, 1, 163, 19, 2],
+    "price": {
+      "display": "€150",
+      "displayIncludesTaxes": false,
+      "perNight": 149.71,
+      "perNightWithTaxes": 166.7,
+      "total": 299.42,
+      "totalWithTaxes": 333.39,
+      "taxes": 33.97,
+      "perNightWithTaxesDisplay": "€167",
+      "totalWithTaxesDisplay": "€333"
+    },
+    "deal": null,
+    "offers": [
+      {
+        "provider": "Brown's Avenue",
+        "providerId": 101190818,
+        "official": true,
+        "link": "https://www.google.com/travel/lodging/clk?pc=AA8...",
+        "partnerUrl": "https://reservation.mirai.com/Forwarder/googleFr...",
+        "logo": "https://www.gstatic.com/travel-hotels/branding/1...",
+        "perNight": 149.71,
+        "perNightWithTaxes": 166.7,
+        "total": 299.42,
+        "totalWithTaxes": 333.39,
+        "perNightDisplay": "€150",
+        "perNightWithTaxesDisplay": "€167",
+        "totalDisplay": "€299",
+        "totalWithTaxesDisplay": "€333"
+      },
+      {
+        "provider": "Booking.com",
+        "providerId": 184,
+        "official": false,
+        "link": "https://www.google.com/travel/lodging/clk?pc=AA8...",
+        "partnerUrl": "https://www.booking.com/searchresults.en.html?de...",
+        "logo": "https://www.gstatic.com/travel-hotels/branding/i...",
+        "perNight": 184.83,
+        "perNightWithTaxes": 203.92,
+        "total": 369.66,
+        "totalWithTaxes": 407.84,
+        "perNightDisplay": "€185",
+        "perNightWithTaxesDisplay": "€204",
+        "totalDisplay": "€370",
+        "totalWithTaxesDisplay": "€408"
+      }
+    ],
+    "rooms": [
+      {
+        "name": "Contemporary Standard Small Room",
+        "images": ["https://lh3.googleusercontent.com/hrppk/ANjXD_wCj-b-pO2CwIKk..."],
+        "rates": [
+          {
+            "provider": "Expedia.com",
+            "perNight": 186.32,
+            "perNightWithTaxes": 205.5,
+            "total": 372.63,
+            "totalWithTaxes": 411.01,
+            "perNightDisplay": "€186",
+            "perNightWithTaxesDisplay": "€206",
+            "totalDisplay": "€373",
+            "totalWithTaxesDisplay": "€411",
+            "freeCancellation": true,
+            "freeCancellationUntil": "Nov 18 3:00 PM"
+          }
+        ]
+      }
+    ]
+  },
+  "offersCollected": 22,
+  "googleUrl": "https://www.google.com/travel/hotels/entity/ChkIhLCQwvjO2IYWGg0vZy8xMXE0bTZieDkyEAE?hl=en&gl=us&ts=CAEaIAoCGgASGhIUCgcI6g8QCxgUEgcI6g8QCxgWGAIyAggBKgkKBToDRVVSGgA",
+  "exitCountry": "US",
+  "warnings": []
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `offers` | One entry per booking site Google lists for the stay: `provider`, `providerId`, `official` (`true` for the hotel's own site), `perNight`, `perNightWithTaxes`, `total` and `totalWithTaxes` with their display strings, the provider's `logo`, Google's booking `link` and the booking site's own `partnerUrl`. A price Google does not show for a site is `null`. |
+| `rooms` | Room types with `name`, `images` and `rates`: the `provider`, the same prices, `freeCancellation` and `freeCancellationUntil` (as Google prints it), where Google shows room-level rates. |
+| `price` / `deal` | The lowest price for the stay, in the same shape as in search, and Google's deal badge. |
+| `address` / `phone` / `website` | The property's contact details. |
+| `description` / `about` | Google's one-line description and its longer paragraphs about the property. |
+| `placeId` / `mapsCid` / `mapsUrl` / `neighborhood` | The Google place id, Maps id and link, and the neighborhood when Google names one. |
+| `offersCollected` | Number of offers returned. |
+
+The other property fields (`rating`, `ratingsBreakdown`, `reviewTopics`, `hotelClass`, `nearbyPlaces`, `images`, ...) are the same as in search.
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `q`, a `check_in` in the past or a `check_out` before `check_in`. The message says what to fix. |
+| `404` | Google Hotels returned no properties for the search, or has no property for the `property_token`. |
+| `502` | Google blocked every attempt, no page came back, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Rate comparison** - compare what every booking site charges for the same stay, including the hotel's own site.
+- **Price monitoring** - track a destination's hotel prices for set dates, per night and in total with taxes.
+- **Market research** - map a destination's supply by class, rating, amenities and location.
+- **Travel products** - show hotels with real prices, ratings, review topics and photos.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Search Google Hotels and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

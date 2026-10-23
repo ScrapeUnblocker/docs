@@ -1,0 +1,317 @@
+---
+title: "Wish plugin"
+description: "Wish (wish.com) products as clean JSON - search results with price, USD price, shipping, rating, units bought, stock and merchant, plus one product with every variant, delivery estimate and top reviews."
+sidebarTitle: "Wish"
+---
+
+The **Wish** plugin returns products from Wish (wish.com) as structured JSON. It is two endpoints:
+
+- **`/marketplace/wish-search`** - the products for a keyword, in Wish's own order: id, name, link and image, the price with its currency and any crossed-out price, the same price in USD, shipping cost, rating and rating count, units bought, stock, the number of colors and sizes, the merchant with its rating and feedback share, and where the product comes from. Wish shows up to 30 products per page; one call collects up to 300.
+- **`/marketplace/wish-product`** - one product: description, attributes, badges, images, every variant (color, size, price, shipping, stock), the merchant's rating and tier, where it ships from and to, the delivery estimate, the return policy and the top reviews (rating, comment, date, variant, upvotes and country, without reviewer names).
+
+Wish prices its store for the visitor's country. The default is the US store in USD; `proxy_country` reads another country's store (`GB`, `DE`, ...) with its catalogue, prices and currency, and `priceUsd` keeps prices comparable across stores. No Wish account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/wish-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `yoga mat` or `phone case`, or a `wish.com/search/...` link. |
+| `page` | no | 1-based results page to start from, `1`-`300`. Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`300`. Default `30`. Each page fetched is billed as one request (`pagesFetched`). |
+| `proxy_country` | no | Country of the Wish store to read (ISO-2, e.g. `US`, `GB`, `DE`): its catalogue, prices and currency. Default `US` (prices in USD). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/wish-search?query=yoga%20mat&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wish_search("yoga mat", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.wishSearch("yoga mat", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->wishSearch('yoga mat', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wish_search("yoga mat", max_results: 3)
+```
+</CodeGroup>
+
+A search with no matches is a `200` with an empty `products` list.
+
+### Response
+
+```json
+{
+  "query": "yoga mat",
+  "country": "US",
+  "currency": "USD",
+  "totalResults": 1399,
+  "totalPages": 47,
+  "page": 1,
+  "pageSize": 30,
+  "nextPage": 2,
+  "resultsCollected": 3,
+  "products": [
+    {
+      "id": "605dd279bf31d4bfbe3b65f6",
+      "name": "RDX Yoga Mat PVC Single Color Exercise Fitness Home Gym Exercise Mat",
+      "url": "https://www.wish.com/product/rdx-yoga-mat-pvc-single-color-exercise-fitness-home-gym-exercise-mat--605dd279bf31d4bfbe3b65f6",
+      "price": 21.42,
+      "originalPrice": null,
+      "currency": "USD",
+      "priceText": "$21.42",
+      "priceUsd": 21.42,
+      "shipping": 11.57,
+      "rating": null,
+      "ratingCount": 0,
+      "numBought": 0,
+      "inventory": 20,
+      "colors": 1,
+      "sizes": null,
+      "merchant": {
+        "id": "5a0ef362ddda8c16db2693c4",
+        "name": "B2Fitness",
+        "rating": 4.61,
+        "ratingCount": 14296,
+        "feedback": "96% Positive Feedback (14,296 ratings)",
+        "country": "US"
+      },
+      "originCountry": "GB",
+      "shipsFrom": null,
+      "tileText": null,
+      "isWishPick": false,
+      "image": "https://canary.contestimg.wish.com/api/webimage/605dd279bf31d4bfbe3b65...",
+      "thumbnail": "https://canary.contestimg.wish.com/api/webimage/605dd279bf31d4bfbe3b65...",
+      "position": 4
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `url` | Wish product id and link. Pass either to [Product](#product). |
+| `name` / `image` / `thumbnail` | Name and images. |
+| `price` / `currency` / `priceText` | The price shoppers see in this store, its currency and the price as Wish prints it. |
+| `originalPrice` | The crossed-out price, when the product is discounted. |
+| `priceUsd` | Wish's USD value of the price, comparable across stores. |
+| `shipping` | Shipping cost, in the same currency. |
+| `rating` / `ratingCount` | Product rating and how many ratings it has (`null` and `0` for an unrated product). |
+| `numBought` / `inventory` | Units bought and stock, as Wish reports them. |
+| `colors` / `sizes` | Number of color and size options. |
+| `merchant` | `id`, `name`, `rating`, `ratingCount`, the `feedback` text and the merchant's `country`. |
+| `originCountry` / `shipsFrom` | Where the product comes from and ships from, when Wish says. |
+| `tileText` / `isWishPick` | Wish's label on the product tile, and the Wish Pick flag. |
+| `position` | Rank in Wish's results. |
+| `totalResults` / `totalPages` / `nextPage` | Wish's result count and page count; pass `nextPage` as `page` to continue. |
+
+## Product
+
+```
+POST /marketplace/wish-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product` | yes | A Wish product id (`5f96ad46b3f6480c7b9d7b52`) or a product link (`https://www.wish.com/product/...` or `/c/...`). |
+| `proxy_country` | no | Country of the Wish store to read, as in search. Default `US`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/wish-product?product=66d57c5e2bc736b0f04daa8b" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wish_product("66d57c5e2bc736b0f04daa8b")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.wishProduct("66d57c5e2bc736b0f04daa8b");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->wishProduct('66d57c5e2bc736b0f04daa8b');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.wish_product("66d57c5e2bc736b0f04daa8b")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "id": "66d57c5e2bc736b0f04daa8b",
+    "name": "PlusAcc Waterproof Case for iPhone 17 Air 16 15 14 13 12 11 Pro Max ...",
+    "url": "https://www.wish.com/product/66d57c5e2bc736b0f04daa8b",
+    "price": 18.39,
+    "originalPrice": null,
+    "currency": "USD",
+    "priceUsd": 18.39,
+    "priceRange": { "min": 18.39, "max": 20.19 },
+    "shipping": 2.99,
+    "inStock": true,
+    "rating": 4.0,
+    "ratingCount": 5,
+    "description": "【Perfect Fit】This waterproof phone case is compatible with iPhone 16, 15, 14, 13, 12, 11 ...",
+    "attributes": {
+      "Primary Color": "Blue",
+      "Materials": "Acrylonitrile Butadiene Styrene (ABS)",
+      "Alpha Size": "Not Applicable"
+    },
+    "badges": ["Flat rate eligible"],
+    "images": [
+      "https://canary.contestimg.wish.com/api/webimage/66d57c5e2bc736b0f04daa...",
+      "https://canary.contestimg.wish.com/api/webimage/66d57c5e2bc736b0f04daa..."
+    ],
+    "merchant": {
+      "id": "631197b8ccdc7ca831b54df8",
+      "name": "PlusAcc Official Store",
+      "handle": "plusaccofficialstore",
+      "rating": 4.46,
+      "ratingCount": 299,
+      "tier": "Premier Merchant"
+    },
+    "shipsFrom": "Overseas",
+    "shipsTo": "Ships to United States and 41 other countries",
+    "returnPolicy": "You can initiate a return or refund on items within 30 days of delivery",
+    "variants": [
+      {
+        "id": "66d57c5e2bc736b0f04daa68",
+        "color": "Blue",
+        "size": "for iPhone 12 Pro Max",
+        "price": 18.83,
+        "originalPrice": null,
+        "currency": "USD",
+        "priceUsd": 18.83,
+        "shipping": 2.99,
+        "inventory": 995,
+        "available": true
+      },
+      {
+        "id": "66d57c5e2bc736b0f04daa69",
+        "color": "Blue",
+        "size": "for iPhone 11",
+        "price": 18.83,
+        "originalPrice": null,
+        "currency": "USD",
+        "priceUsd": 18.83,
+        "shipping": 2.99,
+        "inventory": 990,
+        "available": true
+      }
+    ],
+    "topReviews": [
+      {
+        "rating": 5,
+        "comment": "It is perfect for my iPjone 16  and the screen doesn't smudge",
+        "date": "2025-07-16T11:48:01+00:00",
+        "variant": "Size: for iPhone 16 | Color: black",
+        "upvotes": 2,
+        "country": "US",
+        "images": 0
+      },
+      {
+        "rating": 5,
+        "comment": "Amazing",
+        "date": "2025-06-06T17:04:16+00:00",
+        "variant": "Size: for iPhone 16 Plus | Color: black",
+        "upvotes": 0,
+        "country": "US",
+        "images": 0
+      }
+    ]
+  },
+  "country": "US",
+  "query": { "product": "66d57c5e2bc736b0f04daa8b" }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `price` / `priceRange` | The price of the cheapest available variant, and the `min` and `max` across variants. |
+| `inStock` | `true` when the product is not sold out and at least one variant is available. |
+| `description` / `attributes` / `badges` / `images` | The listing text, Wish's attributes, badges and the image gallery. |
+| `merchant` | `id`, `name`, `handle`, `rating`, `ratingCount` and `tier` (e.g. `Premier Merchant`). |
+| `shipsFrom` / `shipsTo` / `deliveryEstimate` / `returnPolicy` | Where it ships from and to, Wish's delivery estimate (a date range, as text) and the return policy. |
+| `variants` | Every variant: `id`, `color`, `size`, `price`, `originalPrice`, `currency`, `priceUsd`, `shipping`, `inventory` and `available`. |
+| `topReviews` | The top reviews Wish shows: `rating`, `comment`, `date`, `variant`, `upvotes`, `country` and the number of review `images`. No reviewer names. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query` or a `page` above `300`. |
+| `404` | Wish has no such product. |
+| `502` | Wish blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Price and shipping comparison** - compare Wish prices, shipping costs and delivery estimates with other marketplaces.
+- **Cross-country pricing** - read the same product in several country stores with `proxy_country` and compare them by `priceUsd`.
+- **Merchant research** - rank merchants by rating, feedback and tier.
+- **Product research** - spot what sells by units bought and reviews.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Wish search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

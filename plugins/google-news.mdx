@@ -1,0 +1,162 @@
+---
+title: "Google News plugin"
+description: "Google News as clean JSON - articles for a search or a section with title, the publisher's own URL, source, publish time, image and authors, for any edition and date range."
+sidebarTitle: "Google News"
+---
+
+The **Google News** plugin returns Google News articles as structured JSON. Search with the operators Google News understands, or list a section such as business or technology, and every article comes with its title, the publisher's own article URL (not a news.google.com redirect), the source name and site, the publish time in UTC, the image with its size, the authors where the publisher lists them, and Google's article id and link.
+
+`hl` and `gl` pick the edition, for example English in the US or German in Germany. Limit a search to a recent period with `when`, or to a date window with `after` / `before`. Google News answers a search with up to about 100 articles and a section with up to about 250, with no further pages; use date windows to reach further back. The plugin returns article metadata, not the article text: fetch an article's `url` with [`/getPageSource`](/guides/page-source) or as [Markdown](/guides/markdown) when you need the text. No Google account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /search/google-news
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | one of `q` / `topic` | Search query, e.g. `tesla` or `"web scraping"`. Google News operators work: quotes, `OR`, `-word`, `site:reuters.com`, `intitle:`. |
+| `topic` | one of `q` / `topic` | A section instead of a search: `world`, `nation`, `business`, `technology`, `entertainment`, `sports`, `science`, `health`, or `top` (the edition's headlines). A Google News topic id (the `CAAq...` part of a `news.google.com/topics/` URL) also works. |
+| `hl` | no | Language of the edition, e.g. `en`, `en-GB`, `de`, `fr`, `pt-BR`. Default `en`. |
+| `gl` | no | Country of the edition (2-letter code), e.g. `us`, `gb`, `de`. Default `us`. |
+| `when` | no | Search only: articles from the last period, `1h` to `720h`, `1d`, `7d`, `2w`, `1m` or `1y`. |
+| `after` / `before` | no | Search only: articles published after / before this date (`YYYY-MM-DD`). |
+| `max_results` | no | Most articles to return, `1`-`250`. Default `100`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/search/google-news?q=electric%20vehicles&when=7d&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_news("electric vehicles", when="7d", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleNews("electric vehicles", { when: "7d", maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleNews('electric vehicles', ['when' => '7d', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_news("electric vehicles", when: "7d", max_results: 3)
+```
+</CodeGroup>
+
+To list a section, leave the query out and pass `topic`, e.g. `su.google_news(topic="technology")` in Python. Each call is billed as one request, however many articles it returns.
+
+## Response
+
+```json
+{
+  "query": "electric vehicles",
+  "searchQuery": "electric vehicles when:7d",
+  "topic": null,
+  "topicId": null,
+  "hl": "en",
+  "gl": "US",
+  "ceid": "US:en",
+  "when": "7d",
+  "after": null,
+  "before": null,
+  "googleNewsLink": "https://news.google.com/search?q=electric%20vehicles%20when%3A7d&hl=en&gl=US&ceid=US%3Aen",
+  "maxResults": 3,
+  "resultsCollected": 3,
+  "rssFallback": false,
+  "urlsResolved": 3,
+  "articles": [
+    {
+      "position": 2,
+      "title": "After Welcoming China’s Electric Vehicles, This Country Is Paying the Price",
+      "url": "https://www.nytimes.com/2026/10/16/business/china-ev-thailand-cars.html",
+      "source": "The New York Times",
+      "sourceUrl": "https://www.nytimes.com",
+      "publishedAt": "2026-10-16T09:24:44Z",
+      "imageUrl": "https://static01.nyt.com/images/2026/10/13/00biz-thailand-ev...",
+      "imageWidth": 452,
+      "imageHeight": 678,
+      "authors": ["Sui-lee Wee"],
+      "googleNewsId": "CBMie0FVX3lxTE5ad3drMEpQTjFSQjNNckptcHdN...",
+      "googleNewsUrl": "https://news.google.com/read/CBMie0FVX3lxTE5ad3drMEpQTjFSQjN..."
+    },
+    {
+      "position": 3,
+      "title": "These Are the 10 Bestselling EVs of 2026",
+      "url": "https://www.caranddriver.com/news/a71029465/bestselling-evs-2026/",
+      "source": "Car and Driver",
+      "sourceUrl": "https://www.caranddriver.com",
+      "publishedAt": "2026-10-20T07:00:00Z",
+      "imageUrl": "https://hips.hearstapps.com/hmg-prod/images/329f4e77-5db6-41...",
+      "imageWidth": 640,
+      "imageHeight": 360,
+      "authors": ["Caleb Miller"],
+      "googleNewsId": "CBMic0FVX3lxTE4wb0E5NTBpS2xnUG5VS09LUjgy...",
+      "googleNewsUrl": "https://news.google.com/read/CBMic0FVX3lxTE4wb0E5NTBpS2xnUG5..."
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `articles[].title` / `url` | Headline and the publisher's own article URL. |
+| `articles[].source` / `sourceUrl` | Publisher name and site. |
+| `articles[].publishedAt` | Publish time, ISO 8601 UTC. |
+| `articles[].imageUrl` / `imageWidth` / `imageHeight` | The article's image and its size, when it has one. |
+| `articles[].authors` | Authors, when the publisher lists them; often empty. |
+| `articles[].googleNewsId` / `googleNewsUrl` | Google's article id and the article's news.google.com link. |
+| `articles[].position` | Rank in Google's list. |
+| `searchQuery` | The query as sent to Google News, with `when`, `after` and `before` added as Google News operators. |
+| `ceid` / `googleNewsLink` | The edition id and the same search on news.google.com. |
+| `topicId` | The topic id of a section listing. |
+| `rssFallback` / `urlsResolved` | `rssFallback` is `true` when the answer came from Google News' RSS feed, which the plugin falls back to when the regular source fails. Only the first articles of such an answer get the publisher `url` (`urlsResolved` says how many); the others come with their `googleNewsUrl` only. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. neither `q` nor `topic`, `when` / `after` / `before` used with `topic`, or `after` later than `before`. The message says what to fix. |
+| `404` | Google News has no articles for the query, or there is no such topic. |
+| `502` | Google News blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Media monitoring** - follow a brand, a competitor or a topic across publishers, with `when` for the latest coverage.
+- **News feeds** - build section or topic feeds for any edition with `topic`, `hl` and `gl`.
+- **Research datasets** - collect who covered a story and when, window by window with `after` and `before`.
+- **Content pipelines** - pass each `url` to [`/getPageSource`](/guides/page-source) to read the full articles.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Search Google News and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

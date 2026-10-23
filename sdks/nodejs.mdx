@@ -186,13 +186,14 @@ const cars = await su.skyscanner.carhire({ pickup: "Madrid", pickup_datetime: "2
 
 ## Every other plugin
 
-The SDK has a method for every plugin (0.10.0 and later) - the plugin's main input goes in as the first argument(s), everything else in one options object (camelCase keys), and options you leave out are not sent, so the API's defaults apply. Each [plugin page](/plugins/overview) shows its method next to cURL.
+The SDK has a method for every plugin (0.10.0 and later) - the plugin's main input goes in as the first argument(s), everything else in one options object (camelCase keys), and options you leave out are not sent, so the API's defaults apply. Each [plugin page](/plugins/overview) shows its method next to cURL. Methods for newer plugins come with newer releases: the Google Hotels, Google News, Google Ads Transparency, Shopee, Taobao, Upwork, Smyths Toys and Wish methods need 0.14.0 or later.
 
 ```ts
 const products = await su.targetSearch("coffee maker", { sort: "price_low", maxResults: 48 });
 const milk = await su.woolworthsProduct("888137");                     // one product, with nutrition
 const trends = await su.googleTrends(["coffee", "tea"], { geo: "US" }); // a list is sent comma-separated
 const reviews = await su.trustpilotReviews("www.nike.com", { stars: [4, 5] });
+const hotels = await su.googleHotels("Lisbon", { checkIn: "2026-11-20", checkOut: "2026-11-22" }); // 0.14.0+
 
 // Any plugin endpoint by path, parameters named as the API names them
 const data = await su.plugin("/marketplace/target-search", { query: "tv", max_results: 24 });
