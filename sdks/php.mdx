@@ -30,6 +30,19 @@ $su = new Client(); // reads SCRAPEUNBLOCKER_KEY, or new Client('YOUR_API_KEY')
 $html = $su->getPageSource('https://example.com');
 ```
 
+## Get Markdown for LLMs
+
+`getMarkdown()` (0.13.0+) returns the page as clean Markdown for LLMs, agents and RAG pipelines: headings, lists, tables, absolute links and images with alt text, without scripts, styles, navigation or footer. By default you get the main content only. It takes the same options as `getPageSource()` except `list_elements`, and is billed the same.
+
+```php
+$md = $su->getMarkdown('https://en.wikipedia.org/wiki/Web_scraping');
+
+// The whole page, not only the main content
+$full = $su->getMarkdown($url, ['main_content_only' => false]);
+```
+
+See [Markdown for LLMs](/guides/markdown) for what is kept and what is dropped.
+
 ## Get parsed JSON instead of HTML
 
 ```php

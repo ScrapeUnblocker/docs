@@ -34,6 +34,19 @@ const html = await su.getPageSource("https://example.com");
 
 CommonJS works too: `const { ScrapeUnblockerClient } = require("scrapeunblocker");`
 
+## Get Markdown for LLMs
+
+`getMarkdown()` (0.13.0+) returns the page as clean Markdown for LLMs, agents and RAG pipelines: headings, lists, tables, absolute links and images with alt text, without scripts, styles, navigation or footer. By default you get the main content only. It takes the same options as `getPageSource()` except `listElements`, and is billed the same.
+
+```javascript
+const md = await su.getMarkdown("https://en.wikipedia.org/wiki/Web_scraping");
+
+// The whole page, not only the main content
+const full = await su.getMarkdown(url, { mainContentOnly: false });
+```
+
+See [Markdown for LLMs](/guides/markdown) for what is kept and what is dropped.
+
 ## Get parsed JSON instead of HTML
 
 `getParsed()` returns structured data extracted using Schema.org, `__NEXT_DATA__`, or AI-generated rules - no per-site parsers to maintain.
