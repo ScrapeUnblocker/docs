@@ -1,6 +1,6 @@
 ---
 title: "Cookies and sessions"
-description: "Capture cookies and the proxy address used to serve a request - for session continuity, debugging, and downstream replay."
+description: "Capture the target site's cookies and the proxy country that served a request - for session continuity, debugging, and downstream replay."
 ---
 
 By default, `/getPageSource` returns HTML and nothing else - cookies set during the navigation are dropped after the response is sent. Set `get_cookies=true` to capture them.
@@ -54,7 +54,7 @@ When `get_cookies=true`, the response becomes JSON:
 | Field | What it is |
 | --- | --- |
 | `html` | The page source, same as you'd get without `get_cookies` |
-| `cookies` | Every cookie set during the navigation, in canonical form |
+| `cookies` | The target site's cookies (its domain and subdomains) from the browser session that rendered the page, in canonical form. Third-party cookies (ads, analytics on other domains) are not included |
 | `proxy` | ISO country code of the proxy that served the request |
 
 ## What you can do with the cookies
@@ -93,14 +93,4 @@ The `proxy` field tells you which country pool served the request. If you need a
 
 ## Combining with `parsed_data`
 
-If you set both `parsed_data=true` and `get_cookies=true`, the response carries everything:
-
-```json
-{
-  "data": { "page_type": "product", "data": { ... } },
-  "cookies": [ ... ],
-  "proxy": "us"
-}
-```
-
-The `html` field is omitted in this case - you asked for parsed data, not raw HTML.
+`get_cookies=true` takes precedence: with both `parsed_data=true` and `get_cookies=true` set, the response is the same `html` + `cookies` + `proxy` JSON shown above, and `parsed_data` is ignored. If you need structured data and cookies for the same page, make two calls.

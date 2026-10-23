@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-23" description="get_cookies: fixed, first-party cookies, proxy country">
+  `get_cookies=true` answered `403` (or `503`) for many ordinary sites since
+  early September; it now returns the page and its cookies again. The
+  `cookies` list holds only the target site's cookies (its domain and
+  subdomains), and the response's `proxy` field is the ISO country code of the
+  exit that served the request, as described in
+  [cookies and sessions](/guides/cookies-and-sessions). The undocumented
+  `proxy_address` field is gone; the official SDKs already read `proxy`.
+</Update>
+
 <Update label="2026-10-20" description="MCP: browser steps have their own tool">
   Browser steps moved from `fetch_html` to a new MCP tool, **`browse_page`**
   ([MCP server](/sdks/mcp) **0.6.0** on npm, hosted connector **0.7.0**). Steps

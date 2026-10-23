@@ -132,14 +132,6 @@ A dead URL is different: when the target itself answers `404` / `410`, you get t
 
 ## Combining with `get_cookies`
 
-You can set both `parsed_data=true` and `get_cookies=true` on the same request. The response gains a `cookies` field and a `proxy` field alongside `data`:
-
-```json
-{
-  "data": { "page_type": "product", "data": { ... } },
-  "cookies": [ { "name": "session", "value": "...", "domain": "..." } ],
-  "proxy": "us"
-}
-```
+`get_cookies=true` takes precedence over `parsed_data=true`: with both set, you get the `html` + `cookies` + `proxy` JSON of a cookies call, without `data`. If you need structured data and cookies for the same page, make two calls.
 
 See [cookies and sessions](/guides/cookies-and-sessions).
