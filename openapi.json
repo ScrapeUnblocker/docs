@@ -12,7 +12,7 @@
           "Scraping"
         ],
         "summary": "Fetch the HTML (or parsed JSON) for any URL",
-        "description": "Routes the URL through the appropriate anti-bot bypass chain (site-specific handlers, real-browser rendering, rotating proxies). Returns the prettified HTML by default. Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to receive JSON with the HTML, the cookies and `proxy`, the country of the exit that served the request.",
+        "description": "Routes the URL through the appropriate anti-bot bypass chain (site-specific handlers, real-browser rendering, rotating proxies). Returns the prettified HTML by default. Set `markdown=true` to receive the page as clean Markdown (`text/markdown`) for LLMs and agents: by default only the main content, with absolute links (`main_content_only=false` keeps the whole page). Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to receive JSON with the HTML, the cookies and `proxy`, the country of the exit that served the request.",
         "operationId": "get_page_source_getPageSource_post",
         "parameters": [
           {
@@ -42,6 +42,30 @@
               "default": false,
               "title": "Parsed Data"
             }
+          },
+          {
+            "name": "markdown",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Return the page as clean Markdown (`text/markdown`) instead of HTML: headings, lists, tables, absolute links and images with alt text, without scripts, styles or markup. Built for LLMs, agents and RAG pipelines. Billed like an HTML call.",
+              "default": false,
+              "title": "Markdown"
+            },
+            "description": "Return the page as clean Markdown (`text/markdown`) instead of HTML: headings, lists, tables, absolute links and images with alt text, without scripts, styles or markup. Built for LLMs, agents and RAG pipelines. Billed like an HTML call."
+          },
+          {
+            "name": "main_content_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "With `markdown=true`: keep only the main content, without navigation, site header, footer and sidebars. Set to `false` for the whole page.",
+              "default": true,
+              "title": "Main Content Only"
+            },
+            "description": "With `markdown=true`: keep only the main content, without navigation, site header, footer and sidebars. Set to `false` for the whole page."
           },
           {
             "name": "get_cookies",
@@ -79,7 +103,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success — body is HTML (or JSON when `parsed_data=true` / `get_cookies=true`). With `parsed_data=true` a page that rendered but yielded no structured data is still a 200: `data.data` is empty, `data_extracted` is `false` and `html` carries the rendered page. Also a dead-origin 5xx page, as served (can be empty): then the `X-Origin-Status` header carries the target's status. The same for the target's own 401, 451 or empty 500, confirmed from more than one exit. A target that answers 204 (or another 2xx with no body) comes back as an empty 200. Billed.",
+            "description": "Success — body is HTML (Markdown with `markdown=true`, JSON with `parsed_data=true` / `get_cookies=true`). With `parsed_data=true` a page that rendered but yielded no structured data is still a 200: `data.data` is empty, `data_extracted` is `false` and `html` carries the rendered page. Also a dead-origin 5xx page, as served (can be empty): then the `X-Origin-Status` header carries the target's status. The same for the target's own 401, 451 or empty 500, confirmed from more than one exit. A target that answers 204 (or another 2xx with no body) comes back as an empty 200. Billed.",
             "content": {
               "application/json": {
                 "schema": {}
@@ -13498,6 +13522,363 @@
           },
           "502": {
             "description": "No answer from ALDI on any attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/wish-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Wish product search",
+        "description": "Searches Wish (wish.com) for `query` and returns `products`: `id`, `name`, `url`, `price`, `originalPrice` (crossed-out price, when discounted), `currency`, `priceText`, `priceUsd` (Wish's USD value, comparable across markets), `shipping`, `rating`, `ratingCount`, `numBought`, `inventory`, `colors`, `sizes`, `merchant` (`id`, `name`, `rating`, `ratingCount`, `feedback`, `country`), `originCountry`, `shipsFrom`, `tileText`, `isWishPick`, `position`, `image` and `thumbnail`, plus `totalResults` and `nextPage`. Wish shows the catalogue and prices of the request's country (`proxy_country`, default US). Collects up to `max_results` from `page` on, billed one unit per page.",
+        "operationId": "wish_search_marketplace_wish_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search for, e.g. 'yoga mat' or 'phone case', or a wish.com/search/... link.",
+              "title": "Query"
+            },
+            "description": "What to search for, e.g. 'yoga mat' or 'phone case', or a wish.com/search/... link."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based results page to start from (1-300, up to 30 products per page).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based results page to start from (1-300, up to 30 products per page)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect across pages, 1-300. Each page fetched is billed one unit.",
+              "default": 30,
+              "title": "Max Results"
+            },
+            "description": "Products to collect across pages, 1-300. Each page fetched is billed one unit."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB', 'DE'). Wish shows the catalogue, prices and currency of that country. Default 'US' (prices in USD).",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB', 'DE'). Wish shows the catalogue, prices and currency of that country. Default 'US' (prices in USD)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array. A search with no matches answers 200 with an empty `products` list.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "502": {
+            "description": "Blocked by Wish on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/wish-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape one Wish product",
+        "description": "One Wish (wish.com) product as JSON: `id`, `name`, `url`, `price` (cheapest available variant), `originalPrice`, `currency`, `priceUsd`, `priceRange`, `shipping`, `inStock`, `rating`, `ratingCount`, `description`, `attributes`, `badges`, `images`, `merchant` (`id`, `name`, `handle`, `rating`, `ratingCount`, `tier`), `shipsFrom`, `shipsTo`, `deliveryEstimate`, `returnPolicy`, `variants` (`id`, `color`, `size`, `price`, `originalPrice`, `priceUsd`, `shipping`, `inventory`, `available`) and `topReviews` (`rating`, `comment`, `date`, `variant`, `upvotes`, `country`; no reviewer names). Prices are those of the request's country (`proxy_country`, default US). One unit per call.",
+        "operationId": "wish_product_marketplace_wish_product_post",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A Wish product id ('5f96ad46b3f6480c7b9d7b52') or a product link (https://www.wish.com/product/..., /c/...).",
+              "title": "Product"
+            },
+            "description": "A Wish product id ('5f96ad46b3f6480c7b9d7b52') or a product link (https://www.wish.com/product/..., /c/...)."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB', 'DE'). Wish shows the catalogue, prices and currency of that country. Default 'US' (prices in USD).",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB', 'DE'). Wish shows the catalogue, prices and currency of that country. Default 'US' (prices in USD)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `product`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Wish has no such product."
+          },
+          "502": {
+            "description": "Blocked by Wish on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/smyths-inventory": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Smyths Toys UK product stock, price, details and listings",
+        "description": "Smyths Toys UK (smythstoys.com) as JSON, in four modes. `mode=product` (the default when `code` is given) returns one product's stock and price as the JSON Smyths' own storefront reads (`/api/uk/en-gb/product/product-inventory`), unchanged: `code`, `type`, `prices` (`price`, `value`, `wasPrice`, `thenPrice`, `rrpPrice`, `discountedPercentage`), `hdSection` (home delivery: `stockStatus`, `stockMessage`, `isAvailableForDelivery`, `isPreOrder`, `expectedStockDate`, delivery messages), `ccSection` (click & collect: the same stock fields plus `storeName`, `deliveryMessage`, `storeClosed`), `ageSuitabilities`, `carrierType`, marketing messages and decals. `code` takes a product code (`225095`), a product or bundle page link or a product-inventory link; one product is one billed request. `mode=details&code=` returns the JSON Smyths' product page is built from (`/api/uk/en-gb/product`, a bundle's from `/api/uk/en-gb/b`), unchanged, one billed request: `name`, `brand`, `ean`, `description` (HTML), `webFeatures` (the key features list), the safety warnings `euWarning`, `safetyText`, `urgentSafetyTextHeading` and `urgentSafetyTextDescription`, `productImages` (the gallery: `thumbnail`, `original` and `zoom` per `galleryIndex`, videos as `youtubeUrl`), `prices`, `averageRating`, `numberOfReviews`, `breadcrumb`, `categoryHierarchy`, `ageSuitabilities`, `assemblyRequired` and more; a bundle adds `subProducts`. `url` and `breadcrumb` paths are relative to https://www.smythstoys.com/uk/en-gb. `mode=search&query=` and `mode=category&category=` find product codes: they return `products` (`code`, `name`, `url`, `prices` with the same fields, `currency`, `image`, `averageRating`, `productType` - `BUNDLE` for bundles - and `decals`) with `totalResults`, `totalPages` and `nextPage`, 60 per page; a category also returns its `title`, `breadcrumbs` and `subcategories` (`code`, `name`, `count`). Smyths' search returns its best 240 matches at most, a category every product it holds. Listings collect up to `max_results` from `page` on, billed one unit per page.",
+        "operationId": "smyths_inventory_marketplace_smyths_inventory_post",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=product and mode=details: product code ('225095'), product or bundle page link, or product-inventory link.",
+              "title": "Code"
+            },
+            "description": "mode=product and mode=details: product code ('225095'), product or bundle page link, or product-inventory link."
+          },
+          {
+            "name": "bundle",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "mode=product and mode=details: ask for a bundle. A bundle page link sets it, and a code Smyths does not answer as a product is asked again as a bundle.",
+              "default": false,
+              "title": "Bundle"
+            },
+            "description": "mode=product and mode=details: ask for a bundle. A bundle page link sets it, and a code Smyths does not answer as a product is asked again as a bundle."
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "'product': one product's stock and price (the default when `code` is given). 'details': one product's page details - description, features, safety warnings, images. 'search': the products matching `query` (the default when `query` is given). 'category': the products of a category (the default when `category` is given).",
+              "title": "Mode"
+            },
+            "description": "'product': one product's stock and price (the default when `code` is given). 'details': one product's page details - description, features, safety warnings, images. 'search': the products matching `query` (the default when `query` is given). 'category': the products of a category (the default when `category` is given)."
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=search: what to search for, e.g. 'lego star wars'. Smyths returns its best 240 matches at most - list a category to get every product of a range.",
+              "title": "Query"
+            },
+            "description": "mode=search: what to search for, e.g. 'lego star wars'. Smyths returns its best 240 matches at most - list a category to get every product of a range."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "mode=category: a category code ('SM060101') or a category page link (https://www.smythstoys.com/uk/en-gb/toys/action-figures-and-playsets/c/SM060101). The top categories are Toys SM0601, Baby SM0602, Outdoor SM0603 and Gaming & Tech SM0604; each listing names its subcategories.",
+              "title": "Category"
+            },
+            "description": "mode=category: a category code ('SM060101') or a category page link (https://www.smythstoys.com/uk/en-gb/toys/action-figures-and-playsets/c/SM060101). The top categories are Toys SM0601, Baby SM0602, Outdoor SM0603 and Gaming & Tech SM0604; each listing names its subcategories."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Listing order. search: relevance, bestsellers, price_asc, price_desc, rating_desc, newest (the first is the default). category: bestsellers, price_asc, price_desc, rating_desc, newest (the first is the default).",
+              "title": "Sort"
+            },
+            "description": "Listing order. search: relevance, bestsellers, price_asc, price_desc, rating_desc, newest (the first is the default). category: bestsellers, price_asc, price_desc, rating_desc, newest (the first is the default)."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based listing page to start from (60 products per page).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based listing page to start from (60 products per page)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect across pages, 1-600. Each page fetched is billed one unit.",
+              "default": 60,
+              "title": "Max Results"
+            },
+            "description": "Products to collect across pages, 1-600. Each page fetched is billed one unit."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "mode=product: Smyths' product-inventory JSON. mode=details: Smyths' product page JSON. mode=search and mode=category: JSON with `products`; a search with no matches answers 200 with an empty list.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters, or none of `code`, `query` and `category`."
+          },
+          "404": {
+            "description": "Smyths has no product with that code, or no such category."
+          },
+          "502": {
+            "description": "Smyths refused every attempt or did not answer in time - retry. With `X-Origin-Status`, the body is Smyths' own JSON error, which Smyths also returns for a product code it does not know."
           },
           "422": {
             "description": "Validation Error",

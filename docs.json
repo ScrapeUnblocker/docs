@@ -242,6 +242,7 @@
             "group": "Guides",
             "pages": [
               "guides/page-source",
+              "guides/markdown",
               "guides/browser-steps",
               "guides/parsed-data",
               "guides/serp-scraping",

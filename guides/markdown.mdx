@@ -1,0 +1,126 @@
+---
+title: "Markdown for LLMs"
+description: "Get any page as clean Markdown for LLMs, AI agents and RAG pipelines - main content only, absolute links, tables kept."
+---
+
+Language models read text, not markup. Most of a page's HTML is scripts, styles and layout that a model pays for in tokens and never uses. Pass `markdown=true` to `/getPageSource` and you get the rendered page as clean Markdown instead: headings, paragraphs, lists, tables, links and images with alt text - without scripts, styles, navigation or footer.
+
+The page is fetched exactly like an HTML call: JavaScript-rendered, behind Cloudflare, DataDome, PerimeterX or Akamai, from the country you choose. Only the output changes, and it costs the same as an HTML call.
+
+<Tip>
+A Wikipedia article that is 230 KB of HTML comes back as about 50 KB of Markdown. A GitHub repository page shrinks from 317 KB to 10 KB.
+</Tip>
+
+## Request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://en.wikipedia.org/wiki/Web_scraping&markdown=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={
+        "url": "https://en.wikipedia.org/wiki/Web_scraping",
+        "markdown": True,
+    },
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=120,
+)
+markdown = r.text
+```
+
+```javascript Node.js
+const res = await fetch(
+  "https://api.scrapeunblocker.com/getPageSource?url=https://en.wikipedia.org/wiki/Web_scraping&markdown=true",
+  {
+    method: "POST",
+    headers: { "x-scrapeunblocker-key": "YOUR_API_KEY" },
+  }
+);
+const markdown = await res.text();
+```
+
+</CodeGroup>
+
+The SDKs have a dedicated method: `get_markdown()` in [Python](/sdks/python) and [Ruby](/sdks/ruby), `getMarkdown()` in [Node.js](/sdks/nodejs) and [PHP](/sdks/php).
+
+## Response
+
+The body is Markdown, `Content-Type: text/markdown; charset=utf-8`. For `https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html`:
+
+```markdown
+- [Home](https://books.toscrape.com/index.html)
+- [Books](https://books.toscrape.com/catalogue/category/books_1/index.html)
+- [Poetry](https://books.toscrape.com/catalogue/category/books/poetry_23/index.html)
+- A Light in the Attic
+
+![A Light in the Attic](https://books.toscrape.com/media/cache/fe/72/fe72f0532301ec28892ae79a629a293c.jpg)
+
+# A Light in the Attic
+
+£51.77
+
+In stock (22 available)
+
+## Product Description
+
+It's hard to imagine a world without A Light in the Attic. This now-classic collection of poetry and drawings from Shel Silverstein celebrates its 20th anniversary with this special edition. ...
+
+## Product Information
+
+| UPC | a897fe39b1053632 |
+| --- | --- |
+| Product Type | Books |
+| Price (excl. tax) | £51.77 |
+| Availability | In stock (22 available) |
+| Number of reviews | 0 |
+```
+
+What you get:
+
+- **Text structure:** headings, paragraphs, bulleted and numbered lists (nested lists kept), block quotes and code blocks with their language.
+- **Tables** as Markdown tables. Key/value lists (`<dl>`, common on spec sheets) become `- **Weight**: 300 g` lines.
+- **Absolute links:** every link and image URL is resolved against the page, so an agent can follow it. `mailto:` and `tel:` links are kept.
+- **Images with alt text** as `![alt](url)`. Images without alt text are decoration or tracking pixels and are left out.
+
+What is removed: scripts, styles, `<svg>`, iframes and embeds, buttons and form controls, dialogs, and hidden elements (`hidden`, `aria-hidden="true"`).
+
+## Main content only
+
+By default (`main_content_only=true`) you get the page's main content:
+
+- If the page has a `<main>` element holding at least 30% of the page's text, that element is used, without the menus inside it.
+- Otherwise the whole page is used, without navigation, the site header, the footer and sidebars (`<nav>`, `<header>`, `<footer>`, `<aside>` and their ARIA roles). An article's own `<header>` is kept.
+
+If that leaves nothing, the whole page is returned rather than an empty answer. Set `main_content_only=false` to keep the whole page, for example when you need the footer's contact details or the site's navigation links.
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com&markdown=true&main_content_only=false" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+## Combining with other parameters
+
+- **`proxy_country`** works as usual: the page is fetched from that country, then converted.
+- **`steps`** run first: click "load more", type into a search box or wait for a selector, then the resulting page is converted. See [browser steps](/guides/browser-steps).
+- **`parsed_data`, `get_cookies` and `list_elements`** each return their own format, so they cannot be combined with `markdown=true`. Such a request answers `422` and is not billed.
+
+## Errors and billing
+
+A Markdown call is billed like an HTML call: only when the page is delivered. Errors are the same as for HTML (see [page source](/guides/page-source#errors)) and keep their plain-text body. When the target itself answers 404, 410 or a 5xx error page, that page comes back as Markdown with the target's status in the `X-Origin-Status` header, as described in [handling failures](/guides/handling-failures).
+
+## Markdown or parsed data?
+
+| You want to | Use |
+| --- | --- |
+| Give a page to an LLM: summarize it, answer questions, build a RAG index, let an agent read it | `markdown=true` |
+| Store fields in a database: price, title, specifications, a list of products | [`parsed_data=true`](/guides/parsed-data) |
+| Run your own selectors or parsers | the default HTML |
+
+Using an AI assistant? The [MCP server](/sdks/mcp) has a `fetch_markdown` tool, and `search_and_read` searches Google and returns the top results as Markdown in one call.
