@@ -21,8 +21,10 @@
             "required": true,
             "schema": {
               "type": "string",
+              "description": "The page to fetch, a full `http(s)://` URL. URL-encode it when it has its own query string. Google search URLs answer 400: use `/serpApi`.",
               "title": "Url"
-            }
+            },
+            "description": "The page to fetch, a full `http(s)://` URL. URL-encode it when it has its own query string. Google search URLs answer 400: use `/serpApi`."
           },
           {
             "name": "proxy_country",
@@ -30,8 +32,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries.",
               "title": "Proxy Country"
-            }
+            },
+            "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries."
           },
           {
             "name": "parsed_data",
@@ -39,9 +43,11 @@
             "required": false,
             "schema": {
               "type": "boolean",
+              "description": "Return structured JSON extracted from the page (Schema.org, `__NEXT_DATA__` or AI-generated rules) instead of HTML.",
               "default": false,
               "title": "Parsed Data"
-            }
+            },
+            "description": "Return structured JSON extracted from the page (Schema.org, `__NEXT_DATA__` or AI-generated rules) instead of HTML."
           },
           {
             "name": "markdown",
@@ -73,9 +79,11 @@
             "required": false,
             "schema": {
               "type": "boolean",
+              "description": "Return JSON with the page `html`, the `cookies` set during the visit and the `proxy` used, instead of HTML. Takes precedence over `parsed_data`.",
               "default": false,
               "title": "Get Cookies"
-            }
+            },
+            "description": "Return JSON with the page `html`, the `cookies` set during the visit and the `proxy` used, instead of HTML. Takes precedence over `parsed_data`."
           },
           {
             "name": "list_elements",
@@ -151,7 +159,7 @@
           "Scraping"
         ],
         "summary": "Scrape a Google search SERP for organic + ad results",
-        "description": "Runs a Google web search for `keyword` and returns a normalized JSON structure with `topAds`, `bottomAds`, `organic` results, `totalResults`, `aiOverview` (Google's AI-written summary as `text` and `markdown`, the hostnames it cites as `sources`, and the cited pages as `references` with title, real URL, source, domain and snippet; `null` when the search has none), and the proxy country actually used. Set `pages_to_check` 1-10 to paginate. `wait_after_load` adds a delay after the SERP loads (useful for sites where ads render late); `captcha_pause` lets you eyeball / solve a CAPTCHA when running interactively.",
+        "description": "Runs a Google web search for `keyword` and returns a normalized JSON structure with `topAds`, `bottomAds`, `organic` results, `totalResults`, `aiOverview` (Google's AI-written summary as `text` and `markdown`, the hostnames it cites as `sources`, and the cited pages as `references` with title, real URL, source, domain and snippet; `null` when the search has none), and the proxy country actually used. Set `pages_to_check` 1-10 to paginate. `wait_after_load` adds a delay after the SERP loads.",
         "operationId": "run_serp_serpApi_post",
         "parameters": [
           {
@@ -160,8 +168,10 @@
             "required": true,
             "schema": {
               "type": "string",
+              "description": "The search query, as typed into Google.",
               "title": "Keyword"
-            }
+            },
+            "description": "The search query, as typed into Google."
           },
           {
             "name": "proxy_country",
@@ -169,8 +179,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries.",
               "title": "Proxy Country"
-            }
+            },
+            "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries."
           },
           {
             "name": "pages_to_check",
@@ -180,9 +192,11 @@
               "type": "integer",
               "maximum": 10,
               "minimum": 1,
+              "description": "How many Google result pages to fetch and merge, 1-10. Each page rendered is billed as one request; `pagesFetched` in the response says how many were.",
               "default": 1,
               "title": "Pages To Check"
-            }
+            },
+            "description": "How many Google result pages to fetch and merge, 1-10. Each page rendered is billed as one request; `pagesFetched` in the response says how many were."
           },
           {
             "name": "wait_after_load",
@@ -191,9 +205,11 @@
             "schema": {
               "type": "integer",
               "minimum": 0,
+              "description": "Extra seconds to wait before extraction, on top of our own wait. Rarely needed.",
               "default": 0,
               "title": "Wait After Load"
-            }
+            },
+            "description": "Extra seconds to wait before extraction, on top of our own wait. Rarely needed."
           },
           {
             "name": "captcha_pause",
@@ -202,9 +218,11 @@
             "schema": {
               "type": "integer",
               "minimum": 0,
+              "description": "Kept for compatibility; it has no effect. Leave it at 0.",
               "default": 0,
               "title": "Captcha Pause"
-            }
+            },
+            "description": "Kept for compatibility; it has no effect. Leave it at 0."
           }
         ],
         "responses": {
@@ -830,8 +848,10 @@
             "required": true,
             "schema": {
               "type": "string",
+              "description": "The image URL to fetch.",
               "title": "Url"
-            }
+            },
+            "description": "The image URL to fetch."
           },
           {
             "name": "proxy_country",
@@ -839,8 +859,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries.",
               "title": "Proxy Country"
-            }
+            },
+            "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries."
           }
         ],
         "responses": {

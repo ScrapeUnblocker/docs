@@ -222,7 +222,7 @@ curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=insurance&wait_aft
 
 ### `captcha_pause`
 
-Seconds to pause if Google shows a CAPTCHA, giving an interactive user time to solve it. Only useful when running the API in attended mode. Leave at 0 for automated workloads - rely on `proxy_country` rotation instead.
+Kept for compatibility; it has no effect. A CAPTCHA is handled on our side by retrying from other exits, so leave it at 0. If a country keeps answering `403`, try another `proxy_country`.
 
 ## Errors
 

@@ -74,6 +74,20 @@ You don't pick the route. It's chosen automatically per request based on what ha
 
 Two-letter ISO country code forcing the request through that country's proxy pool. See [country targeting](/guides/country-targeting).
 
+### `markdown` and `main_content_only`
+
+Set `markdown=true` to get the rendered page as clean Markdown (`text/markdown`)
+instead of HTML - headings, lists, tables, absolute links and images with alt
+text, without scripts, styles or markup. Built for LLMs, agents and RAG
+pipelines, billed like an HTML call. By default only the main content is kept
+(no navigation, site header, footer or sidebars); add `main_content_only=false`
+for the whole page. See [Markdown for LLMs](/guides/markdown).
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://en.wikipedia.org/wiki/Web_scraping&markdown=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
 ### `steps` and `list_elements`
 
 Some pages need interaction before the HTML you want exists - a search box to
