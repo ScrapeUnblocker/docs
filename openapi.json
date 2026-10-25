@@ -284,9 +284,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Skyscanner site the search runs on, e.g. www.skyscanner.es. Ignored when `url` is given.",
               "default": "www.skyscanner.net",
               "title": "Host"
-            }
+            },
+            "description": "Skyscanner site the search runs on, e.g. www.skyscanner.es. Ignored when `url` is given."
           },
           {
             "name": "market",
@@ -355,8 +357,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Skyscanner dropoff entity ID; overrides `dropoff`. Defaults to the pickup location.",
               "title": "Dropoff Entity"
-            }
+            },
+            "description": "Skyscanner dropoff entity ID; overrides `dropoff`. Defaults to the pickup location."
           },
           {
             "name": "pickup",
@@ -375,8 +379,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Dropoff place name. Defaults to the pickup location.",
               "title": "Dropoff"
-            }
+            },
+            "description": "Dropoff place name. Defaults to the pickup location."
           },
           {
             "name": "pickup_datetime",
@@ -406,8 +412,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries.",
               "title": "Proxy Country"
-            }
+            },
+            "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries."
           },
           {
             "name": "warmup_url",
@@ -415,8 +423,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Skyscanner page opened before the quotes are fetched. Defaults to one derived from the search; rarely needed.",
               "title": "Warmup Url"
-            }
+            },
+            "description": "Skyscanner page opened before the quotes are fetched. Defaults to one derived from the search; rarely needed."
           },
           {
             "name": "max_polls",
@@ -426,9 +436,11 @@
               "type": "integer",
               "maximum": 20,
               "minimum": 1,
+              "description": "How many times to poll Skyscanner for more results before answering, 1-20. More polls give fuller results and a slower call.",
               "default": 8,
               "title": "Max Polls"
-            }
+            },
+            "description": "How many times to poll Skyscanner for more results before answering, 1-20. More polls give fuller results and a slower call."
           },
           {
             "name": "poll_interval",
@@ -438,9 +450,11 @@
               "type": "number",
               "maximum": 10.0,
               "minimum": 0.0,
+              "description": "Seconds between polls, 0-10.",
               "default": 2.0,
               "title": "Poll Interval"
-            }
+            },
+            "description": "Seconds between polls, 0-10."
           },
           {
             "name": "settle",
@@ -450,9 +464,11 @@
               "type": "number",
               "maximum": 20.0,
               "minimum": 0.0,
+              "description": "Seconds to stay on the warm-up page before the first fetch, 0-20.",
               "default": 5.0,
               "title": "Settle"
-            }
+            },
+            "description": "Seconds to stay on the warm-up page before the first fetch, 0-20."
           }
         ],
         "responses": {
@@ -500,8 +516,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Origin airport or city name, e.g. London. Give this or `origin_entity`.",
               "title": "Origin"
-            }
+            },
+            "description": "Origin airport or city name, e.g. London. Give this or `origin_entity`."
           },
           {
             "name": "dest",
@@ -509,8 +527,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Destination airport or city name. Give this or `dest_entity`.",
               "title": "Dest"
-            }
+            },
+            "description": "Destination airport or city name. Give this or `dest_entity`."
           },
           {
             "name": "origin_entity",
@@ -518,8 +538,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Skyscanner entity ID of the origin; skips the name lookup and overrides `origin`.",
               "title": "Origin Entity"
-            }
+            },
+            "description": "Skyscanner entity ID of the origin; skips the name lookup and overrides `origin`."
           },
           {
             "name": "dest_entity",
@@ -527,8 +549,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Skyscanner entity ID of the destination; skips the name lookup and overrides `dest`.",
               "title": "Dest Entity"
-            }
+            },
+            "description": "Skyscanner entity ID of the destination; skips the name lookup and overrides `dest`."
           },
           {
             "name": "origin_iata",
@@ -536,8 +560,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Origin IATA code, e.g. LHR. Optional; resolved from the origin when omitted.",
               "title": "Origin Iata"
-            }
+            },
+            "description": "Origin IATA code, e.g. LHR. Optional; resolved from the origin when omitted."
           },
           {
             "name": "dest_iata",
@@ -545,8 +571,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Destination IATA code. Optional; resolved from the destination when omitted.",
               "title": "Dest Iata"
-            }
+            },
+            "description": "Destination IATA code. Optional; resolved from the destination when omitted."
           },
           {
             "name": "depart_date",
@@ -554,8 +582,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Departure date, YYYY-MM-DD. Required.",
               "title": "Depart Date"
-            }
+            },
+            "description": "Departure date, YYYY-MM-DD. Required."
           },
           {
             "name": "return_date",
@@ -563,8 +593,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Return date, YYYY-MM-DD. Omit for a one-way search.",
               "title": "Return Date"
-            }
+            },
+            "description": "Return date, YYYY-MM-DD. Omit for a one-way search."
           },
           {
             "name": "adults",
@@ -574,9 +606,11 @@
               "type": "integer",
               "maximum": 9,
               "minimum": 1,
+              "description": "Passengers, 1-9.",
               "default": 1,
               "title": "Adults"
-            }
+            },
+            "description": "Passengers, 1-9."
           },
           {
             "name": "cabin",
@@ -584,9 +618,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Cabin class: economy, premium_economy, business or first.",
               "default": "economy",
               "title": "Cabin"
-            }
+            },
+            "description": "Cabin class: economy, premium_economy, business or first."
           },
           {
             "name": "currency",
@@ -594,9 +630,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Price currency, e.g. GBP, EUR, USD.",
               "default": "GBP",
               "title": "Currency"
-            }
+            },
+            "description": "Price currency, e.g. GBP, EUR, USD."
           },
           {
             "name": "market",
@@ -604,9 +642,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Skyscanner market (country code), e.g. UK, US, ES.",
               "default": "UK",
               "title": "Market"
-            }
+            },
+            "description": "Skyscanner market (country code), e.g. UK, US, ES."
           },
           {
             "name": "locale",
@@ -614,9 +654,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Result language, e.g. en-GB, es-ES.",
               "default": "en-GB",
               "title": "Locale"
-            }
+            },
+            "description": "Result language, e.g. en-GB, es-ES."
           },
           {
             "name": "proxy_country",
@@ -624,8 +666,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries.",
               "title": "Proxy Country"
-            }
+            },
+            "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries."
           },
           {
             "name": "max_polls",
@@ -635,9 +679,11 @@
               "type": "integer",
               "maximum": 20,
               "minimum": 1,
+              "description": "How many times to poll Skyscanner for more results before answering, 1-20. More polls give fuller results and a slower call.",
               "default": 8,
               "title": "Max Polls"
-            }
+            },
+            "description": "How many times to poll Skyscanner for more results before answering, 1-20. More polls give fuller results and a slower call."
           }
         ],
         "responses": {
@@ -685,8 +731,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "City or place name, e.g. London. Give this or `destination_entity`.",
               "title": "Destination"
-            }
+            },
+            "description": "City or place name, e.g. London. Give this or `destination_entity`."
           },
           {
             "name": "destination_entity",
@@ -694,8 +742,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Skyscanner entity ID of the destination; skips the name lookup and overrides `destination`.",
               "title": "Destination Entity"
-            }
+            },
+            "description": "Skyscanner entity ID of the destination; skips the name lookup and overrides `destination`."
           },
           {
             "name": "checkin",
@@ -703,8 +753,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Check-in date, YYYY-MM-DD. Required.",
               "title": "Checkin"
-            }
+            },
+            "description": "Check-in date, YYYY-MM-DD. Required."
           },
           {
             "name": "checkout",
@@ -712,8 +764,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Check-out date, YYYY-MM-DD. Required.",
               "title": "Checkout"
-            }
+            },
+            "description": "Check-out date, YYYY-MM-DD. Required."
           },
           {
             "name": "adults",
@@ -723,9 +777,11 @@
               "type": "integer",
               "maximum": 16,
               "minimum": 1,
+              "description": "Guests, 1-16.",
               "default": 2,
               "title": "Adults"
-            }
+            },
+            "description": "Guests, 1-16."
           },
           {
             "name": "rooms",
@@ -735,9 +791,11 @@
               "type": "integer",
               "maximum": 8,
               "minimum": 1,
+              "description": "Rooms, 1-8.",
               "default": 1,
               "title": "Rooms"
-            }
+            },
+            "description": "Rooms, 1-8."
           },
           {
             "name": "currency",
@@ -745,9 +803,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Price currency, e.g. GBP, EUR, USD.",
               "default": "GBP",
               "title": "Currency"
-            }
+            },
+            "description": "Price currency, e.g. GBP, EUR, USD."
           },
           {
             "name": "market",
@@ -755,9 +815,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Skyscanner market (country code), e.g. UK, US, ES.",
               "default": "UK",
               "title": "Market"
-            }
+            },
+            "description": "Skyscanner market (country code), e.g. UK, US, ES."
           },
           {
             "name": "locale",
@@ -765,9 +827,11 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Result language, e.g. en-GB, es-ES.",
               "default": "en-GB",
               "title": "Locale"
-            }
+            },
+            "description": "Result language, e.g. en-GB, es-ES."
           },
           {
             "name": "proxy_country",
@@ -775,8 +839,10 @@
             "required": false,
             "schema": {
               "type": "string",
+              "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries.",
               "title": "Proxy Country"
-            }
+            },
+            "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries."
           },
           {
             "name": "max_polls",
@@ -786,9 +852,11 @@
               "type": "integer",
               "maximum": 20,
               "minimum": 1,
+              "description": "How many times to poll Skyscanner for more results before answering, 1-20. More polls give fuller results and a slower call.",
               "default": 8,
               "title": "Max Polls"
-            }
+            },
+            "description": "How many times to poll Skyscanner for more results before answering, 1-20. More polls give fuller results and a slower call."
           },
           {
             "name": "max_results",
@@ -798,9 +866,11 @@
               "type": "integer",
               "maximum": 300,
               "minimum": 1,
+              "description": "How many hotels to return, 1-300. Results come in pages of about 35, so more results take longer.",
               "default": 30,
               "title": "Max Results"
-            }
+            },
+            "description": "How many hotels to return, 1-300. Results come in pages of about 35, so more results take longer."
           }
         ],
         "responses": {
