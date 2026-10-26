@@ -13430,7 +13430,7 @@
           "Plugins"
         ],
         "summary": "Scrape SHEIN product search",
-        "description": "Searches SHEIN (US store) for `query` and returns the products as JSON: `id`, `sku`, `title`, `url`, `price`, `originalPrice`, `currency`, `discountPercent`, `rating`, `reviewCount`, `category`, `image`, `soldOut` and `storeCode`. Order with `sort`, filter with `min_price`/`max_price`. Returns SHEIN's first results page (up to 20 products); SHEIN does not serve deeper pages to automated clients.",
+        "description": "Searches SHEIN (US store) for `query` and returns the products as JSON: `id`, `sku`, `title`, `url`, `price`, `originalPrice`, `currency`, `discountPercent`, `rating`, `reviewCount`, `reviewCountText`, `category`, `image`, `soldOut` and `storeCode`. Order with `sort`, filter with `min_price`/`max_price` (enforced on `price`). Returns SHEIN's first results page (up to 20 products); SHEIN does not serve deeper pages to automated clients.",
         "operationId": "shein_search_marketplace_shein_search_post",
         "parameters": [
           {
