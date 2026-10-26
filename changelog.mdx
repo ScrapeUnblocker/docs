@@ -3,6 +3,23 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-26" description="getPageSource: JSON answers come back as served">
+  When the target answers with JSON, `/getPageSource` now returns that JSON
+  exactly as the target served it. Before, the body went through the same HTML
+  formatting as a page, so `&` arrived as `&amp;` and a `<` inside a value was
+  turned into tags, which left invalid JSON. If you unescaped the body as a
+  workaround, you can drop it. HTML pages are unchanged, and Content-Type stays
+  `text/html`. See [page source](/guides/page-source#response).
+</Update>
+
+<Update label="2026-10-26" description="DataDome captcha answers are no longer billed">
+  Some JSON APIs behind DataDome answer a flagged session with a small
+  captcha object (`{"url": "https://geo.captcha-delivery.com/captcha/..."}`)
+  and HTTP 200. `/getPageSource` used to return that as the page and bill it.
+  It now treats it as a block: the request moves on to another route and
+  returns the real answer, or a free `403` when none gets through.
+</Update>
+
 <Update label="2026-10-23" description="Google Hotels, Google News, Ads Transparency, Shopee, Taobao and Upwork plugins; SDKs 0.14.0">
   **Six new plugins:** [Google Hotels](/plugins/google-hotels) (properties
   for a place and dates with the price for the stay, and every booking site's

@@ -117,6 +117,8 @@ Full action reference, limits and the `422` failure shape are in
 
 By default, the response body is the prettified HTML of the page. Content-Type is `text/html`.
 
+When the target answers with JSON (an API endpoint), the body is that JSON exactly as the target served it, unescaped and ready for a JSON parser. Content-Type stays `text/html`.
+
 With `markdown=true` the body is the page as clean Markdown (`text/markdown`), ready for an LLM. See [Markdown for LLMs](/guides/markdown).
 
 When you add `parsed_data=true` or `get_cookies=true`, the response becomes JSON. See [parsed data](/guides/parsed-data) and [cookies and sessions](/guides/cookies-and-sessions).
