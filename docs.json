@@ -445,6 +445,70 @@
     {
       "source": "/api-reference/scraping/fetch-a-single-image-as-raw-png-bytes",
       "destination": "/api-reference/scraping/fetch-an-image-in-its-original-format"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-craigslist-search",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-linkedin-job-postings",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-a-linkedin-company-page",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-quora-questions-answers-and-profiles",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-a-temu-product-page",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/search-temu-by-keyword",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-a-tiktok-hashtag---totals-and-top-videos",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-a-public-tiktok-profile-and-its-newest-videos",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-one-tiktok-video-or-photo-post",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-the-comments-of-a-tiktok-video",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/search-tiktok-videos-by-keyword",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-a-youtube-videos-comments",
+      "destination": "/plugins/youtube"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-a-public-telegram-channel:-info-and-posts",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-a-public-threads-profile",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/scrape-an-instagram-profile-or-post",
+      "destination": "/plugins/overview"
+    },
+    {
+      "source": "/api-reference/plugins/southwest-airlines-flight-fares-as-json",
+      "destination": "/plugins/overview"
     }
   ]
 }
