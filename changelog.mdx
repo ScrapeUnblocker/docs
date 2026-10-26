@@ -21,7 +21,10 @@ description: "Notable changes to the ScrapeUnblocker API."
     show the crossed-out price). Shopee stopped answering its shop-profile API
     on October 26; `shop` now comes from the shop's page with `name`, `url`,
     `rating` and `ratingCount`, and the other shop fields are `null` until the
-    API answers again. `min_price` / `max_price` are enforced on
+    API answers again. When Shopee refuses to render a product page (seen in
+    Taiwan), the product comes back at the `meta` level from its search card
+    instead of a wrong `404`; a refused page without a title in the link is a
+    free `502` to retry. `min_price` / `max_price` are enforced on
     `price` in [shopee-search](/plugins/shopee).
   - **SHEIN:** `min_price` / `max_price` are enforced on `price`, and a new
     `reviewCountText` field carries SHEIN's own count text (`"1000+"`), since the
