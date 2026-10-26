@@ -21,8 +21,8 @@ POST /marketplace/shein-search
 | Field | Required | Notes |
 | --- | --- | --- |
 | `query` | yes | What to search, e.g. `summer dress` or `phone case`. |
-| `sort` | no | `relevance` (default), `price_low` or `price_high`. |
-| `min_price` / `max_price` | no | Price range in USD (whole dollars). |
+| `sort` | no | `relevance` (default), `price_low` or `price_high`. The order is SHEIN's: a price sort can carry a product or two out of order, as it does on the site. |
+| `min_price` / `max_price` | no | Price range in USD (whole dollars). SHEIN's own filter lets some products through on another price, so we enforce it again on `price`: every product returned is inside the range. |
 | `max_results` | no | How many products to return. Default `20`, which is also the most a call returns (SHEIN's first results page). |
 | `page` | no | Must be `1`: SHEIN does not serve deeper results pages. |
 | `proxy_country` | no | Proxy country (ISO-2). Optional. |
@@ -86,6 +86,7 @@ result = su.shein_search("summer dress", sort: "price_low", max_price: 30)
       "discountPercent": 85,
       "rating": null,
       "reviewCount": 0,
+      "reviewCountText": null,
       "category": "Petticoats",
       "categoryId": "3284",
       "image": "https://img.ltwebstatic.com/v4/j/spmp/2026/08/09/eb/17862494339cf764407b3df0ca4b4c89177eaba5b5_thumbnail_405x552.jpg",
@@ -103,6 +104,7 @@ result = su.shein_search("summer dress", sort: "price_low", max_price: 30)
       "discountPercent": 63,
       "rating": 4.89,
       "reviewCount": 1001,
+      "reviewCountText": "1000+",
       "category": "Women Mini Dresses",
       "categoryId": "12475",
       "image": "https://img.ltwebstatic.com/v4/j/pi/2025/04/10/21/174429927030e1f1ba718ce19a851586f05b03e747_thumbnail_405x552.jpg",
@@ -120,7 +122,8 @@ result = su.shein_search("summer dress", sort: "price_low", max_price: 30)
 | `title` / `url` | Product title and a clean product URL. |
 | `price` / `currency` | Current price and ISO currency (USD). |
 | `originalPrice` / `discountPercent` | The list price the product is discounted from and the discount in percent. |
-| `rating` / `reviewCount` | Star rating (out of 5) and number of reviews. `rating` is `null` for a product with no reviews. |
+| `rating` / `reviewCount` | Star rating (out of 5) and number of reviews. `rating` is `null` for a product with no reviews. SHEIN's search gives exact counts up to 1,000; above that `reviewCount` is `1001` and `reviewCountText` is `"1000+"`. |
+| `reviewCountText` | The review count as SHEIN shows it (`"100+"`, `"1000+"`), `null` for a product with few reviews. |
 | `category` / `categoryId` | SHEIN's category name and id for the product. |
 | `image` | Product image URL. |
 | `soldOut` | `true` when the product is sold out. |

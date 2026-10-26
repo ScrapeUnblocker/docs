@@ -98,6 +98,8 @@ By default (`main_content_only=true`) you get the page's main content:
 - If the page has a `<main>` element holding at least 30% of the page's text, that element is used, without the menus inside it.
 - Otherwise the whole page is used, without navigation, the site header, the footer and sidebars (`<nav>`, `<header>`, `<footer>`, `<aside>` and their ARIA roles). An article's own `<header>` is kept.
 
+Cookie consent banners (Cookiebot, OneTrust, Didomi, Usercentrics, Quantcast and other consent managers, and any dialog labelled as a cookie or consent dialog) are removed too, so their cookie lists never come before the content.
+
 If that leaves nothing, the whole page is returned rather than an empty answer. Set `main_content_only=false` to keep the whole page, for example when you need the footer's contact details or the site's navigation links.
 
 ```bash

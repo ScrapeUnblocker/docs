@@ -3,6 +3,31 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-26" description="Markdown without cookie banners; parsed_data price of variant offers; SERP countries; SHEIN and Shopee fixes">
+  - **Markdown:** with `main_content_only` (the default), cookie consent banners
+    (Cookiebot, OneTrust and other consent managers) are removed. A banner's
+    cookie list could outweigh the page's main content and come first in the
+    Markdown. See [Markdown](/guides/markdown#main-content-only).
+  - **parsed_data:** when a page's Schema.org data lists one offer per variant
+    (sizes, colours), `price` is now the lowest offer, the price the page shows,
+    instead of the first one listed.
+  - **SERP:** `totalResults` only takes Google's "About N results" figure and is
+    `null` when Google does not show it; before, a page number or a number from
+    elsewhere in the page could end up there. It is Google's figure, not a count
+    of matching pages. The [country list](/guides/serp-scraping#proxy_country)
+    is updated to the 32 countries we serve from, Brazil included.
+  - **Shopee:** `/marketplace/shopee-product` now returns `originalPrice` when
+    the product is discounted (it was `null` because a shop's listing does not
+    show the crossed-out price). Shopee stopped answering its shop-profile API
+    on October 26; `shop` now comes from the shop's page with `name`, `url`,
+    `rating` and `ratingCount`, and the other shop fields are `null` until the
+    API answers again. `min_price` / `max_price` are enforced on
+    `price` in [shopee-search](/plugins/shopee).
+  - **SHEIN:** `min_price` / `max_price` are enforced on `price`, and a new
+    `reviewCountText` field carries SHEIN's own count text (`"1000+"`), since the
+    search gives `1001` for any count above 1,000. See [SHEIN](/plugins/shein).
+</Update>
+
 <Update label="2026-10-26" description="getPageSource: JSON answers come back as served">
   When the target answers with JSON, `/getPageSource` now returns that JSON
   exactly as the target served it. Before, the body went through the same HTML

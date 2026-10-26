@@ -93,7 +93,7 @@ The extracted fields. Field names are English `snake_case` whatever the language
 
 **List pages** (`search_list`, `article_list`, ...) return the results as `items`, plus `total` and `next_page` (the URL of the next results page, or `null` on the last one).
 
-**Detail pages** (`*_detail`) return the item's fields at the top level, filled from the page's own spec table, its labelled values and the Schema.org data it publishes (price, brand, rating, mileage, ingredients, salary, ...). Next to them:
+**Detail pages** (`*_detail`) return the item's fields at the top level, filled from the page's own spec table, its labelled values and the Schema.org data it publishes (price, brand, rating, mileage, ingredients, salary, ...). When the Schema.org data lists one offer per variant (a size, a colour), `price` is the lowest of them, which is the price the page shows. Next to them:
 
 | Key | When present | What it holds |
 |-----|--------------|---------------|

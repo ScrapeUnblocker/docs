@@ -28,7 +28,7 @@ POST /marketplace/shopee-search
 | `shop_id` | one of `q` / `shop_id` / `url` | Only this shop's products (the number in a shop's links, e.g. `442800909`). Without `q` it lists the shop. |
 | `url` | one of `q` / `shop_id` / `url` | A Shopee search or category link, e.g. `https://shopee.sg/search?keyword=lego`, used as it is; `q`, `country`, `shop_id`, `sort` and the price filters are then ignored. |
 | `sort` | no | `relevance` (default), `sales`, `newest`, `price_asc` or `price_desc`. |
-| `min_price` / `max_price` | no | Price range in whole units of the market's currency. |
+| `min_price` / `max_price` | no | Price range in whole units of the market's currency. Shopee applies it with its own logic (a promotion can pass on its pre-discount price), so we enforce it again on `price`: every product returned is inside the range. |
 | `max_results` | no | Products to return, `1`-`40` (one Shopee results page). Default `40`. |
 
 <CodeGroup>
@@ -125,8 +125,8 @@ To list one shop, leave the keyword out and pass `shop_id`, e.g. `su.shopee_sear
 | `itemId` / `shopId` | Shopee's ids. Pass them (with `country`), or the `url`, to [Product](#product). |
 | `name` / `url` / `image` | Product name, link and main image. |
 | `price` / `currency` | The price in the market's currency, as Shopee shows a signed-out shopper. |
-| `originalPrice` / `discountPercent` | The crossed-out price and the discount, when Shopee shows them. |
-| `rating` | Average star rating. |
+| `originalPrice` / `discountPercent` | The crossed-out price and the discount, when Shopee shows them. Some result cards carry the discount badge without the crossed-out price (Singapore and the Philippines always, Brazil on some cards), so `discountPercent` can come without `originalPrice`. |
+| `rating` | Average star rating, `null` for a product nobody has rated yet. |
 | `location` | Where the seller ships from. |
 | `labels` | Promotion badges, e.g. a campaign price. |
 | `position` | Rank on the results page. |
@@ -274,7 +274,7 @@ To pass ids instead, leave the link out: `su.shopee_product(shop_id="442800909",
 | `attributes` / `videos` | Specifications and product videos (`full` only). |
 | `isOfficialShop` / `isPreOrder` / `estimatedShippingDays` / `createdAt` | Official shop and pre-order flags, the shipping estimate in days and the listing date (`full` only). |
 | `shopLocation` | Where the shop ships from. |
-| `shop` | `shopId`, `name`, `username`, `url`, `rating`, `ratingCount`, `followers`, `itemCount`, `responseRatePercent`, `isOfficialShop`, `isPreferredPlusSeller`, `location` and `joinedAt`. |
+| `shop` | `shopId`, `name`, `username`, `url`, `rating`, `ratingCount`, `followers`, `itemCount`, `responseRatePercent`, `isOfficialShop`, `isPreferredPlusSeller`, `location` and `joinedAt`. When Shopee's shop profile is not available, the profile is read from the shop's page, which carries `name`, `username`, `url`, `rating` and `ratingCount` only; the other fields are `null`. |
 
 ## Errors
 

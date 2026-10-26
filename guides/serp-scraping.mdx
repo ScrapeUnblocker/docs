@@ -177,9 +177,15 @@ curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=pizza&proxy_countr
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
-**Available countries (ISO2):** `BE`, `CA`, `CH`, `CN`, `DE`, `DK`, `ES`, `FR`,
-`GB`, `HK`, `HR`, `IE`, `IT`, `JP`, `KR`, `LT`, `NL`, `NO`, `PL`, `RO`, `SE`,
-`SG`, `TW`, `US`.
+**Available countries (ISO2):** `AT`, `AU`, `BE`, `BR`, `CA`, `CH`, `CN`, `CZ`,
+`DE`, `DK`, `ES`, `FI`, `FR`, `GB`, `HK`, `HR`, `IE`, `IT`, `JP`, `KR`, `LT`,
+`LU`, `NL`, `NO`, `NZ`, `PL`, `RO`, `SE`, `SG`, `TR`, `TW`, `US`. The list
+follows our exits and can grow; a fallback's `note` (below) always carries the
+current one.
+
+**Without `proxy_country`** the exit is picked from the whole pool, so the
+results can come from any of these countries and differ between calls. Set it
+whenever the market matters.
 
 **Country fallback.** If you request a country we do not have an exit for, the
 request does **not** error. The results are served from an available exit, and
@@ -193,9 +199,9 @@ the JSON response carries two extra fields so you know it happened:
 ```json
 {
   "keyword": "pizza",
-  "proxyCountry": "de",
-  "requestedCountry": "il",
-  "note": "Country 'IL' is not available. Results were served from 'DE'. Available countries: BE, CA, CH, CN, DE, DK, ES, FR, GB, HK, HR, IE, IT, JP, KR, LT, NL, NO, PL, RO, SE, SG, TW, US.",
+  "proxyCountry": "GB",
+  "requestedCountry": "IL",
+  "note": "Country 'IL' is not available. Results were served from 'GB'. Available countries: AT, AU, BE, BR, CA, CH, CN, CZ, DE, DK, ES, FI, FR, GB, HK, HR, IE, IT, JP, KR, LT, LU, NL, NO, NZ, PL, RO, SE, SG, TR, TW, US.",
   "organic": [ ... ]
 }
 ```
@@ -240,5 +246,5 @@ with `resultsCollected: 0` and an empty `organic` array. This is normal for narr
 ## Tips
 
 - **Phrase keywords like a user would.** `keyword=best+pizza+nyc` performs differently from `keyword=best%20pizza%20nyc%202026`. Use spaces or `+`, not commas.
-- **Watch `totalResults` for sanity.** A `totalResults` of 0 with valid organic results means the count couldn't be extracted - not that there are no results.
+- **`totalResults` is Google's own figure, not a count.** It is the "About N results" number Google prints on the page, passed through as it is, and `null` when Google does not show one. Google's figure is often far from the size of its index (for many queries it now prints a few hundred), so do not read it as how many pages match. Count what you collected with `organicResultsCount`.
 - **Cross-page dedup is your job.** If you call with `pages_to_check=10`, expect some overlap on borderline results. Dedup on `url`.
