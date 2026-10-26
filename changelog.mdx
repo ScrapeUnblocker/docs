@@ -26,7 +26,8 @@ description: "Notable changes to the ScrapeUnblocker API."
     instead of a wrong `404`; a refused page without a title in the link is a
     free `502` to retry. `min_price` / `max_price` are enforced on
     `price` in [shopee-search](/plugins/shopee).
-  - **SHEIN:** `min_price` / `max_price` are enforced on `price`, and a new
+  - **SHEIN:** concurrent searches are capped (2 per API key); a call over
+    the cap answers a free `429` with `Retry-After`. `min_price` / `max_price` are enforced on `price`, and a new
     `reviewCountText` field carries SHEIN's own count text (`"1000+"`), since the
     search gives `1001` for any count above 1,000. See [SHEIN](/plugins/shein).
 </Update>

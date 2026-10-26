@@ -66,6 +66,14 @@ result = su.shein_search("summer dress", sort: "price_low", max_price: 30)
 ```
 </CodeGroup>
 
+<Note>
+  SHEIN admits only a limited number of automated searches per minute, so
+  concurrent SHEIN searches are capped: up to 2 at a time per API key, and a
+  small number across all callers. A call that finds no free slot within a few
+  seconds answers `429` with a `Retry-After` header and is not billed. Run SHEIN
+  searches with a concurrency of 1-2 and retry a `429` after the given seconds.
+</Note>
+
 ### Response
 
 ```json

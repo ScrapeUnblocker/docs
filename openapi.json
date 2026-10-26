@@ -13552,6 +13552,9 @@
           "400": {
             "description": "Invalid parameters."
           },
+          "429": {
+            "description": "SHEIN searches are at capacity right now (concurrent searches are capped across all callers and per API key); retry after the Retry-After seconds. Not billed."
+          },
           "502": {
             "description": "Blocked by SHEIN, no results page returned, or the call did not finish in time."
           },
