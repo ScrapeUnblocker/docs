@@ -509,6 +509,10 @@
     {
       "source": "/api-reference/plugins/southwest-airlines-flight-fares-as-json",
       "destination": "/plugins/overview"
+    },
+    {
+      "source": "/goods/oopbuy-search",
+      "destination": "/plugins/oopbuy-search"
     }
   ]
 }
