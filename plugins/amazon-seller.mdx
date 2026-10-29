@@ -158,8 +158,7 @@ The example is shortened: `feedbackSummary` also has `30d` and `90d` with the sa
   ],
   "recentFeedbackCount": 5,
   "proxyCountry": null,
-  "exitCountry": "de",
-  "exitProvider": "isp"
+  "exitCountry": "de"
 }
 ```
 
@@ -174,7 +173,7 @@ The example is shortened: `feedbackSummary` also has `30d` and `90d` with the sa
 | `businessDetails` | Every row of Amazon's "Detailed Seller Information" as `label` / `value` (e.g. business type, trade register number, VAT number, customer services address), where the marketplace shows them. |
 | `contactUrl` | Amazon's contact-seller form. The plugin returns no phone number or e-mail field. |
 | `recentFeedback` | The recent feedback on the profile: `rating`, `text`, `author`, `date`, the `rater` line, `struckThrough` (feedback Amazon struck out) and `amazonMessage` (when Amazon took responsibility for the order). |
-| `exitCountry` / `exitProvider` | The country and the type (`isp`, `residential` or `datacenter`) of the proxy that served the call. |
+| `exitCountry` | The country that served the call (lowercase ISO-2). |
 
 ## Errors
 

@@ -1,0 +1,310 @@
+---
+title: "IndiaMART plugin"
+description: "IndiaMART B2B products as clean JSON - search results with price per unit, minimum order, specifications and the verified supplier, and one product with the supplier's company profile, ratings and export markets."
+sidebarTitle: "IndiaMART"
+---
+
+The **IndiaMART** plugin returns B2B product data from IndiaMART (indiamart.com, India's largest B2B marketplace) as structured JSON. It is two endpoints:
+
+- **`/marketplace/indiamart-search`** - the products for a keyword: product id, title and link, the price with its unit (price per kg, per piece...) and the price as IndiaMART prints it, minimum order quantity, category, specifications, description, image and brochure link, and the supplier (name, city, state, business type, verified-exporter, TrustSEAL, GST and IEC flags, rating, membership age, export markets and website), plus the supplier's other matching products.
+- **`/marketplace/indiamart-product`** - one product: the same fields plus the full image gallery, category path, delivery time, packaging, production capacity, port of dispatch and payment terms where the supplier gives them, and the supplier's company profile (year established, employees, annual turnover, legal status, verification flags, rating and top export countries).
+
+<Note>
+**What signed-out visitors see.** IndiaMART shows signed-out visitors its export catalogue: verified exporters, 10 products a page and 2 pages per search, so a search returns **at most 20 products**. `totalResults` is IndiaMART's own count of all matches. The plugin **never returns supplier phone numbers, e-mail addresses, contact names or street addresses**, only the company-level details above. No IndiaMART account is involved.
+</Note>
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/indiamart-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | one of `query` / `url` | What to search for, e.g. `steel pipe`, `cotton t shirt` or `solar panel`. |
+| `url` | one of `query` / `url` | Instead of `query`: an IndiaMART search link, e.g. `https://dir.indiamart.com/search.mp?ss=steel+pipe` (its keyword is used). |
+| `page` | no | 1-based results page to start from, `1`-`2` (10 products a page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`20`. Default `20`. Each page read is billed as one request (`pagesFetched`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/indiamart-search?query=steel%20pipe&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.indiamart_search("steel pipe", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.indiamartSearch("steel pipe", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->indiamartSearch('steel pipe', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.indiamart_search("steel pipe", max_results: 3)
+```
+</CodeGroup>
+
+To search with a link instead, leave the first argument out and pass `url` (`su.indiamart_search(url="https://dir.indiamart.com/search.mp?ss=steel+pipe")` in Python, `su.indiamartSearch(undefined, { url })` in Node.js).
+
+### Response
+
+```json
+{
+  "query": "steel pipe",
+  "page": 1,
+  "url": "https://export.indiamart.com/search.php?ss=steel+pipe",
+  "currency": "INR",
+  "totalResults": 1771,
+  "resultsCollected": 3,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "pagingStopped": null,
+  "products": [
+    {
+      "productId": "2854548650133",
+      "title": "Round Stainless Steel 347H Pipes",
+      "url": "https://www.indiamart.com/proddetail/stainless-steel-347h-pipes-2854548650133.html",
+      "hasProductPage": true,
+      "price": 210,
+      "priceText": "₹ 210/Kg",
+      "currency": "INR",
+      "unit": "Kg",
+      "minOrderQuantity": null,
+      "category": "347 Stainless Steel Pipe",
+      "categoryId": "179978",
+      "specifications": [
+        { "name": "Pipe Fluid", "value": "Chemical" },
+        { "name": "Country of Origin", "value": "Made in India" },
+        { "name": "Shape", "value": "Round" }
+      ],
+      "description": "SKYLAND METAL AND ALLOYS INC.\nis the One of the biggest stockist from MUMBAI , INDIA for Stainless steel 347H pipes.",
+      "image": "https://5.imimg.com/data5/SELLER/Default/2024/10/457674165/JY/BR/KS/21573024/stainless-steel-347h-welded-tubes-500x500.jpg",
+      "brochureUrl": "https://5.imimg.com/data5/SELLER/Doc/2025/2/487820872/HY/KF/ET/21573024/stainless-steel-347h-pipes.pdf",
+      "supplier": {
+        "id": "21573024",
+        "name": "Skyland Metal And Alloys Inc",
+        "city": "Mumbai",
+        "district": "Mumbai",
+        "state": "Maharashtra",
+        "country": "IN",
+        "businessType": "Wholesaler",
+        "verifiedExporter": true,
+        "trustSeal": true,
+        "gstVerified": true,
+        "iecVerified": true,
+        "rating": 4.2,
+        "ratingCount": 174,
+        "memberSince": "11 yrs",
+        "memberSinceDate": "2015-08-27",
+        "exporterSince": "11 yrs",
+        "exportsTo": ["United States Of America", "Poland", "Saudi Arabia", "United Arab Emirates", "Indonesia"],
+        "website": "https://www.skylandmetal.co.in/"
+      },
+      "moreFromSupplier": [
+        {
+          "productId": "20902625630",
+          "title": "Skyland Stainless Steel 304 Pipe, Size: 1/2 Inch",
+          "price": 300,
+          "unit": "Kg",
+          "url": "https://www.indiamart.com/proddetail/stainless-steel-304-pipe-20902625630.html",
+          "image": "https://5.imimg.com/data5/RJ/YN/IQ/SELLER-21573024/stainless-steel-304-pipe-250x250.png"
+        }
+      ],
+      "position": 1
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `title` / `url` | IndiaMART product id, title and link. Pass `productId` to [Product](#product). |
+| `hasProductPage` | `false` when the product has no page of its own; `url` is then the supplier's catalogue page, and the product cannot be fetched with [Product](#product). |
+| `price` / `priceText` / `currency` / `unit` | The price as a number (`null` when the supplier asks for a quote), as IndiaMART prints it, its currency (INR) and the unit the price is per. |
+| `minOrderQuantity` | Minimum order quantity, when the supplier gives one. |
+| `category` / `categoryId` | IndiaMART's category. |
+| `specifications` | `name` / `value` pairs from the listing. |
+| `description` / `image` / `brochureUrl` | Listing text, image and the supplier's brochure (PDF), when there is one. |
+| `supplier` | `id`, `name`, `city`, `district`, `state`, `country`, `businessType`, the `verifiedExporter`, `trustSeal`, `gstVerified` and `iecVerified` flags, `rating`, `ratingCount`, `memberSince` (with `memberSinceDate`), `exporterSince`, `exportsTo` and `website`. No phone numbers, e-mails or contact names. |
+| `moreFromSupplier` | The supplier's other matching products: `productId`, `title`, `price`, `unit`, `url` and `image`. |
+| `position` | Rank in IndiaMART's results. |
+| `totalResults` / `hasMore` / `nextPage` | IndiaMART's count of all matches, whether another page can be read, and the page to pass as `page` to continue (at most page `2`). |
+
+## Product
+
+```
+POST /marketplace/indiamart-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | IndiaMART product id, e.g. `2854548650133` (the number at the end of a `/proddetail/` link; search results give it as `productId`). |
+| `url` | one of `product_id` / `url` | Instead of `product_id`: an IndiaMART product link, e.g. `https://www.indiamart.com/proddetail/stainless-steel-347h-pipes-2854548650133.html`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/indiamart-product?product_id=2854548650133" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.indiamart_product(product_id="2854548650133")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.indiamartProduct({ productId: "2854548650133" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->indiamartProduct(['product_id' => '2854548650133']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.indiamart_product(product_id: "2854548650133")
+```
+</CodeGroup>
+
+Give either `product_id` or `url`, not both. Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "productId": "2854548650133",
+    "title": "Round Stainless Steel 347H Pipes",
+    "name": "Stainless Steel 347H Pipes",
+    "url": "https://www.indiamart.com/proddetail/stainless-steel-347h-pipes-2854548650133.html",
+    "price": 210,
+    "priceText": "₹ 210 / Kg",
+    "currency": "INR",
+    "unit": "Kg",
+    "minOrderQuantity": null,
+    "description": "SKYLAND METAL AND ALLOYS INC.\nis the One of the biggest stockist from MUMBAI , INDIA for Stainless steel 347H pipes.",
+    "specifications": [
+      { "name": "Shape", "value": "Round" },
+      { "name": "Pipe Fluid", "value": "Chemical" },
+      { "name": "Country of Origin", "value": "Made in India" }
+    ],
+    "category": "347 Stainless Steel Pipe",
+    "categoryId": "179978",
+    "parentCategory": "Stainless Steel Pipes",
+    "group": "Steel Pipes and Tubes",
+    "deliveryTime": null,
+    "packagingDetails": null,
+    "productionCapacity": null,
+    "portOfDispatch": null,
+    "paymentTerms": null,
+    "image": "https://5.imimg.com/data5/SELLER/Default/2024/10/457674165/JY/BR/KS/21573024/stainless-steel-347h-welded-tubes-1000x1000.jpg",
+    "images": [
+      "https://5.imimg.com/data5/SELLER/Default/2024/10/457674165/JY/BR/KS/21573024/stainless-steel-347h-welded-tubes-1000x1000.jpg",
+      "https://5.imimg.com/data5/SELLER/Default/2025/2/489256291/BO/MV/UL/21573024/stainless-steel-347h-pipes-1000x1000.jpg"
+    ],
+    "brochureUrl": "https://5.imimg.com/data5/SELLER/Doc/2025/2/487820872/HY/KF/ET/21573024/stainless-steel-347h-pipes.pdf",
+    "supplier": {
+      "id": "21573024",
+      "name": "Skyland Metal And Alloys Inc",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "country": "IN",
+      "businessType": "Exporter",
+      "additionalBusiness": "Manufacturer,Exporter,Wholesaler,Supplier",
+      "yearEstablished": 1991,
+      "employees": "26 to 50 People",
+      "annualTurnover": "Rs. 25 - 50 Crore",
+      "legalStatus": "Individual - Proprietor",
+      "industry": null,
+      "certifications": null,
+      "gstVerified": true,
+      "trustSeal": true,
+      "mobileVerified": true,
+      "emailVerified": true,
+      "rating": 4.2,
+      "ratingCount": 174,
+      "memberSince": "11 yrs",
+      "memberSinceDate": "2015-08-27",
+      "topExportCountries": ["Saudi Arabia", "United States Of America", "United Arab Emirates", "Indonesia", "Oman"],
+      "website": "https://www.skylandmetal.co.in/",
+      "logo": "https://5.imimg.com/data5/SELLER/Logo/2026/6/616476832/DI/XM/VC/21573024/logo-1-90x90.jpeg"
+    }
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `title` / `name` | The listing title and the product name. |
+| `price` / `priceText` / `currency` / `unit` / `minOrderQuantity` | As in search: `price` is `null` when the supplier asks for a quote. |
+| `description` / `specifications` | Listing text and `name` / `value` pairs. |
+| `category` / `categoryId` / `parentCategory` / `group` | Where IndiaMART files the product. |
+| `deliveryTime` / `packagingDetails` / `productionCapacity` / `portOfDispatch` / `paymentTerms` | Trade terms, when the supplier fills them in (`null` otherwise). |
+| `image` / `images` / `brochureUrl` | Main image, gallery and brochure. |
+| `supplier` | The company profile: `id`, `name`, `city`, `state`, `country`, `businessType`, `additionalBusiness`, `yearEstablished`, `employees`, `annualTurnover`, `legalStatus`, `industry`, `certifications`, the `gstVerified`, `trustSeal`, `mobileVerified` and `emailVerified` flags, `rating`, `ratingCount`, `memberSince`, `topExportCountries`, `website` and `logo`. `mobileVerified` and `emailVerified` only say that IndiaMART verified them; the number and address themselves are not returned. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. neither `query` nor `url`, both `product_id` and `url`, a non-numeric `product_id`, a `page` above `2` or a `max_results` above `20`. |
+| `404` | IndiaMART found no products for the search, or has no such product. |
+| `502` | IndiaMART blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Supplier sourcing** - shortlist verified Indian exporters for a product by price per unit, minimum order, rating and certifications.
+- **B2B price benchmarks** - track the per-unit prices suppliers quote for a commodity (steel, textiles, chemicals) over time.
+- **Supplier vetting** - compare company size, turnover band, years in business, GST and TrustSEAL status before reaching out through IndiaMART.
+- **Export market research** - see which countries an industry's suppliers sell to.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an IndiaMART search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

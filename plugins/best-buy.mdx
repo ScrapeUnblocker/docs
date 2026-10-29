@@ -1,10 +1,13 @@
 ---
-title: "Best Buy Search plugin"
-description: "Best Buy product search as clean JSON - SKU, title, brand, model, price, regular price, currency, rating, review count, image and a product link."
-sidebarTitle: "Best Buy Search"
+title: "Best Buy plugin"
+description: "Best Buy product search and product pages as clean JSON - SKU, title, brand, model, price, regular price, rating and review count for a search, plus one product with availability, features, specifications, images and open-box offers."
+sidebarTitle: "Best Buy"
 ---
 
-The **Best Buy Search** plugin turns a Best Buy (US) search into structured JSON. Give it a keyword and it returns the products Best Buy shows - each with its `sku`, title, brand, model number, current price and the regular price it is discounted from, currency, star rating, review count, an image and a clean product URL - plus Best Buy's `totalResults`.
+The **Best Buy** plugin returns Best Buy (US) data as structured JSON. It is two endpoints:
+
+- **`/marketplace/bestbuy-search`** - give it a keyword and it returns the products Best Buy shows, each with its `sku`, title, brand, model number, current price and the regular price it is discounted from, currency, star rating, review count, an image and a clean product URL, plus Best Buy's `totalResults`.
+- **`/marketplace/bestbuy-product`** - one product by `sku` (from a search) or link: price and savings, shipping, pickup and delivery availability, rating, description, features, what is in the box, every specification, full-size images, categories, the seller, open-box offers and dimensions. See [Product](#product).
 
 Sort by relevance, best selling, price, rating, newest or discount, filter by a USD price range, and collect up to `max_results` products across pages (48 per page) starting from any `page`.
 
@@ -114,12 +117,166 @@ result = su.bestbuy_search("laptop", sort: "price_low", max_results: 48)
 
 A field with no value is left out of that product (for example `model` or `originalPrice`).
 
+## Product
+
+```
+POST /marketplace/bestbuy-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `sku` | one of `sku` / `url` | Best Buy SKU, e.g. `6613868` (the number after `/sku/` in a product link, or its `skuId=`; the `sku` of a search result). |
+| `url` | one of `sku` / `url` | Instead of `sku`: a bestbuy.com product link, e.g. `https://www.bestbuy.com/product/hp-omnibook-x-flip/JJGQJRKGTJ/sku/6613868` or `https://www.bestbuy.com/site/-/6613868.p?skuId=6613868`. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/bestbuy-product?sku=6613868" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bestbuy_product("6613868")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.bestbuyProduct("6613868");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->bestbuyProduct('6613868');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bestbuy_product("6613868")
+```
+
+</CodeGroup>
+
+To look a product up by link, leave the first argument out and pass `url` (`su.bestbuy_product(url="https://www.bestbuy.com/...")` in Python, `su.bestbuyProduct(undefined, { url })` in Node.js). Give `sku` or `url`, not both. Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "sku": "6613868",
+  "title": "HP - OmniBook X Flip 2-in-1 - 14\" 2K Touchscreen Laptop - Intel Core Ultra 5 226V (2024) - 16GB Memory - 512GB SSD - Copilot+ - Atmospheric Blue",
+  "brand": "HP",
+  "model": "14-fm0013dx",
+  "upc": "198990145426",
+  "productType": "Laptop Computer",
+  "condition": "New",
+  "price": 649.99,
+  "originalPrice": 999.99,
+  "savings": 350.0,
+  "savingsPercent": 35.0,
+  "currency": "USD",
+  "available": true,
+  "availableForShipping": true,
+  "availableForPickup": true,
+  "availableForDelivery": false,
+  "rating": 4.7,
+  "reviewCount": 1312,
+  "url": "https://www.bestbuy.com/product/hp-omnibook-x-flip-2-in-1-14-2k-touchs...",
+  "description": "Take your creativity to go with the thin and light HP OmniBook X Flip 14 Next Ge...",
+  "features": [
+    {
+      "title": "Windows 11 Home Operating System",
+      "description": "All the best elements of Windows 10, with added features to..."
+    }
+  ],
+  "includedItems": [
+    "HP OmniBook X Flip Laptop Next Gen AI PC",
+    "65 W USB Type-C power adapter",
+    "Setup instructions"
+  ],
+  "specifications": [
+    {
+      "group": "Key Specs",
+      "name": "Screen Type",
+      "value": "IPS"
+    },
+    {
+      "group": "Key Specs",
+      "name": "Screen Size",
+      "value": "14 inches"
+    }
+  ],
+  "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/produc...",
+  "category": "Windows Laptops",
+  "categories": [
+    "Computers & Tablets",
+    "Laptops",
+    "All Laptops",
+    "Windows Laptops"
+  ],
+  "seller": {
+    "id": "bby",
+    "type": "Best Buy"
+  },
+  "openBoxOffers": [
+    {
+      "condition": "Excellent",
+      "price": 516.99,
+      "originalPrice": 999.99,
+      "url": "https://www.bestbuy.com/product/hp-omnibook-x-flip-2-in-1-14..."
+    }
+  ],
+  "dimensions": {
+    "height": "0.58 inches",
+    "width": "12.32 inches",
+    "depth": "8.6 inches",
+    "weight": "3.06 pounds"
+  },
+  "releaseDate": null
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `sku` / `title` / `brand` / `model` / `upc` / `productType` / `condition` / `url` | The product. |
+| `price` / `originalPrice` / `savings` / `savingsPercent` / `currency` | Price in USD, and the regular price and saving when it is on sale. |
+| `available` / `availableForShipping` / `availableForPickup` / `availableForDelivery` | Whether Best Buy sells it now and how it can be had, nationwide (not for one store or ZIP code). |
+| `rating` / `reviewCount` | Star rating and review count. |
+| `description` / `features` / `includedItems` | The description, each feature (`title`, `description`) and what is in the box. |
+| `specifications` | Every specification as `group` / `name` / `value`. |
+| `image` / `images` | The main image and every image, full size. |
+| `category` / `categories` | The leaf category and the path from the root. |
+| `seller` | Best Buy (`id: "bby"`) or a Marketplace seller id. |
+| `openBoxOffers` | Open-box offers (`Excellent`, `Good`, `Fair`) with their prices and links. |
+| `dimensions` / `releaseDate` | Height, width, depth and weight, and the release date when Best Buy gives one. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters: a missing `query` (search), or a missing or invalid `sku` / `url`, or both given (product). |
+| `404` | Product: Best Buy has no product with this SKU. |
+| `502` | Best Buy blocked every attempt, returned no data, or the call did not finish in time. Retry. |
+
 ## What you can build
 
 - **Price monitoring** - track `price` and `originalPrice` for a SKU to catch sales and price drops.
 - **Assortment research** - pull every laptop, TV or headphone in a category with brand and model.
 - **Repricing and MAP checks** - compare Best Buy prices against your own listings by model number.
 - **Deal feeds** - sort by `discount` to build a live list of the biggest markdowns.
+- **Open-box tracking** - watch `openBoxOffers` for a SKU to catch cheaper open-box stock.
 
 ## Next steps
 

@@ -3,6 +3,55 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-30" description="ChatGPT, MediaMarkt, Cdiscount, idealo, Rakuten, IndiaMART, Bed Bath & Beyond, Petco, Neobits, Lowe's, Menards and Grainger plugins; product pages for Walmart, eBay, Etsy, Best Buy, Target and AliExpress; SDKs 0.17.0">
+  **Twelve new plugin pages:**
+
+  - **AI:** [ChatGPT](/plugins/chatgpt) (ChatGPT's answer, signed out, with
+    the sites it cites; citation pills name the site and domain, not the
+    page URL, and each call takes 15-60 s).
+  - **E-commerce:** [MediaMarkt](/plugins/mediamarkt) (10 countries and
+    Saturn), [Cdiscount](/plugins/cdiscount) (France),
+    [idealo](/plugins/idealo) (price comparison in 6 countries, every shop's
+    offer for a product), [Rakuten](/plugins/rakuten) (Rakuten Ichiba,
+    Japan), [IndiaMART](/plugins/indiamart) (B2B; signed out, search returns
+    at most 2 pages of 10 and never supplier phone numbers or e-mails),
+    [Bed Bath & Beyond](/plugins/bedbathandbeyond),
+    [Petco](/plugins/petco), [Neobits](/plugins/neobits) (product pages
+    only: its search is behind a reCAPTCHA), [Lowe's](/plugins/lowes)
+    (priced for one store), [Menards](/plugins/menards) (store prices and
+    stock come from search with `store_id` or `zip`) and
+    [Grainger](/plugins/grainger) (the signed-out Web Price, no stock
+    levels).
+
+  **Product pages next to existing searches:**
+  [Walmart](/plugins/walmart#product), [eBay](/plugins/ebay#product),
+  [Etsy](/plugins/etsy#product) (prices follow the shopper country Etsy
+  assigns), [Best Buy](/plugins/best-buy#product),
+  [Target](/plugins/target) (a product, and category listings where each page
+  is one call) and [AliExpress](/plugins/aliexpress#product) (priced in your
+  currency and shipped to your country).
+
+  **Responses no longer carry exit or proxy details.** Plugin answers no
+  longer include `exitProvider` (the proxy type of the Amazon plugins), and
+  no response carries the `X-Proxy-Address` or `X-Render-Trace` headers.
+  `exitCountry` and `proxyCountry`, where a plugin returns them, still name
+  the country that served the call.
+
+  **SDKs 0.17.0** ([Python](/sdks/python), [Node.js](/sdks/nodejs),
+  [PHP](/sdks/php), [Ruby](/sdks/ruby)) add 29 plugin methods: `chatgpt`,
+  `mediamarkt_search`, `mediamarkt_product`, `cdiscount_search`,
+  `cdiscount_product`, `idealo_search`, `idealo_offers`, `rakuten_search`,
+  `rakuten_product`, `indiamart_search`, `indiamart_product`,
+  `bedbathandbeyond_search`, `bedbathandbeyond_product`, `petco_search`,
+  `petco_product`, `neobits_product`, `lowes_search`, `lowes_product`,
+  `menards_search`, `menards_product`, `grainger_search`,
+  `grainger_product`, `walmart_product`, `ebay_product`, `etsy_product`,
+  `bestbuy_product`, `target_category`, `target_product` and
+  `aliexpress_product` (camelCase in Node.js and PHP). The
+  [MCP server](/sdks/mcp) (**0.11.0** on npm) and the hosted connector
+  (**0.12.0**) have the new plugins in their catalog.
+</Update>
+
 <Update label="2026-10-29" description="Google Maps Reviews plugin">
   - **New plugin:** [`/maps/reviews`](/plugins/google-maps-reviews) returns a
     Google Maps place's reviews in Google's four sort orders (`relevant`,
@@ -340,7 +389,7 @@ description: "Notable changes to the ScrapeUnblocker API."
   [402 payment required](/errors#user-set-budget-exceeded).
 </Update>
 
-<Update label="2026-10-06" description="Plugins: timeouts are a 502, Skyscanner car hire defaults, Amazon exitProvider is a proxy type">
+<Update label="2026-10-06" description="Plugins: timeouts are a 502, Skyscanner car hire defaults">
   - **Plugin timeouts:** a dedicated plugin call that does not finish within its
     time limit now returns **`502`** with a plain-text `... timed out.` message.
     Some plugins (for example Walmart search) used to answer a timeout with a
@@ -350,8 +399,6 @@ description: "Notable changes to the ScrapeUnblocker API."
     optional, with the defaults `UK`, `en-GB`, `GBP` and `30` (the same as
     flights and hotels). A request without dates or a pickup gets an immediate
     `400` naming the missing parameters.
-  - **Amazon:** `exitProvider` now reports the proxy type (`isp`,
-    `residential` or `datacenter`) instead of a provider name.
 </Update>
 
 <Update label="2026-10-06" description="parsed_data: a page with nothing to extract is a 200 again, now with its HTML">

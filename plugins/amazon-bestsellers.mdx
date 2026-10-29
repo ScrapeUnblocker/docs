@@ -126,8 +126,7 @@ result = su.amazon_bestsellers("electronics/172541", marketplace: "amazon.com", 
   ],
   "url": "https://www.amazon.com/gp/bestsellers/electronics/172541/",
   "proxyCountry": "US",
-  "exitCountry": "us",
-  "exitProvider": "isp"
+  "exitCountry": "us"
 }
 ```
 
@@ -149,7 +148,7 @@ Response-level fields:
 | `message` | When Amazon has no list for that category, its own message text, with an empty `items` array. Otherwise `null`. |
 | `itemsWithDetails` | How many items came back complete. An item whose card Amazon did not load comes back with only `rank`, `asin` and `url`. |
 | `pagesFetched` | List pages fetched, each billed as one request. |
-| `exitCountry` / `exitProvider` | Country and type of the proxy that served the call. |
+| `exitCountry` | The country that served the call (lowercase ISO-2). |
 
 ### Supported marketplaces
 

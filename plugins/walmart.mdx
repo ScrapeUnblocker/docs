@@ -1,10 +1,13 @@
 ---
-title: "Walmart Search plugin"
-description: "Walmart product search as clean JSON - title, price, was-price, rating, review count, brand, seller, availability, image and a direct product link."
-sidebarTitle: "Walmart Search"
+title: "Walmart plugin"
+description: "Walmart product search and product pages as clean JSON - title, price, was-price, rating, review count, brand, seller and availability for a search, plus one product with fulfillment, return policy, review summary, specifications and every variant."
+sidebarTitle: "Walmart"
 ---
 
-The **Walmart Search** plugin turns any Walmart search into structured JSON. Give it a keyword, and it returns the products Walmart shows - each with title, price and was-price, star rating and review count, brand, seller, availability, image and a clean product URL. Sort, filter by price and page through to `max_results`.
+The **Walmart** plugin returns Walmart (US) data as structured JSON. It is two endpoints:
+
+- **`/marketplace/walmart-search`** - the products Walmart shows for a keyword, each with title, price and was-price, star rating and review count, brand, seller, availability, image and a clean product URL. Sort, filter by price and page through to `max_results`.
+- **`/marketplace/walmart-product`** - one product page in full: price, was-price and list price, Rollback and Clearance flags, stock, the seller and how many others sell it, shipping, pickup and delivery, the return policy, the rating with its star histogram and aspect scores, the first reviews, description, specifications, every variant, images and videos. See [Product](#product).
 
 It runs on the same fetch chain that serves `getPageSource`. Walmart sits behind PerimeterX and blocks traffic from outside the US, so the plugin renders the search from the US and reads the products from Walmart's own `__NEXT_DATA__` island - no Walmart developer account needed.
 
@@ -116,12 +119,274 @@ result = su.walmart_search("laptop", sort: "price_low", max_results: 60)
 Any field with no value is omitted from a product, so each item carries only the fields Walmart's search tile actually showed (e.g. `wasPrice` or `brand` may be absent).
 </Note>
 
+## Product
+
+```
+POST /marketplace/walmart-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `item_id` | one of `item_id` / `url` | Walmart item id, the number at the end of a product link, e.g. `18638703162` for `walmart.com/ip/.../18638703162`. |
+| `url` | one of `item_id` / `url` | Instead of `item_id`: a walmart.com product link, e.g. `https://www.walmart.com/ip/HP-15-6-inch-Laptop/18638703162`. |
+| `proxy_country` | no | Country the request is made from (ISO-2). Default `US`: walmart.com refuses most other countries, so leave it unset. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/walmart-product?item_id=18638703162" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.walmart_product(item_id="18638703162")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.walmartProduct({ itemId: "18638703162" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->walmartProduct(['item_id' => '18638703162']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.walmart_product(item_id: "18638703162")
+```
+
+</CodeGroup>
+
+Give `item_id` or `url`, not both. Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "itemId": "18638703162",
+    "productId": "53DXIJDURQ1C",
+    "url": "https://www.walmart.com/ip/HP-15-6-inch-HD-Windows-Laptop-Intel-Proces...",
+    "title": "HP 15.6 inch HD Windows Laptop Intel Processor N250 4GB 128GB UFS Moonlight Blue",
+    "brand": "HP",
+    "model": "15-fd0092wm",
+    "upc": "199764294609",
+    "price": 229.0,
+    "wasPrice": 289.9,
+    "listPrice": 289.9,
+    "currency": "USD",
+    "priceText": "Now $229.00",
+    "savings": 60.9,
+    "unitPrice": null,
+    "rollback": true,
+    "clearance": false,
+    "availability": "IN_STOCK",
+    "inStock": true,
+    "orderLimit": 2,
+    "condition": "New",
+    "rating": 4.1,
+    "reviewCount": 1606,
+    "reviewSummary": {
+      "ratingHistogram": {
+        "5": 1061,
+        "4": 161,
+        "3": 84,
+        "2": 59,
+        "1": 241
+      },
+      "reviewsWithText": 275,
+      "recommendedPercent": 44,
+      "aspects": [
+        {
+          "name": "Value for money",
+          "score": 4.8,
+          "sentiment": "positive"
+        },
+        {
+          "name": "Ease of use",
+          "score": 4.6,
+          "sentiment": "positive"
+        }
+      ]
+    },
+    "reviews": [
+      {
+        "id": "438087777",
+        "rating": 5,
+        "title": "Reliable product.",
+        "text": "Works great. It's fast and the graphics are awesome. It does not have a touch sc...",
+        "date": "8/24/2026",
+        "author": "anonymous",
+        "helpfulVotes": 1,
+        "seller": "Walmart.com"
+      }
+    ],
+    "seller": {
+      "id": "F55CDC31AB754BB68FE0B39041159D63",
+      "catalogId": null,
+      "name": "Walmart.com",
+      "type": "walmart",
+      "rating": null,
+      "reviewCount": null,
+      "url": null,
+      "fulfilledByWalmart": false
+    },
+    "additionalSellerCount": 10,
+    "fulfillment": [
+      {
+        "type": "shipping",
+        "available": true,
+        "status": "IN_STOCK",
+        "date": "2026-10-30T21:59:00.000Z",
+        "maxDate": null,
+        "price": 0.0,
+        "location": "Sacramento, 95829",
+        "lowStock": false,
+        "maxOrderQuantity": 2,
+        "message": "Free shipping, arrives by tomorrow to Sacramento, 95829"
+      },
+      {
+        "type": "pickup",
+        "available": false,
+        "status": "OUT_OF_STOCK",
+        "date": null,
+        "maxDate": null,
+        "price": null,
+        "location": "Sacramento Gerber Rd Supercenter",
+        "lowStock": false,
+        "maxOrderQuantity": null,
+        "message": "Pickup not available at Sacramento Gerber Rd Supercenter"
+      }
+    ],
+    "location": {
+      "postalCode": "95829",
+      "city": "Sacramento",
+      "state": "CA",
+      "storeId": "3081"
+    },
+    "returnPolicy": {
+      "returnable": true,
+      "freeReturns": true,
+      "days": 30,
+      "text": "Free Holiday returns until Jan 31"
+    },
+    "categories": [
+      {
+        "name": "Electronics",
+        "url": "https://www.walmart.com/cp/electronics/3944"
+      },
+      {
+        "name": "Computers, Laptops and Tablets",
+        "url": "https://www.walmart.com/cp/computers-laptops-tablets/1089430"
+      }
+    ],
+    "shortDescription": "The HP 15 inch HD Laptop packs in the reliable processing power of an Intel processor, plu...",
+    "specifications": [
+      {
+        "name": "Battery life",
+        "value": "10.75 h"
+      },
+      {
+        "name": "Screen size",
+        "value": "15.6 in"
+      },
+      {
+        "name": "Proc. speed",
+        "value": "3.7 GHz"
+      }
+    ],
+    "warranty": "1 year",
+    "variantOptions": [
+      {
+        "name": "Actual Color",
+        "values": [
+          {
+            "name": "Moonlight blue",
+            "available": true,
+            "swatchImage": null
+          },
+          {
+            "name": "Natural silver",
+            "available": true,
+            "swatchImage": null
+          }
+        ]
+      }
+    ],
+    "variants": [
+      {
+        "productId": "53DXIJDURQ1C",
+        "itemId": "18638703162",
+        "attributes": {
+          "Actual Color": "Moonlight blue"
+        },
+        "price": 229.0,
+        "wasPrice": 289.9,
+        "availability": "IN_STOCK",
+        "inStock": true,
+        "url": "https://www.walmart.com/ip/HP-15-6-inch-HD-Windows-Laptop-In...",
+        "image": "https://i5.walmartimages.com/seo/HP-15-6-inch-HD-Windows-Lap..."
+      }
+    ],
+    "images": [
+      "https://i5.walmartimages.com/seo/HP-15-6-inch-HD-Windows-Lap..."
+    ],
+    "videos": [
+      "https://vds.prod.walmartimages.com/dam/v2/assets/ECOMMERCE/W..."
+    ]
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `itemId` / `productId` / `url` | Walmart's item id (the number in the link), its catalog product id and the product link. |
+| `title` / `brand` / `model` / `upc` / `manufacturerPartNumber` | Product identity, as the page shows it. |
+| `price` / `wasPrice` / `listPrice` / `savings` | Current price, the struck-through price and list price, and the saving. `priceText` is the price line as Walmart words it. |
+| `unitPrice` / `unitPriceText` | Price per unit (e.g. per ounce), where Walmart shows one. |
+| `rollback` / `clearance` | Walmart's Rollback and Clearance flags. |
+| `availability` / `inStock` / `orderLimit` | Stock state, a boolean, and the most one order may hold. |
+| `seller` | `name`, `type` (`walmart` or a marketplace seller), `rating`, `reviewCount` and `fulfilledByWalmart`. |
+| `additionalSellerCount` | How many other sellers offer the item. Their offers are not on the product page, so only the count is returned. |
+| `fulfillment` | One entry per way to get it (`shipping`, `pickup`, `delivery`): `available`, `status`, `date`, `price`, `location` and Walmart's `message`. |
+| `location` | The US location Walmart assigned to the request, which the fulfillment dates and store are quoted for. It is not a ZIP code or store you choose. |
+| `returnPolicy` | Whether it is returnable, free returns, the return window in days and Walmart's text. |
+| `rating` / `reviewCount` / `reviewSummary` | Star rating and count, plus the star histogram, the recommend percentage and aspect scores. |
+| `reviews` | The first reviews on the page: `rating`, `title`, `text`, `date`, `author` (as Walmart shows it), `helpfulVotes` and the `seller` it was bought from. |
+| `categories` / `shortDescription` / `description` / `highlights` / `specifications` / `warranty` / `warnings` | Category path and the product page text and specs. |
+| `variantOptions` / `variants` | The variant menus (colour, size) and every variant with its own `itemId`, `attributes`, `price`, `wasPrice`, stock, link and image. |
+| `images` / `videos` | Image and video links. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters: a missing `query` (search), or a missing or invalid `item_id` / `url`, or both given (product). |
+| `404` | Product: no such Walmart item (Walmart shows its not-found page). |
+| `502` | Walmart blocked every attempt, returned no data, or the call did not finish in time. Retry. |
+
 ## What you can build
 
 - **Price monitoring and repricing** - track price and `wasPrice` for a product over time.
 - **Catalog and assortment research** - pull a whole category with brands and sellers.
 - **Review-volume signals** - `rating` and `reviewCount` show what is actually selling.
 - **Competitor tracking** - compare the same keyword against your own listings.
+- **Product detail feeds** - pull specifications, variants and fulfillment for the items a search returns, by their `id`.
 
 ## Next steps
 

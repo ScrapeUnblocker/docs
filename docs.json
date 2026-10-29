@@ -102,7 +102,8 @@
                 "icon": "robot",
                 "expanded": false,
                 "pages": [
-                  "plugins/gemini"
+                  "plugins/gemini",
+                  "plugins/chatgpt"
                 ]
               },
               {
@@ -147,7 +148,18 @@
                   "plugins/lazada",
                   "plugins/allegro",
                   "plugins/falabella",
-                  "plugins/magazine-luiza"
+                  "plugins/magazine-luiza",
+                  "plugins/mediamarkt",
+                  "plugins/cdiscount",
+                  "plugins/idealo",
+                  "plugins/rakuten",
+                  "plugins/indiamart",
+                  "plugins/bedbathandbeyond",
+                  "plugins/petco",
+                  "plugins/neobits",
+                  "plugins/lowes",
+                  "plugins/menards",
+                  "plugins/grainger"
                 ]
               },
               {

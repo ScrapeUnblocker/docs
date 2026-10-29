@@ -1,0 +1,323 @@
+---
+title: "Cdiscount plugin"
+description: "Cdiscount (France) as clean JSON - search results with price, crossed-out price, discount, rating, seller and delivery, and one product with EAN, price without VAT, eco-participation, specifications, variants, offer counts, energy class and the latest reviews."
+sidebarTitle: "Cdiscount"
+---
+
+The **Cdiscount** plugin returns products from Cdiscount (cdiscount.com, France) as structured JSON. It is two endpoints:
+
+- **`/marketplace/cdiscount-search`** - the products for a keyword: product id (the SKU) and offer id, title, link and images, the price with the crossed-out reference price and the discount (only when Cdiscount shows one), rating and review count, the seller (Cdiscount or a marketplace seller), whether Cdiscount fulfils it, the Cdiscount à volonté flag, free shipping and the delivery label, condition, key specifications and promotion badges. A page holds about 47 products; one call collects up to 300.
+- **`/marketplace/cdiscount-product`** - one product: brand, EAN and manufacturer reference, breadcrumbs, the price with and without VAT, the crossed-out price and its kind, the eco-participation, stock and order limit, condition, the seller, delivery, the count and lowest price of the new and used offers, rating with its breakdown and criteria ratings, specifications, description, images, videos, variants, energy class, repairability index, installments, badges, documents and the latest reviews.
+
+Prices are in euros, as shown to a signed-out shopper. Search results give the brand only as an id (`brandId`); the product endpoint has the brand name. No Cdiscount account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/cdiscount-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `iphone 15` or `machine a laver`. |
+| `page` | no | First Cdiscount results page to read, `1`-`100`. Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`300`. Default `47`. A page holds about 47 products; each page is billed as one request. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/cdiscount-search?query=aspirateur%20robot&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.cdiscount_search("aspirateur robot", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.cdiscountSearch("aspirateur robot", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->cdiscountSearch('aspirateur robot', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.cdiscount_search("aspirateur robot", max_results: 3)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "aspirateur robot",
+  "page": 1,
+  "url": "https://www.cdiscount.com/search/10/aspirateur+robot.html",
+  "currency": "EUR",
+  "total": 8140,
+  "lastPage": 101,
+  "pagesFetched": 1,
+  "nextPage": 2,
+  "pagingStopped": null,
+  "resultsCollected": 3,
+  "products": [
+    {
+      "productId": "rob6936905900920",
+      "offerId": "4214184536",
+      "title": "ROBOROCK QREVO 5AE - Aspirateur Robot Laveur avec Station - Puissance 12000 Pa - Serpillières FlexiArm - Double Anti-emmêlement",
+      "brandId": "61360",
+      "url": "https://www.cdiscount.com/electromenager/aspirateurs-nettoyeurs/roborock-qrevo-5ae-aspirateur-robot-laveur-avec/f-1101409-rob6936905900920.html?idOffre=4214184536&sw=...",
+      "image": "https://www.cdiscount.com/pdt2/9/2/0/1/700x700/rob6936905900920/rw/roborock-qrevo-5ae-aspirateur-robot-laveur-avec.jpg",
+      "images": [
+        "https://www.cdiscount.com/pdt2/9/2/0/1/700x700/rob6936905900920/rw/roborock-qrevo-5ae-aspirateur-robot-laveur-avec.jpg",
+        "https://www.cdiscount.com/pdt2/9/2/0/2/700x700/rob6936905900920/rw/roborock-qrevo-5ae-aspirateur-robot-laveur-avec.jpg"
+      ],
+      "price": 349,
+      "strikePrice": 699,
+      "discountPercent": 50,
+      "currency": "EUR",
+      "rating": 4.6,
+      "reviewCount": 9,
+      "seller": { "id": "0", "name": "CDISCOUNT", "isCdiscount": true },
+      "marketplace": false,
+      "fulfilledByCdiscount": false,
+      "cdiscountAVolonte": true,
+      "freeShipping": true,
+      "deliveryLabel": "Livraison gratuite",
+      "condition": "Neuf",
+      "isNew": true,
+      "otherOffers": { "new": 0, "used": 0, "newFrom": null, "usedFrom": null },
+      "highlights": {
+        "Mode de nettoyage": "Nettoyage",
+        "Collecte des poussières": "Sans sac",
+        "Niveau sonore maximal": "67 dB"
+      },
+      "badges": ["Plus facilement réparable"],
+      "categoryId": "1000015827",
+      "position": 1
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `offerId` | Cdiscount product id (the SKU; pass it to [Product](#product)) and the offer shown on the tile. |
+| `title` / `url` / `image` / `images` | Product name, link and images. |
+| `brandId` / `categoryId` | Cdiscount's brand and category ids (the brand name is on the product endpoint). |
+| `price` / `currency` | The price, in EUR. |
+| `strikePrice` / `discountPercent` | The crossed-out reference price and the discount, only when Cdiscount shows one. |
+| `rating` / `reviewCount` | Average rating and number of reviews. |
+| `seller` / `marketplace` | The seller (`id`, `name`, `isCdiscount`) and whether it is a marketplace seller. |
+| `fulfilledByCdiscount` / `cdiscountAVolonte` | Whether Cdiscount ships it from its own warehouses, and whether it is part of the Cdiscount à volonté programme. |
+| `freeShipping` / `deliveryLabel` | Free shipping flag and Cdiscount's delivery text. |
+| `condition` / `isNew` | The item's condition. |
+| `otherOffers` | Number of other new and used offers and their lowest prices. |
+| `highlights` / `badges` | Key specifications and promotion badges. |
+| `position` | Rank in the results. |
+| `total` / `lastPage` / `nextPage` | Cdiscount's result count and last page; pass `nextPage` as `page` to continue. |
+
+## Product
+
+```
+POST /marketplace/cdiscount-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `sku` | one of `sku` / `url` | Cdiscount product id, e.g. `ip17256black` (the part after `f-<number>-` in a product link, or `productId` from search). |
+| `url` | one of `sku` / `url` | A Cdiscount product link, e.g. `https://www.cdiscount.com/telephonie/telephone-mobile/apple-iphone-17-256gb-black/f-14404-ip17256black.html`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/cdiscount-product?sku=ip17256black" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.cdiscount_product("ip17256black")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.cdiscountProduct("ip17256black");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->cdiscountProduct('ip17256black');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.cdiscount_product("ip17256black")
+```
+</CodeGroup>
+
+To look a product up by link, leave the first argument out and pass `url` (`su.cdiscount_product(url="https://www.cdiscount.com/...")` in Python, `su.cdiscountProduct(undefined, { url })` in Node.js). Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "productId": "ip17256black",
+  "offerId": "4262282716",
+  "title": "APPLE iPhone 17 256GB Black",
+  "brand": "APPLE",
+  "ean": "0195950643435",
+  "manufacturerReference": "MG6J4F/A",
+  "url": "https://www.cdiscount.com/telephonie/telephone-mobile/apple-iphone-17-256gb-black/f-14404-ip17256black.html",
+  "breadcrumbs": ["Téléphonie", "Smartphone"],
+  "categoryId": "1000010609",
+  "price": 1104,
+  "priceWithoutVat": 920,
+  "strikePrice": null,
+  "strikePriceType": null,
+  "discountPercent": null,
+  "ecoParticipation": 3.07,
+  "currency": "EUR",
+  "available": true,
+  "maxQuantity": 2,
+  "preorder": false,
+  "condition": "NEW",
+  "seller": { "id": "0", "name": "CDISCOUNT", "isCdiscount": true },
+  "marketplace": false,
+  "fulfilledByCdiscount": false,
+  "cdiscountAVolonte": true,
+  "delivery": {
+    "freeShipping": true,
+    "label": "Livraison gratuite",
+    "shipsFrom": "Expédié depuis nos entrepôts régionaux",
+    "guaranteedDelivery": "Non éligible à la livraison garantie avant Noël"
+  },
+  "offers": { "total": 1, "new": 1, "used": 0, "lowestNewPrice": 1104, "lowestUsedPrice": null },
+  "rating": 4.84,
+  "reviewCount": 113,
+  "ratingBreakdown": { "5": 100, "4": 10, "3": 2, "1": 1 },
+  "recommendedCount": 70,
+  "criteriaRatings": {
+    "Rapport qualité/prix": 4.63,
+    "Performances": 4.91,
+    "Fonctionnalités": 4.85,
+    "Accessoires": 4.42
+  },
+  "highlights": {
+    "Capacité de la mémoire interne": "256 Go",
+    "RAM": "8 Go",
+    "Protection": "IP68"
+  },
+  "specifications": [
+    { "group": "Informations générales", "name": "Marque", "value": "APPLE" },
+    { "group": "Informations générales", "name": "Référence", "value": "MG6J4F/A" }
+  ],
+  "description": null,
+  "images": [
+    "https://www.cdiscount.com/pdt2/a/c/k/1/700x700/ip17256black/rw/apple-iphone-17-256gb-black.jpg"
+  ],
+  "videos": ["https://www.youtube-nocookie.com/embed/CB3saB2DJ5A?si=UnMm_aRJTT13y0Kb"],
+  "variants": [
+    {
+      "productId": "bunip17512white",
+      "offerId": "4292780286",
+      "attributes": { "Capacité (mémoire)": "512 Go", "Couleur(s)": "Blanc + Chargeur 20W" },
+      "price": 1388.99,
+      "url": "https://www.cdiscount.com/telephonie/telephone-mobile/apple-iphone-17-512gb-white-adaptateur-secteur-2/f-14404-bunip17512white.html",
+      "selected": false
+    }
+  ],
+  "energyClass": "A",
+  "repairabilityIndex": null,
+  "installments": { "count": 4, "monthly": 283.31, "total": 1133.25 },
+  "badges": ["Payez en 4 fois. Voir conditions.", "Plus économe en énergie"],
+  "documents": [
+    "https://i2.cdscdn.com/usermanual/europeanproductsheet/european-product-sheet-apple-iphone-17-256gb-black-IP17256BLACK.pdf?rnd=280A8D02"
+  ],
+  "reviews": [
+    {
+      "id": "185841561",
+      "rating": 3,
+      "title": "Passable",
+      "text": "Pas très fonctionnel je préfère un Android",
+      "author": "Speeck",
+      "date": "2026-10-28",
+      "productVariant": null
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `brand` / `ean` / `manufacturerReference` / `breadcrumbs` | Brand name, EAN barcode, manufacturer part number and category path. |
+| `price` / `priceWithoutVat` / `ecoParticipation` | The price, the same price without VAT, and the eco-participation fee included in it. |
+| `strikePrice` / `strikePriceType` / `discountPercent` | The crossed-out price, its kind and the discount, when Cdiscount shows one. |
+| `available` / `maxQuantity` / `preorder` / `condition` | Stock, order limit, pre-order flag and condition of the offer shown. |
+| `seller` / `marketplace` / `fulfilledByCdiscount` / `cdiscountAVolonte` | Who sells and ships it, as in search. |
+| `delivery` | `freeShipping`, the delivery `label`, where it ships from and the guaranteed-delivery note. |
+| `offers` | Count of all, new and used offers, and the lowest new and used price. The individual marketplace offers and their sellers' ratings are not included. |
+| `ratingBreakdown` / `recommendedCount` / `criteriaRatings` | Reviews per star (1-5), how many reviewers recommend it, and the average per criterion. |
+| `highlights` / `specifications` | Key specifications, and every specification as `group`, `name` and `value`. |
+| `description` / `images` / `videos` / `documents` | Description (`null` when the page has none), images, videos and documents such as the product sheet. |
+| `variants` | Other versions of the product (storage, colour...): `productId`, `offerId`, `attributes`, `price`, `url` and `selected`. |
+| `energyClass` / `repairabilityIndex` | Energy class and French repairability index, where they apply. |
+| `installments` / `badges` | The pay-in-instalments offer and the promotion badges. |
+| `reviews` | The latest reviews: `id`, `rating`, `title`, `text`, `author` (as Cdiscount shows it), `date` and `productVariant`. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query`, no `sku` or `url`, or a `sku` that is not a Cdiscount product id. |
+| `404` | Cdiscount found nothing for the search, or has no product with this SKU. |
+| `502` | Cdiscount blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Price monitoring** - track Cdiscount prices, discounts and the reference price they are measured against.
+- **Marketplace research** - see which products Cdiscount sells itself and which come from marketplace sellers.
+- **Assortment and content analysis** - collect EANs, specifications, energy classes and repairability scores per category.
+- **Review analysis** - follow ratings, criteria scores and the latest reviews for your products.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Cdiscount search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

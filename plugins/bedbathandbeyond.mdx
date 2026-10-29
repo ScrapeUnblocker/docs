@@ -1,0 +1,332 @@
+---
+title: "Bed Bath & Beyond plugin"
+description: "Bed Bath & Beyond (bedbathandbeyond.com) products as clean JSON - search results with price range, compare-at price and discount, rating and badges, and one product with every option's price and stock, specifications, images and videos."
+sidebarTitle: "Bed Bath & Beyond"
+---
+
+The **Bed Bath & Beyond** plugin returns product data from Bed Bath & Beyond (bedbathandbeyond.com, US) as structured JSON. It is two endpoints:
+
+- **`/marketplace/bedbathandbeyond-search`** - the products for a keyword: product id and SKU, title, link and image, the price and the top of the range when options are priced differently, the price type (sale or standard), the compare-at price with its kind (MSRP, compare at or was), the discount, the regular price, the rating and review count, the number of options, the badge (e.g. Best Seller), the fast-delivery flag, the Welcome Rewards amount and whether the listing is sponsored. About 60 products a page; one call collects up to 300.
+- **`/marketplace/bedbathandbeyond-product`** - one product in full: brand and part number, price with its label, compare-at price, savings, stock, rating with its star histogram, description, specifications, breadcrumbs, country of origin, images and videos, and up to 100 options (size, colour) each with its own price, regular and compare-at price, sale flag and quantity on hand.
+
+Prices are the ones a signed-out shopper sees, in USD. No Bed Bath & Beyond account is involved.
+
+<Note>
+Bed Bath & Beyond protects its product pages with Akamai Bot Manager, so a **product call can take up to a minute**. Set a generous client timeout (the SDKs default to 180 seconds, which is enough). Searches usually answer in a few seconds.
+</Note>
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/bedbathandbeyond-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | one of `query` / `url` | What to search for, e.g. `bath towels`, `office chair` or `table lamp`. |
+| `url` | one of `query` / `url` | Instead of `query`: a Bed Bath & Beyond search link, e.g. `https://www.bedbathandbeyond.com/search?keywords=towels` (its sort and page are used). |
+| `sort` | no | `relevance`, `on_sale`, `best_selling`, `price_low`, `price_high`, `rating` or `newest`. Default `relevance`. |
+| `page` | no | 1-based results page to start from, `1`-`100`. Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`300`. Default `60`. The site serves about 60 per page, and each page fetched is billed as one request (`pagesFetched`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/bedbathandbeyond-search?query=bath%20towels&sort=price_low&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bedbathandbeyond_search("bath towels", sort="price_low", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.bedbathandbeyondSearch("bath towels", { sort: "price_low", maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->bedbathandbeyondSearch('bath towels', ['sort' => 'price_low', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bedbathandbeyond_search("bath towels", sort: "price_low", max_results: 3)
+```
+</CodeGroup>
+
+To search with a link instead, leave the first argument out and pass `url` (`su.bedbathandbeyond_search(url="https://www.bedbathandbeyond.com/search?keywords=towels")` in Python, `su.bedbathandbeyondSearch(undefined, { url })` in Node.js). A keyword the site sends to a department page (e.g. `rugs` or `sofa`) returns that department's listing, named in `redirectedTo`.
+
+### Response
+
+```json
+{
+  "query": "bath towels",
+  "sort": "price_low",
+  "page": 1,
+  "url": "https://www.bedbathandbeyond.com/search?keywords=bath+towels&sort=Price+Low+-+High",
+  "redirectedTo": null,
+  "currency": "USD",
+  "totalResults": 7485,
+  "lastPage": 84,
+  "resultsCollected": 3,
+  "pagesFetched": 1,
+  "lastPageFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "products": [
+    {
+      "productId": "5296998",
+      "sku": "13108204",
+      "title": "Superior Egyptian Cotton 6 Piece Towel Set Ultra Plush & Absorbent Bath, Hand & Face Towels, Heavyweight Spa Quality",
+      "url": "https://www.bedbathandbeyond.com/Bedding-Bath/Superior-Egyptian-Cotton-900-GSM-Luxurious-Absorbent-6-piece-Towel-Set/5296998/product.html",
+      "image": "https://ak1.ostkcdn.com/images/products/is/images/direct/15ef7fbaa12ba11cc6ba217faeb85da4c8e5ae8b/Superior-Egyptian-Cotton-6-Piece-Towel-Set...jpg",
+      "price": 63.98,
+      "priceMax": 72.15,
+      "priceText": "$63.98 - $72.15",
+      "priceType": "SALE",
+      "currency": "USD",
+      "comparePrice": 157.5,
+      "compareType": "MSRP",
+      "discountPercent": 59,
+      "regularPrice": 80.99,
+      "hasOptions": true,
+      "optionCount": 24,
+      "rating": 4.52,
+      "reviewCount": 3734,
+      "badge": "Best Seller",
+      "onSale": false,
+      "fastDelivery": "twoDay",
+      "rewards": 3.2,
+      "sponsored": false,
+      "position": 1
+    },
+    {
+      "productId": "33151109",
+      "sku": "37624540",
+      "title": "American Soft Linen Luxury 6 Piece Towel Set, 2 Bath Towels 2 Hand Towels 2 Washcloths, 100% Cotton Turkish Towels for Bathroom",
+      "url": "https://www.bedbathandbeyond.com/Bedding-Bath/American-Soft-Linen-6-Piece-100-Genuine-Turkish-Cotton-Premium-Luxury-Towel-Set-for-Bathroom-Kitchen/33151109/product.html",
+      "image": "https://ak1.ostkcdn.com/images/products/is/images/direct/9334b120abc07b640a8fcc5df0ea47f53e520c1a/American-Soft-Linen-6-pc.-Turkish-Cotton-Towel-Set.jpg",
+      "price": 45.31,
+      "priceMax": 48.94,
+      "priceText": "$45.31 - $48.94",
+      "priceType": "SALE",
+      "currency": "USD",
+      "comparePrice": null,
+      "compareType": null,
+      "discountPercent": null,
+      "regularPrice": 51.49,
+      "hasOptions": true,
+      "optionCount": 20,
+      "rating": 4.36,
+      "reviewCount": 438,
+      "badge": "High Satisfaction",
+      "onSale": true,
+      "fastDelivery": "twoDay",
+      "rewards": 2.27,
+      "sponsored": true,
+      "position": 2
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `sku` | Bed Bath & Beyond product id and SKU. Pass `productId` to [Product](#product). |
+| `title` / `url` / `image` | Title, product link and image. |
+| `price` / `priceMax` / `priceText` | The lowest option price, the top of the range when options are priced differently, and the price as the site prints it. |
+| `priceType` / `onSale` | `SALE` or `STANDARD`, and the site's on-sale flag. |
+| `comparePrice` / `compareType` / `discountPercent` | The compare-at price, its kind (`MSRP`, `COMPARE_AT` or `WAS`) and the discount against it. |
+| `regularPrice` | The regular (non-sale) price. |
+| `hasOptions` / `optionCount` | Whether the product has options (size, colour) and how many. |
+| `rating` / `reviewCount` / `badge` | Rating, review count and the site's badge (e.g. `Best Seller`). |
+| `fastDelivery` / `rewards` / `sponsored` | Fast-delivery label (e.g. `twoDay`), Welcome Rewards dollars, and whether the listing is sponsored. |
+| `position` | Rank in the site's results. |
+| `totalResults` / `lastPage` / `hasMore` / `nextPage` | The site's match count and last page, and the page to pass as `page` to continue. |
+| `redirectedTo` | The department the site sent the keyword to, when it did (else `null`). |
+
+## Product
+
+```
+POST /marketplace/bedbathandbeyond-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product` | yes | A Bed Bath & Beyond product id (e.g. `9720467`, the number before `/product.html`) or a product link. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/bedbathandbeyond-product?product=9720467" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  --max-time 180
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bedbathandbeyond_product("9720467")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.bedbathandbeyondProduct("9720467");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->bedbathandbeyondProduct('9720467');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bedbathandbeyond_product("9720467")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response (abbreviated)
+
+```json
+{
+  "product": {
+    "productId": "9720467",
+    "sku": "16895148",
+    "url": "https://www.bedbathandbeyond.com/Home-Garden/Safavieh-Adirondack-Dakota-Ivory-Silver-Distressed-Rug-8-X-10/9720467/product.html",
+    "title": "SAFAVIEH Adirondack Dakota Rustic Shabby Chic Distressed Rug",
+    "brand": "Safavieh",
+    "brandUrl": "https://www.bedbathandbeyond.com/Safavieh,/brand,/results.html",
+    "manufacturerPartNumber": "ADR109Z-9",
+    "price": 20.67,
+    "priceLabel": "Sale Starts at",
+    "comparePrice": 31.0,
+    "compareLabel": "MSRP",
+    "savings": 10.33,
+    "savingsPercent": 33,
+    "currency": "USD",
+    "inStock": true,
+    "rating": 4.35,
+    "reviewCount": 9968,
+    "ratingHistogram": { "1": 534, "2": 357, "3": 762, "4": 1769, "5": 6546 },
+    "badge": "Best Seller",
+    "shortDescription": "SAFAVIEH's Adirondack Collection captures the look of time-softened vintage rugs in an easy-care, modern construction.",
+    "description": "SAFAVIEH's Adirondack Collection captures the look of time-softened vintage rugs in an easy-care, modern construction. Distressed motifs and faded palettes deliver ...",
+    "countryOfOrigin": "Turkey",
+    "freeShipping": false,
+    "internationalShipping": false,
+    "firstListed": "2014-12-15",
+    "breadcrumbs": ["Rugs", "Area Rugs"],
+    "specifications": [
+      { "group": "Features", "name": "Dimensions", "value": "180.0 In. L X 132.0 In. W" },
+      { "group": "Features", "name": "Style", "value": "Rustic, Shabby Chic, Vintage" }
+    ],
+    "optionCount": 498,
+    "defaultOptionId": "85952793",
+    "options": [
+      {
+        "optionId": "70133844",
+        "title": "10' Round - Black/Teal",
+        "attributes": { "Color": "Black/Teal", "Size": "10' Round" },
+        "price": 161.99,
+        "regularPrice": 224.99,
+        "comparePrice": 289.0,
+        "compareType": "MSRP",
+        "onSale": true,
+        "inStock": true,
+        "quantityAvailable": 2,
+        "lowStockMessage": "Only 2 Left! Order Soon.",
+        "subSku": "000-326"
+      },
+      {
+        "optionId": "14976991",
+        "title": "10' Round - Grey/Black",
+        "attributes": { "Color": "Grey/Black", "Size": "10' Round" },
+        "price": 169.28,
+        "regularPrice": 208.99,
+        "comparePrice": 289.0,
+        "compareType": "MSRP",
+        "onSale": true,
+        "inStock": true,
+        "quantityAvailable": 19,
+        "lowStockMessage": null,
+        "subSku": "000-048"
+      }
+    ],
+    "images": [
+      "https://ak1.ostkcdn.com/images/products/is/images/direct/ee95782fda12384ad2cfc311e886d976c57165d3/SAFAVIEH-Adirondack-Dakota-Rustic-Shabby-Chic-Distressed-Rug.jpg"
+    ],
+    "videos": [
+      "https://vid.ostkcdn.com/videos/products/765e0a3c-c4a5-454d-9f62-99cfd4b28ecc.mp4"
+    ]
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `brand` / `brandUrl` / `manufacturerPartNumber` | Brand, its page on the site and the manufacturer's part number. |
+| `price` / `priceLabel` | The price and the site's label for it (e.g. `Sale Starts at` when options are priced differently). |
+| `comparePrice` / `compareLabel` / `savings` / `savingsPercent` | The compare-at price, its label (`MSRP`, `Was`, `At other retailer`) and the saving against it. |
+| `inStock` | Whether the product can be bought. |
+| `rating` / `reviewCount` / `ratingHistogram` | Rating, review count and the count per star. |
+| `shortDescription` / `description` / `specifications` | Summary, full description and `group` / `name` / `value` specifications. |
+| `countryOfOrigin` / `freeShipping` / `internationalShipping` / `firstListed` | Origin, shipping flags and the date the product was first listed. |
+| `breadcrumbs` | The category path. |
+| `optionCount` / `defaultOptionId` / `options` | How many options there are, the default one, and up to 100 options, each with `optionId`, `title`, `attributes` (size, colour), `price`, `regularPrice`, `comparePrice`, `compareType`, `onSale`, `inStock`, `quantityAvailable`, `lowStockMessage` and `subSku`. |
+| `images` / `videos` | Image and video links. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. neither `query` nor `url`, an unknown `sort`, a `page` above `100`, a `max_results` above `300`, or a `product` that is not a product id or link. |
+| `404` | The site found no products for the search, or has no such product. |
+| `502` | The site blocked every attempt, returned no results page or product data, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Price and discount tracking** - follow sale prices, compare-at prices and discounts on home goods over time.
+- **Stock monitoring** - watch every option's quantity on hand and low-stock messages for the sizes and colours you care about.
+- **Assortment research** - compare brands, ratings and badges across a category, sorted by best selling or newest.
+- **Catalog enrichment** - pull specifications, descriptions, images and videos for products you list elsewhere.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Bed Bath & Beyond search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

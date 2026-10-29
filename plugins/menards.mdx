@@ -1,0 +1,339 @@
+---
+title: "Menards plugin"
+description: "Menards (menards.com, US) products as clean JSON - search results with shelf price, everyday price, the 11% mail-in rebate and price after rebate, stock at a store and delivery or pickup options, plus one product with features, specifications, images and breadcrumbs."
+sidebarTitle: "Menards"
+---
+
+The **Menards** plugin returns products from Menards (menards.com, US) as structured JSON. It is two endpoints:
+
+- **`/marketplace/menards-search`** - the products for a keyword: item id, Menards SKU, model number, title, brand, link and image, the shelf price with the everyday low price and the sale flag, Menards' mail-in rebate and the price after it, the unit of measure, pickup and delivery availability with the units in stock at the store, the number of variations and the category, plus the facets (brands, availability, product type) and the store the prices are for. 40 products per page; one call collects up to 120.
+- **`/marketplace/menards-product`** - one product: the same price and rebate fields with the sale and rebate end dates, the description, features, specification table, images and breadcrumbs.
+
+No Menards account is involved.
+
+<Warning>
+Store prices and stock come only from search with `store_id` or `zip`. Without a store, search returns Menards' default online prices and `stockAtStore` is `0`, and `in_stock_today` needs a store. The product endpoint takes no store: it returns Menards' default online prices (the store in `storeId`), so for one store's price and stock of a product, search for it with `store_id` or `zip`.
+</Warning>
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/menards-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `cordless drill`, `garden hose` or `2x4 lumber`. |
+| `store_id` | no | Menards store number whose prices and stock to return, e.g. `3181`. Give this or `zip`, not both; with neither, Menards' default online prices are returned and `stockAtStore` is `0`. |
+| `zip` | no | US ZIP code; the nearest Menards store is used, e.g. `55401`. |
+| `sort` | no | `relevance` (default), `price_low`, `price_high`, `title_asc`, `title_desc`, `brand_asc` or `brand_desc`. |
+| `min_price` / `max_price` | no | Price range in USD. |
+| `in_stock_today` | no | `true` keeps only items in stock today at the store. Needs `store_id` or `zip`. |
+| `delivery_eligible` | no | `true` keeps only items eligible for delivery. |
+| `pickup_eligible` | no | `true` keeps only items eligible for in-store pickup. |
+| `page` | no | 1-based results page to start from, `1`-`100` (40 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`120`. Default `40`. Each page fetched is billed as one request (`pagesFetched`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/menards-search?query=space%20heater&zip=55401&sort=price_low&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.menards_search("space heater", zip="55401", sort="price_low", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.menardsSearch("space heater", {
+  zip: "55401",
+  sort: "price_low",
+  maxResults: 3,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->menardsSearch('space heater', ['zip' => '55401', 'sort' => 'price_low', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.menards_search("space heater", zip: "55401", sort: "price_low", max_results: 3)
+```
+</CodeGroup>
+
+A keyword Menards sends to a category returns that category's products, with the category page in `redirectedTo`. A Menards SKU as `query` returns no products and the product link in `redirectedTo`. A keyword Menards sends to a page of category tiles (for example `interior paint`), or one with no matches, answers `404`.
+
+### Response
+
+```json
+{
+  "query": "space heater",
+  "sort": "price_low",
+  "page": 1,
+  "url": "https://www.menards.com/main/search.html?search=space+heater",
+  "currency": "USD",
+  "store": {
+    "storeId": "3181",
+    "name": "ST PAUL MIDWAY",
+    "address": "2005 UNIVERSITY AVE W",
+    "city": "SAINT PAUL",
+    "state": "MN",
+    "zip": "55104",
+    "distanceMiles": 4.4
+  },
+  "queryType": "LISTING_REDIRECT",
+  "redirectedTo": "https://www.menards.com/main/heating-cooling/heaters/space-heaters/c-5...",
+  "category": {
+    "id": "5617",
+    "name": "Space Heaters"
+  },
+  "totalResults": 68,
+  "lastPage": 2,
+  "resultsCollected": 3,
+  "pagesFetched": 1,
+  "lastPageFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "facets": [
+    {
+      "name": "Availability Options",
+      "field": "shippingOptions_facet",
+      "values": [
+        {
+          "value": "Delivery Eligible",
+          "label": "Delivery Eligible",
+          "count": 66
+        },
+        {
+          "value": "Pickup at Store Eligible",
+          "label": "Pickup at Store Eligible",
+          "count": 49
+        },
+        {
+          "value": "Fulfillment Center",
+          "label": "Fulfillment Center",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "products": [
+    {
+      "position": 1,
+      "itemId": "1642874371381488",
+      "sku": "6217049",
+      "modelNumber": null,
+      "title": "Compact Portable Plug-in Wall Heater",
+      "brand": null,
+      "url": "https://www.menards.com/main/heating-cooling/heaters/space-heaters/com...",
+      "image": "https://cdn.menardc.com/main/items/media/LEGEN005/ProductLarge/FR-PLGH...",
+      "price": 6.99,
+      "regularPrice": 9.99,
+      "onSale": true,
+      "rebate": 0.77,
+      "rebateLabel": "11% REBATE*",
+      "priceAfterRebate": 6.22,
+      "minimumAdvertisedPrice": null,
+      "priceInCheckout": false,
+      "unitOfMeasure": "each",
+      "currency": "USD",
+      "availability": {
+        "pickup": true,
+        "delivery": true,
+        "stockAtStore": 68,
+        "stockMessage": "In-Stock at",
+        "pickupMessage": null,
+        "deliveryMessage": "As soon as tomorrow"
+      },
+      "variationCount": 1,
+      "categoryId": "5617"
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `store` | The store the prices and stock are for: `storeId`, `name`, `address`, `city`, `state`, `zip` and `distanceMiles` from the ZIP code. |
+| `itemId` / `sku` / `url` | Menards' item id, the SKU shown on the product page, and the product link. Pass `url` or `sku` to [Product](#product). |
+| `modelNumber` / `title` / `brand` / `image` | Model number (when Menards lists it), title, brand and image. |
+| `price` / `regularPrice` / `onSale` | The shelf price before the rebate, the everyday low price, and whether the item is on sale. |
+| `rebate` / `rebateLabel` / `priceAfterRebate` | Menards' mail-in rebate (usually 11%), its label and the price after it. |
+| `minimumAdvertisedPrice` / `priceInCheckout` | For items whose maker lets Menards show the price only in checkout: `priceInCheckout` is `true` and `priceAfterRebate` is `null`. |
+| `unitOfMeasure` / `currency` | The unit the price is for (e.g. `each`) and the currency (`USD`). |
+| `availability` | `pickup` and `delivery` flags, `stockAtStore` (units at the store, `0` without one), `stockMessage`, `pickupMessage` and `deliveryMessage`. |
+| `variationCount` / `categoryId` | Number of variations and Menards' category id. |
+| `queryType` / `redirectedTo` / `category` | How Menards answered the keyword, the page it sent it to, and the category it landed on. |
+| `facets` | The filters Menards offers for the result (`name`, `field`, `values` with `value`, `label` and `count`). |
+| `totalResults` / `lastPage` / `nextPage` / `hasMore` | Menards' match count and page count; pass `nextPage` as `page` to continue. |
+
+## Product
+
+```
+POST /marketplace/menards-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `url` | one of `url` / `sku` | A Menards product link (the `url` of a search result), e.g. `https://www.menards.com/main/.../p-60893668339-c-6455.htm`. |
+| `sku` | one of `url` / `sku` | Instead of `url`: the Menards SKU shown on the product page and in search results, e.g. `3646903`. Give one of the two, not both. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/menards-product?sku=6217374" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.menards_product(sku="6217374")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.menardsProduct({ sku: "6217374" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->menardsProduct(['sku' => '6217374']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.menards_product(sku: "6217374")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "itemId": "1642874364736342",
+    "sku": "6217374",
+    "modelNumber": "HT1912",
+    "title": "Lifesmart 1500 Watt Milkhouse Utility Heater",
+    "brand": "LIFESMART",
+    "url": "https://www.menards.com/main/heating-cooling/heaters/space-heaters/lif...",
+    "price": 14.59,
+    "regularPrice": 19.99,
+    "onSale": true,
+    "minimumAdvertisedPrice": null,
+    "priceInCheckout": false,
+    "saleEnds": "11/1/26",
+    "rebate": 1.6,
+    "rebateLabel": "11% REBATE*",
+    "rebateEnds": "11/1/26",
+    "priceAfterRebate": 12.99,
+    "offerPrice": 12.99,
+    "currency": "USD",
+    "availability": "InStock",
+    "storeId": "3598",
+    "description": "Ideal for added heat in the workshop, garage, or utility space, this Milkhouse heater delivers reliable warmth when you need it. Featuring 2 heats set...",
+    "features": [
+      "Two heat settings: 1300w/1500w",
+      "1 Fan only mode",
+      "Manual adjustable knob thermostat"
+    ],
+    "specifications": [
+      {
+        "name": "Heat Output",
+        "value": "5100.0 Btu/h"
+      },
+      {
+        "name": "Manufacturer Warranty",
+        "value": "1 year"
+      },
+      {
+        "name": "Wattage",
+        "value": "1,500"
+      }
+    ],
+    "images": [
+      "https://cdn.menardc.com/main/items/media/SUPPL004/ProductMedium/621737...",
+      "https://cdn.menardc.com/main/items/media/SUPPL004/ProductMedium/621737..."
+    ],
+    "breadcrumbs": [
+      {
+        "name": "Heaters",
+        "url": "https://www.menards.com/main/heating-cooling/heaters/c-6858.htm"
+      },
+      {
+        "name": "Space Heaters",
+        "url": "https://www.menards.com/main/heating-cooling/heaters/space-heaters/c-5..."
+      }
+    ]
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `itemId` / `sku` / `modelNumber` | Menards' item id, the SKU and the model number. |
+| `price` / `regularPrice` / `onSale` / `saleEnds` | Shelf price, everyday low price, the sale flag and the date the sale ends. |
+| `rebate` / `rebateLabel` / `rebateEnds` / `priceAfterRebate` / `offerPrice` | The mail-in rebate, its label and end date, and the price after it. |
+| `minimumAdvertisedPrice` / `priceInCheckout` | As in search: when the price is shown only in checkout, `price` is `null`. |
+| `availability` / `storeId` | Menards' online availability (e.g. `InStock`) and the default store the prices are for. Not a store you choose: see the warning above. |
+| `description` / `features` / `specifications` | Description, feature list and specification table (`name` / `value`). |
+| `images` / `breadcrumbs` | Image gallery and the category path (`name`, `url`). |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query`, an unknown `sort`, `min_price` above `max_price`, both `store_id` and `zip`, `in_stock_today` without a store, or a product call without (or with both) `url` and `sku`. |
+| `404` | No such Menards store (or none near `zip`), no products for the keyword, a keyword Menards sends to a page of category tiles, or no such product. |
+| `502` | Menards blocked every attempt, gave no answer or product data, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Rebate-aware price tracking** - follow shelf prices, sales and the price after Menards' rebate.
+- **Local stock checks** - see units in stock at a store, or keep only what is in stock today.
+- **Price comparison** - compare Menards with other home improvement retailers on the same model.
+- **Catalog enrichment** - fill product records with features, specifications and images.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Menards search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

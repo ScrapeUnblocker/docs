@@ -1,0 +1,360 @@
+---
+title: "MediaMarkt plugin"
+description: "MediaMarkt, Saturn and MediaWorld as clean JSON - search results with price, crossed-out price and its kind, discount, rating, availability, delivery window and marketplace seller, and one product with specifications, variants, energy label and the latest reviews, in ten countries."
+sidebarTitle: "MediaMarkt"
+---
+
+The **MediaMarkt** plugin returns products from MediaMarkt (and its Saturn and MediaWorld banners) as structured JSON. It is two endpoints:
+
+- **`/marketplace/mediamarkt-search`** - the products for a keyword: product id, title, brand, EAN, link and image, breadcrumbs, the price with the crossed-out price and its kind (`RRP` = the manufacturer's recommended price, `LOP` = the lowest price of the last 30 days) and the discount, the installment offer, rating and review count, availability (online status, delivery, store pickup, delivery window and shipping cost), energy label, key features, badges, the refurbished price, the marketplace seller and the sponsored flag. MediaMarkt shows 12 products per page and 30 pages at most; one call collects up to 120.
+- **`/marketplace/mediamarkt-product`** - one product: the same fields plus the rating breakdown, VAT rate, energy label and data sheet, every specification (group, name, value, unit), all images, the variants (colour, storage and so on, each with its own product id, price and online status), the description and the latest reviews.
+
+Pick the shop with `country`: `de`, `at`, `ch`, `nl`, `be`, `es`, `it` (MediaWorld), `pl`, `hu` or `tr`. For **Saturn** (Germany) set `banner=saturn` with `country=de`. Where a shop has several languages (Belgium: `nl` or `fr`; Switzerland: `de`, `fr` or `it`), `language` picks one. Prices are in the shop's currency. No MediaMarkt account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/mediamarkt-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `iphone 17` or `waschmaschine`. |
+| `country` | no | MediaMarkt shop: `de`, `at`, `ch`, `nl`, `be`, `es`, `it` (MediaWorld), `pl`, `hu`, `tr`. Default `de`. |
+| `banner` | no | `mediamarkt` (default) or `saturn` (Saturn Germany, with `country=de` only). |
+| `language` | no | Site language where the shop has several: `be` = `nl` or `fr`, `ch` = `de`, `fr` or `it`. Default: the shop's first. |
+| `sort` | no | `relevance` (default), `price_asc`, `price_desc`, `rating`, `bestseller`, `newest`. |
+| `page` | no | First results page to read, `1`-`30`. Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`120`. Default `12`. A page holds 12 products; each page is billed as one request. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/mediamarkt-search?query=kaffeevollautomat&banner=saturn&sort=bestseller&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.mediamarkt_search("kaffeevollautomat", banner="saturn", sort="bestseller", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.mediamarktSearch("kaffeevollautomat", {
+  banner: "saturn",
+  sort: "bestseller",
+  maxResults: 3,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->mediamarktSearch('kaffeevollautomat', ['banner' => 'saturn', 'sort' => 'bestseller', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.mediamarkt_search("kaffeevollautomat", banner: "saturn", sort: "bestseller", max_results: 3)
+```
+</CodeGroup>
+
+When MediaMarkt sends a keyword to a category or brand listing, the results come from that listing and `listingUrl` names it.
+
+### Response
+
+```json
+{
+  "query": "kaffeevollautomat",
+  "country": "de",
+  "banner": "saturn",
+  "language": "de",
+  "sort": "bestseller",
+  "page": 1,
+  "url": "https://www.saturn.de/de/search.html?query=kaffeevollautomat&sort=salescount+desc",
+  "listingUrl": "https://www.saturn.de/de/category/kaffeevollautomaten-1275.html?sort=salescount+desc",
+  "currency": "EUR",
+  "total": 291,
+  "lastPage": 25,
+  "pagesFetched": 1,
+  "nextPage": 2,
+  "pagingStopped": null,
+  "resultsCollected": 3,
+  "products": [
+    {
+      "productId": "2670375",
+      "offerId": null,
+      "title": "PHILIPS EP5447/90 Serie 5400 LatteGo 11 Kaffeespezialitäten Kaffeevollautomat Schwarz/Chrom",
+      "brand": "PHILIPS",
+      "ean": "8710103948902",
+      "url": "https://www.saturn.de/de/product/_philips-ep5447-90-2670375.html",
+      "image": "https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MMS_155934623",
+      "breadcrumbs": ["Küche", "Kaffee + Tee", "Kaffeevollautomaten", "Kaffeevollautomaten mit Milchbehälter"],
+      "rating": 4.56,
+      "reviewCount": 2694,
+      "price": 434.99,
+      "strikePrice": 799.99,
+      "strikePriceType": "RRP",
+      "discountPercent": 46,
+      "currency": "EUR",
+      "installment": { "months": 18, "monthly": 26.2, "interestRate": 10.9 },
+      "marketplace": false,
+      "seller": null,
+      "availability": {
+        "online": "AVAILABLE",
+        "buyable": true,
+        "deliverable": true,
+        "storePickup": true,
+        "pickupStatus": "PARTIALLY_AVAILABLE",
+        "releaseDate": null,
+        "delivery": {
+          "status": "AVAILABLE",
+          "shippingCost": 0,
+          "earliest": "2026-11-02T07:00:00.000Z",
+          "latest": "2026-11-03T17:00:00.000Z"
+        }
+      },
+      "energyEfficiency": null,
+      "highlights": {
+        "AutoCappuccino-System": "LatteGo",
+        "Produkttyp": "Kaffeevollautomat",
+        "Infodisplay": "TFT-Display"
+      },
+      "badges": ["Preisheld", "0% Finanzierung"],
+      "refurbishedFrom": { "price": 391.49, "condition": "VERY_GOOD" },
+      "sponsored": false,
+      "position": 2
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `offerId` | MediaMarkt product number (pass it to [Product](#product)) and the offer id of a marketplace offer. |
+| `title` / `brand` / `ean` / `url` / `image` / `breadcrumbs` | Product name, brand, EAN barcode, link, image and category path. |
+| `price` / `currency` | The price, in the shop's currency. |
+| `strikePrice` / `strikePriceType` / `discountPercent` | The crossed-out price and its kind (`RRP` = manufacturer's recommended price, `LOP` = lowest price of the last 30 days), and the discount. |
+| `installment` | The financing offer: `months`, `monthly` amount and `interestRate`. |
+| `marketplace` / `seller` | Whether a marketplace seller sells it, and that seller with its rating (`null` for MediaMarkt's own offers). |
+| `rating` / `reviewCount` | Average rating and number of reviews. |
+| `availability` | `online` status, `buyable`, `deliverable`, `storePickup` and `pickupStatus`, `releaseDate`, and `delivery` with its status, shipping cost and the earliest and latest delivery time. |
+| `energyEfficiency` | The energy class with the label and data sheet links, for products that carry one. |
+| `highlights` / `badges` | Key features and the promotion badges on the tile. |
+| `refurbishedFrom` | The price and condition of a refurbished unit, when MediaMarkt offers one. |
+| `sponsored` / `position` | Sponsored flag and rank in the results. |
+| `total` / `lastPage` / `nextPage` | MediaMarkt's result count and last page; pass `nextPage` as `page` to continue. |
+| `listingUrl` | The category or brand listing the keyword was sent to, when MediaMarkt sends it to one. |
+
+## Product
+
+```
+POST /marketplace/mediamarkt-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | MediaMarkt product number, e.g. `3071615` (the number at the end of a product link, or `productId` from search). |
+| `url` | one of `product_id` / `url` | A product link, e.g. `https://www.mediamarkt.de/de/product/_apple-iphone-18-pro-max-256gb-silver-3071615.html`. Its shop and language win over `country`, `banner` and `language`. |
+| `country` | no | MediaMarkt shop, as in search. Default `de`. |
+| `banner` | no | `mediamarkt` (default) or `saturn` (with `country=de`). |
+| `language` | no | Site language where the shop has several, as in search. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/mediamarkt-product?product_id=3071615&country=de" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.mediamarkt_product("3071615", country="de")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.mediamarktProduct("3071615", { country: "de" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->mediamarktProduct('3071615', ['country' => 'de']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.mediamarkt_product("3071615", country: "de")
+```
+</CodeGroup>
+
+To look a product up by link, leave the first argument out and pass `url` (`su.mediamarkt_product(url="https://www.mediamarkt.de/de/product/...")` in Python, `su.mediamarktProduct(undefined, { url })` in Node.js). Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "productId": "3071615",
+  "offerId": null,
+  "title": "APPLE iPhone 18 Pro Max 256 GB Silber Dual SIM",
+  "rawTitle": "IPHONE 18 PRO MAX 256GB SILVER",
+  "kind": "SMARTPHONE",
+  "brand": "APPLE",
+  "ean": "0195951410517",
+  "url": "https://www.mediamarkt.de/de/product/_apple-iphone-18-pro-max-256gb-silver-3071615.html",
+  "image": "https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MMS_183538721",
+  "breadcrumbs": ["Smartphone & Tarife", "Handys ohne Vertrag", "Apple iPhone"],
+  "rating": 4.88,
+  "reviewCount": 134,
+  "ratingBreakdown": { "5": 123, "4": 8, "3": 2, "1": 1 },
+  "price": 1599,
+  "strikePrice": null,
+  "strikePriceType": null,
+  "discountPercent": null,
+  "currency": "EUR",
+  "vatRate": 0.19,
+  "installment": { "months": 60, "monthly": 34.28, "interestRate": 10.9 },
+  "marketplace": false,
+  "seller": null,
+  "availability": {
+    "online": "AVAILABLE",
+    "buyable": true,
+    "deliverable": true,
+    "storePickup": true,
+    "pickupStatus": "PARTIALLY_AVAILABLE",
+    "releaseDate": "2026-09-18",
+    "delivery": {
+      "status": "AVAILABLE",
+      "shippingCost": 0,
+      "earliest": "2026-11-02T07:00:00.000Z",
+      "latest": "2026-11-04T17:00:00.000Z"
+    }
+  },
+  "energyEfficiency": {
+    "class": "A",
+    "label": "https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MMS_183539407/feecms_948_x_png",
+    "datasheet": "https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MMS_183539411/feecms_948_x_png"
+  },
+  "highlights": {
+    "Displaydiagonale": "17.4 cm / 6.9 Zoll",
+    "Speicherkapazität": "256 GB",
+    "Betriebssystem": "iOS"
+  },
+  "badges": ["0% Finanzierung"],
+  "refurbishedFrom": { "price": 1641, "condition": "EXCELLENT" },
+  "description": null,
+  "images": [
+    "https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MMS_183538721",
+    "https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MMS_183538722"
+  ],
+  "specifications": [
+    { "group": "Technische Merkmale", "name": "Betriebssystem", "value": "iOS", "unit": null },
+    { "group": "Technische Merkmale", "name": "Speicherkapazität", "value": "256", "unit": "GB" },
+    { "group": "Display", "name": "Bildschirmdiagonale (Zoll)", "value": "6.9", "unit": "Zoll" }
+  ],
+  "variants": [
+    {
+      "dimension": "Speicherkapazität",
+      "value": "256 GB",
+      "productId": "3071615",
+      "title": "APPLE iPhone 18 Pro Max 256 GB Silber Dual SIM",
+      "price": 1599,
+      "online": "AVAILABLE",
+      "image": "https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MMS_183538721",
+      "selected": true
+    },
+    {
+      "dimension": "Speicherkapazität",
+      "value": "512 GB",
+      "productId": "3071619",
+      "title": "APPLE iPhone 18 Pro Max 512 GB Silber Dual SIM",
+      "price": 1849,
+      "online": "STORE_ONLY",
+      "image": "https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MMS_183538746",
+      "selected": false
+    }
+  ],
+  "reviews": [
+    {
+      "id": "1235153703",
+      "rating": 5,
+      "title": "Top",
+      "text": "Tolles Smartphone Stabil und die Kamera ist der Hammer.",
+      "pros": ["Tolle Kamera", "Stabil ", "Tolle Farbe"],
+      "cons": ["Teuer"],
+      "author": "Hendrik",
+      "date": "2026-10-27",
+      "verifiedPurchase": true
+    }
+  ],
+  "salesLine": "Media",
+  "country": "de",
+  "banner": "mediamarkt"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `rawTitle` / `kind` | MediaMarkt's internal short title and product kind. |
+| `ratingBreakdown` | Number of reviews per star (1-5). |
+| `vatRate` | VAT rate included in the price (`0.19` = 19%). |
+| `energyEfficiency` | Energy `class`, the `label` image and the `datasheet` link. |
+| `specifications` | Every specification: `group`, `name`, `value` and `unit`. |
+| `images` / `description` | The image gallery and the product description (`null` when the page has none). |
+| `variants` | The product's variants: `dimension` (colour, storage...), `value`, its own `productId`, `title`, `price`, `online` status, `image`, and `selected` for the one you asked for. |
+| `reviews` | The latest reviews: `id`, `rating`, `title`, `text`, `pros`, `cons`, `author` (as MediaMarkt shows it), `date` and `verifiedPurchase`. |
+| `country` / `banner` | The shop the product was read from. |
+
+The other fields are as in search. Store-level stock needs a chosen store and is not included.
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query`, a `country` that is not a MediaMarkt shop, `banner=saturn` outside Germany, or a `product_id` that is not a product number. |
+| `404` | MediaMarkt found nothing for the search, or the shop has no product with this number. |
+| `502` | MediaMarkt blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Price monitoring** - track MediaMarkt and Saturn prices, discounts and the reference price they are measured against.
+- **Cross-country comparison** - compare the same product across MediaMarkt's ten countries.
+- **Availability tracking** - watch online status, delivery windows and store pickup for launches and best sellers.
+- **Assortment research** - map brands, specifications and energy classes per category.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a MediaMarkt search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

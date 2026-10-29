@@ -1,0 +1,154 @@
+---
+title: "ChatGPT plugin"
+description: "Ask ChatGPT a question and get its answer as clean JSON - plain text and Markdown, the sites it cites with the answer text each one backs, the links written into the answer and whether it searched the web, from a country you pick."
+sidebarTitle: "ChatGPT"
+---
+
+The **ChatGPT** plugin asks ChatGPT (chatgpt.com) one question, as a signed-out visitor, and returns its finished answer as structured JSON: the answer as plain text and as Markdown, the **citations** (the source pills ChatGPT attaches to claims, each with the site, its domain and the answer text it backs), the **links** written into the answer, every site cited or linked once in **sources**, and whether ChatGPT searched the web.
+
+Use it to see what ChatGPT recommends for the questions your customers ask, which sites it cites, and how that changes from one country to another. Set `country` to ask from that country: ChatGPT tailors local results to where the visitor is.
+
+A few things to know:
+
+- **Citations name the site, not the page.** Signed-out ChatGPT shows the full URL of a cited page only on hover, so each citation carries the `siteName` and `domain`, not the page URL. Links written into the answer text (`links`) do carry their full `url`.
+- **`model` is always `null`.** Signed-out ChatGPT does not show which model answered.
+- **Calls take 15-60 seconds.** Each call opens its own browser session and waits for ChatGPT to finish writing. Give your HTTP client a generous timeout (the SDKs wait 180 seconds by default; 300 is a safe value, e.g. `Client(timeout=300)` in Python).
+- **Answers vary.** Each call starts a new conversation, and identical calls get different answers, as they do for people. Track a question over several calls rather than reading one answer as fixed.
+- **No account.** ChatGPT is used signed out; no OpenAI account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /ai/chatgpt
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `prompt` | yes | The question to ask, as a user would type it, e.g. `best CRM for small business`. At most 2,000 characters. Each call starts a new conversation. |
+| `country` | no | Two-letter country code to ask from, e.g. `US`, `GB`, `DE`. Leave blank for any location. A country we cannot ask from is a `400` that lists the available ones. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/ai/chatgpt?prompt=best%20CRM%20software%20for%20small%20business&country=US" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  --max-time 300
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client(timeout=300)  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.chatgpt("best CRM software for small business", country="US")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient({ timeout: 300_000 }); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.chatgpt("best CRM software for small business", { country: "US" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(null, ['timeout' => 300]); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->chatgpt('best CRM software for small business', ['country' => 'US']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new(timeout: 300) # reads SCRAPEUNBLOCKER_KEY
+
+result = su.chatgpt("best CRM software for small business", country: "US")
+```
+</CodeGroup>
+
+Each answer is billed as one request. A `503` (ChatGPT capacity busy) is not billed.
+
+### Response
+
+```json
+{
+  "url": "https://chatgpt.com/",
+  "country": "US",
+  "prompt": "best CRM software for small business",
+  "answer": "For most small businesses, HubSpot, Zoho CRM, and Pipedrive are my top three recommendations in 2026. The best choice depends on whether you prioritize affordability, ease of use, sales management, or marketing automation.\n\nHere are the options I'd shortlist.\n\nBest CRM software for small businesses\n...",
+  "answerMarkdown": "For most small businesses, HubSpot, Zoho CRM, and Pipedrive are my top three recommendations in 2026. The best choice depends on whether you prioritize affordability, ease of use, sales management, or marketing automation.\n\nHere are the options I'd shortlist.\n\n## Best CRM software for small businesses\n...\n[HubSpot website](https://www.hubspot.com/products/crm?utm_source=chatgpt.com)\n...",
+  "citations": [
+    {
+      "position": 1,
+      "siteName": "G2",
+      "domain": "g2.com",
+      "moreSources": 2,
+      "citedText": "Pricing is approximate starting pricing in USD; billing terms, plans and feature limits vary. Sources:."
+    }
+  ],
+  "links": [
+    {
+      "position": 1,
+      "title": "HubSpot website",
+      "url": "https://www.hubspot.com/products/crm",
+      "domain": "hubspot.com"
+    },
+    {
+      "position": 2,
+      "title": "Zoho website",
+      "url": "https://www.zoho.com/crm/",
+      "domain": "zoho.com"
+    }
+  ],
+  "sources": [
+    { "position": 1, "siteName": "G2", "domain": "g2.com" },
+    { "position": 2, "siteName": null, "domain": "hubspot.com" },
+    { "position": 3, "siteName": null, "domain": "zoho.com" }
+  ],
+  "webSearch": true,
+  "model": null,
+  "conversationId": "6ae3d825-8694-83ea-a276-fe20615ec6ab"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `answer` / `answerMarkdown` | The answer as plain text and as Markdown (headings, lists, tables, images and links kept). |
+| `citations` | The source pills ChatGPT attaches to claims: `position`, `siteName`, `domain`, `moreSources` (how many further sources the pill groups) and `citedText` (the answer text it backs). No page URL: signed-out ChatGPT shows it only on hover. |
+| `links` | Links written into the answer text: `position`, `title`, `url` and `domain`. |
+| `sources` | Every site cited or linked, once: `position`, `siteName` (when ChatGPT shows one) and `domain`. |
+| `webSearch` | Whether ChatGPT searched the web for this answer. |
+| `model` | Always `null`: signed-out ChatGPT does not show the model. |
+| `country` | The country you asked from (`null` when left blank). |
+| `conversationId` | ChatGPT's id for this one-question conversation. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters: an empty or too long `prompt`, or a `country` we cannot ask from (the message lists the available ones). |
+| `502` | ChatGPT gave no finished answer, refused every attempt, or did not answer in time. Retry. |
+| `503` | All ChatGPT sessions are busy. Retry in a minute; not billed. |
+
+## What you can build
+
+- **AI visibility tracking** - see whether ChatGPT recommends your brand or product for the questions your customers ask, and who it names instead.
+- **Citation monitoring** - track which sites ChatGPT cites and links for a topic, and in which country.
+- **Answer comparison** - put ChatGPT's answer next to [Gemini](/plugins/gemini) and [Google AI Mode](/plugins/google-ai-mode) for the same question.
+- **Market research** - ask the same question from several countries and compare local recommendations.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Ask ChatGPT and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

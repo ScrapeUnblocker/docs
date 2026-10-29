@@ -1,0 +1,288 @@
+---
+title: "idealo plugin"
+description: "idealo price comparison as clean JSON - search results with lowest price, offer count, cheapest shop, rating and press test grade, and every shop's offer for one product with price, shipping, total, delivery, payment methods and shop rating, in six countries."
+sidebarTitle: "idealo"
+---
+
+The **idealo** plugin returns idealo's price comparison as structured JSON. It is two endpoints:
+
+- **`/marketplace/idealo-search`** - the products for a keyword: whether the result is a price comparison of many shops (`product`) or a single shop offer idealo has not matched to a product (`offer`), product and offer ids, title, subtitle and key characteristics, link and image, the lowest price and unit price, the number of offers, the cheapest shop with its shipping cost, rating and review count, the average press test grade, energy class, bargain saving and best-seller rank. A page holds 60 products; one call collects up to 300.
+- **`/marketplace/idealo-offers`** - one product's price comparison: the product (title, brand, images, lowest and highest price, offer count, rating, pros and cons, variants with their own price range) and its **offers**, cheapest first, each with the shop's own title, price, shipping cost, total price, delivery estimate, carriers, free returns, payment methods, the shop with its rating (and the marketplace seller, if any) and idealo's click-out link.
+
+Pick the site with `country`: `de` (default), `at`, `uk` (idealo.co.uk), `fr`, `it` or `es`. Prices are in that site's currency. No idealo account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/idealo-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `iphone 17` or `kaffeevollautomat`. |
+| `country` | no | idealo site: `de`, `at`, `uk`, `fr`, `it`, `es`. Default `de`. |
+| `sort` | no | `relevance` (default) or `price_asc` (cheapest first). |
+| `page` | no | First idealo results page to read, `1`-`100`. Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`300`. Default `60`. A page holds 60 products; each page is billed as one request. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/idealo-search?query=kaffeevollautomat&country=de&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.idealo_search("kaffeevollautomat", country="de", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.idealoSearch("kaffeevollautomat", { country: "de", maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->idealoSearch('kaffeevollautomat', ['country' => 'de', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.idealo_search("kaffeevollautomat", country: "de", max_results: 3)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "kaffeevollautomat",
+  "country": "de",
+  "sort": "relevance",
+  "page": 1,
+  "url": "https://www.idealo.de/preisvergleich/MainSearchProductCategory.html?q=kaffeevollautomat&qr=false",
+  "currency": "EUR",
+  "total": 51886,
+  "productCount": 7896,
+  "lastPage": 67,
+  "pagesFetched": 1,
+  "nextPage": 2,
+  "pagingStopped": null,
+  "resultsCollected": 3,
+  "products": [
+    {
+      "type": "product",
+      "productId": "202691981",
+      "offerId": "66fbf5f693608a86f422fe74f53dddaa",
+      "title": "Philips LatteGo 5400 Series",
+      "subtitle": "Kaffeevollautomat",
+      "characteristics": ["Kaffeevollautomat", "1.850 Watt", "Pumpendruck 15 bar", "Keramikmahlwerk", "mit Wasserfilter"],
+      "url": "https://www.idealo.de/preisvergleich/OffersOfProduct/202691981_-lattego-5400-series-philips.html",
+      "image": "https://cdn.idealo.com/folder/Product/202691/9/202691981/s1_produktbild_mittelgross/philips-lattego-5400-series.jpg",
+      "lowestPrice": 428.99,
+      "basePrice": null,
+      "offerCount": 41,
+      "usedOnly": false,
+      "cheapestShop": {
+        "id": "20481",
+        "name": "electronis.de",
+        "shippingCost": 7.9,
+        "delivery": null,
+        "freeReturnDays": null
+      },
+      "rating": 4.5,
+      "reviewCount": 39,
+      "testGrade": "1,6",
+      "energyClass": null,
+      "bargainSavingPercent": null,
+      "bestsellerRank": 2,
+      "categoryId": "3487",
+      "variantOf": null,
+      "position": 1
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `type` | `product` = a price comparison of many shops; `offer` = a single shop offer idealo has not matched to a product. |
+| `productId` / `offerId` | idealo product id (pass it to [Offers](#offers)) and the offer id. |
+| `title` / `subtitle` / `characteristics` | Product name, product type and key characteristics. |
+| `url` / `image` | The product's price comparison (or the shop link of a single offer) and its image. |
+| `lowestPrice` / `basePrice` | The lowest price and the unit price text, when idealo shows one. |
+| `offerCount` / `usedOnly` | Number of offers, and whether only used offers exist. |
+| `cheapestShop` | The shop with the lowest price: `id`, `name`, `shippingCost`, `delivery` and `freeReturnDays`. |
+| `rating` / `reviewCount` | Stars (rounded to half a star by idealo) and number of reviews. |
+| `testGrade` | Average press test grade, where `1` is best. |
+| `energyClass` / `bargainSavingPercent` / `bestsellerRank` | Energy class, idealo's bargain saving and best-seller rank, when shown. |
+| `categoryId` / `variantOf` | idealo's category id, and the parent product of a variant. |
+| `total` / `productCount` / `lastPage` / `nextPage` | idealo's result and product counts and last page; pass `nextPage` as `page` to continue. |
+
+## Offers
+
+```
+POST /marketplace/idealo-offers
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | idealo product id, e.g. `207643424` (the number in a price comparison link, or `productId` from search). |
+| `url` | one of `product_id` / `url` | An idealo price comparison link, e.g. `https://www.idealo.de/preisvergleich/OffersOfProduct/207643424_-iphone-17-apple.html`. Its site sets the country. |
+| `country` | no | idealo site, as in search. Default `de`. |
+| `max_results` | no | Offers to collect, `1`-`200`. Default `20`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/idealo-offers?product_id=202691981" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.idealo_offers("202691981")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.idealoOffers("202691981");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->idealoOffers('202691981');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.idealo_offers("202691981")
+```
+</CodeGroup>
+
+The offers come in blocks of 20: the product and its first 20 offers are billed as one request, and each further block of 20 (`max_results` above 20) as one more. To look a product up by link, leave the first argument out and pass `url` (`su.idealo_offers(url="https://www.idealo.de/preisvergleich/...")` in Python, `su.idealoOffers(undefined, { url })` in Node.js).
+
+### Response
+
+```json
+{
+  "productId": "202691981",
+  "title": "Philips LatteGo 5400 Series",
+  "brand": "Philips",
+  "url": "https://www.idealo.de/preisvergleich/OffersOfProduct/202691981_-lattego-5400-series-philips.html",
+  "images": [
+    "https://cdn.idealo.com/folder/Product/200474/6/200474612/s1_produktbild_max/philips-lattego-5400-series-ep5447-90.jpg"
+  ],
+  "lowestPrice": 428.99,
+  "highestPrice": 949.0,
+  "currency": "EUR",
+  "offerCount": 37,
+  "rating": 4.67,
+  "reviewCount": 39,
+  "pros": ["sehr einfache Bedienung", "unkompliziertes Milchsystem"],
+  "cons": ["Milchbehälter etwas klein"],
+  "variants": [
+    {
+      "productId": "200474612",
+      "name": "Philips LatteGo 5400 Series EP5447/90",
+      "gtin": "4251168330577",
+      "lowestPrice": 428.99,
+      "highestPrice": 569.0,
+      "offerCount": 22,
+      "url": "https://www.idealo.de/preisvergleich/OffersOfProduct/200474612_-lattego-5400-series-ep5447-90-philips.html"
+    }
+  ],
+  "country": "de",
+  "offersCollected": 20,
+  "pagesFetched": 1,
+  "pagingStopped": null,
+  "offers": [
+    {
+      "offerKey": "f4592a4a035f79570daeb30f5a95af0f",
+      "title": "PHILIPS Series 5400 Kaffeevollautomat EP5447/90 beim autorisierter Fachhändler",
+      "price": 429,
+      "shippingCost": 0,
+      "totalPrice": 429,
+      "delivery": "bis Di. 03.11.",
+      "carriers": ["DHL", "DPD"],
+      "freeReturns": "Rücksendung 30 Tage kostenfrei",
+      "paymentMethods": ["paypal", "Rechnung", "visa", "mastercard", "klarna"],
+      "shop": {
+        "id": "277785",
+        "name": "best-in-saeco.de",
+        "rating": 5,
+        "ratingCount": 6,
+        "marketplace": false,
+        "seller": null
+      },
+      "variantId": "200474612",
+      "variantName": "Philips LatteGo 5400 Series EP5447/90",
+      "url": "https://www.idealo.de/relocator/relocate?categoryId=3487&offerKey=f4592a4a035f79570daeb30f5a95af0f&pos=2&price=429.00&productid=202691981&sid=277785&type=offer",
+      "position": 2
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `lowestPrice` / `highestPrice` / `offerCount` | The price range and the number of offers across shops. |
+| `rating` / `reviewCount` / `pros` / `cons` | idealo's rating, review count and its summary of pros and cons. |
+| `variants` | The product's variants: `productId`, `name`, `gtin`, their own price range, offer count and link. |
+| `offers` | The offers, cheapest first: `offerKey`, the shop's own `title`, `price`, `shippingCost`, `totalPrice`, `delivery` (as idealo prints it), `carriers`, `freeReturns`, `paymentMethods`, the `shop` (`id`, `name`, `rating`, `ratingCount`, `marketplace` and the marketplace `seller`), `variantId` / `variantName`, idealo's click-out `url` and `position`. |
+| `offersCollected` / `pagesFetched` | How many offers came back and how many blocks were read. |
+
+Offers are the new-item offers idealo lists by default.
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query`, an unsupported `country`, or no valid `product_id` or `url`. |
+| `404` | idealo found nothing for the search, or has no product with this id. |
+| `502` | idealo blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Price comparison** - see every shop's price, shipping and total for a product in one call.
+- **Competitor monitoring** - track where your shop ranks among the offers and who undercuts you.
+- **Market overview** - map a category's price ranges, offer counts, ratings and press test grades.
+- **Cross-country pricing** - compare the same product across idealo's six sites.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an idealo search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

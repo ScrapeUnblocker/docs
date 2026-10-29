@@ -1,0 +1,338 @@
+---
+title: "Petco plugin"
+description: "Petco (petco.com) products as clean JSON - search results with price, list price, Repeat Delivery price, rating and fulfilment options, and one product with every size, online stock, ingredients, specifications and the first reviews."
+sidebarTitle: "Petco"
+---
+
+The **Petco** plugin returns pet-supply product data from Petco (petco.com, US) as structured JSON. It is two endpoints:
+
+- **`/marketplace/petco-search`** - the products for a keyword: SKU and product id, title, brand, link and image, the price, list price and Repeat Delivery (autoship) price, the sale flag, rating and review count, description, category, fulfilment flags (autoship, pickup, same-day delivery, in-store only), prescription flag, attributes (flavour, life stage...) and every size or colour variation with its own SKU and prices. Filter by brand, fulfilment and price. 48 products a page; one call collects up to 480.
+- **`/marketplace/petco-product`** - one product in full: UPC, all prices (online, list, autoship, pickup), availability and online stock quantity, rating with its star histogram and recommend share, description, highlights, ingredients, feeding directions, specifications, dimensions, pet type, breadcrumbs, fulfilment flags, images, every variant with its prices and stock, and the first reviews (up to 10).
+
+Prices are the online prices a signed-out shopper sees, in USD. Store-specific stock and member (Vital Care) prices are not included. No Petco account is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/petco-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | one of `query` / `url` | What to search for, e.g. `dog food`, `cat litter` or `fish tank`. |
+| `url` | one of `query` / `url` | Instead of `query`: a petco.com search link, e.g. `https://www.petco.com/shop/en/petcostore/search?query=dog%20food`. |
+| `sort` | no | `relevance`, `price_low`, `price_high`, `rating`, `popular`, `newest`, `name_asc` or `name_desc`. Default `relevance`. |
+| `brand` | no | Only this brand, as petco.com names it (e.g. `Purina Pro Plan`; the `brands` list of a search shows the names). |
+| `fulfillment` | no | Only products offered this way: `delivery`, `autoship`, `pickup` or `same_day`. |
+| `min_price` / `max_price` | no | Price range in USD. |
+| `page` | no | 1-based results page to start from, `1`-`200` (48 products per page, as on petco.com). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`480`. Default `48`. Each page of 48 fetched is billed as one request (`pagesFetched`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/petco-search?query=dog%20food&brand=Purina%20Pro%20Plan&fulfillment=autoship&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.petco_search("dog food", brand="Purina Pro Plan", fulfillment="autoship", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.petcoSearch("dog food", {
+  brand: "Purina Pro Plan",
+  fulfillment: "autoship",
+  maxResults: 3,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->petcoSearch('dog food', [
+    'brand' => 'Purina Pro Plan',
+    'fulfillment' => 'autoship',
+    'max_results' => 3,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.petco_search("dog food", brand: "Purina Pro Plan", fulfillment: "autoship", max_results: 3)
+```
+</CodeGroup>
+
+To search with a link instead, leave the first argument out and pass `url` (`su.petco_search(url="https://www.petco.com/shop/en/petcostore/search?query=dog%20food")` in Python, `su.petcoSearch(undefined, { url })` in Node.js). A term Petco sends to a brand or category page returns that page's listing, named in `redirectedTo`.
+
+### Response
+
+```json
+{
+  "query": "dog food",
+  "sort": "relevance",
+  "brand": "Purina Pro Plan",
+  "fulfillment": "autoship",
+  "minPrice": null,
+  "maxPrice": null,
+  "page": 1,
+  "url": "https://www.petco.com/shop/en/petcostore/search?query=dog%20food",
+  "redirectedTo": null,
+  "currency": "USD",
+  "totalResults": 126,
+  "lastPage": 3,
+  "resultsCollected": 3,
+  "pagesFetched": 1,
+  "lastPageFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "brands": ["ACANA", "Applaws", "Applaws Taste Toppers"],
+  "products": [
+    {
+      "sku": "3748364",
+      "productId": "5043283",
+      "title": "Purina Pro Plan Sensitive Skin and Stomach Salmon and Rice Formula Dog Food, 40 lbs.",
+      "familyName": "Purina Pro Plan Sensitive Skin and Stomach Salmon and Rice Formula Dog Food",
+      "brand": "Purina Pro Plan",
+      "url": "https://www.petco.com/product/purina-pro-plan-sensitive-skin-and-stomach-salmon-and-rice-formula-dry-dog-food-40-lbs-3748364",
+      "image": "https://assets.petco.com/petco/image/upload/f_auto,q_auto,w_190/dpr_auto/3748364-center-1",
+      "price": 97.99,
+      "listPrice": 97.99,
+      "autoshipPrice": 93.09,
+      "onSale": false,
+      "currency": "USD",
+      "rating": 4.54,
+      "reviewCount": 6730,
+      "description": "High protein dry dog food formula, with real salmon as the first ingredient, made without artificial colors or flavors. ...",
+      "category": "Consumables|Food|Household Pet",
+      "autoshipEligible": true,
+      "pickupEligible": true,
+      "sameDayDeliveryEligible": true,
+      "inStoreOnly": false,
+      "prescriptionFood": false,
+      "attributes": {
+        "Breed Sizes": "Most Sizes",
+        "Dietary Preference": "Holistic, Maintenance, Organic, Sensitive Stomach, With Grain",
+        "Primary Brand": "Purina Pro Plan",
+        "Primary Flavor": "Salmon"
+      },
+      "variations": [
+        {
+          "sku": "2579466",
+          "title": "Purina Pro Plan Sensitive Skin and Stomach Salmon and Rice Formula Dog Food, 30 lbs.",
+          "url": "https://www.petco.com/product/purina-pro-plan-focus-adult-sensitive-skin-and-stomach-salmon-and-rice-formula-dry-dog-food-30-lb-bag-2579466",
+          "image": "https://assets.petco.com/petco/image/upload/f_auto,q_auto,w_190/dpr_auto/2579466-center-1",
+          "price": 77.99,
+          "listPrice": 80.99,
+          "autoshipPrice": 74.09,
+          "onSale": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `sku` / `productId` | Petco SKU of this size or colour, and the product family id. Pass `sku` to [Product](#product). |
+| `title` / `familyName` / `brand` | Title of this variant, the product family name and the brand. |
+| `url` / `image` | Product link and image. |
+| `price` / `listPrice` / `autoshipPrice` / `onSale` | The online price, list price, Repeat Delivery (autoship) price and the sale flag. |
+| `rating` / `reviewCount` | Rating and review count. |
+| `description` / `category` / `attributes` | Description, Petco's category path and attributes such as flavour or life stage. |
+| `autoshipEligible` / `pickupEligible` / `sameDayDeliveryEligible` / `inStoreOnly` / `prescriptionFood` | How the product can be bought, and whether it is a prescription food. |
+| `variations` | Every size or colour, each with `sku`, `title`, `url`, `image`, `price`, `listPrice`, `autoshipPrice` and `onSale`. |
+| `brands` | Brand names you can pass as `brand` for this search (80 for this query; the example shows three). |
+| `totalResults` / `lastPage` / `hasMore` / `nextPage` | Petco's match count and last page, and the page to pass as `page` to continue. |
+| `redirectedTo` | The brand or category page Petco sent the term to, when it did (else `null`). |
+
+## Product
+
+```
+POST /marketplace/petco-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product` | yes | A Petco SKU (the number a product link ends in, e.g. `3748364`) or a petco.com product link. A link returns its own variant; a SKU picks that variant. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/petco-product?product=3748364" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.petco_product("3748364")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.petcoProduct("3748364");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->petcoProduct('3748364');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.petco_product("3748364")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "sku": "3748364",
+    "catEntryId": "6131012",
+    "parentSku": "5043283",
+    "url": "https://www.petco.com/product/purina-pro-plan-sensitive-skin-and-stomach-salmon-and-rice-formula-dry-dog-food-40-lbs-3748364",
+    "title": "Purina Pro Plan Sensitive Skin and Stomach Salmon and Rice Formula Dog Food, 40 lbs.",
+    "brand": "Purina Pro Plan",
+    "upc": "038100100771",
+    "price": 97.99,
+    "listPrice": 97.99,
+    "autoshipPrice": 93.09,
+    "pickupPrice": 97.99,
+    "onSale": false,
+    "availability": "Available",
+    "inStock": true,
+    "availableQuantity": 1879,
+    "currency": "USD",
+    "rating": 4.54,
+    "reviewCount": 6736,
+    "ratingHistogram": { "1": 484, "2": 104, "3": 161, "4": 544, "5": 5443 },
+    "recommendedPercent": 81,
+    "description": "Tend to your dog's sensitive skin and stomach with Purina Pro Plan Sensitive Skin and Stomach Salmon and Rice Formula adult dry dog food. ...",
+    "highlights": [
+      "High protein dry dog food formula, with real salmon as the first ingredient, made without artificial colors or flavors",
+      "Each serving delivers fish oil for dogs rich in omega-3 fatty acids for joint health"
+    ],
+    "ingredients": "Salmon, Rice, Barley, Canola Meal, Oat Meal, Fish Meal, Salmon Meal, ...",
+    "directions": "We recommend that you keep your dog in ideal body condition and not allow your dog to become overweight. ...",
+    "specifications": [
+      { "group": "Additional Features", "name": "Grain Free", "value": "No" }
+    ],
+    "attributes": { "Weight": "40 LBS" },
+    "dimensions": "31 IN L X 18.5 IN W X 4.2 IN H",
+    "petType": "Dog",
+    "category": "Consumables|Food|Household Pet",
+    "breadcrumbs": ["Dog Supplies", "Dog Food", "Dry Dog Food & Kibble"],
+    "autoshipEligible": true,
+    "pickupEligible": true,
+    "sameDayDeliveryEligible": true,
+    "onlineOnly": false,
+    "inStoreOnly": false,
+    "prescriptionRequired": false,
+    "discontinued": false,
+    "images": [
+      "https://assets.petco.com/petco/image/upload/f_auto,q_auto/3748364-center-1",
+      "https://assets.petco.com/petco/image/upload/f_auto,q_auto/3748364-center-2"
+    ],
+    "variants": [
+      {
+        "sku": "2579466",
+        "catEntryId": "531503",
+        "title": "Purina Pro Plan Sensitive Skin and Stomach Salmon and Rice Formula Dog Food, 30 lbs.",
+        "url": "https://www.petco.com/product/purina-pro-plan-focus-adult-sensitive-skin-and-stomach-salmon-and-rice-formula-dry-dog-food-30-lb-bag-2579466",
+        "attributes": { "Weight": "30.4 LBS" },
+        "price": 77.99,
+        "listPrice": 80.99,
+        "autoshipPrice": 74.09,
+        "pickupPrice": 77.99,
+        "onSale": true,
+        "availability": "Available",
+        "inStock": true,
+        "availableQuantity": 1564
+      }
+    ],
+    "reviews": [
+      {
+        "rating": 5,
+        "title": "Food sensitive",
+        "text": "[This review was collected as part of a promotion.] This is a great product for dogs that have a food sensitivity. I would recommend this to buy for anyone",
+        "author": "Summer",
+        "date": "2026-10-20T23:02:44.000+00:00",
+        "syndicatedFrom": "purina.com"
+      }
+    ]
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `sku` / `catEntryId` / `parentSku` / `upc` | Petco SKU of this variant, Petco's internal entry id, the product family id and the barcode. |
+| `price` / `listPrice` / `autoshipPrice` / `pickupPrice` / `onSale` | Online, list, Repeat Delivery and pickup prices, and the sale flag. |
+| `availability` / `inStock` / `availableQuantity` | Availability text, whether it can be bought, and the online stock quantity. |
+| `rating` / `reviewCount` / `ratingHistogram` / `recommendedPercent` | Rating, review count, count per star and the share of reviewers who recommend it. |
+| `description` / `highlights` / `ingredients` / `directions` | Product text, bullet highlights, ingredients and feeding directions. |
+| `specifications` / `attributes` / `dimensions` / `petType` | `group` / `name` / `value` specifications, this variant's size or colour, package dimensions and the pet type. |
+| `category` / `breadcrumbs` | Petco's category path and the breadcrumb trail. |
+| `autoshipEligible` / `pickupEligible` / `sameDayDeliveryEligible` / `onlineOnly` / `inStoreOnly` | How the product can be bought. |
+| `prescriptionRequired` / `discontinued` | Whether a prescription is needed, and whether Petco has discontinued it. |
+| `images` | The image gallery. |
+| `variants` | Every other size or colour with `sku`, `catEntryId`, `title`, `url`, `attributes`, all prices, `availability`, `inStock` and `availableQuantity`. |
+| `reviews` | The first reviews (up to 10): `rating`, `title`, `text`, `author` (as Petco shows it), `date` and `syndicatedFrom` when the review comes from the brand's site. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. neither `query` nor `url`, an unknown `sort` or `fulfillment`, a `page` above `200`, a `max_results` above `480`, `min_price` above `max_price`, or a `product` that is not a SKU or petco.com link. |
+| `404` | Petco found no products for the search (or none on that `page`), or has no such product. |
+| `502` | Petco did not answer or blocked every attempt, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Pet supply price tracking** - follow online, sale and Repeat Delivery prices for a brand or category.
+- **Stock monitoring** - watch online stock quantity for every size of a product.
+- **Assortment research** - compare brands, ratings and fulfilment options across Petco's catalogue.
+- **Product data enrichment** - pull ingredients, feeding directions, specifications and images for a product catalog.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Petco search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

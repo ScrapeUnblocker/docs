@@ -1,0 +1,316 @@
+---
+title: "Grainger plugin"
+description: "Grainger (grainger.com, US industrial supplies) as clean JSON - search results with item number, maker model, Web Price, quantity pricing and specifications, plus one item with unit of measure, specifications, documents, alternate items and breadcrumbs."
+sidebarTitle: "Grainger"
+---
+
+The **Grainger** plugin returns industrial supply items from Grainger (grainger.com, US) as structured JSON. It is two endpoints:
+
+- **`/marketplace/grainger-search`** - Grainger's first result rows for a keyword (up to 25 items, in Grainger's order): Grainger item number (`sku`), product id, title, brand, the maker's model number, link and image, the price with its label and type, any was-price and quantity pricing, the item status and the specifications Grainger shows in the result row (thread size, voltage, material...). It also names the category Grainger matched, its result count and the other matching categories.
+- **`/marketplace/grainger-product`** - one item: the same fields plus the unit of measure (e.g. `pkg. of 100`), the discontinued flag, sell info, shipping weight, description, the full specification table (including UNSPSC and country of origin), images, documents (spec sheets, drawings), alternate item numbers and breadcrumbs.
+
+No Grainger account is involved.
+
+<Warning>
+Prices are Grainger's **Web Price** as shown to a visitor who is not signed in. Account pricing (contract or negotiated prices) is not included. There are no stock levels either: Grainger checks stock per ZIP code after the page loads, so neither endpoint returns it.
+</Warning>
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/grainger-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | one of `query` / `url` | What to search for, e.g. `safety glasses`, `hex bolt`, `cordless drill` or a manufacturer model. |
+| `url` | one of `query` / `url` | Instead of `query`: a Grainger search link, e.g. `https://www.grainger.com/search?searchQuery=hex+bolt`, or a category link from `categories`. Give one of the two, not both. |
+| `max_results` | no | Items to return, `1`-`25` (Grainger's first result rows). Default `25`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/grainger-search?query=hex%20bolt&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.grainger_search("hex bolt", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.graingerSearch("hex bolt", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->graingerSearch('hex bolt', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.grainger_search("hex bolt", max_results: 3)
+```
+</CodeGroup>
+
+Grainger answers a keyword with the product category that matches it best: `category` names it, `totalResults` counts that category's matches and `categories` lists the other matching categories with their counts and links. To search one of them, pass its link as `url`. A keyword that leads to a department page (subcategory tiles, no products) is answered from the subcategory holding the product line that matches it most often; `totalAcrossCategories` then counts the whole department. There is no paging: only the first result rows come back. Each search is billed as one request.
+
+### Response
+
+```json
+{
+  "query": "hex bolt",
+  "url": "https://www.grainger.com/search?searchQuery=hex+bolt",
+  "currency": "USD",
+  "category": {
+    "id": null,
+    "name": "Standard Hex Head Cap Screws",
+    "url": "https://www.grainger.com/category/fasteners/bolts-screws/hex-head-bolt..."
+  },
+  "totalResults": 12256,
+  "totalAcrossCategories": 15007,
+  "categories": [
+    {
+      "name": "Standard Hex Head Cap Screws",
+      "count": 12256,
+      "url": "https://www.grainger.com/category/fasteners/bolts-screws/hex-head-bolt..."
+    },
+    {
+      "name": "Structural Bolts & Heavy Hex Bolts",
+      "count": 1212,
+      "url": "https://www.grainger.com/category/fasteners/bolts-screws/hex-head-bolt..."
+    }
+  ],
+  "resultsCollected": 3,
+  "products": [
+    {
+      "position": 1,
+      "sku": "1XE66",
+      "productId": 8677432,
+      "title": "Hex Head Cap Screw: Stainless Steel, 18-8, Plain, 1/4\"-20, Coarse, 3/8 in lg, Fully Threaded, 100 PK",
+      "brand": "APPROVED VENDOR",
+      "manufacturerModel": "1XE66",
+      "url": "https://www.grainger.com/product/Hex-Head-Cap-Screw-Stainless-1XE66",
+      "image": "https://static.grainger.com/rp/s/is/image/Grainger/42JY78-R0030-1_v1",
+      "status": "Sellable",
+      "price": 22.25,
+      "priceLabel": "Web Price",
+      "priceType": "REGULAR",
+      "wasPrice": null,
+      "quantityPricing": [],
+      "currency": "USD",
+      "specifications": [
+        {
+          "name": "Finish",
+          "value": "Plain"
+        },
+        {
+          "name": "Thread Size",
+          "value": "1/4\"-20"
+        },
+        {
+          "name": "Thread Type",
+          "value": "Coarse"
+        },
+        {
+          "name": "Material",
+          "value": "Stainless Steel"
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `sku` / `url` | Grainger item number and item link. Pass either to [Product](#product). |
+| `productId` | Grainger's internal product id. |
+| `title` / `brand` / `manufacturerModel` / `image` | Title, brand, the maker's model number and image. |
+| `price` / `priceLabel` / `priceType` | The Web Price shown without sign-in, its label (`Web Price`) and type (e.g. `REGULAR`). |
+| `wasPrice` / `quantityPricing` | The was-price on a markdown, and price breaks for larger quantities when Grainger offers them. |
+| `status` | Grainger's item status, e.g. `Sellable`. |
+| `specifications` | The specifications shown in the result row (`name` / `value`). |
+| `category` / `totalResults` | The category Grainger matched (`id`, `name`, `url`) and its match count. |
+| `categories` / `totalAcrossCategories` | Other matching categories (`name`, `count`, `url`) and the match count across all of them. |
+
+## Product
+
+```
+POST /marketplace/grainger-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `sku` | one of `sku` / `url` | Grainger item number, e.g. `1XE66` or `22TA59` (the `sku` of a search result). |
+| `url` | one of `sku` / `url` | Instead of `sku`: a Grainger product link, e.g. `https://www.grainger.com/product/Hex-Head-Cap-Screw-Stainless-1XE66`. Give one of the two, not both. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/grainger-product?sku=1XE66" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.grainger_product("1XE66")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.graingerProduct("1XE66");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->graingerProduct('1XE66');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.grainger_product("1XE66")
+```
+</CodeGroup>
+
+To look an item up by link, leave the first argument out and pass `url` (`su.grainger_product(url="https://www.grainger.com/product/...")` in Python, `su.graingerProduct(undefined, { url })` in Node.js). Each item is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "sku": "1XE66",
+    "productId": 8677432,
+    "title": "Hex Head Cap Screw: Stainless Steel, 18-8, Plain, 1/4\"-20, Coarse, 3/8 in lg, Fully Threaded, 100 PK",
+    "brand": "APPROVED VENDOR",
+    "manufacturerModel": "1XE66",
+    "url": "https://www.grainger.com/product/Hex-Head-Cap-Screw-Stainless-1XE66",
+    "price": 22.25,
+    "priceLabel": "Web Price",
+    "priceType": "REGULAR",
+    "wasPrice": null,
+    "unitOfMeasure": "pkg. of 100",
+    "quantityPricing": [],
+    "currency": "USD",
+    "status": "Sellable",
+    "discontinued": false,
+    "sellInfo": "Pack of 100",
+    "shippingWeight": "1.06 lbs",
+    "description": "18-8 stainless steel hex head cap screws resist corrosion and provide strong fastening performance, allowing for installation with a wrench or socket ...",
+    "specifications": [
+      {
+        "name": "Material",
+        "value": "Stainless Steel"
+      },
+      {
+        "name": "Tensile Strength",
+        "value": "85,000 psi"
+      },
+      {
+        "name": "Thread Size",
+        "value": "1/4 in"
+      },
+      {
+        "name": "UNSPSC",
+        "value": "31161501"
+      },
+      {
+        "name": "Country of Origin",
+        "value": "Taiwan (subject to change)"
+      }
+    ],
+    "images": [
+      "https://static.grainger.com/rp/s/is/image/Grainger/42JY78-R0030-1_v1"
+    ],
+    "documents": [
+      {
+        "name": "Dimensional Drawing",
+        "url": "https://www.grainger.com/ec/pdf/grainger-1XE66_v2.pdf"
+      }
+    ],
+    "alternateSkus": [
+      "1XE67",
+      "36L815",
+      "4P299",
+      "5DUY3"
+    ],
+    "breadcrumbs": [
+      {
+        "name": "Hex Head Bolts",
+        "url": "https://www.grainger.com/category/fasteners/bolts-screws/hex-head-bolt..."
+      },
+      {
+        "name": "Standard Hex Head Cap Screws",
+        "url": "https://www.grainger.com/category/fasteners/bolts-screws/hex-head-bolt..."
+      }
+    ]
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `sku` / `productId` / `manufacturerModel` | Grainger item number, internal product id and the maker's model number. |
+| `price` / `priceLabel` / `priceType` / `wasPrice` / `quantityPricing` | Price fields as in search: the Web Price without sign-in. |
+| `unitOfMeasure` / `sellInfo` | What the price buys, e.g. `pkg. of 100` / `Pack of 100`. |
+| `status` / `discontinued` | Grainger's item status and whether the item is discontinued. |
+| `shippingWeight` | Shipping weight as Grainger states it. |
+| `description` / `specifications` | Description and the full specification table (`name` / `value`), including UNSPSC and country of origin. |
+| `images` / `documents` | Images, and documents such as spec sheets and dimensional drawings (`name`, `url`). |
+| `alternateSkus` | Item numbers Grainger lists as alternates. |
+| `breadcrumbs` | The category path (`name`, `url`). |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. no `query` or `url` (or both), `max_results` above `25`, or a product call without (or with both) `sku` and `url`. |
+| `404` | Grainger found no products for the search, or has no such item. |
+| `502` | Grainger blocked every attempt, returned no results or product data, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **MRO price monitoring** - track Grainger's Web Price and quantity breaks for the parts you buy.
+- **Cross-reference** - match Grainger items to maker model numbers and alternate items.
+- **Catalog enrichment** - fill part records with specifications, UNSPSC codes, country of origin and spec sheets.
+- **Category research** - see which categories and how many items Grainger has for a part type.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Grainger search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

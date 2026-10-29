@@ -1,0 +1,488 @@
+---
+title: "Lowe's plugin"
+description: "Lowe's (lowes.com, US) products as clean JSON, priced for one store - search results with price, was-price and sale end date, clearance, rating, units on hand for pickup and delivery options, plus one product with specifications, images, videos, documents and stock at nearby stores."
+sidebarTitle: "Lowe's"
+---
+
+The **Lowe's** plugin returns products from Lowe's (lowes.com, US) as structured JSON. It is two endpoints:
+
+- **`/marketplace/lowes-search`** - the products for a keyword, in Lowe's own order: product id, item and model number, brand, title, link and image, rating and review count, the price with the was-price, savings and sale end date when it is on promotion, the clearance flag, the price range for items with options, the price type, the units on hand for pickup at the store and the parcel, delivery and expedited delivery options, plus the sponsored and marketplace flags and the key specifications. 24 products per page; one call collects up to 72.
+- **`/marketplace/lowes-product`** - one product: the same price and stock fields plus the UPC, description, bullet points, the full specification table, images, videos, documents (manuals, warning labels), category path, package dimensions and weight, and how many units the nearby stores have.
+
+Lowe's prices and stock are per store, so every answer is for one store, named in `store`. Pick it with `store_id`, or with a `zip` code (the nearest Lowe's store); with neither, store 1845 (Chicago-Brickyard, IL) is used. No Lowe's account is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/lowes-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | one of `query` / `url` | What to search for, e.g. `cordless drill`, `garden hose` or `interior paint`. |
+| `url` | one of `query` / `url` | Instead of `query`: a Lowe's search link, e.g. `https://www.lowes.com/search?searchTerm=garden+hose` (its offset and store are used). Give one of the two, not both. |
+| `store_id` | no | Lowe's store number whose prices and stock to return, e.g. `1845`. Give this or `zip`, not both; with neither, store 1845 (Chicago-Brickyard, IL) is used. |
+| `zip` | no | US ZIP code; the nearest Lowe's store is used, e.g. `60639`. |
+| `free_delivery` | no | `true` keeps only items Lowe's delivers for free. Default `false`. |
+| `page` | no | 1-based results page to start from, `1`-`30` (24 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`72`. Default `24`. Each page fetched is billed as one request (`pagesFetched`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/lowes-search?query=cordless%20drill&zip=30301&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.lowes_search("cordless drill", zip="30301", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.lowesSearch("cordless drill", { zip: "30301", maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->lowesSearch('cordless drill', ['zip' => '30301', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.lowes_search("cordless drill", zip: "30301", max_results: 3)
+```
+</CodeGroup>
+
+A broad keyword that Lowe's sends to a category landing page (for example `patio furniture`) is answered from the landing page's first category tile that names the keyword, and `category` names it (`null` for a plain search). A landing page without such a tile answers `404`: search a more specific term.
+
+### Response
+
+```json
+{
+  "query": "cordless drill",
+  "page": 1,
+  "url": "https://www.lowes.com/search?searchTerm=cordless+drill&storeId=1875",
+  "currency": "USD",
+  "store": {
+    "storeId": "1875",
+    "name": "Atlanta-Edgewood Lowe's",
+    "address": "1280 CAROLINE STREET NE",
+    "city": "Atlanta",
+    "state": "GA",
+    "zip": "30307",
+    "phone": "(404) 658-8650"
+  },
+  "category": null,
+  "totalResults": 284,
+  "lastPage": 12,
+  "resultsCollected": 3,
+  "pagesFetched": 1,
+  "lastPageFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "products": [
+    {
+      "position": 1,
+      "productId": "5016412045",
+      "itemNumber": "6812916",
+      "modelNumber": "CMCD714D1",
+      "brand": "CRAFTSMAN",
+      "title": "20-volt 1/2-in Keyless Brushless Cordless Drill 1 -Batteries Included, and Charger Included",
+      "url": "https://www.lowes.com/pd/CRAFTSMAN-20-volt-Max-1-2-in-Keyless-Brushles...",
+      "image": "https://mobileimages.lowes.com/productimages/e3ff0df9-d3b3-4aa8-b235-d...",
+      "rating": 4.9,
+      "reviewCount": 97,
+      "price": 129.0,
+      "wasPrice": null,
+      "savings": null,
+      "savingsPercent": null,
+      "saleEnds": null,
+      "clearance": false,
+      "minPrice": null,
+      "maxPrice": null,
+      "priceType": "store",
+      "currency": "USD",
+      "availability": {
+        "parcel": {
+          "available": true,
+          "quantity": 423,
+          "leadTimeDays": 0
+        },
+        "pickup": {
+          "available": true,
+          "quantity": 6,
+          "storeId": "1875"
+        },
+        "delivery": {
+          "available": true,
+          "quantity": 433,
+          "leadTimeDays": 2
+        },
+        "expeditedDelivery": {
+          "available": true,
+          "quantity": 10,
+          "leadTimeDays": null
+        }
+      },
+      "sponsored": false,
+      "marketplace": false,
+      "bullets": [],
+      "specifications": [
+        {
+          "name": "Cordless",
+          "value": "Yes"
+        },
+        {
+          "name": "Brushless",
+          "value": "Yes"
+        },
+        {
+          "name": "Battery Included",
+          "value": "Yes"
+        }
+      ]
+    },
+    {
+      "position": 3,
+      "productId": "5015662267",
+      "itemNumber": "6553190",
+      "modelNumber": "DD12V-S1",
+      "brand": "Dremel",
+      "title": "Blueprint 12-volt 1/4-in Keyless Brushless Cordless Drill 1 -Batteries Included, and Charger Included",
+      "url": "https://www.lowes.com/pd/Dremel-Drill-DD12V-S1/5015662267",
+      "image": "https://mobileimages.lowes.com/productimages/c6fb6677-5176-4cf6-974f-3...",
+      "rating": 4.6,
+      "reviewCount": 70,
+      "price": 49.0,
+      "wasPrice": 99.0,
+      "savings": 50.0,
+      "savingsPercent": 50.0,
+      "saleEnds": "2027-01-28",
+      "clearance": false,
+      "minPrice": null,
+      "maxPrice": null,
+      "priceType": "store",
+      "currency": "USD",
+      "availability": {
+        "parcel": {
+          "available": false,
+          "quantity": 0,
+          "leadTimeDays": 0
+        },
+        "pickup": {
+          "available": false,
+          "quantity": 0,
+          "storeId": null,
+          "nearbyStores": [
+            {
+              "storeId": "1715",
+              "distanceMiles": 11.6,
+              "available": true,
+              "quantity": 1
+            }
+          ]
+        },
+        "delivery": {
+          "available": true,
+          "quantity": 7,
+          "leadTimeDays": 2
+        },
+        "expeditedDelivery": {
+          "available": true,
+          "quantity": 2,
+          "leadTimeDays": null
+        }
+      },
+      "sponsored": true,
+      "marketplace": false,
+      "bullets": [],
+      "specifications": [
+        {
+          "name": "Cordless",
+          "value": "Yes"
+        },
+        {
+          "name": "Brushless",
+          "value": "Yes"
+        },
+        {
+          "name": "Battery Included",
+          "value": "Yes"
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `store` | The store the prices and stock are for: `storeId`, `name`, `address`, `city`, `state`, `zip` and `phone`. |
+| `productId` / `url` | Lowe's item id and product link. Pass either to [Product](#product). |
+| `itemNumber` / `modelNumber` | Lowe's item number and the maker's model number. |
+| `brand` / `title` / `image` | Brand, title and main image. |
+| `rating` / `reviewCount` | Star rating and number of reviews. |
+| `price` / `wasPrice` / `savings` / `savingsPercent` / `saleEnds` | The price at this store, and on a promotion the was-price, the saving and the date the sale ends. |
+| `clearance` | `true` for clearance items. |
+| `minPrice` / `maxPrice` | The price range of an item sold with options (size, color), else `null`. |
+| `priceType` | Where the price comes from: `store` (this store's price), `network` (Lowe's online price) or `sos` (special order). |
+| `availability` | `pickup` (`available`, the `quantity` on hand at the store and, when it has none, `nearbyStores` that do), `parcel`, `delivery` and `expeditedDelivery` (`available`, `quantity` and `leadTimeDays`). |
+| `sponsored` / `marketplace` | Whether the listing is sponsored, and whether a marketplace seller sells it. |
+| `bullets` / `specifications` | Key points and specifications (`name` / `value`) as the search shows them. |
+| `category` | The category a landing-page keyword was answered from, else `null`. |
+| `totalResults` / `lastPage` / `nextPage` / `hasMore` | Lowe's match count and page count; pass `nextPage` as `page` to continue. |
+
+## Product
+
+```
+POST /marketplace/lowes-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | Lowe's item id, e.g. `5016412045` (the number at the end of a product link; the `productId` of a search result). |
+| `url` | one of `product_id` / `url` | Instead of `product_id`: a Lowe's product link, e.g. `https://www.lowes.com/pd/CRAFTSMAN-20-volt-Max-Drill/5016412045`. Give one of the two, not both. |
+| `store_id` | no | Lowe's store number whose prices and stock to return, e.g. `1845`. Give this or `zip`, not both; with neither, store 1845 is used. |
+| `zip` | no | US ZIP code; the nearest Lowe's store is used. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/lowes-product?product_id=5016412045&store_id=1875" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.lowes_product("5016412045", store_id="1875")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.lowesProduct("5016412045", { storeId: "1875" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->lowesProduct('5016412045', ['store_id' => '1875']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.lowes_product("5016412045", store_id: "1875")
+```
+</CodeGroup>
+
+To look a product up by link, leave the first argument out and pass `url` (`su.lowes_product(url="https://www.lowes.com/pd/...")` in Python, `su.lowesProduct(undefined, { url })` in Node.js). Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "productId": "5016412045",
+    "itemNumber": "6812916",
+    "modelNumber": "CMCD714D1",
+    "upc": "198706013438",
+    "brand": "CRAFTSMAN",
+    "title": "20-volt 1/2-in Keyless Brushless Cordless Drill 1 -Batteries Included, and Charger Included",
+    "url": "https://www.lowes.com/pd/CRAFTSMAN-20-volt-Max-1-2-in-Keyless-Brushles...",
+    "rating": 4.9,
+    "reviewCount": 97,
+    "price": 129.0,
+    "wasPrice": null,
+    "savings": null,
+    "savingsPercent": null,
+    "saleEnds": null,
+    "clearance": false,
+    "minPrice": null,
+    "maxPrice": null,
+    "priceType": "store",
+    "currency": "USD",
+    "storeId": "1875",
+    "availability": {
+      "parcel": {
+        "available": true,
+        "quantity": 423,
+        "leadTimeDays": 0
+      },
+      "pickup": {
+        "available": true,
+        "quantity": 6,
+        "storeId": "1875",
+        "nearbyStores": [
+          {
+            "storeId": "1119",
+            "distanceMiles": 8.9,
+            "available": true,
+            "quantity": 10
+          },
+          {
+            "storeId": "2232",
+            "distanceMiles": 11.0,
+            "available": true,
+            "quantity": 4
+          }
+        ]
+      },
+      "delivery": {
+        "available": true,
+        "quantity": 433,
+        "leadTimeDays": 2
+      },
+      "expeditedDelivery": {
+        "available": true,
+        "quantity": 10,
+        "leadTimeDays": null
+      }
+    },
+    "description": "DIYers know the drill - literally. The V20* BRUSHLESS RP Drill/Driver is built for tight spaces and big tasks. At 25% shorter** it goes where larger d...",
+    "bullets": [
+      "Made For Tight Spaces - Get into small areas with a 6.2-in tool head length (or 25% shorter**)",
+      "Help Get Light To The Point - Focus on the action with the built-in LED"
+    ],
+    "specifications": [
+      {
+        "name": "Battery Voltage",
+        "value": "20-volt",
+        "group": "General"
+      },
+      {
+        "name": "Chuck Type",
+        "value": "Keyless",
+        "group": "General"
+      },
+      {
+        "name": "Maximum Speed (RPM)",
+        "value": "1900",
+        "group": "Features"
+      },
+      {
+        "name": "Warranty",
+        "value": "3-year limited",
+        "group": "Warranty"
+      }
+    ],
+    "images": [
+      "https://mobileimages.lowes.com/productimages/e3ff0df9-d3b3-4aa8-b235-d...",
+      "https://mobileimages.lowes.com/productimages/4d5a072d-1e27-4a65-8a45-f..."
+    ],
+    "videos": [
+      {
+        "title": "Craftsman V20 Brushless Drill: Compact Power for Every Project",
+        "url": "https://cdnapisec.kaltura.com/p/4215793/sp/421579300/playManifest/entr..."
+      }
+    ],
+    "documents": [
+      {
+        "name": "Prop65 Warning Label",
+        "url": "https://pdf.lowes.com/productdocuments/49fbd1fd-0d5d-49b2-8618-502f19e..."
+      }
+    ],
+    "category": [
+      "HARDLINES",
+      "POWER EQUIPMENT",
+      "HANDHELD POWER TOOLS",
+      "CRAFTSMAN 20V POWER TOOLS",
+      "CRAFTSMAN 20V KITTED TOOLS"
+    ],
+    "dimensions": {
+      "depth": {
+        "value": 11.02,
+        "unit": "Inches"
+      },
+      "width": {
+        "value": 2.999,
+        "unit": "Inches"
+      },
+      "height": {
+        "value": 8.7,
+        "unit": "Inches"
+      },
+      "grossWeight": {
+        "value": 4.26,
+        "unit": "lbs."
+      }
+    },
+    "weightLbs": 4.26,
+    "buyable": true,
+    "status": "ACTIVE"
+  },
+  "store": {
+    "storeId": "1875",
+    "name": "Atlanta-Edgewood Lowe's",
+    "address": "1280 CAROLINE STREET NE",
+    "city": "Atlanta",
+    "state": "GA",
+    "zip": "30307",
+    "phone": "(404) 658-8650"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `itemNumber` / `modelNumber` / `upc` | Lowe's item id and item number, the maker's model number and the UPC barcode. |
+| `price` / `wasPrice` / `savings` / `savingsPercent` / `saleEnds` / `clearance` / `priceType` | Price fields as in search, for the store in `storeId`. |
+| `availability` | As in search; `pickup.nearbyStores` lists nearby stores with their `distanceMiles`, `available` flag and `quantity` on hand. |
+| `description` / `bullets` | The product description and bullet points. |
+| `specifications` | The specification table: `name`, `value` and `group` (General, Dimensions, Features, Warranty...). |
+| `images` / `videos` / `documents` | Image gallery, product videos (`title`, `url`) and documents such as manuals and warning labels (`name`, `url`). |
+| `category` | The category path, top level first. |
+| `dimensions` / `weightLbs` | Package dimensions (`depth`, `width`, `height`, `grossWeight` and more, each with `value` and `unit`) and the shipping weight in pounds. |
+| `buyable` / `status` | Whether the item can be bought online, and Lowe's status for it (e.g. `ACTIVE`). |
+| `store` | The store the prices and stock are for, as in search. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. no `query` or `url`, both `query` and `url`, both `store_id` and `zip`, a `zip` that is not a 5-digit US ZIP code, or `max_results` above `72`. |
+| `404` | Lowe's found no products, sent the keyword to a category landing page without a tile naming it, has no such product, or has no such store (or none near `zip`). |
+| `502` | Lowe's blocked every attempt, returned no results or product data, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Store-level price tracking** - follow prices, promotions, sale end dates and clearance at the stores that matter to you.
+- **Local stock checks** - see units on hand at a store and its nearby stores before sending a customer or a crew.
+- **Price comparison** - compare Lowe's with other home improvement retailers by model number or UPC.
+- **Catalog enrichment** - fill product records with specifications, images, documents and package dimensions.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Lowe's search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

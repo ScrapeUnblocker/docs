@@ -1,0 +1,332 @@
+---
+title: "Rakuten plugin"
+description: "Rakuten Ichiba (Japan) as clean JSON - search results with yen price, Rakuten points, rating, shipping, delivery estimate, unit price, genre rank and shop, and one item with description, attributes, every variant's price and stock, and images."
+sidebarTitle: "Rakuten"
+---
+
+The **Rakuten** plugin returns items from Rakuten Ichiba (rakuten.co.jp), Japan's largest online marketplace, as structured JSON. It is two endpoints:
+
+- **`/marketplace/rakuten-search`** - the items for a keyword (in Japanese or English): item id and code, the shop, title and subtitle, link and images, the price in yen (and the top of the range when variants are priced differently), the Rakuten points a signed-out shopper earns, rating and review count, shipping fee, delivery estimate, unit price, subscription price, the daily genre rank, sold-out, used, pre-order and super-deal flags, genres and tags. Rakuten's sponsored items come back separately in `sponsored`. Rakuten serves 45 items per page; one call collects up to 450.
+- **`/marketplace/rakuten-product`** - one item: the shop, title, tagline and description, condition, price (tax included), free shipping, availability and stock (when the shop shares it), delivery message, order limit, rating, genre and breadcrumbs, the shop's own categories, attributes, the variant options and every variant (SKU) with its options, price, availability, stock, JAN code and image, and the images.
+
+Rakuten Ichiba is a Japanese site: titles and descriptions are in Japanese, and prices are in **yen**, tax included. No Rakuten account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/rakuten-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | one of `query` / `url` | What to search, in Japanese or English, e.g. `iphone`, `コーヒー` or `ナイキ スニーカー`. |
+| `url` | one of `query` / `url` | Instead of `query`: a Rakuten search link, e.g. `https://search.rakuten.co.jp/search/mall/coffee/?s=2` (its keyword, genre, sort, page and price filter are used). |
+| `sort` | no | `relevance` (default), `price_low`, `price_high`, `newest`, `review_count`, `review_score`. |
+| `page` | no | 1-based results page to start from, `1`-`150`. Default `1`. Rakuten lets a search be paged through to 6,750 items. |
+| `min_price` / `max_price` | no | Price range, in yen. |
+| `genre_id` | no | Limit to one Rakuten genre (category) id, e.g. `100227` (food); every result's `genreId` is one. |
+| `max_results` | no | Items to collect across pages, `1`-`450`. Default `45`. Rakuten serves 45 per page and each page read is billed as one request (`pagesFetched`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/rakuten-search?query=%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC&sort=review_count&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.rakuten_search("コーヒー", sort="review_count", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.rakutenSearch("コーヒー", { sort: "review_count", maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->rakutenSearch('コーヒー', ['sort' => 'review_count', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.rakuten_search("コーヒー", sort: "review_count", max_results: 3)
+```
+</CodeGroup>
+
+To search with a Rakuten search link, leave the first argument out and pass `url` (`su.rakuten_search(url="https://search.rakuten.co.jp/search/mall/...")` in Python, `su.rakutenSearch(undefined, { url })` in Node.js).
+
+### Response
+
+```json
+{
+  "query": "コーヒー",
+  "sort": "review_count",
+  "page": 1,
+  "minPrice": null,
+  "maxPrice": null,
+  "genreId": null,
+  "url": "https://search.rakuten.co.jp/search/mall/%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC/?s=5",
+  "currency": "JPY",
+  "totalResults": 3093277,
+  "reachableResults": 405,
+  "resultsCollected": 3,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "pagingStopped": null,
+  "relatedKeywords": ["コーヒー 豆", "ドリップ コーヒー", "インスタントコーヒー"],
+  "sponsored": [
+    {
+      "itemId": "12150132",
+      "itemCode": "4901201150326",
+      "shopId": "193677",
+      "shopCode": "kenkocom",
+      "shopName": "楽天24 ヘルスケア館",
+      "title": "UCC ゴールドスペシャル アイスコーヒー 無糖(1000ml*12本入)...",
+      "url": "https://item.rakuten.co.jp/kenkocom/4901201150326/?variantId=4901201150326",
+      "price": 3260,
+      "currency": "JPY",
+      "rating": 4.73,
+      "reviewCount": 117,
+      "sponsored": true
+    }
+  ],
+  "products": [
+    {
+      "itemId": "10001136",
+      "itemCode": "ac-sale-1960",
+      "shopId": "198667",
+      "shopCode": "sawaicoffee-tea",
+      "shopName": "澤井珈琲Beans&Leaf",
+      "title": "澤井珈琲｜送料無料 コーヒー コーヒー豆 コーヒー粉 珈琲豆 豆のまま \"グルメ大賞9度受賞の1番選ばれるコーヒーセット\" 1kg 2kg 3kg ...",
+      "subtitle": "家族みんなで楽しめる ほっと一息つく時間に 濃厚なコク 芳醇な香り ...",
+      "url": "https://item.rakuten.co.jp/sawaicoffee-tea/ac-sale-1960/",
+      "price": 2788,
+      "priceMax": 8888,
+      "currency": "JPY",
+      "points": 50,
+      "pointMultiplier": 2,
+      "rating": 4.7,
+      "reviewCount": 50382,
+      "reviewsUrl": "https://review.rakuten.co.jp/item/1/198667_10001136/1.1/",
+      "shippingFee": 0,
+      "freeShipping": true,
+      "deliveryEstimate": "13:00までの注文で最短10/31(翌日)お届け",
+      "nextDayDelivery": false,
+      "unitPrice": 1394.0,
+      "unitPriceText": "1,394円/個",
+      "packCount": 2,
+      "subscriptionPrice": 2509,
+      "saleEnds": null,
+      "ranking": { "rank": 1, "genre": "コーヒー豆" },
+      "soldOut": false,
+      "used": false,
+      "preOrder": false,
+      "superDeal": false,
+      "sponsored": false,
+      "hasVariants": true,
+      "genreId": "201402",
+      "genres": ["水・ソフトドリンク", "コーヒー", "コーヒー豆"],
+      "tags": ["澤井珈琲", "ブラジル", "エチオピア", "ブレンド"],
+      "image": "https://thumbnail.image.rakuten.co.jp/@0_mall/sawaicoffee-tea/cabinet/raknewthum/261030/ac-sale-1960_01.jpg",
+      "images": [
+        "https://thumbnail.image.rakuten.co.jp/@0_mall/sawaicoffee-tea/cabinet/raknewthum/261030/ac-sale-1960_01.jpg"
+      ],
+      "position": 1
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `itemId` / `itemCode` / `shopId` / `shopCode` / `shopName` | The item and its shop. `shopCode` + `itemCode` is the `product_id` for [Product](#product) (`sawaicoffee-tea/ac-sale-1960`). |
+| `title` / `subtitle` / `url` / `image` / `images` | Item title, the shop's catch copy, link and images. |
+| `price` / `priceMax` / `currency` | Price in yen, tax included; `priceMax` when variants are priced differently. |
+| `points` / `pointMultiplier` | Rakuten points a signed-out shopper earns, and the points multiplier. |
+| `rating` / `reviewCount` / `reviewsUrl` | Average rating, number of reviews and the reviews page. |
+| `shippingFee` / `freeShipping` / `deliveryEstimate` / `nextDayDelivery` | Shipping and delivery, as Rakuten shows them. |
+| `unitPrice` / `unitPriceText` / `packCount` | Price per unit and the number of units in the pack. |
+| `subscriptionPrice` / `saleEnds` | The subscription price and the end of a sale, when shown. |
+| `ranking` | The item's daily rank in its genre. |
+| `soldOut` / `used` / `preOrder` / `superDeal` / `hasVariants` | Item flags. |
+| `genreId` / `genres` / `tags` | Rakuten genre id and path, and the item's tags. |
+| `sponsored` | Rakuten's sponsored items for the search, with the same fields, kept apart from `products`. |
+| `totalResults` / `reachableResults` / `nextPage` | Rakuten's match count, how far it lets the search be paged, and the next page to pass as `page`. |
+| `relatedKeywords` | Rakuten's related searches. |
+
+## Product
+
+```
+POST /marketplace/rakuten-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | The item as `<shopCode>/<itemCode>`, e.g. `dai-one/15-128-a` (the two path parts of an item link; search results give them as `shopCode` and `itemCode`). |
+| `url` | one of `product_id` / `url` | Instead of `product_id`: a Rakuten item link, e.g. `https://item.rakuten.co.jp/dai-one/15-128-a/` (a `variantId` in it is used). |
+| `variant_id` | no | SKU whose price and stock fill the top-level fields, e.g. `r-sku00003161`; by default the item's lowest price and overall availability. Every SKU is listed in `variants` either way. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/rakuten-product?product_id=sawaicoffee-tea%2Fsol150" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.rakuten_product(product_id="sawaicoffee-tea/sol150")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.rakutenProduct({ productId: "sawaicoffee-tea/sol150" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->rakutenProduct(['product_id' => 'sawaicoffee-tea/sol150']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.rakuten_product(product_id: "sawaicoffee-tea/sol150")
+```
+</CodeGroup>
+
+Each item is billed as one request. Rakuten points are shown on search results, not here.
+
+### Response
+
+```json
+{
+  "product": {
+    "itemId": "10004787",
+    "itemCode": "sol150",
+    "shopId": "198667",
+    "shopCode": "sawaicoffee-tea",
+    "shopName": "澤井珈琲Beans＆Leaf",
+    "url": "https://item.rakuten.co.jp/sawaicoffee-tea/sol150/",
+    "title": "澤井珈琲｜送料無料 コーヒー コーヒー豆 コーヒー粉 珈琲豆 豆のまま \"袋を開けた瞬間広がる香り\" 金のブレンド ソルブレンド ... 400g×3袋 1.2kg 120杯分 果実味と深み 【TS】",
+    "tagline": "家族みんなで楽しめる 毎朝のコーヒータイムに ...",
+    "description": "商品説明\nこの「金のソルブレンド福袋」は、香り高いスペシャリティーコーヒーをたっぷり1.2kg詰め込んだセットです。...",
+    "condition": null,
+    "variantId": null,
+    "price": 7998,
+    "priceMax": null,
+    "currency": "JPY",
+    "taxIncluded": true,
+    "freeShipping": true,
+    "available": true,
+    "stockQuantity": null,
+    "deliveryMessage": "13時までの注文で当日出荷",
+    "orderLimit": null,
+    "rating": 4.64,
+    "reviewCount": 1429,
+    "reviewsUrl": "https://review.rakuten.co.jp/item/1/198667_10004787/1.1/",
+    "genreId": "201402",
+    "breadcrumbs": ["水・ソフトドリンク", "コーヒー", "コーヒー豆"],
+    "shopCategories": ["香り高さが特徴の珈琲豆", "コーヒー豆の福袋", "コーヒー豆"],
+    "attributes": [
+      { "name": "ブランド名", "value": "澤井珈琲 / sawai coffee", "unit": null },
+      { "name": "総重量", "value": "1200", "unit": "g" }
+    ],
+    "variantOptions": [
+      { "name": "出荷方法", "values": ["通常出荷", "【最短当日出荷】"] },
+      { "name": "挽き方", "values": ["中挽き", "豆のまま"] }
+    ],
+    "variants": [
+      {
+        "variantId": "sol120-as-m",
+        "sellerSku": null,
+        "options": { "出荷方法": "【最短当日出荷】", "挽き方": "豆のまま" },
+        "price": 7998,
+        "available": true,
+        "stockQuantity": 25,
+        "deliveryMessage": "13時までの注文で当日出荷",
+        "freeShipping": true,
+        "condition": null,
+        "janCode": null,
+        "image": "https://tshop.r10s.jp/sawaicoffee-tea/cabinet/14066001/sol150_skum_1022.jpg",
+        "attributes": [
+          { "name": "総重量", "value": "1200", "unit": "g" }
+        ]
+      }
+    ],
+    "image": "https://tshop.r10s.jp/sawaicoffee-tea/cabinet/slt/cpn/50/sol150_t_01.jpg",
+    "images": [
+      "https://tshop.r10s.jp/sawaicoffee-tea/cabinet/slt/cpn/50/sol150_t_01.jpg",
+      "https://tshop.r10s.jp/sawaicoffee-tea/cabinet/item/04/sol150_02.jpg"
+    ],
+    "cashOnDeliveryFeeIncluded": false
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `title` / `tagline` / `description` | The item title, the shop's tagline and the full description text. |
+| `variantId` | The variant the top-level price and stock belong to (`null` = the item's lowest price and overall availability). |
+| `price` / `priceMax` / `taxIncluded` | Price in yen, tax included; `priceMax` when variants are priced differently. |
+| `available` / `stockQuantity` / `orderLimit` | Availability, stock (only when the shop shares it) and the per-order limit. |
+| `freeShipping` / `deliveryMessage` / `cashOnDeliveryFeeIncluded` | Shipping and the shop's delivery message. |
+| `rating` / `reviewCount` / `reviewsUrl` | Average rating, number of reviews and the reviews page. |
+| `genreId` / `breadcrumbs` / `shopCategories` | Rakuten genre id and path, and the shop's own categories. |
+| `attributes` | Item attributes: `name`, `value` and `unit`. |
+| `variantOptions` / `variants` | The option dimensions with their values, and every SKU: `variantId`, `sellerSku`, `options`, `price`, `available`, `stockQuantity`, `deliveryMessage`, `freeShipping`, `condition`, `janCode`, `image` and `attributes`. |
+| `image` / `images` | Main image and the gallery. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. no `query` or `url`, a `min_price` above `max_price`, a non-numeric `genre_id`, a `product_id` not in `<shopCode>/<itemCode>` form, or both `product_id` and `url`. |
+| `404` | Rakuten found no items for the search, or has no such item. |
+| `502` | No usable answer from Rakuten on every attempt, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Japan market research** - see what sells in a category by rank, reviews and price.
+- **Price and point monitoring** - track yen prices, sales, point multipliers and shipping for your items or competitors'.
+- **Shop analysis** - follow a shop's assortment, variants and stock.
+- **Cross-border sourcing** - find Japanese products with their JAN codes and specifications.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Rakuten search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

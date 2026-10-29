@@ -117,8 +117,7 @@ An ASIN Amazon does not have on that marketplace returns `404`. A `502` means th
     }
   ],
   "proxyCountry": "DE",
-  "exitCountry": "de",
-  "exitProvider": "isp"
+  "exitCountry": "de"
 }
 ```
 
@@ -159,7 +158,7 @@ When the product page shows a **Customers say** block, `customersSay` carries it
 | `reviews[].country` / `fromOtherCountry` / `language` | Where the review was written, whether it is one of the reviews from other countries Amazon adds after the local ones, and its language. |
 | `reviews[].verified` / `helpfulVotes` | Verified-purchase flag and helpful votes. |
 | `reviews[].variant` / `images` | The product variant reviewed and review image URLs. |
-| `exitCountry` / `exitProvider` | Country and type of the proxy that served the call. |
+| `exitCountry` | The country that served the call (lowercase ISO-2). |
 
 Every field is always present and is `null` when the page does not show it.
 

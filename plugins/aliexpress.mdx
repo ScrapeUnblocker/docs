@@ -1,10 +1,13 @@
 ---
-title: "AliExpress Search plugin"
-description: "AliExpress product search as clean JSON - product ID, title, price, original price, currency, rating, orders sold, images and a product link."
-sidebarTitle: "AliExpress Search"
+title: "AliExpress plugin"
+description: "AliExpress product search and item pages as clean JSON - product ID, title, price, original price, rating and orders sold for a search, plus one item with every SKU, shipping options to a country, store details and specifications."
+sidebarTitle: "AliExpress"
 ---
 
-The **AliExpress Search** plugin turns an AliExpress search into structured JSON. Give it a keyword and it returns the products AliExpress shows - each with its `productId`, title, numeric price plus the formatted price and currency, the original price, rating, how many have sold (`orders`), images and a clean product URL - plus the total result count.
+The **AliExpress** plugin returns AliExpress data as structured JSON. It is two endpoints:
+
+- **`/goods/aliexpress-search`** - give it a keyword and it returns the products AliExpress shows, each with its `productId`, title, numeric price plus the formatted price and currency, the original price, rating, how many have sold (`orders`), images and a clean product URL, plus the total result count.
+- **`/goods/aliexpress-product`** - one item, priced in the `currency` you pick and shipped to the `country` you pick: price range and discount, rating and orders, the store, every shipping option with fees and delivery dates, the option menus, every SKU with its price and stock, specifications and images. See [Product](#product).
 
 Sort by relevance, orders, price or newest and collect up to 1,200 products per call (about 60 per page). AliExpress localises prices and titles by region, so the currency and language follow the proxy country: pass `proxy_country` (for example `US`) to pin them.
 
@@ -127,12 +130,193 @@ result = su.aliexpress_search("wireless earbuds", sort: "orders", proxy_country:
 | `orders` / `ordersText` | Units sold as a number (the lower bound AliExpress shows, e.g. `10,000+` -> `10000`) and the original text. |
 | `image` / `images` | Main image and the image gallery from the result card. |
 
+## Product
+
+```
+POST /goods/aliexpress-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | AliExpress item id, e.g. `1005010503016514` (the number in `/item/<id>.html`; the `productId` of a search result). |
+| `url` | one of `product_id` / `url` | Instead of `product_id`: an AliExpress item link, e.g. `https://www.aliexpress.com/item/1005010503016514.html` (any storefront: `.com`, `.us`, `de.`, `fr.` ...). |
+| `country` | no | Ship-to country (ISO-2, e.g. `US`, `DE`, `GB`). Shipping options, delivery times and whether the item is sold at all depend on it. Default `US`. |
+| `currency` | no | Price currency, e.g. `USD`, `EUR`, `GBP`. Default `USD`. One of: `USD`, `EUR`, `GBP`, `CAD`, `AUD`, `NZD`, `CHF`, `SEK`, `NOK`, `DKK`, `PLN`, `CZK`, `HUF`, `RON`, `BGN`, `TRY`, `ILS`, `AED`, `SAR`, `JPY`, `KRW`, `SGD`, `MYR`, `THB`, `IDR`, `PHP`, `VND`, `INR`, `BRL`, `MXN`, `CLP`, `COP`, `PEN`, `ZAR`, `UAH`, `KZT`. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/goods/aliexpress-product?product_id=1005010503016514&country=DE&currency=EUR" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aliexpress_product("1005010503016514", country="DE", currency="EUR")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.aliexpressProduct("1005010503016514", {
+  country: "DE",
+  currency: "EUR",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->aliexpressProduct('1005010503016514', [
+    'country' => 'DE',
+    'currency' => 'EUR',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.aliexpress_product("1005010503016514", country: "DE", currency: "EUR")
+```
+
+</CodeGroup>
+
+To look a product up by link, leave the first argument out and pass `url` (`su.aliexpress_product(url="https://www.aliexpress.com/item/...")` in Python, `su.aliexpressProduct(undefined, { url })` in Node.js). Give `product_id` or `url`, not both. Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "productId": "1005010503016514",
+  "url": "https://www.aliexpress.com/item/1005010503016514.html",
+  "title": "QCY Melobuds N20 BH25HT20A Wireless Bluetooth 6.0 Earphone -50dB Adapt...",
+  "price": 27.59,
+  "priceMin": 27.59,
+  "priceMax": 31.99,
+  "priceFormatted": "27,59€",
+  "originalPrice": null,
+  "originalPriceMax": null,
+  "discount": "5% off",
+  "discountPercent": null,
+  "currency": "EUR",
+  "shipTo": "DE",
+  "rating": 4.8,
+  "reviewCount": 284,
+  "soldText": "1,000+ sold",
+  "orders": 1000,
+  "inStock": true,
+  "store": {
+    "name": "QCY Official Store",
+    "storeId": "1455660",
+    "sellerId": "221859663",
+    "url": "https://www.aliexpress.com/store/1455660",
+    "country": "China",
+    "openSince": "Sep 23, 2014",
+    "positiveFeedback": "97.3%",
+    "rating": "4.9",
+    "itemsAsDescribed": null,
+    "communication": "4.8",
+    "topRated": false
+  },
+  "shipping": [
+    {
+      "method": "AliExpress Selection Standard",
+      "fee": 0.0,
+      "feeCurrency": "USD",
+      "free": true,
+      "shipsFrom": "CN",
+      "shipsTo": "DE",
+      "minDays": 8,
+      "maxDays": 10,
+      "estimatedDelivery": "Nov. 07 - Nov. 09",
+      "deliverable": true
+    }
+  ],
+  "categoryId": "63705",
+  "skuProperties": [
+    {
+      "name": "Color",
+      "values": [
+        {
+          "name": "BLACK",
+          "image": "https://ae-pic-a1.aliexpress-media.com/kf/Sd04cbc91574a4516b..."
+        },
+        {
+          "name": "WHITE",
+          "image": "https://ae-pic-a1.aliexpress-media.com/kf/Seeaff41c0ef247af9..."
+        }
+      ]
+    }
+  ],
+  "variants": [
+    {
+      "skuId": "12000053019258409",
+      "attributes": {
+        "Color": "Black with Pouch",
+        "Ships From": "China Mainland"
+      },
+      "price": 29.59,
+      "originalPrice": null,
+      "available": true,
+      "stock": 97,
+      "image": "https://ae-pic-a1.aliexpress-media.com/kf/Se6491068522f4ab5a..."
+    }
+  ],
+  "specifications": [
+    {
+      "name": "Department",
+      "value": "Unisex-adult"
+    },
+    {
+      "name": "High-concerned chemical",
+      "value": "none"
+    }
+  ],
+  "images": [
+    "https://ae-pic-a1.aliexpress-media.com/kf/S46a6ce244c3146cd8..."
+  ],
+  "descriptionUrl": "https://pdp.aliexpress-media.com/product/description/pc/v2/en_US/desc...."
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `url` / `title` | The item. |
+| `price` / `priceMin` / `priceMax` / `priceFormatted` / `currency` | The default SKU's price, the range across SKUs and the price as AliExpress prints it, in `currency`. |
+| `originalPrice` / `originalPriceMax` / `discount` / `discountPercent` | The pre-discount price and AliExpress's discount label. |
+| `shipTo` | The ship-to `country` the answer is for. |
+| `rating` / `reviewCount` / `soldText` / `orders` / `inStock` | Rating, review count, AliExpress's sold label and the number in it, and stock. |
+| `store` | `name`, `storeId`, `sellerId`, `url`, `country`, `openSince`, `positiveFeedback`, the store's ratings and `topRated`. |
+| `shipping` | Each shipping option: `method`, `fee` and `feeCurrency`, `free`, `shipsFrom` / `shipsTo`, `minDays` / `maxDays`, `estimatedDelivery` and `deliverable`. |
+| `skuProperties` | The option menus (colour, size, ships from) with their images. |
+| `variants` | Every SKU with its `attributes`, `price`, `originalPrice`, `available`, `stock` and `image`. |
+| `specifications` / `images` / `categoryId` | Item specifics, images and the category id. |
+| `descriptionUrl` | Link to the seller's HTML description. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters: a missing `keyword` (search), or a missing or invalid `product_id` / `url` / `country` / `currency`, or both `product_id` and `url` (product). |
+| `404` | Product: no such AliExpress item, or AliExpress does not sell it to `country`. |
+| `502` | AliExpress blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
 ## What you can build
 
 - **Product sourcing** - find top-selling items for a keyword with price and order counts.
 - **Price comparison** - compare AliExpress prices in your local currency against other marketplaces.
 - **Trend tracking** - watch `orders` grow over time to spot rising products.
 - **Dropshipping catalogs** - collect titles, prices and images for a niche in one call.
+- **Landed-cost checks** - read each SKU's price and the shipping fee and delivery time to your customers' country.
 
 ## Next steps
 

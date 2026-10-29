@@ -64,6 +64,7 @@ Every plugin has its own page with the exact fields, response shape and API exam
 | Plugin | What you get |
 | --- | --- |
 | [Gemini](/plugins/gemini) | Google Gemini's answer to a prompt, signed out, as text and Markdown, with the pages it cites inline, the sources it searched, follow-up prompts and where it placed the visitor. |
+| [ChatGPT](/plugins/chatgpt) | ChatGPT's answer to a prompt, signed out, as text and Markdown, with the sites it cites (site and domain), the links in the answer and the sources it searched. |
 
 ### Search engines
 
@@ -83,15 +84,15 @@ Every plugin has its own page with the exact fields, response shape and API exam
 | [Amazon Reviews](/plugins/amazon-reviews) | Public review data from a product page: rating, review count, star histogram, Customers say summary with aspect sentiment, and the top reviews. |
 | [Amazon Offers](/plugins/amazon-offers) | Every seller's offer for a product (All buying options): price, shipping, total, condition, delivery, seller rating, Prime and FBA flags, Buy Box first, on 20 marketplaces. |
 | [Amazon Seller](/plugins/amazon-seller) | A third-party seller's public profile: rating, feedback summary for 30 days to lifetime with the star split, business name, address and register details Amazon publishes, and recent feedback. |
-| [Walmart Search](/plugins/walmart) | Walmart product search - title, price and was-price, rating, review count, brand, seller, availability, image and a direct product link. |
-| [Target Search](/plugins/target) | Target product search - tcin, title, brand, price and formatted price, currency, image and a direct product link, via Target's own Redsky API. |
-| [Best Buy Search](/plugins/best-buy) | Best Buy search results: SKU, title, brand, model, price, regular price, rating, review count, image and product URL. |
+| [Walmart](/plugins/walmart) | Walmart product search - title, price and was-price, rating, review count, brand, seller, availability, image and link - plus one product in full: unit price, seller, fulfilment, specifications and variants. |
+| [Target](/plugins/target) | Target search and category listings - tcin, title, brand, price, rating and link - plus one product with sale price, promotions, store pickup stock and shipping dates. |
+| [Best Buy](/plugins/best-buy) | Best Buy search results (SKU, title, brand, model, price, regular price, rating, reviews, image, URL) plus one product with savings, availability, features and specifications. |
 | [Home Depot Search](/plugins/home-depot) | Home Depot search results: item ID, title, brand, model number, price, original price, rating, review count, image and product URL. |
 | [Costco](/plugins/costco) | Costco US and Canada search and products: price and was-price, promotions, member-only, online-only and warehouse-only flags, rating and availability, plus specifications, images and every variant. |
-| [Etsy Search](/plugins/etsy) | Etsy product search - title, price and currency, shop, image and a direct listing link, sorted and price-filtered. |
+| [Etsy](/plugins/etsy) | Etsy product search - title, price and currency, shop, image and listing link - plus one listing with sale price, stock, review summary, variations and shop details. |
 | [SHEIN Search](/plugins/shein) | SHEIN (US) search results: goods ID, SKU, title, price, list price, discount, rating, reviews, category, image and sold-out state, up to 20 per call. |
 | [Zalando Search](/plugins/zalando) | Zalando fashion product search on any European storefront - sku, brand, name, price and currency, image and a direct product link. |
-| [AliExpress Search](/plugins/aliexpress) | AliExpress search results: product ID, title, price, original price, currency, rating, orders sold and images, up to 1,200 per call. |
+| [AliExpress](/plugins/aliexpress) | AliExpress search results (price, original price, rating, orders sold, images; up to 1,200 per call) plus one item priced in your currency and shipped to your country, with SKUs and store. |
 | [Alibaba](/plugins/alibaba) | Alibaba.com search with USD price tiers, MOQ, sold count and supplier card, plus one product in full: variants, attributes, lead times and supplier ratings. |
 | [1688](/plugins/1688) | 1688.com wholesale search with yuan price ladders, units sold, repurchase rate and supplier, plus one offer in full: SKUs, stock, MOQ, shipping and ratings. |
 | [TikTok Shop](/plugins/tiktok-shop) | US TikTok Shop: keyword or category search, one product with variants, shipping, seller scores and top reviews, and a store with its products. |
@@ -105,12 +106,23 @@ Every plugin has its own page with the exact fields, response shape and API exam
 | [Allegro](/plugins/allegro) | Allegro (Poland) offers with price, price with delivery, Smart!, rating, recent buyers and seller, plus one offer with parameters, shipping methods, warranty and reviews. |
 | [Falabella](/plugins/falabella) | Falabella search in Chile, Colombia and Peru with price, CMR card price, list price, rating and seller, plus one product with every variant, specifications and images. |
 | [Magazine Luiza](/plugins/magazine-luiza) | Magazine Luiza (Magalu, Brazil) search with price, Pix price, installments, rating and seller, plus one product with the technical sheet, rating breakdown, first reviews and seller card. |
+| [MediaMarkt](/plugins/mediamarkt) | MediaMarkt (10 countries) and Saturn search with price, strike price and discount, EAN, rating and availability, plus one product with specifications. |
+| [Cdiscount](/plugins/cdiscount) | Cdiscount (France) search with price, strike price, rating, seller and delivery, plus one product with every offer, specifications and images. |
+| [idealo](/plugins/idealo) | idealo price comparison in 6 countries: search results with the price range and offer count, plus every shop's offer for a product, cheapest first. |
+| [Rakuten](/plugins/rakuten) | Rakuten Ichiba (Japan) search with yen prices, rating, shop and points, plus one item with variants, stock, shipping and shop details. |
+| [IndiaMART](/plugins/indiamart) | IndiaMART B2B search (2 pages of 10 when signed out) with price per unit, minimum order and supplier, plus one product with specifications and supplier details. |
+| [Bed Bath & Beyond](/plugins/bedbathandbeyond) | Bed Bath & Beyond search with price range, compare-at price, rating and badges, plus one product with every option's price and stock, specifications and images. |
+| [Petco](/plugins/petco) | Petco search with price, Repeat Delivery price, rating, fulfilment flags and brand filters, plus one product with every variant, ingredients and specifications. |
+| [Neobits](/plugins/neobits) | One Neobits (US B2B electronics and IT) product: price, list price, stock status, lead time, manufacturer part number and specifications. |
+| [Lowe's](/plugins/lowes) | Lowe's search and products priced for one store: was-price, promotions, clearance, stock and pickup or delivery, plus specifications and images. |
+| [Menards](/plugins/menards) | Menards search with shelf price, rebate, store stock and pickup or delivery for a store or ZIP, plus one product with specifications and images. |
+| [Grainger](/plugins/grainger) | Grainger (US industrial supplies) search and products with the signed-out Web Price, quantity pricing, manufacturer model and specifications. |
 
 ### Classifieds & Resale
 
 | Plugin | What you get |
 | --- | --- |
-| [eBay Search](/plugins/ebay) | eBay listings for a keyword on any regional marketplace - price, condition, seller feedback, shipping, sold counts and a direct item link. |
+| [eBay](/plugins/ebay) | eBay listings for a keyword on any regional marketplace - price, condition, seller feedback, shipping, sold counts and item link - plus one listing in full with bids, shipping, returns and the seller's description. |
 | [Vinted Search](/plugins/vinted) | Vinted resale listings on any regional marketplace - title, price and currency, brand, size, condition, image and a direct item link. |
 | [Leboncoin Search](/plugins/leboncoin) | Leboncoin classified ads: title, price, city, postcode, department, region, category, date, seller type, ad attributes, image and URL. |
 

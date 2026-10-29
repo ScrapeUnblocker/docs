@@ -1,10 +1,14 @@
 ---
-title: "Target Search plugin"
-description: "Target product search as clean JSON - tcin, title, brand, price, formatted price, currency, image and a direct product link."
-sidebarTitle: "Target Search"
+title: "Target plugin"
+description: "Target product search, category listings and product pages as clean JSON - tcin, title, brand, price, rating and image for a search or category, plus one product with sale details, ratings, specifications, variants and store and shipping availability."
+sidebarTitle: "Target"
 ---
 
-The **Target Search** plugin turns any Target search into structured JSON. Give it a keyword, and it returns the products Target shows - each with a `tcin`, title, brand, price and formatted price, currency, image and a clean product URL. Sort, filter by price and collect up to `max_results`.
+The **Target** plugin returns Target (US) data as structured JSON. It is three endpoints:
+
+- **`/marketplace/target-search`** - the products Target shows for a keyword, each with a `tcin`, title, brand, price and formatted price, currency, image and a clean product URL. Sort, filter by price and collect up to `max_results`.
+- **`/marketplace/target-category`** - the products of one category or brand page, with price, sale details, rating and promotions, sorted and paged. See [Category](#category).
+- **`/marketplace/target-product`** - one product in full: price and sale details, ratings and the star histogram, description, specifications, images, every variant, and shipping dates to a ZIP code plus pickup stock and aisle at a store. See [Product](#product).
 
 It runs on the same fetch chain that serves `getPageSource`. target.com is an empty client-rendered shell, so the plugin reads the products straight from Target's own Redsky JSON API (`plp_search_v2`) - no Target developer account needed.
 
@@ -109,12 +113,314 @@ result = su.target_search("coffee maker", sort: "price_low", max_results: 48)
 Any field with no value is omitted from a product, so each item carries only the fields Target's search returned (e.g. `brand` or `image` may be absent).
 </Note>
 
+## Category
+
+```
+POST /marketplace/target-category
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `category` | yes | Target category id (e.g. `5xtro`, the part after `N-` in a category link) or a target.com category link, e.g. `https://www.target.com/c/coffee-makers-tea-espresso-kitchen-appliances-dining/-/N-5xtro`. A brand page (`/b/<brand>/-/N-<id>`) lists that brand. |
+| `sort` | no | `relevance` (default), `price_low`, `price_high`, `rating`, `best_selling` or `newest`. |
+| `page` | no | 1-based page to start from, `1`-`50` (24 products per page). Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`240`. Default `24`. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/target-category?category=5xtro&sort=best_selling&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.target_category("5xtro", sort="best_selling", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.targetCategory("5xtro", {
+  sort: "best_selling",
+  maxResults: 3,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->targetCategory('5xtro', [
+    'sort' => 'best_selling',
+    'max_results' => 3,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.target_category("5xtro", sort: "best_selling", max_results: 3)
+```
+
+</CodeGroup>
+
+<Note>
+Each page fetched is billed as one request (`pagesFetched`): a `max_results` of 240 reads up to 10 pages and is billed up to 10 times. Target serves at most 50 pages of 24. Filters in a category link (`...Z<facet>`) are not applied.
+</Note>
+
+### Response
+
+```json
+{
+  "category": {
+    "id": "5xtro",
+    "name": "Coffee & Espresso Makers",
+    "url": "https://www.target.com/c/coffee-makers-tea-espresso-kitchen-appliances-dining/-/N-5xtro",
+    "type": "category"
+  },
+  "breadcrumbs": [
+    {
+      "id": "5xtro",
+      "name": "Coffee & Espresso Makers",
+      "url": "https://www.target.com/c/coffee-makers-tea-espresso-kitchen-appliances-dining/-/N-5xtro"
+    }
+  ],
+  "sort": "best_selling",
+  "page": 1,
+  "products": [
+    {
+      "tcin": "52580270",
+      "title": "Hamilton Beach 12 Cup Programmable Coffee Maker Black 46290: Drip Coffee Machine, Nonstick Hot Plate, Brew Pause",
+      "brand": "Hamilton Beach",
+      "price": 27.99,
+      "priceMax": null,
+      "originalPrice": null,
+      "formattedPrice": "$27.99",
+      "priceType": "reg",
+      "currency": "USD",
+      "rating": 4.19,
+      "ratingCount": 2688,
+      "promotions": [],
+      "image": "https://target.scene7.com/is/image/Target/GUEST_57e2d054-fd8...",
+      "url": "https://www.target.com/p/hamilton-beach-12-cup-programmable-coffee-mak..."
+    },
+    {
+      "tcin": "91863921",
+      "title": "Mr. Coffee 5-Cup Programmable Coffee Maker Black: Drip Coffee Machine, Electric, Dishwasher-Safe, Paper Filter, 25 oz Capacity",
+      "brand": "Mr. Coffee",
+      "price": 17.99,
+      "priceMax": null,
+      "originalPrice": 24.99,
+      "formattedPrice": "See price in cart",
+      "priceType": null,
+      "currency": "USD",
+      "rating": 4.55,
+      "ratingCount": 1160,
+      "promotions": [],
+      "image": "https://target.scene7.com/is/image/Target/GUEST_0053cc62-705...",
+      "url": "https://www.target.com/p/mr-coffee-5c-programmable-drip-coffee-maker-b..."
+    }
+  ],
+  "resultsCollected": 3,
+  "totalResults": 622,
+  "totalPages": 26,
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `category` | `id`, `name`, `url` and `type` (`category` or `brand`). |
+| `breadcrumbs` | The category path, each with `id`, `name` and `url`. |
+| `products` | `tcin`, `title`, `brand`, `price` (`priceMax` for a family priced as a range), `originalPrice` and `priceType` when on sale, `formattedPrice` (Target's own wording, e.g. `See price in cart`), `currency`, `rating`, `ratingCount`, `promotions`, `image` and `url`. |
+| `totalResults` / `totalPages` / `pagesFetched` / `resultsCollected` | Target's counts, and how many pages this call read and products it returned. |
+
+## Product
+
+```
+POST /marketplace/target-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `tcin` | one of `tcin` / `url` | Target item number (TCIN), e.g. `52580270` (the number after `A-` in a product link; the `tcin` of a search or category result). |
+| `url` | one of `tcin` / `url` | Instead of `tcin`: a target.com product link, e.g. `https://www.target.com/p/hamilton-beach-coffee-maker/-/A-52580270` (a `?preselect=` variant in the link is honoured). |
+| `store_id` | no | Target store whose pickup and shelf stock is reported, e.g. `1375`. Default `1375` (Minneapolis Nicollet Mall). |
+| `zip` | no | US ZIP code the shipping dates are quoted for. Default `55403`. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/target-product?tcin=52580270&store_id=1375&zip=55403" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.target_product("52580270", store_id="1375", zip="55403")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.targetProduct("52580270", {
+  storeId: "1375",
+  zip: "55403",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->targetProduct('52580270', [
+    'store_id' => '1375',
+    'zip' => '55403',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.target_product("52580270", store_id: "1375", zip: "55403")
+```
+
+</CodeGroup>
+
+To look a product up by link, leave the first argument out and pass `url` (`su.target_product(url="https://www.target.com/p/...")` in Python, `su.targetProduct(undefined, { url })` in Node.js). Give `tcin` or `url`, not both. Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "tcin": "52580270",
+  "parentTcin": null,
+  "title": "Hamilton Beach 12 Cup Programmable Coffee Maker Black 46290: Drip Coffee Machine, Nonstick Hot Plate, Brew Pause",
+  "brand": "Hamilton Beach",
+  "dpci": "072-08-1531",
+  "upc": "040094462902",
+  "productType": "Coffee Makers",
+  "price": 27.99,
+  "priceMax": null,
+  "originalPrice": null,
+  "formattedPrice": "$27.99",
+  "priceType": "reg",
+  "savings": null,
+  "priceNote": null,
+  "currency": "USD",
+  "promotions": [],
+  "rating": 4.19,
+  "ratingCount": 2688,
+  "reviewCount": 1335,
+  "ratingDistribution": {
+    "1": 294,
+    "2": 112,
+    "3": 150,
+    "4": 371,
+    "5": 1761
+  },
+  "recommendedPercent": 62,
+  "questionCount": 199,
+  "url": "https://www.target.com/p/hamilton-beach-12-cup-programmable-coffee-mak...",
+  "description": "Skip the alarm and wake up to the aroma of freshly brewed coffee with the Hamilt...",
+  "highlights": [
+    "PROGRAMMABLE FOR WAKE-UP READY COFFEE : Use Easy-Touch programming to..."
+  ],
+  "specifications": [
+    {
+      "name": "Dimensions (Overall)",
+      "value": "12.9 Inches (H) x 9.5 Inches (W) x 11.4 Inches (D)"
+    },
+    {
+      "name": "Weight",
+      "value": "3.85 Pounds"
+    }
+  ],
+  "image": "https://target.scene7.com/is/image/Target/GUEST_57e2d054-fd8...",
+  "category": "Drip Coffee Makers",
+  "categories": [
+    "Kitchen & Dining",
+    "Kitchen Appliances",
+    "Coffee & Espresso Makers",
+    "Drip Coffee Makers"
+  ],
+  "selectedVariant": null,
+  "variants": [],
+  "fulfillment": {
+    "tcin": "52580270",
+    "soldOut": false,
+    "outOfStockInAllStores": false,
+    "shippingStatus": "IN_STOCK",
+    "shippingMinDate": "2026-10-31",
+    "shippingMaxDate": "2026-10-31",
+    "freeShipping": false,
+    "store": {
+      "storeId": "1375",
+      "storeName": "Mpls Nicollet Mall",
+      "pickupStatus": "IN_STOCK",
+      "pickupDate": "2026-10-30",
+      "inStoreStatus": "IN_STOCK",
+      "quantity": 6,
+      "aisle": "L 53"
+    }
+  },
+  "packageDimensions": {
+    "height": 13.61,
+    "width": 12.3,
+    "depth": 8.59,
+    "unit": "INCH",
+    "weight": 5.07,
+    "weightUnit": "POUND"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `tcin` / `parentTcin` / `title` / `brand` / `url` / `dpci` / `upc` / `productType` | The product; `parentTcin` is set when it is one variant of a product family. |
+| `price` / `priceMax` / `formattedPrice` / `currency` | target.com's online price in USD, the top of the range for a family priced as a range, and Target's own wording. |
+| `originalPrice` / `savings` / `savingsPercent` / `priceType` / `priceNote` | Sale details, and a note such as `When purchased online`. |
+| `promotions` | Target's promotions on the product. |
+| `rating` / `ratingCount` / `reviewCount` / `ratingDistribution` / `recommendedPercent` / `questionCount` | Ratings, the star histogram, the recommend percentage and the number of questions. |
+| `description` / `highlights` / `specifications` | The product text and specifications. |
+| `image` / `images` / `category` / `categories` | Images and the category path. |
+| `selectedVariant` / `variants` | For a product family: the selected variant and every colour / size with its own TCIN, price, link, image and shipping and store availability. |
+| `fulfillment` | `soldOut`, shipping status and delivery dates to `zip`, and for `store_id` the pickup status and date, in-store status, `quantity` and `aisle`. |
+| `packageDimensions` | Package size and weight. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters: a missing `query` (search) or `category`, a missing or invalid `tcin` / `url` (or both given), or an invalid `store_id` / `zip` (product). |
+| `404` | Category: Target has no such category, or it has no products. Product: Target has no product with this TCIN. |
+| `502` | Target blocked every attempt, returned no data, or the call did not finish in time. Retry. |
+
 ## What you can build
 
 - **Price monitoring and repricing** - track `price` for a product over time.
 - **Catalog and assortment research** - pull a whole category with brands.
 - **Competitor tracking** - compare the same keyword against your own listings.
 - **Availability and pricing feeds** - build a live Target price feed keyed by `tcin`.
+- **Store stock checks** - read pickup status, quantity and aisle for a product at the stores you care about.
+- **Category tracking** - follow a category's best sellers over time with `sort=best_selling`.
 
 ## Next steps
 

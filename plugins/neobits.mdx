@@ -1,0 +1,151 @@
+---
+title: "Neobits plugin"
+description: "Neobits (neobits.com) products as clean JSON - one product by item number or link with price, list price and savings, stock status and lead time, manufacturer part number, specifications, breadcrumbs and images."
+sidebarTitle: "Neobits"
+---
+
+The **Neobits** plugin returns product data from Neobits (neobits.com, a US reseller of electronics, IT and networking equipment for business buyers) as structured JSON. It is one endpoint:
+
+- **`/marketplace/neobits-product`** - one product by item number or link: title, brand and manufacturer part number, the price with the list price, savings, discount and price-drop flag, stock status (e.g. `In Stock`, `SHIPS SOON`) with any stock note and the brand's average lead time, rating, review and question counts, description, specifications, breadcrumbs and images.
+
+<Note>
+**Product only, no search.** Neobits puts its search and listing pages behind a reCAPTCHA for automated traffic, so the plugin offers the product endpoint only. Look products up by the item number on the product page or by the product link. No Neobits account is involved.
+</Note>
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Product
+
+```
+POST /marketplace/neobits-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product` | yes | A Neobits item number (the `Item #` on a product page, e.g. `27956233`) or a neobits.com product link (ending in `_p<item>.html`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/neobits-product?product=13357058" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.neobits_product("13357058")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.neobitsProduct("13357058");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->neobitsProduct('13357058');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.neobits_product("13357058")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "itemNumber": "13357058",
+    "url": "https://www.neobits.com/cisco_cp_hs_wl_562_s_us_cisco_562_headset_stereo_p13357058.html",
+    "title": "Cisco - CP-HS-WL-562-S-US= - Cisco 562 Headset - Stereo - Wireless - DECT 6.0 - 300 ft48 kHz - Over-the-head - Binaural - ...",
+    "brand": "Cisco",
+    "brandUrl": "https://www.neobits.com/cisco_m1020.html",
+    "mfrPartNumber": "CP-HS-WL-562-S-US=",
+    "price": 274.62,
+    "listPrice": 755.77,
+    "savings": 481.15,
+    "discountPercent": 63.66,
+    "priceDrop": true,
+    "currency": "USD",
+    "stockStatus": "In Stock",
+    "inStock": true,
+    "stockNote": null,
+    "leadTime": null,
+    "rating": null,
+    "reviewCount": 0,
+    "questionCount": 0,
+    "description": "The Cisco Headset 500 Series is a professional range of wired and wireless headsets optimized for Cisco IP phones and soft clients. ...",
+    "specifications": [
+      { "name": "Product Type", "value": "Headset" },
+      { "name": "Sound Mode", "value": "Stereo" },
+      { "name": "Wireless Technology", "value": "DECT 6.0" },
+      { "name": "Country of Origin", "value": "China" }
+    ],
+    "breadcrumbs": [
+      "Consumer & Industrial Electronics",
+      "Home Audio & Theater",
+      "Audio Video",
+      "Audio Electronics",
+      "Headsets/Earsets",
+      "Professional Headphones & Communication Headsets"
+    ],
+    "images": [
+      "https://cdn.neobits.com/images/fvhyut67sx2000/CI/CISCPHSWL562SUS.jpg"
+    ]
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `itemNumber` / `url` | Neobits item number and product link. |
+| `title` / `brand` / `brandUrl` / `mfrPartNumber` | Title, brand, the brand's page on Neobits and the manufacturer part number. |
+| `price` / `listPrice` / `savings` / `discountPercent` / `priceDrop` / `currency` | The price, list price, saving against it, the discount, Neobits' price-drop flag and the currency (USD). |
+| `stockStatus` / `inStock` / `stockNote` | Stock status as Neobits words it (e.g. `In Stock`, `SHIPS SOON`), whether it can be bought now, and any note next to it. |
+| `leadTime` | The brand's average lead time, when Neobits shows it (else `null`). |
+| `rating` / `reviewCount` / `questionCount` | Rating (`null` when unrated), review count and the number of customer questions. |
+| `description` / `specifications` | Product text and `name` / `value` specifications. A name can repeat when the product has several values for it. |
+| `breadcrumbs` / `images` | Category path and the image gallery. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | `product` is missing or is not a Neobits item number or product link. |
+| `404` | Neobits has no such product. |
+| `502` | Neobits refused every attempt, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **IT equipment price tracking** - follow prices, discounts and price drops for the part numbers you buy.
+- **Stock and lead-time checks** - see whether a part ships now or soon before you order.
+- **Part-number matching** - match manufacturer part numbers across resellers to compare offers.
+- **Catalog enrichment** - pull specifications and images for business electronics.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a Neobits product and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

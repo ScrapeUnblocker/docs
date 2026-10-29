@@ -1,10 +1,13 @@
 ---
-title: "eBay Search plugin"
-description: "eBay search listings as clean JSON - title, price, condition, seller feedback, shipping, sold counts and a direct item link, on any regional marketplace."
-sidebarTitle: "eBay Search"
+title: "eBay plugin"
+description: "eBay search listings and listing pages as clean JSON - title, price, condition, seller feedback, shipping and sold counts for a search, plus one listing with auction details, item specifics, variations, shipping rates and the description, on any regional marketplace."
+sidebarTitle: "eBay"
 ---
 
-The **eBay Search** plugin turns any eBay search into structured JSON. Give it a keyword and a marketplace, and it returns the listings eBay shows - each with title, price and currency, condition, seller username and feedback, shipping cost, sold and watcher counts, image and a clean item URL.
+The **eBay** plugin returns eBay listings as structured JSON. It is two endpoints:
+
+- **`/marketplace/ebay-search`** - give it a keyword and a marketplace, and it returns the listings eBay shows, each with title, price and currency, condition, seller username and feedback, shipping cost, sold and watcher counts, image and a clean item URL.
+- **`/marketplace/ebay-product`** - one listing in full: price and auction details, condition and the seller's notes, stock and sold counts, the seller, shipping rates and returns, item specifics, categories, every variation with its own price and stock, images and the seller's description. See [Product](#product).
 
 It runs on the same eBay-specific path that already serves thousands of eBay requests an hour through our API, so you get the listings without touching eBay's bot wall, and without an eBay developer account, OAuth flow or API quota.
 
@@ -199,6 +202,191 @@ Search eBay for a string that matches no listing and it does **not** return an e
 
 Check `exactMatches` before treating the listings as results. When it is `true`, every listing is a genuine match for your keyword.
 
+## Product
+
+```
+POST /marketplace/ebay-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `item_id` | one of `item_id` / `url` | eBay item number, e.g. `335761219642` (the number in `ebay.com/itm/335761219642`). |
+| `url` | one of `item_id` / `url` | Instead of `item_id`: a listing link on any supported eBay site, e.g. `https://www.ebay.de/itm/860089403886`. The site is taken from the link. |
+| `marketplace` | no | eBay site to open `item_id` on; prices, currency and language follow it. Any site in the list above except `ebay.ph`. Default `ebay.com`. |
+| `include_description` | no | Also fetch the seller's description text (a second, light request). Default `true`; set `false` for a faster call without `description`. |
+| `proxy_country` | no | Country the request is made from (ISO-2, e.g. `US`, `DE`). eBay quotes shipping, delivery dates and, on EU sites, VAT-inclusive prices for the visitor's country, so set it to get them for one country. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/ebay-product?item_id=335761219642&marketplace=ebay.com" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.ebay_product(item_id="335761219642", marketplace="ebay.com")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.ebayProduct({
+  itemId: "335761219642",
+  marketplace: "ebay.com",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->ebayProduct([
+    'item_id' => '335761219642',
+    'marketplace' => 'ebay.com',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.ebay_product(item_id: "335761219642", marketplace: "ebay.com")
+```
+
+</CodeGroup>
+
+Each listing is billed as one request, with or without its description. Labels and texts follow the site's language (`ebay.de` answers in German).
+
+### Response
+
+```json
+{
+  "product": {
+    "itemId": "335761219642",
+    "url": "https://www.ebay.com/itm/335761219642",
+    "marketplace": "ebay.com",
+    "status": "active",
+    "title": "Apple iPhone 13 Pro (Great Condition) - (Unlocked, AT&T, Verizon, T-Mobile)",
+    "price": 429.99,
+    "currency": "USD",
+    "originalPrice": 469.99,
+    "listingFormat": "buy_it_now",
+    "buyItNowPrice": 429.99,
+    "currentBid": null,
+    "bidCount": null,
+    "acceptsOffers": false,
+    "endsAt": "2026-11-07T19:46:34.000Z",
+    "condition": "Used",
+    "conditionCode": "used",
+    "availability": "in_stock",
+    "quantityAvailable": 2,
+    "quantitySold": 60,
+    "watchers": 288,
+    "seller": {
+      "username": "cocosprinkles",
+      "name": "The Coco Store",
+      "feedbackScore": 42211,
+      "positivePercent": 99.8,
+      "type": null,
+      "isBusiness": null
+    },
+    "shippingRates": [
+      {
+        "country": "USA",
+        "cost": 8.99,
+        "currency": "USD"
+      }
+    ],
+    "itemLocation": "Brooklyn, New York, United States",
+    "returns": "Seller does not accept returns",
+    "brand": "Apple",
+    "mpn": "Does Not Apply",
+    "model": "Apple iPhone 13 Pro",
+    "conditionNotes": "Fully functional in Great Condition with Excellent Battery Health. Our...",
+    "itemSpecifics": [
+      {
+        "name": "Processor",
+        "value": "Hexa Core"
+      },
+      {
+        "name": "Custom Bundle",
+        "value": "No"
+      }
+    ],
+    "categories": [
+      {
+        "name": "Cell Phones & Smartphones",
+        "url": "https://www.ebay.com/b/Cell-Phones-Smartphones/9355/bn_320094"
+      }
+    ],
+    "variationOptions": [
+      {
+        "name": "Network",
+        "values": [
+          {
+            "name": "Factory Unlocked",
+            "outOfStock": false
+          },
+          {
+            "name": "Verizon",
+            "outOfStock": true
+          }
+        ]
+      }
+    ],
+    "variations": [
+      {
+        "variationId": "545284751615",
+        "attributes": {
+          "Network": "Factory Unlocked",
+          "Storage Capacity": "256 GB",
+          "Color": "Alpine Green"
+        },
+        "price": 493.99,
+        "currency": "USD",
+        "inStock": false,
+        "quantityAvailable": 0,
+        "quantitySold": 60
+      }
+    ],
+    "images": [
+      "https://i.ebayimg.com/images/g/GCoAAeSwsgZpjOVt/s-l1600.jpg"
+    ],
+    "description": "Apple iPhone 13 Pro"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `itemId` / `url` / `marketplace` / `status` | The listing, the eBay site it was read on, and `active` or `ended`. |
+| `price` / `currency` / `originalPrice` | Price in the site's currency, and the list or was price when eBay shows one. `listingPrice` / `listingCurrency` carry the seller's own price when they list in another currency. |
+| `listingFormat` | `buy_it_now`, `auction` or `auction_with_buy_it_now`, with `buyItNowPrice`, `currentBid`, `bidCount`, `reserveMet`, `acceptsOffers` and `endsAt`. |
+| `condition` / `conditionCode` / `conditionNotes` | eBay's condition label, the normalised code (as in search) and the seller's own notes. |
+| `availability` / `quantityAvailable` / `quantitySold` / `watchers` | Stock and demand counts, when the listing shows them. |
+| `seller` | `username`, store `name`, `feedbackScore`, `positivePercent`, and whether it is a business seller, when eBay says. |
+| `shippingRates` / `shipping` / `itemLocation` / `delivery` / `importFees` / `returns` | Shipping cost per destination country, eBay's shipping and delivery lines, where the item is, import fees and the return policy. |
+| `brand` / `mpn` / `gtin` / `model` / `itemSpecifics` | Item specifics as name / value pairs, with the common ones lifted out. |
+| `categories` / `paymentMethods` | Category path and accepted payment methods. |
+| `variationOptions` / `variations` | The variation menus (with out-of-stock values) and every variation with its own `price`, stock and sold count. |
+| `images` / `description` | Image links and the seller's description as text (`null` with `include_description=false`). |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters: a bad search parameter, or a missing or invalid `item_id` / `url` / `marketplace` (product). |
+| `404` | Product: no such eBay listing on that site. |
+| `502` | eBay blocked every attempt, returned no data, or the call did not finish in time. Retry. |
+
 ## What you can build
 
 - **Price monitoring** - track what a product actually sells for across marketplaces and conditions, not just its list price.
@@ -206,6 +394,7 @@ Check `exactMatches` before treating the listings as results. When it is `true`,
 - **Sourcing and arbitrage** - compare the same keyword on `ebay.de` and `ebay.com` with `condition=used` to spot price gaps.
 - **Parts lookup** - search a manufacturer part number inside `category=131090` to find used vehicle parts and who stocks them.
 - **Demand signals** - `sold` and `watchers` show what is actually moving, per listing.
+- **Listing detail feeds** - open the listings a search returns with `ebay-product` for item specifics, variations and shipping rates.
 
 ## eBay's own Browse API
 

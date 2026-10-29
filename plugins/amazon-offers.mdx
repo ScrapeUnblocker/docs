@@ -10,7 +10,7 @@ The **Amazon offers** plugin returns the offers Amazon lists for a product under
 
 Page 1 starts with the Buy Box (featured) offer, also returned on its own as `buyBox`. Pass an offer's `sellerId` to the [Amazon seller plugin](/plugins/amazon-seller) for that seller's profile and feedback, and the ASIN to the [Amazon plugin](/plugins/amazon) for the full product page.
 
-Amazon prices every page for the delivery location it infers from the visitor, so `proxy_country` defaults to the marketplace's home country (`amazon.com` -> US, `amazon.de` -> DE, ...): prices, shipping costs and delivery dates are the ones a local shopper sees. The proxy that served the call is reported as `exitCountry` and `exitProvider`. No Amazon seller account or API key is involved.
+Amazon prices every page for the delivery location it infers from the visitor, so `proxy_country` defaults to the marketplace's home country (`amazon.com` -> US, `amazon.de` -> DE, ...): prices, shipping costs and delivery dates are the ones a local shopper sees. The country that served the call is reported as `exitCountry`. No Amazon seller account or API key is involved.
 
 <Note>
 Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
@@ -152,8 +152,7 @@ Each page delivered is billed as one request (`pagesFetched`). The Buy Box offer
   ],
   "offersCollected": 11,
   "proxyCountry": "US",
-  "exitCountry": "us",
-  "exitProvider": "isp"
+  "exitCountry": "us"
 }
 ```
 
@@ -176,7 +175,7 @@ The example is shortened: `buyBox` carries the same fields as every offer, and t
 | `sellerName` / `sellerId` / `sellerUrl` | The seller and its profile link. Pass `sellerId` to the [Amazon seller plugin](/plugins/amazon-seller). |
 | `sellerRating` / `sellerRatingCount` / `sellerPositivePercent` | The seller's rating, rating count and positive share, as the offer shows them. |
 | `soldByAmazon` / `fulfilledByAmazon` / `prime` | Sold by Amazon itself, fulfilled by Amazon (FBA), Prime-eligible. |
-| `exitCountry` / `exitProvider` | The country and the type (`isp`, `residential` or `datacenter`) of the proxy that served the call. |
+| `exitCountry` | The country that served the call (lowercase ISO-2). |
 
 ## Errors
 

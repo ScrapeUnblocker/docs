@@ -1,10 +1,13 @@
 ---
-title: "Etsy Search plugin"
-description: "Etsy product search as clean JSON - title, price, shop, image and a direct listing link."
-sidebarTitle: "Etsy Search"
+title: "Etsy plugin"
+description: "Etsy product search and listing pages as clean JSON - title, price, shop and image for a search, plus one listing with sale price, variations, shop profile, review summary, shipping and images."
+sidebarTitle: "Etsy"
 ---
 
-The **Etsy Search** plugin turns any Etsy search into structured JSON. Give it a keyword, and it returns the listings Etsy shows - each with title, price, shop name, image and a clean listing URL. Sort, filter by price and page through to `max_results`.
+The **Etsy** plugin returns Etsy listings as structured JSON. It is two endpoints:
+
+- **`/marketplace/etsy-search`** - the listings Etsy shows for a keyword, each with title, price, shop name, image and a clean listing URL. Sort, filter by price and page through to `max_results`.
+- **`/marketplace/etsy-product`** - one listing in full: price and price range, sale details, stock, rating with the review summary, the first reviews, the shop's profile, every variation with its price, description, materials, category, shipping, images and video. See [Product](#product).
 
 It runs on the same fetch chain that serves `getPageSource`, and reads the cards straight from Etsy's server-rendered HTML - no Etsy API key or OAuth app needed.
 
@@ -113,12 +116,204 @@ result = su.etsy_search("handmade necklace", sort: "top_reviews", max_results: 9
 Any field with no value is omitted from a product. Prices come back in the proxy country's currency, so the plugin defaults to US - pass `proxy_country` to price in another market.
 </Note>
 
+## Product
+
+```
+POST /marketplace/etsy-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `listing_id` | one of `listing_id` / `url` | Etsy listing number, e.g. `1702915637` (the number in `etsy.com/listing/1702915637/...`). |
+| `url` | one of `listing_id` / `url` | Instead of `listing_id`: an etsy.com listing link, e.g. `https://www.etsy.com/listing/1702915637/solstice-mug`. |
+| `proxy_country` | no | Country the request is made from (ISO-2). Default `US`. |
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/etsy-product?listing_id=1702915637" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.etsy_product(listing_id="1702915637")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.etsyProduct({ listingId: "1702915637" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->etsyProduct(['listing_id' => '1702915637']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.etsy_product(listing_id: "1702915637")
+```
+
+</CodeGroup>
+
+Each listing is billed as one request.
+
+<Note>
+Etsy prices a listing, its shipping cost and VAT for the shopper location it assigns to the request, and that location can differ from `proxy_country`. `currency` and `shopperRegion` say which one a response used (e.g. `EUR` / `BE`), so read them before comparing prices across calls.
+</Note>
+
+### Response
+
+```json
+{
+  "product": {
+    "listingId": "1702915637",
+    "url": "https://www.etsy.com/listing/1702915637/solstice-mug-handmade-pottery-...",
+    "title": "Solstice Mug: Handmade Pottery Mug with Sun Design, Ceramic Coffee Cup in a Variety of Colors",
+    "price": 34.87,
+    "priceMax": 42.07,
+    "originalPrice": 38.75,
+    "onSale": true,
+    "discountPercent": 10,
+    "saleEnds": "Sale ends in 2 days",
+    "currency": "USD",
+    "shopperRegion": "US",
+    "availability": "in_stock",
+    "quantityAvailable": 50,
+    "rating": 5.0,
+    "reviewCount": 482,
+    "reviewSummary": {
+      "itemQuality": 5.0,
+      "shipping": 5.0,
+      "customerService": 5.0,
+      "recommendPercent": 99,
+      "tags": [
+        "Looks great",
+        "Love it",
+        "Great quality"
+      ],
+      "categories": [
+        {
+          "name": "Appearance",
+          "count": 276
+        },
+        {
+          "name": "Quality",
+          "count": 201
+        }
+      ]
+    },
+    "reviews": [
+      {
+        "rating": 5,
+        "date": "2026-10-27",
+        "text": "Beautiful mug. just like what is shown. High quality workmanship.",
+        "author": "J W"
+      }
+    ],
+    "shop": {
+      "id": "19096197",
+      "name": "ShorProducts",
+      "url": "https://www.etsy.com/shop/ShorProducts",
+      "ownerName": "SHŌR Products",
+      "location": "Grand Rapids, Minnesota",
+      "rating": 5.0,
+      "reviewCount": 1100,
+      "reviewCountText": "1.1k",
+      "sales": 4700,
+      "salesText": "4.7k",
+      "yearsOnEtsy": "5 years on Etsy",
+      "starSeller": true
+    },
+    "variations": [
+      {
+        "name": "Primary color",
+        "options": [
+          {
+            "id": "4981481404",
+            "name": "Midnight Blue Lefty",
+            "price": 42.07,
+            "priceMax": null,
+            "available": true
+          },
+          {
+            "id": "4807181288",
+            "name": "Satin Blue Left Hand",
+            "price": 34.87,
+            "priceMax": null,
+            "available": true
+          }
+        ]
+      }
+    ],
+    "description": "The Solstice Mug is handmade every step of the way. Hand-thrown, trimmed, glazed...",
+    "materials": [
+      "Ceramic"
+    ],
+    "category": "Home & Living < Kitchen & Dining < Drink & Barware < Drinkware < Mugs",
+    "shipping": {
+      "cost": null,
+      "currency": "USD",
+      "costText": "Get shipping cost",
+      "originCountry": "US",
+      "originRegion": "MN",
+      "destinationCountry": "US",
+      "shipsFrom": "Grand Rapids, MN",
+      "estimatedDelivery": null,
+      "processingTime": null,
+      "returns": "Accepted within 14 days"
+    },
+    "images": [
+      "https://i.etsystatic.com/19096197/r/il/00b10c/5918841167/il_..."
+    ],
+    "video": "https://v.etsystatic.com/c/video/upload/ac_none,du_15,q_auto..."
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `listingId` / `url` / `title` | The listing. |
+| `price` / `priceMax` | The lowest price, and the highest when variations are priced differently. |
+| `originalPrice` / `onSale` / `discountPercent` / `saleEnds` | The pre-sale price and the sale details, during a sale. |
+| `currency` / `shopperRegion` | The currency and the shopper location Etsy priced the listing for. |
+| `availability` / `quantityAvailable` | Stock state and how many are left. |
+| `rating` / `reviewCount` / `reviewSummary` | Rating and count, plus item quality, shipping and service scores, the recommend percentage, review tags and review categories with counts. |
+| `reviews` | The first reviews on the page: `rating`, `date`, `text` and `author` as Etsy shows it. |
+| `shop` | `id`, `name`, `url`, `ownerName`, `location`, `rating`, `reviewCount`, `sales`, `yearsOnEtsy` and `starSeller`. Review and sales counts are Etsy's rounded figures (`4.7k` sales is `4700`); `reviewCountText` / `salesText` keep Etsy's wording. |
+| `variations` | Each variation menu with its options, their `price` / `priceMax` and availability. |
+| `description` / `materials` / `highlights` / `category` / `categories` | The listing text and its category path. |
+| `shipping` | Cost and currency (`null` with `costText` when Etsy shows no fixed cost), origin, ships from, destination, estimated delivery, processing time and returns. |
+| `images` / `video` | Image links and the listing video, when there is one. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters: a missing `query` (search), or a missing or invalid `listing_id` / `url` (product). |
+| `404` | Product: no such Etsy listing, or it is no longer available. |
+| `502` | Etsy blocked every attempt, returned no data, or the call did not finish in time. Retry. |
+
 ## What you can build
 
 - **Price and assortment research** - pull a whole niche with shops and prices.
 - **Trend spotting** - `sort=newest` surfaces what sellers are listing now.
 - **Shop monitoring** - track a category's price distribution over time.
 - **Sourcing** - find makers and compare pricing across shops.
+- **Shop and listing research** - read sales counts, Star Seller status and review scores for the listings a search returns.
 
 ## Next steps
 
