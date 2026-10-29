@@ -7688,10 +7688,10 @@
                   "type": "null"
                 }
               ],
-              "description": "A Google Maps place URL (share link or /maps/place/... URL). The feature id or place_id is read out of it.",
+              "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it.",
               "title": "Url"
             },
-            "description": "A Google Maps place URL (share link or /maps/place/... URL). The feature id or place_id is read out of it."
+            "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it."
           },
           {
             "name": "place_id",
@@ -7833,10 +7833,10 @@
                   "type": "null"
                 }
               ],
-              "description": "A Google Maps place URL (share link or /maps/place/... URL). The feature id or place_id is read out of it.",
+              "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it.",
               "title": "Url"
             },
-            "description": "A Google Maps place URL (share link or /maps/place/... URL). The feature id or place_id is read out of it."
+            "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it."
           },
           {
             "name": "place_id",
@@ -9967,11 +9967,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
+              "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
               "default": "segments",
               "title": "Format"
             },
-            "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext."
+            "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext."
           },
           {
             "name": "proxy_country",

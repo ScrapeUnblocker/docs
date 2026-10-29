@@ -25,7 +25,7 @@ Pass one of `feature_id`, `url` or `place_id`. If you pass more than one, `featu
 | Field | Required | Notes |
 | --- | --- | --- |
 | `feature_id` | one of the three | A Maps feature id `0xHEX:0xHEX`, e.g. `0x4776901a5d4813b3:0x2a497c8b414893c`. Fastest - no resolve step. Every response returns it as `featureId`. |
-| `url` | one of the three | A Google Maps place URL that contains the place's feature id (`0x...:0x...`) or place id. The id is read out of it. |
+| `url` | one of the three | A Google Maps place URL: a `/maps/place/...` URL, a `maps.app.goo.gl` share link or a `maps?cid=` link. The place is read out of it. |
 | `place_id` | one of the three | A Google place id, e.g. `ChIJN1t_tDeuEmsRUsoyG83frY4`. Costs one extra lookup to find the feature id. |
 | `sort` | no | `relevant` (default, Google's "Most relevant"), `newest`, `highest` or `lowest`. SerpApi's `qualityScore`, `newestFirst`, `ratingHigh` and `ratingLow` are accepted too. |
 | `max_reviews` | no | How many reviews to return, `1`-`200`. Default `20`. |
@@ -153,7 +153,7 @@ Fields a review does not have are left out, so check for a key's presence rather
 
 | Status | Meaning |
 | --- | --- |
-| `400` | No place identifier, a malformed `feature_id`, a `url` with no place id or feature id in it, an unknown `sort`, or `max_reviews` outside `1`-`200`. |
+| `400` | No place identifier, a malformed `feature_id`, a `url` that is not a Maps place link, an unknown `sort`, or `max_reviews` outside `1`-`200`. |
 | `404` | Google has neither reviews nor place data for this feature id: it is unknown or the place was removed. Not billed. |
 | `502` | The place could not be resolved, Google returned no review data, or the call did not finish in time. Retry. |
 

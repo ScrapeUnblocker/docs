@@ -23,7 +23,7 @@ Pass one of `place_id`, `url` or `feature_id`. If you pass more than one, `featu
 | Field | Required | Notes |
 | --- | --- | --- |
 | `place_id` | one of the three | A Google place id, e.g. `ChIJN1t_tDeuEmsRUsoyG83frY4`. |
-| `url` | one of the three | A Google Maps place URL that contains the place's feature id (`0x...:0x...`) or place id, such as a `/maps/place/...` URL. The id is read out of it. |
+| `url` | one of the three | A Google Maps place URL: a `/maps/place/...` URL, a `maps.app.goo.gl` share link or a `maps?cid=` link. The place is read out of it. |
 | `feature_id` | one of the three | A Maps feature id `0xHEX:0xHEX`, e.g. `0x47e66e2964e34e2d:0x8ddca9ee380ef7e0`. Fastest - no resolve step. Every response returns it as `featureId`, so store it for repeat lookups. |
 | `hl` | no | Google interface language, e.g. `en` (default), `de`, `fr`. |
 | `gl` | no | Google country (ISO-2, lowercase). Default `us`. |
