@@ -8846,6 +8846,254 @@
         ]
       }
     },
+    "/search/google-ai-mode": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a Google AI Mode answer",
+        "description": "Asks Google AI Mode (the `udm=50` AI Mode tab, not the AI Overview on a results page) the question `q` and returns its full answer as JSON: `answer.text` (plain text), `answer.markdown` and `answer.blocks` (paragraphs, headings, lists, tables and code, in order), `references` (the pages the answer cites: `title`, `url`, `domain`, `source`, `snippet`), `links` (links written into the answer text) and `followUps` (the follow-up questions Google closes the answer with, if any). Set `proxy_country` to ask from a market - the Google market (`gl`) follows it - and `hl` for the answer's language. Answers differ between identical requests, as they do for a person.",
+        "operationId": "google_ai_mode_search_google_ai_mode_post",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The question to ask Google AI Mode, e.g. 'how to learn python fast'.",
+              "title": "Q"
+            },
+            "description": "The question to ask Google AI Mode, e.g. 'how to learn python fast'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). The Google market (`gl`) follows it unless `gl` is set.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). The Google market (`gl`) follows it unless `gl` is set."
+          },
+          {
+            "name": "gl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional Google market override (ISO-2, e.g. 'us', 'de'). Default: `proxy_country`, else 'us'.",
+              "title": "Gl"
+            },
+            "description": "Optional Google market override (ISO-2, e.g. 'us', 'de'). Default: `proxy_country`, else 'us'."
+          },
+          {
+            "name": "hl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Language Google answers in, e.g. 'en', 'de', 'pt-BR'. Default 'en'.",
+              "title": "Hl"
+            },
+            "description": "Language Google answers in, e.g. 'en', 'de', 'pt-BR'. Default 'en'."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with the answer, its references and links.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters (plain-text message)."
+          },
+          "403": {
+            "description": "Blocked by Google CAPTCHA after retries - try another proxy_country."
+          },
+          "502": {
+            "description": "No complete AI Mode answer (upstream block, the answer did not finish streaming, or the call did not finish in time). Not billed."
+          },
+          "503": {
+            "description": "No proxy exit was free for this market - retry or pick another proxy_country."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/images/google-lens": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Search Google Lens with an image URL",
+        "description": "Runs a Google Lens search for the image at `url` and returns its visual matches as JSON (usually ~60). Every match carries `title`, `url` (the page the image is on), `domain`, `source` (site name), `imageUrl` (the matching image), `thumbnailUrl`, `width`, `height` and `position`; product matches add `price` and `currency` (and `product` details) when Google has them, and `priceText`, `rating` and `reviews` as the tile shows them. `relatedSearches` lists what Lens recognised in the image (e.g. 'Eiffel Tower', with its Knowledge Graph id) and `aiOverview` is Google's own description of the image when it is ready in time (else null). Shopping matches follow the country the request comes from - set `proxy_country` for a market (a US request is served from a European exit, where Google loads Lens matches; `proxyCountry` in the response says which).",
+        "operationId": "google_lens_images_google_lens_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Public http(s) URL of the image to search with, e.g. a product photo. Google fetches the image itself.",
+              "title": "Url"
+            },
+            "description": "Public http(s) URL of the image to search with, e.g. a product photo. Google fetches the image itself."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Shopping matches and prices follow the country Google sees the request from.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Shopping matches and prices follow the country Google sees the request from."
+          },
+          {
+            "name": "gl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional Google market override (ISO-2). Default: `proxy_country`, else 'us'.",
+              "title": "Gl"
+            },
+            "description": "Optional Google market override (ISO-2). Default: `proxy_country`, else 'us'."
+          },
+          {
+            "name": "hl",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Google UI language, e.g. 'en', 'de'. Default 'en'.",
+              "title": "Hl"
+            },
+            "description": "Google UI language, e.g. 'en', 'de'. Default 'en'."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 100,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional cap on the visual matches returned (1-100; default: all, usually ~60).",
+              "title": "Max Results"
+            },
+            "description": "Optional cap on the visual matches returned (1-100; default: all, usually ~60)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `visualMatches`, `relatedSearches` and `aiOverview`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters, or the image URL is unusable (404, or a web page instead of an image) - plain-text message."
+          },
+          "403": {
+            "description": "Blocked by Google CAPTCHA after retries - try another proxy_country."
+          },
+          "502": {
+            "description": "No visual matches (Google could not fetch the image, upstream block, or the call did not finish in time). Not billed."
+          },
+          "503": {
+            "description": "No proxy exit was free for this market - retry or pick another proxy_country."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
     "/realestate/redfin": {
       "post": {
         "tags": [
@@ -9194,6 +9442,290 @@
           },
           "502": {
             "description": "Blocked by Amazon on every attempt, no review section returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/amazon-offers": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape every offer (all sellers) for an Amazon product",
+        "description": "Returns the offers Amazon lists for a product under \"All buying options\", as JSON. Each offer has the seller (`sellerName`, `sellerId`, `sellerUrl`, `sellerRating`, `sellerRatingCount`, `sellerPositivePercent`), `price` + `currency`, `listPrice` and `savingsPercent`, `shippingPrice` and `totalPrice`, `condition` (as Amazon words it) with `conditionType` (new, used, collectible, refurbished) and the seller's `conditionNote`, `delivery` / `deliveryDate`, `alternativeDelivery` (the faster or Prime-member option Amazon also offers), `shipsFrom`, `soldByAmazon`, `fulfilledByAmazon`, `prime`, the `offerId` and a `buyBoxWinner` flag. The response also carries the product `title`, `rating`, `reviewCount`, `image` and `totalOffers`.\n\nPage 1 starts with the Buy Box (featured) offer, also returned as `buyBox`; Amazon shows it whatever filter is set. Amazon lists 10 other offers per page: follow `nextPage`, or read up to 5 pages in one call with `pages`. Filter with `condition`, `free_shipping` and `prime`. `shippingPrice` is 0 for free delivery and null when Amazon shows no delivery promise for the location. `proxy_country` defaults to the marketplace's home country so prices and delivery are the ones a local shopper sees; the proxy that served the request is reported as `exitCountry` and `exitProvider`.",
+        "operationId": "amazon_offers_marketplace_amazon_offers_post",
+        "parameters": [
+          {
+            "name": "asin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Amazon product id (10-char ASIN, e.g. 'B07VGRJDFY'; books use their ISBN-10). Give either `asin` (with `marketplace`) or a product `url`.",
+              "title": "Asin"
+            },
+            "description": "Amazon product id (10-char ASIN, e.g. 'B07VGRJDFY'; books use their ISBN-10). Give either `asin` (with `marketplace`) or a product `url`."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Full Amazon product url, e.g. 'https://www.amazon.de/dp/1847941834'. The ASIN and marketplace are read from it.",
+              "title": "Url"
+            },
+            "description": "Full Amazon product url, e.g. 'https://www.amazon.de/dp/1847941834'. The ASIN and marketplace are read from it."
+          },
+          {
+            "name": "marketplace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Regional Amazon site whose offers to list. Prices, sellers and delivery differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au.",
+              "default": "amazon.com",
+              "title": "Marketplace"
+            },
+            "description": "Regional Amazon site whose offers to list. Prices, sellers and delivery differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au."
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Only offers in this condition: all, new, used, used_like_new, used_very_good, used_good, used_acceptable. Default 'all'.",
+              "default": "all",
+              "title": "Condition"
+            },
+            "description": "Only offers in this condition: all, new, used, used_like_new, used_very_good, used_good, used_acceptable. Default 'all'."
+          },
+          {
+            "name": "free_shipping",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only offers with free delivery.",
+              "default": false,
+              "title": "Free Shipping"
+            },
+            "description": "Only offers with free delivery."
+          },
+          {
+            "name": "prime",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only Prime-eligible offers.",
+              "default": false,
+              "title": "Prime"
+            },
+            "description": "Only Prime-eligible offers."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based offers page to start at. Amazon lists 10 offers per page (page 1 also carries the Buy Box offer and the product header).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based offers page to start at. Amazon lists 10 offers per page (page 1 also carries the Buy Box offer and the product header)."
+          },
+          {
+            "name": "pages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "How many consecutive pages to read in this call (1-5). Reading stops early at the last page. Each page delivered is billed as one request.",
+              "default": 1,
+              "title": "Pages"
+            },
+            "description": "How many consecutive pages to read in this call (1-5). Reading stops early at the last page. Each page delivered is billed as one request."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country, so prices, shipping costs and delivery dates are the ones a local shopper sees.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country, so prices, shipping costs and delivery dates are the ones a local shopper sees."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Offers parsed (the list can be empty when nobody sells the product).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "No/invalid ASIN or url, or an unsupported parameter value."
+          },
+          "404": {
+            "description": "Amazon has no product with this ASIN on this marketplace."
+          },
+          "502": {
+            "description": "Blocked by Amazon, no offers panel returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/amazon-seller": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape an Amazon seller profile",
+        "description": "Returns an Amazon third-party seller's public profile as JSON: `name`, `logo`, `storefrontUrl`, the headline `rating`, `ratingCount` and `positivePercent` Amazon shows (the last 12 months, or lifetime for a seller with few recent ratings; `ratingPeriod` says which), and `feedbackSummary` for `30d`, `90d`, `12m` and `lifetime` - each with the average `rating`, `ratingCount`, `positivePercent` / `neutralPercent` / `negativePercent` (4-5, 3 and 1-2 stars), the matching counts and the 5..1-star histogram. Also `about` (the seller's own description), `businessName`, `businessAddress` (+ `businessAddressLines`), `businessDetails` (every row of Amazon's \"Detailed Seller Information\", e.g. business type, trade register and VAT number where the marketplace shows them), `contactUrl` and `recentFeedback` (each with `rating`, `text`, `author`, `date`, `struckThrough` and `amazonMessage` when Amazon took responsibility for the order).\n\nIdentify the seller with `seller_id` (plus `marketplace`), e.g. the `sellerId` of an offer from `/marketplace/amazon-offers`, or with any Amazon `url` naming the seller. Ratings are per marketplace. Amazon's own retail sellers show no ratings; those fields are null.",
+        "operationId": "amazon_seller_marketplace_amazon_seller_post",
+        "parameters": [
+          {
+            "name": "seller_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Amazon seller (merchant) id, e.g. 'A3PEV2IAOYFKM6' - the `sellerId` of an offer from /marketplace/amazon-offers. Give either `seller_id` (with `marketplace`) or a `url`.",
+              "title": "Seller Id"
+            },
+            "description": "Amazon seller (merchant) id, e.g. 'A3PEV2IAOYFKM6' - the `sellerId` of an offer from /marketplace/amazon-offers. Give either `seller_id` (with `marketplace`) or a `url`."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Any Amazon url that names the seller: the profile ('https://www.amazon.de/sp?seller=A1J6G6R957S11K'), a storefront ('/s?me=...') or a sold-by link. The seller id and marketplace are read from it.",
+              "title": "Url"
+            },
+            "description": "Any Amazon url that names the seller: the profile ('https://www.amazon.de/sp?seller=A1J6G6R957S11K'), a storefront ('/s?me=...') or a sold-by link. The seller id and marketplace are read from it."
+          },
+          {
+            "name": "marketplace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Regional Amazon site the seller sells on. Ratings and feedback are per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au.",
+              "default": "amazon.com",
+              "title": "Marketplace"
+            },
+            "description": "Regional Amazon site the seller sells on. Ratings and feedback are per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional: a seller profile is the same from every country, so by default any country is used.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional: a seller profile is the same from every country, so by default any country is used."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Seller profile parsed.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "No/invalid seller id or url, or unsupported marketplace."
+          },
+          "404": {
+            "description": "Amazon has no seller profile with this id on this marketplace."
+          },
+          "502": {
+            "description": "Blocked by Amazon, no profile page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -14140,6 +14672,273 @@
         ]
       }
     },
+    "/groceries/kroger-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Search Kroger and its banner stores (Ralphs, Fred Meyer, King Soopers, ...)",
+        "description": "Products matching `query` on Kroger or one of its banner sites (`banner`: kroger, ralphs, fredmeyer, kingsoopers, frysfood, smithsfoodanddrug, qfc, dillons, bakersplus, citymarket, gerbes, foodfourless, harristeeter, marianos, metromarket, picknsave, jaycfoods, payless, foodsco), priced for one store. Returns `products` in the site's order with `productId` (Kroger's 13-digit id), `upc`, `gtin14`, `name`, `brand`, `size`, `url`, `image`, `price` (what the shopper pays now), `regularPrice`, `salePrice`, `onSale`, `savings`, `promotion` (`type` sale / price_drop / multibuy / must_buy / bogo, `text`, multibuy `quantity` and `quantityPrice`, `expiresAt`), `unitPrice` (`price`, `unit`, `text`), `soldBy` (unit / weight; weighed items carry Kroger's per-item estimate), `available`, `stockLevel` (HIGH / LOW / TEMPORARILY_OUT_OF_STOCK), `maxOrderQuantity`, `fulfillment` (`pickup`, `delivery`, `inStore`, `ship`: whether the store offers the product that way), `aisle` (`number`, `description`, `side`, `bay`, `shelf`), `rating`, `reviewCount`, `categories`, `snapEligible` and `offers` (extra deals such as 'Save $2 each when you buy 3'), plus `position` and `sponsored`. `totalResults` is the site's total match count; one call returns the first page (up to 24 products). `brand` narrows the search to one or more brands. `store` names the store the prices are for: `storeId`, `name`, `banner`, `address`, `latitude`, `longitude`, `fulfillmentMethods`, `hours`, `pricesFor` (pickup or inStore) and `selectedBy` (store_id / zip / default); with `zip`, `nearbyStores` lists the banner's other stores near it. Prices are in USD and depend on the store. One billed unit per call.",
+        "operationId": "kroger_search_groceries_kroger_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search for, e.g. 'milk', 'coca cola', 'gluten free bread'.",
+              "title": "Query"
+            },
+            "description": "What to search for, e.g. 'milk', 'coca cola', 'gluten free bread'."
+          },
+          {
+            "name": "banner",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Which Kroger-family store site to use: 'kroger' (Kroger), 'ralphs' (Ralphs), 'fredmeyer' (Fred Meyer), 'kingsoopers' (King Soopers), 'frysfood' (Fry's Food), 'smithsfoodanddrug' (Smith's), 'qfc' (QFC), 'dillons' (Dillons), 'bakersplus' (Baker's), 'citymarket' (City Market), 'gerbes' (Gerbes), 'foodfourless' (Food 4 Less), 'harristeeter' (Harris Teeter), 'marianos' (Mariano's), 'metromarket' (Metro Market), 'picknsave' (Pick 'n Save), 'jaycfoods' (Jay C Food Stores), 'payless' (Pay Less), 'foodsco' (FoodsCo). Host names (ralphs.com) and common spellings (food4less, smiths, frys) work too.",
+              "default": "kroger",
+              "title": "Banner"
+            },
+            "description": "Which Kroger-family store site to use: 'kroger' (Kroger), 'ralphs' (Ralphs), 'fredmeyer' (Fred Meyer), 'kingsoopers' (King Soopers), 'frysfood' (Fry's Food), 'smithsfoodanddrug' (Smith's), 'qfc' (QFC), 'dillons' (Dillons), 'bakersplus' (Baker's), 'citymarket' (City Market), 'gerbes' (Gerbes), 'foodfourless' (Food 4 Less), 'harristeeter' (Harris Teeter), 'marianos' (Mariano's), 'metromarket' (Metro Market), 'picknsave' (Pick 'n Save), 'jaycfoods' (Jay C Food Stores), 'payless' (Pay Less), 'foodsco' (FoodsCo). Host names (ralphs.com) and common spellings (food4less, smiths, frys) work too."
+          },
+          {
+            "name": "brand",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only products of these brands, e.g. 'Kroger' or 'Kroger|Simple Truth' (separate several with | or ,).",
+              "title": "Brand"
+            },
+            "description": "Only products of these brands, e.g. 'Kroger' or 'Kroger|Simple Truth' (separate several with | or ,)."
+          },
+          {
+            "name": "store_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Kroger store id (8 digits, e.g. '01400929'): prices, stock and aisles are that store's. The id is shown as `store.storeId` in every answer and in `nearbyStores` when you search by `zip`.",
+              "title": "Store Id"
+            },
+            "description": "Kroger store id (8 digits, e.g. '01400929'): prices, stock and aisles are that store's. The id is shown as `store.storeId` in every answer and in `nearbyStores` when you search by `zip`."
+          },
+          {
+            "name": "zip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "US ZIP code: prices for the banner's nearest store to it that takes online orders (the nearest store at all when none does). The answer lists the nearby stores in `nearbyStores`. Leave both `store_id` and `zip` blank for the banner's default store.",
+              "title": "Zip"
+            },
+            "description": "US ZIP code: prices for the banner's nearest store to it that takes online orders (the nearest store at all when none does). The answer lists the nearby stores in `nearbyStores`. Leave both `store_id` and `zip` blank for the banner's default store."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to return, 1-24 (the first page of results).",
+              "default": 24,
+              "title": "Max Results"
+            },
+            "description": "Products to return, 1-24 (the first page of results)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `store` and `products`. A search with no matches answers 200 with an empty `products` list.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "No store of the banner near `zip`, or `store_id` is not a store of the banner."
+          },
+          "502": {
+            "description": "Blocked on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/groceries/kroger-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Kroger product details (Kroger, Ralphs, Fred Meyer, King Soopers, ...)",
+        "description": "One product from Kroger or one of its banner sites, by Kroger product id, UPC / GTIN barcode or product link, priced for one store. `product` has `productId` (Kroger's 13-digit id), `upc`, `gtin14`, `name`, `brand`, `size`, `url`, `image`, `price` (what the shopper pays now), `regularPrice`, `salePrice`, `onSale`, `savings`, `promotion` (`type` sale / price_drop / multibuy / must_buy / bogo, `text`, multibuy `quantity` and `quantityPrice`, `expiresAt`), `unitPrice` (`price`, `unit`, `text`), `soldBy` (unit / weight; weighed items carry Kroger's per-item estimate), `available`, `stockLevel` (HIGH / LOW / TEMPORARILY_OUT_OF_STOCK), `maxOrderQuantity`, `fulfillment` (`pickup`, `delivery`, `inStore`, `ship`: whether the store offers the product that way), `aisle` (`number`, `description`, `side`, `bay`, `shelf`), `rating`, `reviewCount`, `categories`, `snapEligible` and `offers` (extra deals such as 'Save $2 each when you buy 3'), and the product page details: `description`, `highlights`, `images` (every angle, large), `ingredients`, `allergens`, `nutrition` (`servingSize`, `servingsPerContainer`, `nutrients` with amount, unit and % daily value), `dietary`, `claims`, `organic`, `glutenFree`, `kosher`, `nonGmo`, `taxonomy` (category paths), `countryOfOrigin`, `storage`, `dimensions`, `weight`, `ratingBreakdown`, `alcohol` and `ageRestricted`. `store` names the store the prices are for: `storeId`, `name`, `banner`, `address`, `latitude`, `longitude`, `fulfillmentMethods`, `hours`, `pricesFor` (pickup or inStore) and `selectedBy` (store_id / zip / default). One billed unit per call.",
+        "operationId": "kroger_product_groceries_kroger_product_post",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The product: Kroger's 13-digit product id ('0001111041700'), a UPC or GTIN barcode ('011110417005'), or a product link from any banner (https://www.kroger.com/p/kroger-2-reduced-fat-milk/0001111041700). A link picks its banner by itself.",
+              "title": "Product"
+            },
+            "description": "The product: Kroger's 13-digit product id ('0001111041700'), a UPC or GTIN barcode ('011110417005'), or a product link from any banner (https://www.kroger.com/p/kroger-2-reduced-fat-milk/0001111041700). A link picks its banner by itself."
+          },
+          {
+            "name": "banner",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Which Kroger-family store site to use: 'kroger' (Kroger), 'ralphs' (Ralphs), 'fredmeyer' (Fred Meyer), 'kingsoopers' (King Soopers), 'frysfood' (Fry's Food), 'smithsfoodanddrug' (Smith's), 'qfc' (QFC), 'dillons' (Dillons), 'bakersplus' (Baker's), 'citymarket' (City Market), 'gerbes' (Gerbes), 'foodfourless' (Food 4 Less), 'harristeeter' (Harris Teeter), 'marianos' (Mariano's), 'metromarket' (Metro Market), 'picknsave' (Pick 'n Save), 'jaycfoods' (Jay C Food Stores), 'payless' (Pay Less), 'foodsco' (FoodsCo). Host names (ralphs.com) and common spellings (food4less, smiths, frys) work too. Default 'kroger'.",
+              "title": "Banner"
+            },
+            "description": "Which Kroger-family store site to use: 'kroger' (Kroger), 'ralphs' (Ralphs), 'fredmeyer' (Fred Meyer), 'kingsoopers' (King Soopers), 'frysfood' (Fry's Food), 'smithsfoodanddrug' (Smith's), 'qfc' (QFC), 'dillons' (Dillons), 'bakersplus' (Baker's), 'citymarket' (City Market), 'gerbes' (Gerbes), 'foodfourless' (Food 4 Less), 'harristeeter' (Harris Teeter), 'marianos' (Mariano's), 'metromarket' (Metro Market), 'picknsave' (Pick 'n Save), 'jaycfoods' (Jay C Food Stores), 'payless' (Pay Less), 'foodsco' (FoodsCo). Host names (ralphs.com) and common spellings (food4less, smiths, frys) work too. Default 'kroger'."
+          },
+          {
+            "name": "store_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Kroger store id (8 digits, e.g. '01400929'): prices, stock and aisles are that store's. The id is shown as `store.storeId` in every answer and in `nearbyStores` when you search by `zip`.",
+              "title": "Store Id"
+            },
+            "description": "Kroger store id (8 digits, e.g. '01400929'): prices, stock and aisles are that store's. The id is shown as `store.storeId` in every answer and in `nearbyStores` when you search by `zip`."
+          },
+          {
+            "name": "zip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "US ZIP code: prices for the banner's nearest store to it that takes online orders (the nearest store at all when none does). The answer lists the nearby stores in `nearbyStores`. Leave both `store_id` and `zip` blank for the banner's default store.",
+              "title": "Zip"
+            },
+            "description": "US ZIP code: prices for the banner's nearest store to it that takes online orders (the nearest store at all when none does). The answer lists the nearby stores in `nearbyStores`. Leave both `store_id` and `zip` blank for the banner's default store."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `store` and `product`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "The banner has no such product at that store, no store near `zip`, or `store_id` is not one of its stores."
+          },
+          "502": {
+            "description": "Blocked on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
     "/marketplace/wish-search": {
       "post": {
         "tags": [
@@ -15646,6 +16445,2046 @@
           },
           "502": {
             "description": "Taobao refused every attempt, or no answer in time; not billed."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/flipkart-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Flipkart product search",
+        "description": "Searches Flipkart (India) for `query` and returns `products`, each with `productId` (the FSN, e.g. MOBHQV9YCUG4ZQZK), `itemId`, `listingId`, `title`, `brand`, `price`, `originalPrice` (MRP when discounted), `discountPercent`, `currency` (INR), `rating`, `ratingCount`, `reviewCount`, `assured` (F-Assured), `sponsored`, `badge` (e.g. Bestseller), `availability` / `inStock`, `keySpecs`, `category`, `image`, `images` and `url`. Also `total` (results Flipkart reports), `totalPages` and `nextPage`. `sort` orders the results, `min_price` / `max_price` filter by price, `page` picks the first page and `max_results` collects across pages. One unit per Flipkart page read.",
+        "operationId": "flipkart_search_marketplace_flipkart_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "What to search for, e.g. 'iphone 17' or 'running shoes'.",
+              "title": "Query"
+            },
+            "description": "What to search for, e.g. 'iphone 17' or 'running shoes'."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Result order: relevance, popularity, price_asc, price_desc, newest.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Result order: relevance, popularity, price_asc, price_desc, newest."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "First Flipkart results page to read (1-100).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "First Flipkart results page to read (1-100)."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price in rupees (INR).",
+              "title": "Min Price"
+            },
+            "description": "Lowest price in rupees (INR)."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price in rupees (INR).",
+              "title": "Max Price"
+            },
+            "description": "Highest price in rupees (INR)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect across pages, 1-240. A page holds 24 products (40 in fashion grids); each page is one unit.",
+              "default": 24,
+              "title": "Max Results"
+            },
+            "description": "Products to collect across pages, 1-240. A page holds 24 products (40 in fashion grids); each page is one unit."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Flipkart found no products for this search."
+          },
+          "502": {
+            "description": "Blocked by Flipkart on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/flipkart-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a Flipkart product",
+        "description": "Returns one Flipkart (India) product by `product_id` (FSN or `itm` id) or `url`: `productId`, `itemId`, `listingId`, `title`, `brand`, `description`, `category`, `breadcrumbs`, `price`, `originalPrice` (MRP), `discountPercent`, `bestPrice` (with bank offers), `currency`, `availability` / `inStock`, `rating`, `ratingCount`, `reviewCount`, `ratingBreakdown` (1-5 stars), `aspectRatings` (e.g. Camera, Battery), `assured`, `selectedAttributes`, `highlights`, `specifications` (group / name / value), `images`, `variants` (dimension, value, productId, price, available, url), `seller` (name, id, rating, years on Flipkart), `offerCount`, `offers` (bank and exchange offers), `deliveryDays`, `cashOnDelivery`, `returnPolicy`, `reviews` (top reviews) and `url`. One unit per call.",
+        "operationId": "flipkart_product_marketplace_flipkart_product_post",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Flipkart product id: the FSN (`pid`, e.g. MOBHQV9YCUG4ZQZK) or the `itm...` id from a product link.",
+              "title": "Product Id"
+            },
+            "description": "Flipkart product id: the FSN (`pid`, e.g. MOBHQV9YCUG4ZQZK) or the `itm...` id from a product link."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A Flipkart product link, e.g. https://www.flipkart.com/apple-iphone-17-black-256-gb/p/itmc61b40459dd98?pid=MOBHQV9YCUG4ZQZK. Used instead of `product_id`.",
+              "title": "Url"
+            },
+            "description": "A Flipkart product link, e.g. https://www.flipkart.com/apple-iphone-17-black-256-gb/p/itmc61b40459dd98?pid=MOBHQV9YCUG4ZQZK. Used instead of `product_id`."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with the product.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Flipkart has no product with this id."
+          },
+          "502": {
+            "description": "Blocked by Flipkart on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/lazada-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Lazada product search",
+        "description": "Searches a Lazada market (Singapore, Malaysia, Thailand, Philippines, Vietnam or Indonesia - `country`) for `query` and returns `products`, each with `position`, `itemId`, `skuId`, `name`, `price`, `priceText`, `originalPrice` (crossed-out price), `discountPercent`, `rating`, `reviewCount`, `sold` (units sold, as Lazada rounds it) and `soldText`, `brand`, `seller` / `sellerId`, `location` (ships from), `inStock`, `lazMall`, `freeShipping`, `sponsored`, `image` and `url`. Also `total` (results Lazada lets you page through), `matches` (all matches it reports), `currency` and `nextPage`. `sort` orders the results, `min_price` / `max_price` filter by price, `page` picks the first page and `max_results` collects across pages (40 a page). One unit per Lazada page read.",
+        "operationId": "lazada_search_marketplace_lazada_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "What to search for, e.g. 'iphone case' or 'air fryer'.",
+              "title": "Query"
+            },
+            "description": "What to search for, e.g. 'iphone case' or 'air fryer'."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lazada market: 'sg' (lazada.sg), 'my' (lazada.com.my), 'th' (lazada.co.th), 'ph' (lazada.com.ph), 'vn' (lazada.vn), 'id' (lazada.co.id). Default 'sg'. Prices are in that market's currency.",
+              "title": "Country"
+            },
+            "description": "Lazada market: 'sg' (lazada.sg), 'my' (lazada.com.my), 'th' (lazada.co.th), 'ph' (lazada.com.ph), 'vn' (lazada.vn), 'id' (lazada.co.id). Default 'sg'. Prices are in that market's currency."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Result order: relevance, price_asc, price_desc.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Result order: relevance, price_asc, price_desc."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "First Lazada results page to read (1-102).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "First Lazada results page to read (1-102)."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price, in the market's currency.",
+              "title": "Min Price"
+            },
+            "description": "Lowest price, in the market's currency."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price, in the market's currency.",
+              "title": "Max Price"
+            },
+            "description": "Highest price, in the market's currency."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect across pages, 1-400. A page holds 40 products; each page is one unit.",
+              "default": 40,
+              "title": "Max Results"
+            },
+            "description": "Products to collect across pages, 1-400. A page holds 40 products; each page is one unit."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Lazada found no products for this search."
+          },
+          "502": {
+            "description": "Blocked by Lazada on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/lazada-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a Lazada product",
+        "description": "Returns one Lazada product by `url`, or by `item_id` (+ optional `sku_id`) and `country`: `itemId`, `skuId`, `title`, `brand`, `description`, `highlights`, `categories`, `price`, `priceText`, `originalPrice`, `discountPercent`, `currency`, `rating`, `reviewCount`, `ratingBreakdown` (1-5 stars), `inStock`, `maxQuantity`, `images`, `specifications`, `variantDimensions` (e.g. colour and storage with their values), `variants` (every SKU with its attributes, price, image, availability and link), `seller` (id, shop id, name, positive rating, store highlights, link), `delivery` (option and estimate), `warranties` and `url`. One unit per call.",
+        "operationId": "lazada_product_marketplace_lazada_product_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A Lazada product link, e.g. https://www.lazada.sg/products/apple-iphone-18-pro-max-i13907853520-s124925162667.html. Used instead of `item_id` / `country`.",
+              "title": "Url"
+            },
+            "description": "A Lazada product link, e.g. https://www.lazada.sg/products/apple-iphone-18-pro-max-i13907853520-s124925162667.html. Used instead of `item_id` / `country`."
+          },
+          {
+            "name": "item_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lazada item id (the number after '-i' in a product link, e.g. 13907853520).",
+              "title": "Item Id"
+            },
+            "description": "Lazada item id (the number after '-i' in a product link, e.g. 13907853520)."
+          },
+          {
+            "name": "sku_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional SKU id (the number after '-s') to select one variant.",
+              "title": "Sku Id"
+            },
+            "description": "Optional SKU id (the number after '-s') to select one variant."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lazada market: 'sg' (lazada.sg), 'my' (lazada.com.my), 'th' (lazada.co.th), 'ph' (lazada.com.ph), 'vn' (lazada.vn), 'id' (lazada.co.id). Default 'sg'. Prices are in that market's currency.",
+              "title": "Country"
+            },
+            "description": "Lazada market: 'sg' (lazada.sg), 'my' (lazada.com.my), 'th' (lazada.co.th), 'ph' (lazada.com.ph), 'vn' (lazada.vn), 'id' (lazada.co.id). Default 'sg'. Prices are in that market's currency."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with the product.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Lazada has no active product with this id, or shows it in its mobile app only."
+          },
+          "502": {
+            "description": "Blocked by Lazada on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/allegro-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Allegro search",
+        "description": "Searches Allegro (Poland) for `query` and returns `products` (offers), each with `position`, `offerId`, `productId`, `title`, `price`, `currency` (PLN), `priceWithDelivery`, `deliveryFrom`, `freeDelivery`, `smart` (Allegro Smart!), `deliveryLabel`, `rating`, `ratingCount`, `recentBuyers` (bought in the last 30 days), `offersOfProduct`, `quantity`, `sponsored`, `promoted`, `superSeller`, `seller` (id, login, company, positive feedback %), `parameters`, `image`, `images` and `url`. Also `total` (all matches), `available` (offers Allegro lets you page through), `lastPage`, `category` and `nextPage`. Filter with `min_price` / `max_price`, `condition`, `shipping_from`, `delivery_time`, `offer_type`, `store_city` and `store_region`; `sort` orders the results; `page` and `max_results` page through them. One unit per Allegro page read.",
+        "operationId": "allegro_search_marketplace_allegro_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "What to search for, e.g. 'iphone 15' or 'lego'.",
+              "title": "Query"
+            },
+            "description": "What to search for, e.g. 'iphone 15' or 'lego'."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Result order: relevance, price_asc, price_desc, price_with_delivery_asc, price_with_delivery_desc, popularity, ending_soon, newest, rating.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Result order: relevance, price_asc, price_desc, price_with_delivery_asc, price_with_delivery_desc, popularity, ending_soon, newest, rating."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "First Allegro results page to read (1-100).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "First Allegro results page to read (1-100)."
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Lowest price in zloty (PLN).",
+              "title": "Min Price"
+            },
+            "description": "Lowest price in zloty (PLN)."
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Highest price in zloty (PLN).",
+              "title": "Max Price"
+            },
+            "description": "Highest price in zloty (PLN)."
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Item condition: new, like_new, refurbished, used, damaged.",
+              "title": "Condition"
+            },
+            "description": "Item condition: new, like_new, refurbished, used, damaged."
+          },
+          {
+            "name": "shipping_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Where the item ships from: pl, cz, sk, hu, cn, eu, allegro_warehouse.",
+              "title": "Shipping From"
+            },
+            "description": "Where the item ships from: pl, cz, sk, hu, cn, eu, allegro_warehouse."
+          },
+          {
+            "name": "delivery_time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Delivery speed: one_day, two_days, three_days (one_day = tomorrow).",
+              "title": "Delivery Time"
+            },
+            "description": "Delivery speed: one_day, two_days, three_days (one_day = tomorrow)."
+          },
+          {
+            "name": "offer_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Offer type: buy_now, auction (buy_now = fixed price).",
+              "title": "Offer Type"
+            },
+            "description": "Offer type: buy_now, auction (buy_now = fixed price)."
+          },
+          {
+            "name": "store_city",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The seller's town, e.g. 'Kraków'.",
+              "title": "Store City"
+            },
+            "description": "The seller's town, e.g. 'Kraków'."
+          },
+          {
+            "name": "store_region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The seller's voivodeship, e.g. 'mazowieckie' or 'slaskie' (or its number 1-16).",
+              "title": "Store Region"
+            },
+            "description": "The seller's voivodeship, e.g. 'mazowieckie' or 'slaskie' (or its number 1-16)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Offers to collect across pages, 1-300. A page holds about 60 offers; each page is one unit.",
+              "default": 60,
+              "title": "Max Results"
+            },
+            "description": "Offers to collect across pages, 1-300. A page holds about 60 offers; each page is one unit."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'CZ'). Leave blank to let the API pick (recommended: Allegro refuses some countries' exits).",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'CZ'). Leave blank to let the API pick (recommended: Allegro refuses some countries' exits)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Allegro found no offers for this search."
+          },
+          "502": {
+            "description": "Blocked by Allegro on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/allegro-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape an Allegro offer",
+        "description": "Returns one Allegro (Poland) offer by `offer_id` or `url`: `offerId`, `productId`, `title`, `productName`, `brand`, `gtin`, `price`, `originalPrice`, `currency`, `sellingMode` (buy_now / auction), `available` (stock), `condition`, `rating`, `ratingCount`, `ratingBreakdown` (1-5 stars), `recentBuyers`, `category`, `breadcrumbs`, `parameters` (group / name / value), `description`, `images`, `variants`, `seller` (id, login, Super Seller, feedback, company name and tax id), `location`, `smart`, `delivery`, `shippingMethods` (name, price, Smart! price), `returnDays`, `warranty`, `endsAt`, `reviews` and `url`. One unit per call.",
+        "operationId": "allegro_product_marketplace_allegro_product_post",
+        "parameters": [
+          {
+            "name": "offer_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Allegro offer number, e.g. 16680923539 (the number at the end of an /oferta/ link or its offerId).",
+              "title": "Offer Id"
+            },
+            "description": "Allegro offer number, e.g. 16680923539 (the number at the end of an /oferta/ link or its offerId)."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "An Allegro offer or product link, e.g. https://allegro.pl/oferta/16680923539 or https://allegro.pl/produkt/...?offerId=16680923539. Used instead of `offer_id`.",
+              "title": "Url"
+            },
+            "description": "An Allegro offer or product link, e.g. https://allegro.pl/oferta/16680923539 or https://allegro.pl/produkt/...?offerId=16680923539. Used instead of `offer_id`."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'CZ'). Leave blank to let the API pick (recommended: Allegro refuses some countries' exits).",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'CZ'). Leave blank to let the API pick (recommended: Allegro refuses some countries' exits)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with the offer.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Allegro has no offer with this number."
+          },
+          "502": {
+            "description": "Blocked by Allegro on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/falabella-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Falabella product search (Chile, Colombia, Peru)",
+        "description": "Searches a Falabella store (`country`: cl, co or pe) for `query` and returns the products as JSON: `productId`, `skuId`, `title`, `brand`, `url`, `price` (and `priceMax` for a price range), `cmrPrice` (price with the Falabella CMR card), `originalPrice` (crossed-out list price), `discountPercent`, `currency`, `rating`, `reviewCount`, `sellerId` / `sellerName`, `sponsored`, `bestSeller`, `freeShipping`, `deliveryLabels`, `badges`, `installmentsWithoutInterest`, `image` / `images`, `topSpecifications` and `variants` (colour / size options). Sort with `sort`, start at `page`, and collect up to `max_results` across pages (48 per page, each page billed as one request, see `pagesFetched`). `url` takes a Falabella search link instead of `query`.",
+        "operationId": "falabella_search_marketplace_falabella_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search, e.g. 'zapatillas nike', 'televisor 55' or 'notebook'.",
+              "title": "Query"
+            },
+            "description": "What to search, e.g. 'zapatillas nike', 'televisor 55' or 'notebook'."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Falabella store: 'cl' (www.falabella.com, prices in CLP), 'co' (www.falabella.com.co, prices in COP), 'pe' (www.falabella.com.pe, prices in PEN). Default 'cl'.",
+              "title": "Country"
+            },
+            "description": "Falabella store: 'cl' (www.falabella.com, prices in CLP), 'co' (www.falabella.com.co, prices in COP), 'pe' (www.falabella.com.pe, prices in PEN). Default 'cl'."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Order: relevance, price_low, price_high, rating, brand.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Order: relevance, price_low, price_high, rating, brand."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based results page to start from (1-200).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based results page to start from (1-200)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect across pages (1-480); Falabella serves 48 per page and each page fetched is billed as one request.",
+              "default": 48,
+              "title": "Max Results"
+            },
+            "description": "Products to collect across pages (1-480); Falabella serves 48 per page and each page fetched is billed as one request."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Instead of `query`: a Falabella search link, e.g. https://www.falabella.com/falabella-cl/search?Ntt=zapatillas (its store, sort and page are used).",
+              "title": "Url"
+            },
+            "description": "Instead of `query`: a Falabella search link, e.g. https://www.falabella.com/falabella-cl/search?Ntt=zapatillas (its store, sort and page are used)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array plus paging totals.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Falabella found no products for this search, or sends the keyword to a landing page without a results list."
+          },
+          "502": {
+            "description": "Blocked by Falabella on every attempt, no results page returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/falabella-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape one Falabella product's full detail",
+        "description": "Fetches one Falabella product (by `product_id` + `country`, or `url`) and returns it as JSON: `productId`, `skuId`, `url`, `title`, `brand`, `description` / `longDescription`, `price` / `priceMax`, `cmrPrice`, `originalPrice`, `discountPercent`, `currency`, `available`, `stockUnits` (only when Falabella shows a low-stock count), `rating`, `reviewCount`, `sellerId` / `sellerName`, `freeShipping`, `deliveryLabels`, `badges`, `installmentsWithoutInterest`, `breadcrumbs`, `topSpecifications`, `specifications` (name / value), `images`, `videos`, `returnPolicy` and `variants` (every colour / size SKU with its own price, availability, delivery options and images). The top-level price fields are those of `sku` (default the main variant). Companion to `/marketplace/falabella-search`.",
+        "operationId": "falabella_product_marketplace_falabella_product_post",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Falabella product id, e.g. '17776888' or 'prod11930024' (the part after /product/ in a product link). Needs `country` unless it is 'cl'.",
+              "title": "Product Id"
+            },
+            "description": "Falabella product id, e.g. '17776888' or 'prod11930024' (the part after /product/ in a product link). Needs `country` unless it is 'cl'."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Instead of `product_id`: a Falabella product link, e.g. https://www.falabella.com/falabella-cl/product/17776888/iphone-duo-256gb-night-sky/17776887 (its store and SKU are used).",
+              "title": "Url"
+            },
+            "description": "Instead of `product_id`: a Falabella product link, e.g. https://www.falabella.com/falabella-cl/product/17776888/iphone-duo-256gb-night-sky/17776887 (its store and SKU are used)."
+          },
+          {
+            "name": "sku",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Variant (SKU) whose price and availability fill the top-level fields; default the product's main variant. Every variant is listed in `variants` either way.",
+              "title": "Sku"
+            },
+            "description": "Variant (SKU) whose price and availability fill the top-level fields; default the product's main variant. Every variant is listed in `variants` either way."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With `product_id`: Falabella store: 'cl' (www.falabella.com, prices in CLP), 'co' (www.falabella.com.co, prices in COP), 'pe' (www.falabella.com.pe, prices in PEN). Default 'cl'.",
+              "title": "Country"
+            },
+            "description": "With `product_id`: Falabella store: 'cl' (www.falabella.com, prices in CLP), 'co' (www.falabella.com.co, prices in COP), 'pe' (www.falabella.com.pe, prices in PEN). Default 'cl'."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with the full product record.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing product_id/url, or an unknown country."
+          },
+          "404": {
+            "description": "No such product (Falabella shows its not-found page)."
+          },
+          "502": {
+            "description": "Blocked by Falabella on every attempt, no product data returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/magazineluiza-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Magazine Luiza (Magalu) product search",
+        "description": "Searches Magazine Luiza (magazineluiza.com.br, Brazil) for `query` and returns the products as JSON: `productId`, `offerId`, `title`, `brand`, `url`, `price`, `bestPrice` with `bestPriceMethod` (usually the Pix price), `originalPrice` (list price), `discountPercent`, `currency` (BRL), `installments` (count, amount, interest-free), `rating`, `reviewCount`, `sellerId` / `sellerName`, `available`, `sponsored`, `magaluIndica`, `category` / `subcategory`, `badges`, `image` and `variations`. Sort with `sort`, start at `page`, and collect up to `max_results` across pages (40 per page, each page billed as one request, see `pagesFetched`). `url` takes a Magalu search link instead of `query`.",
+        "operationId": "magalu_search_marketplace_magazineluiza_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search, e.g. 'geladeira', 'smart tv 55' or 'air fryer'.",
+              "title": "Query"
+            },
+            "description": "What to search, e.g. 'geladeira', 'smart tv 55' or 'air fryer'."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Order: relevance, price_low, price_high, best_selling, rating, newest, fastest_delivery, price_with_shipping_low.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Order: relevance, price_low, price_high, best_selling, rating, newest, fastest_delivery, price_with_shipping_low."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based results page to start from (1-25).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based results page to start from (1-25)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect across pages (1-200); Magalu serves 40 per page and each page fetched is billed as one request.",
+              "default": 40,
+              "title": "Max Results"
+            },
+            "description": "Products to collect across pages (1-200); Magalu serves 40 per page and each page fetched is billed as one request."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Instead of `query`: a Magazine Luiza search link, e.g. https://www.magazineluiza.com.br/busca/geladeira/ (its sort and page are used).",
+              "title": "Url"
+            },
+            "description": "Instead of `query`: a Magazine Luiza search link, e.g. https://www.magazineluiza.com.br/busca/geladeira/ (its sort and page are used)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array plus paging totals.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Magalu found no products for this search."
+          },
+          "502": {
+            "description": "Blocked by Magalu on every attempt, no results page returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/magazineluiza-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape one Magazine Luiza (Magalu) product's full detail",
+        "description": "Fetches one Magazine Luiza product (by `product_id` or `url`) and returns it as JSON: `productId`, `offerId`, `url`, `title`, `brand`, `reference`, `description`, `keySellingPoints`, `price`, `bestPrice` / `bestPriceMethod`, `originalPrice`, `discountPercent`, `currency` (BRL), `installments`, `available`, `rating`, `reviewCount`, `commentCount`, `ratingHistogram`, `ratingAspects`, `reviews` (first page: rating, text, author, date, photos), `seller` (id, name, legal name, city / state, seller since, score, total sales, answer and delivery rate), `coupon`, `badges`, `breadcrumbs`, `specifications` (group / name / value), `variations` (colour, size, capacity... with the product id of each option), `images`, `videos` and package `dimensions`. Companion to `/marketplace/magazineluiza-search`.",
+        "operationId": "magalu_product_marketplace_magazineluiza_product_post",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Magalu product id, e.g. '240354400' or 'jc60hbaa6d' (the part after /p/ in a product link).",
+              "title": "Product Id"
+            },
+            "description": "Magalu product id, e.g. '240354400' or 'jc60hbaa6d' (the part after /p/ in a product link)."
+          },
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Instead of `product_id`: a Magazine Luiza product link, e.g. https://www.magazineluiza.com.br/notebook-acer-aspire-go/p/240354400/in/nota/.",
+              "title": "Url"
+            },
+            "description": "Instead of `product_id`: a Magazine Luiza product link, e.g. https://www.magazineluiza.com.br/notebook-acer-aspire-go/p/240354400/in/nota/."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with the full product record.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or missing product_id/url."
+          },
+          "404": {
+            "description": "No such product (Magalu shows its not-found page)."
+          },
+          "502": {
+            "description": "Blocked by Magalu on every attempt, no product data returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/groceries/instacart-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Instacart product search",
+        "description": "Searches one retailer's Instacart catalogue (Costco, Aldi, Publix, Safeway, Kroger, CVS, Sprouts, ... named by `retailer`) for `query` and returns `products` in Instacart's order, priced at the store Instacart assigns to `zip`: `id` (item id), `productId`, `name`, `brand`, `size`, `packageSize`, `price`, `priceText`, `wasPrice`, `onSale`, `unitPrice` (`price`, `per`, `text`), `soldBy` (each / weight), `estimatedWeight`, `promotions` (`text`, `type`), `available`, `stockLevel`, `rating`, `reviewCount`, `category`, `storeBrand`, `dietary`, `aisle`, `image` and `url`, plus `store` (the shop, its location id and the ZIP code used) and `totalResults`. Prices are Instacart's prices in USD, which can differ from the retailer's in-store prices. Up to `max_results` products, billed one unit per 30.",
+        "operationId": "instacart_search_groceries_instacart_search_post",
+        "parameters": [
+          {
+            "name": "retailer",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The retailer's Instacart slug: the part after /store/ in an Instacart link, e.g. 'costco', 'aldi', 'publix', 'safeway', 'kroger', 'cvs', 'sprouts', 'wegmans', 'sams-club'. An Instacart store link is accepted too.",
+              "title": "Retailer"
+            },
+            "description": "The retailer's Instacart slug: the part after /store/ in an Instacart link, e.g. 'costco', 'aldi', 'publix', 'safeway', 'kroger', 'cvs', 'sprouts', 'wegmans', 'sams-club'. An Instacart store link is accepted too."
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "What to search for, e.g. 'milk', 'greek yogurt', 'paper towels'.",
+              "title": "Query"
+            },
+            "description": "What to search for, e.g. 'milk', 'greek yogurt', 'paper towels'."
+          },
+          {
+            "name": "zip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "5-digit US ZIP code of the delivery area. Instacart prices and stock belong to the store serving it. Default 94105 (San Francisco).",
+              "title": "Zip"
+            },
+            "description": "5-digit US ZIP code of the delivery area. Instacart prices and stock belong to the store serving it. Default 94105 (San Francisco)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to return, 1-300, in Instacart's order. Billed one unit per 30.",
+              "default": 30,
+              "title": "Max Results"
+            },
+            "description": "Products to return, 1-300, in Instacart's order. Billed one unit per 30."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `products`. A search without matches answers 200 with an empty `products` list.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters, or a ZIP code Instacart does not know."
+          },
+          "404": {
+            "description": "No such retailer on Instacart, or none of its stores serves the ZIP code."
+          },
+          "502": {
+            "description": "Refused by Instacart on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/groceries/instacart-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape an Instacart product",
+        "description": "One product of a retailer on Instacart, priced at the store Instacart assigns to `zip`: the search fields (`id`, `productId`, `name`, `brand`, `size`, `packageSize`, `price`, `wasPrice`, `onSale`, `unitPrice`, `soldBy`, `promotions`, `available`, `stockLevel`, `rating`, `reviewCount`, `category`, `dietary`, `aisle`, `image`, `url`) plus `description`, `ingredients`, `directions`, `warnings`, the product page `sections` and the `images` gallery, and `store`. `product` is an Instacart product id, an item id from a search result or a product link. One unit per call.",
+        "operationId": "instacart_product_groceries_instacart_product_post",
+        "parameters": [
+          {
+            "name": "retailer",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The retailer's Instacart slug: the part after /store/ in an Instacart link, e.g. 'costco', 'aldi', 'publix', 'safeway', 'kroger', 'cvs', 'sprouts', 'wegmans', 'sams-club'. An Instacart store link is accepted too. Optional when `product` is a link carrying `retailerSlug`.",
+              "title": "Retailer"
+            },
+            "description": "The retailer's Instacart slug: the part after /store/ in an Instacart link, e.g. 'costco', 'aldi', 'publix', 'safeway', 'kroger', 'cvs', 'sprouts', 'wegmans', 'sams-club'. An Instacart store link is accepted too. Optional when `product` is a link carrying `retailerSlug`."
+          },
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "An Instacart product id ('16902650'), an item id from a search result ('items_4142-16902650') or a product link (https://www.instacart.com/products/16902650-...).",
+              "title": "Product"
+            },
+            "description": "An Instacart product id ('16902650'), an item id from a search result ('items_4142-16902650') or a product link (https://www.instacart.com/products/16902650-...)."
+          },
+          {
+            "name": "zip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "5-digit US ZIP code of the delivery area. Instacart prices and stock belong to the store serving it. Default 94105 (San Francisco).",
+              "title": "Zip"
+            },
+            "description": "5-digit US ZIP code of the delivery area. Instacart prices and stock belong to the store serving it. Default 94105 (San Francisco)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `product`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters, or a ZIP code Instacart does not know."
+          },
+          "404": {
+            "description": "No such retailer, no store for the ZIP code, or the store does not sell the product."
+          },
+          "502": {
+            "description": "Refused by Instacart on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/ai/gemini": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Ask Google Gemini and get its answer and cited sources",
+        "description": "Asks Google Gemini (gemini.google.com, signed out) one question and returns `answer` (plain text) and `answerMarkdown`, `citations` (pages cited inline: `position`, `title`, `url`, `domain`, `siteName`, `description`, `citedText` - the answer sentences that page backs - and `firstCitedAt`, the character offset of the first of them), `sources` (pages Gemini consulted when it searched the web: `position`, `title`, `url`, `domain`), `webSearch` (whether it searched the web), `followUpPrompts` (`label`, `prompt`), `richBlocks` (cards Gemini drew that have no text, e.g. a sports score or image strip, left out of the answer), `model` (the model label the app shows), `location` and `locationCountry` (where Gemini placed the visitor), `complete` and `conversationId`. `country` asks from that country. Answers vary between identical calls, as they do for people. One unit per call.",
+        "operationId": "gemini_ai_gemini_post",
+        "parameters": [
+          {
+            "name": "prompt",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The question to ask Gemini, as a user would type it, e.g. 'best CRM for small business' (max 4000 characters). Each call starts a new conversation.",
+              "title": "Prompt"
+            },
+            "description": "The question to ask Gemini, as a user would type it, e.g. 'best CRM for small business' (max 4000 characters). Each call starts a new conversation."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Two-letter country code to ask from, e.g. US, GB, DE. Gemini answers for where it locates the visitor (local results, currency, language defaults); `locationCountry` in the answer says where it placed this call. Leave blank for any European location.",
+              "title": "Country"
+            },
+            "description": "Two-letter country code to ask from, e.g. US, GB, DE. Gemini answers for where it locates the visitor (local results, currency, language defaults); `locationCountry` in the answer says where it placed this call. Leave blank for any European location."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with Gemini's answer and its sources.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "502": {
+            "description": "Gemini refused every attempt, gave no answer, or did not answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/costco-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Costco product search",
+        "description": "Searches Costco (costco.com, or costco.ca with `domain=ca`) for `query` and returns `products`: `productId`, `itemNumber`, `title`, `brand`, `url`, `image`, `price` (and `priceMax` for a price range), `wasPrice`, `currency`, `promotions`, `marketingStatement`, `rating`, `reviewCount`, `memberOnly`, `onlineOnly`, `warehouseOnly`, `badges`, `availability`, `inWarehouse`, `shipIt`, `buyableOnline`, `priceShownInCartOnly`, `model`, `features`, `category`, `categoryPath` and `variantCount`, plus `totalResults`. A keyword Costco sends to a category page (e.g. 'tv') returns that category, named in `redirectedTo`. `availability` is for the delivery location in `deliveryLocation`. Sort with `sort`, start at `page` and collect up to `max_results`.",
+        "operationId": "costco_search_marketplace_costco_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "What to search for, e.g. 'paper towels', 'kirkland coffee' or 'tv'.",
+              "title": "Query"
+            },
+            "description": "What to search for, e.g. 'paper towels', 'kirkland coffee' or 'tv'."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Result order: relevance, price_low, price_high, rating, newest, best_selling, brand.",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Result order: relevance, price_low, price_high, rating, newest, best_selling, brand."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based results page to start from (24 products per page, as on costco.com).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based results page to start from (24 products per page, as on costco.com)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect from `page` on, 1-240. Up to 120 are billed as one request.",
+              "default": 24,
+              "title": "Max Results"
+            },
+            "description": "Products to collect from `page` on, 1-240. Up to 120 are billed as one request."
+          },
+          {
+            "name": "include_out_of_stock",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Also return products that are out of stock (Costco hides them by default).",
+              "default": false,
+              "title": "Include Out Of Stock"
+            },
+            "description": "Also return products that are out of stock (Costco hides them by default)."
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Costco storefront: com, ca ('com' is costco.com, 'ca' is costco.ca).",
+              "default": "com",
+              "title": "Domain"
+            },
+            "description": "Costco storefront: com, ca ('com' is costco.com, 'ca' is costco.ca)."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US'). Leave blank to let the API pick. Costco computes `availability` for the delivery location it derives from the visitor; it is named in `deliveryLocation`.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US'). Leave blank to let the API pick. Costco computes `availability` for the delivery location it derives from the visitor; it is named in `deliveryLocation`."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array. A search with no matches answers 200 with an empty `products` list.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "502": {
+            "description": "Blocked by Costco, no results returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/marketplace/costco-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a Costco product",
+        "description": "Returns one Costco product (costco.com, or costco.ca with `domain=ca`) as JSON: `productId`, `itemNumber`, `title`, `brand`, `url`, `price`, `discount`, `currency`, `rating`, `reviewCount`, `memberOnly`, `onlineOnly`, `buyable`, `inWarehouse`, `shipIt`, `description`, `details`, `features`, `marketingStatement`, `promotionalStatement`, `shipping`, `manufacturer`, `manufacturerPartNumber`, `upc`, `minQuantity`, `maxQuantity`, `categoryPath`, `specifications`, `images`, `options` (e.g. every color and size) and `variants` (item number, option values, UPC). `product` takes a product id, an item number or a product link.",
+        "operationId": "costco_product_marketplace_costco_product_post",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "A Costco product id ('100361434'), item number ('17767') or product link (https://www.costco.com/p/-/kirkland-signature-colombian-coffee-dark-roast-3-lbs/100361434).",
+              "title": "Product"
+            },
+            "description": "A Costco product id ('100361434'), item number ('17767') or product link (https://www.costco.com/p/-/kirkland-signature-colombian-coffee-dark-roast-3-lbs/100361434)."
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Costco storefront: com, ca ('com' is costco.com, 'ca' is costco.ca). Defaults to the link's storefront, else 'com'.",
+              "title": "Domain"
+            },
+            "description": "Costco storefront: com, ca ('com' is costco.com, 'ca' is costco.ca). Defaults to the link's storefront, else 'com'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `product` object.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Costco has no such product."
+          },
+          "502": {
+            "description": "Blocked by Costco, an unusable page, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/groceries/publix-search": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Publix grocery search",
+        "description": "Searches publix.com (US) for `query` at one store and returns `products`: `productId`, `itemCode`, `title`, `brand`, `size`, `url`, `image`, `price`, `priceText`, `unit` (e.g. 'lb' for items sold by weight), `wasPrice`, `currency`, `onSale`, `promotion` (`type` such as BOGO, `message`, `conditions`, `validThrough`, `savings`), `hasCoupon`, `soldByWeight`, `aisle`, `category`, `categoryPath` and `storeId`, plus `store` (the store the prices are for), `totalResults`, `totalPages` and `nextPage`. Publix publishes a price online only while an item is on promotion, so `price` is null for the rest. A keyword Publix sends to a category returns that category, named in `redirectedTo`.",
+        "operationId": "publix_search_groceries_publix_search_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "What to search for, e.g. 'milk', 'cheerios' or 'chicken breast'.",
+              "title": "Query"
+            },
+            "description": "What to search for, e.g. 'milk', 'cheerios' or 'chicken breast'."
+          },
+          {
+            "name": "store_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Publix store number whose prices and promotions to return, e.g. '1614'. Give this or `zip`; with neither, a store in Lakeland, FL is used. The store used is named in `store`.",
+              "title": "Store Id"
+            },
+            "description": "Publix store number whose prices and promotions to return, e.g. '1614'. Give this or `zip`; with neither, a store in Lakeland, FL is used. The store used is named in `store`."
+          },
+          {
+            "name": "zip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "US ZIP code; the nearest Publix store is used, e.g. '33801'.",
+              "title": "Zip"
+            },
+            "description": "US ZIP code; the nearest Publix store is used, e.g. '33801'."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "1-based results page to start from (48 products per page).",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based results page to start from (48 products per page)."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Products to collect from `page` on, 1-480. Each page fetched is billed one unit.",
+              "default": 48,
+              "title": "Max Results"
+            },
+            "description": "Products to collect from `page` on, 1-480. Each page fetched is billed one unit."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `products` array. A search with no matches answers 200 with an empty `products` list.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "No Publix store with that number or near that ZIP code."
+          },
+          "502": {
+            "description": "Blocked by Publix on every attempt, an unusable answer, or no answer in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ]
+      }
+    },
+    "/groceries/publix-product": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a Publix product",
+        "description": "Returns one publix.com (US) product at one store as `product`: the search fields (`productId`, `itemCode`, `title`, `brand`, `size`, `price`, `wasPrice`, `promotion`, `aisle` and so on) plus `images`, `description`, `ingredients`, `directions`, `allergens`, `available`, `categories`, `badges`, `couponCount`, `smartLabelUrl` and `relatedProducts`, and `store`, the store the price is for. Publix publishes a price online only while an item is on promotion.",
+        "operationId": "publix_product_groceries_publix_product_post",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "A Publix product id ('RIO-PCI-103438') or product link (https://www.publix.com/pd/cheerios-cereal-large-size/RIO-PCI-103438).",
+              "title": "Product"
+            },
+            "description": "A Publix product id ('RIO-PCI-103438') or product link (https://www.publix.com/pd/cheerios-cereal-large-size/RIO-PCI-103438)."
+          },
+          {
+            "name": "store_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Publix store number whose prices and promotions to return, e.g. '1614'. Give this or `zip`; with neither, a store in Lakeland, FL is used. The store used is named in `store`.",
+              "title": "Store Id"
+            },
+            "description": "Publix store number whose prices and promotions to return, e.g. '1614'. Give this or `zip`; with neither, a store in Lakeland, FL is used. The store used is named in `store`."
+          },
+          {
+            "name": "zip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "US ZIP code; the nearest Publix store is used, e.g. '33801'.",
+              "title": "Zip"
+            },
+            "description": "US ZIP code; the nearest Publix store is used, e.g. '33801'."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `product` object.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "Publix has no such product, or no such store."
+          },
+          "502": {
+            "description": "Blocked by Publix on every attempt, an unusable answer, or no answer in time."
           },
           "422": {
             "description": "Validation Error",
