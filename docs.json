@@ -86,6 +86,7 @@
                   "plugins/google-local",
                   "plugins/google-images",
                   "plugins/google-maps-place",
+                  "plugins/google-maps-reviews",
                   "plugins/google-trends",
                   "plugins/google-shopping",
                   "plugins/google-jobs",

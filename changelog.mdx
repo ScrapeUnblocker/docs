@@ -3,6 +3,18 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-29" description="Google Maps Reviews plugin">
+  - **New plugin:** [`/maps/reviews`](/plugins/google-maps-reviews) returns a
+    Google Maps place's reviews in Google's four sort orders (`relevant`,
+    `newest`, `highest`, `lowest`), up to 200 per call and more with
+    `next_page_token`. Each review has its star rating, the exact date it was
+    posted (ISO 8601 and a Unix timestamp), the original text and language,
+    Google's translation into `hl`, the author, photos, guided sub-ratings and
+    the owner's reply. Identify the place by `feature_id`, `url` or
+    `place_id`. Each page of 20 reviews is one call. SDKs 0.16.0 add
+    `maps_reviews` / `mapsReviews`.
+</Update>
+
 <Update label="2026-10-29" description="Shopee product: availability, sold-out variations, the page's category path, a JSON not-found answer">
   - **Shopee:** [`/marketplace/shopee-product`](/plugins/shopee#product) now
     returns `availability` (`in_stock`, `sold_out`, `unavailable`) and

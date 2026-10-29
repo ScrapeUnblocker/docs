@@ -1,0 +1,178 @@
+---
+title: "Google Maps Reviews plugin"
+description: "A Google Maps place's reviews as clean JSON - sorted by relevance, newest, highest or lowest rating, with exact ISO dates, original and translated text, authors, photos and owner replies."
+sidebarTitle: "Google Maps Reviews"
+---
+
+The **Google Maps Reviews** plugin returns the reviews of one Google Maps place as structured JSON, in any of Google's four sort orders: most relevant, newest, highest rating or lowest rating. Every review comes with its star rating, the **exact date and time** it was posted (Google's page only says "2 years ago"), the original text and its language, Google's translation into your language, the author, photos, the guided answers some reviews carry (for example "Rooms: 4" or "Meal type: Lunch") and the owner's reply.
+
+Sort by `lowest` to read the complaints first: a quick way to check a supplier, a customer or a business partner before you work with them.
+
+No Google account, Google Cloud project or Places API key is involved. To get a place's details (phone, website, hours), use the [Google Maps Place plugin](/plugins/google-maps-place); to find places by keyword and area, use [Google Local](/plugins/google-local).
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Reviews
+
+```
+POST /maps/reviews
+```
+
+Pass one of `feature_id`, `url` or `place_id`. If you pass more than one, `feature_id` wins, then `url`, then `place_id`.
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `feature_id` | one of the three | A Maps feature id `0xHEX:0xHEX`, e.g. `0x4776901a5d4813b3:0x2a497c8b414893c`. Fastest - no resolve step. Every response returns it as `featureId`. |
+| `url` | one of the three | A Google Maps place URL that contains the place's feature id (`0x...:0x...`) or place id. The id is read out of it. |
+| `place_id` | one of the three | A Google place id, e.g. `ChIJN1t_tDeuEmsRUsoyG83frY4`. Costs one extra lookup to find the feature id. |
+| `sort` | no | `relevant` (default, Google's "Most relevant"), `newest`, `highest` or `lowest`. SerpApi's `qualityScore`, `newestFirst`, `ratingHigh` and `ratingLow` are accepted too. |
+| `max_reviews` | no | How many reviews to return, `1`-`200`. Default `20`. |
+| `next_page_token` | no | The `nextPageToken` of a previous answer, to read on from where it stopped. Use the same place and `sort`. |
+| `hl` | no | Language for Google's labels and for `translatedText`, e.g. `en` (default), `de`, `fr`. The original text is always in `text`. |
+| `gl` | no | Google country (ISO-2, lowercase). Default `us`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Default `US`. The reviews are the same from any country. |
+
+<Note>
+Reviews come in pages of 20. **Each page fetched counts as one call**, so `max_reviews=20` is one call and `max_reviews=100` is five. The response tells you how many pages were read in `pagesFetched`.
+</Note>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/maps/reviews?feature_id=0x4776901a5d4813b3:0x2a497c8b414893c&sort=lowest&max_reviews=20" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.maps_reviews(feature_id="0x4776901a5d4813b3:0x2a497c8b414893c", sort="lowest", max_reviews=20)
+```
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.mapsReviews({ featureId: "0x4776901a5d4813b3:0x2a497c8b414893c", sort: "lowest", maxReviews: 20 });
+```
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->mapsReviews(['feature_id' => '0x4776901a5d4813b3:0x2a497c8b414893c', 'sort' => 'lowest', 'max_reviews' => 20]);
+```
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.maps_reviews(feature_id: "0x4776901a5d4813b3:0x2a497c8b414893c", sort: "lowest", max_reviews: 20)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "place": {
+    "name": "Hotel Mercure Vienna First",
+    "address": "Hotel Mercure Vienna First, Desider-Friedmann-Platz 2, 1010 Wien, Austria",
+    "rating": 4.6,
+    "reviewCount": 1361,
+    "categories": ["Hotel"],
+    "featureId": "0x476d07a18c554581:0xe93d6f0bcca458d4",
+    "cid": "16806711480885205204",
+    "googleMapsUrl": "https://www.google.com/maps?cid=16806711480885205204"
+  },
+  "featureId": "0x476d07a18c554581:0xe93d6f0bcca458d4",
+  "resolvedFrom": "feature_id",
+  "sort": "lowest",
+  "reviewsReturned": 20,
+  "pagesFetched": 1,
+  "hasMore": true,
+  "nextPageToken": "CjEIARIpCgoAP7-pTJIc____EhB7lXXLxa49ELhbF08AAAAAGgn94JsCgrYtGcUYACIA",
+  "reviews": [
+    {
+      "reviewId": "Ci9DQUlRQUNvZENodHljRjlvT2s0eU4yRTRVRGxwUlRWR01IWjRhVmd0ZVdGRWFXYxAB",
+      "rating": 1,
+      "date": "2026-06-01T13:18:00Z",
+      "timestamp": 1780319880,
+      "relativeDate": "4 months ago",
+      "text": "Abbiamo soggiornato 3 notti compreso la colazione che poi si è rivelato uno sbaglio perché una notte basta e avanza. ...",
+      "language": "it",
+      "translatedText": "We stayed three nights, including breakfast, which turned out to be a mistake because one night is more than enough. ...",
+      "author": {
+        "name": "CUBILLAS Gino",
+        "profileUrl": "https://www.google.com/maps/contrib/105266337363702926903/reviews?hl=en-US",
+        "avatar": "https://lh3.googleusercontent.com/a/ACg8ocIbJw3i9N6ONsemT0bOhNdyPfLat8DGD0T0D4M0E3C6ElKyfA=s64-c-rp-mo-ba12-br100",
+        "reviewCount": 165,
+        "photoCount": 579
+      },
+      "photos": ["https://lh3.googleusercontent.com/grass-cs/AABkmLfzsI8YLjDMf-B7q2DxdA4ATWCy3saHy9clRUTMc6IZ3FGjuZuvfP2ELsn2TfRxw7Qr6BGfbP0CV-M2xv-6yMGEj9C-gThWBHxA5WTNJTJmPuNBr7m3XGgaHv7gKqgtiea-DwWAVSYVgg92=k-no"],
+      "details": [
+        { "label": "Trip type", "value": "Vacation" },
+        { "label": "Rooms", "rating": 2 },
+        { "label": "Service", "rating": 1 },
+        { "label": "Location", "rating": 4 }
+      ],
+      "ownerResponse": {
+        "text": "Dear Gino,\n\nThank you for your review. I am really sorry your trip went so wrong ...",
+        "relativeDate": "4 months ago"
+      },
+      "reviewUrl": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2s0eU4yRTRVRGxwUlRWR01IWjRhVmd0ZVdGRWFXYxAB!2m1!1s0x0:0xe93d6f0bcca458d4"
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `place` | A short summary of the place: name, address, star rating, review count, categories and Google's ids. `null` when you pass `next_page_token` (it was in the first answer) or when Google returned no summary. |
+| `featureId` / `resolvedFrom` | The place's feature id and which input identified it: `feature_id`, `url` or `place_id`. |
+| `sort` | The sort order used, normalized (`ratingLow` comes back as `lowest`). |
+| `reviewsReturned` / `pagesFetched` | How many reviews are in this answer and how many 20-review pages were read for it (one call each). |
+| `hasMore` / `nextPageToken` | Whether the place has more reviews in this order, and the token to pass as `next_page_token` to get them. |
+| `reviews[].rating` | Stars, `1`-`5`. |
+| `reviews[].date` / `timestamp` | When the review was posted, as ISO 8601 in UTC and as a Unix timestamp in seconds. `relativeDate` is Google's label, e.g. `2 years ago`, in the `hl` language. |
+| `reviews[].text` / `language` | The review as the author wrote it, and its language code. Rating-only reviews have no `text`. |
+| `reviews[].translatedText` | Google's translation into the `hl` language, for reviews written in another language. |
+| `reviews[].author` | `name`, `profileUrl`, `avatar`, and the author's total `reviewCount` and `photoCount` on Google Maps. |
+| `reviews[].photos` | Photo URLs attached to the review. |
+| `reviews[].details` | The guided answers under the review: a sub-rating (`rating`) or a picked option (`value`), e.g. hotel rooms, restaurant meal type or price per person. |
+| `reviews[].ownerResponse` | The business owner's reply: `text` and Google's `relativeDate` label. Google does not publish an exact date for replies. |
+| `reviews[].reviewId` / `reviewUrl` | Google's id for the review and a link to it. |
+
+<Note>
+Fields a review does not have are left out, so check for a key's presence rather than for `null`. When `max_reviews` is not a multiple of 20, the last page is cut short and `nextPageToken` points at the start of that page, so the next answer can repeat a few reviews; dedupe on `reviewId`.
+</Note>
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | No place identifier, a malformed `feature_id`, a `url` with no place id or feature id in it, an unknown `sort`, or `max_reviews` outside `1`-`200`. |
+| `404` | Google has neither reviews nor place data for this feature id: it is unknown or the place was removed. Not billed. |
+| `502` | The place could not be resolved, Google returned no review data, or the call did not finish in time. Retry. |
+
+A place that exists but has no reviews answers `200` with an empty `reviews` list.
+
+## What you can build
+
+- **Supplier and customer checks** - sort by `lowest` and scan the complaints (late payments, no-shows, damaged goods) before you sign.
+- **Reputation monitoring** - poll `newest` for your locations or a competitor's and alert on new low ratings.
+- **Review analysis** - feed the original and translated text into sentiment or topic models across languages.
+- **Hotel and restaurant research** - use the guided sub-ratings (rooms, service, food) to compare places on what matters.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Pull a place's reviews and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
