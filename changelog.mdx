@@ -3,6 +3,22 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-29" description="Shopee product: availability, sold-out variations, the page's category path, a JSON not-found answer">
+  - **Shopee:** [`/marketplace/shopee-product`](/plugins/shopee#product) now
+    returns `availability` (`in_stock`, `sold_out`, `unavailable`) and
+    `inStock`, and each model says whether it can be bought (`available`) and
+    which option of each variation it is (`tierIndex`). `categories` is now the
+    path the product page's breadcrumb shows; the browse-tree path returned
+    before is `browseCategories`. Products whose shop search found nothing
+    (seen on Brazilian cross-border shops) now get their price from the
+    site-wide search or the shop's newest products instead of `price: null`.
+    A product Shopee no longer has answers `404` with JSON
+    `{"status": "not_found", ...}`, separate from a failed call (`502`).
+    Search and product results carry `isPixPrice`: a Brazilian card that shows
+    the Pix price gives the discount against a list price it does not show, so
+    `originalPrice` is `null` there.
+</Update>
+
 <Update label="2026-10-29" description="Kroger, Instacart, Publix, Costco, Amazon offers and seller, Flipkart, Lazada, Allegro, Falabella, Magazine Luiza, Google AI Mode, Google Lens and Gemini plugins; SDKs 0.15.0">
   **Fourteen new plugin pages, 23 endpoints:**
 

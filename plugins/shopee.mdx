@@ -7,9 +7,9 @@ sidebarTitle: "Shopee"
 The **Shopee** plugin turns Shopee, which runs a separate marketplace site for each of its markets, into structured JSON. It is two endpoints:
 
 - **`/marketplace/shopee-search`** - one results page of up to 40 products for a keyword in one market (Singapore, Indonesia, Malaysia, Thailand, Vietnam, the Philippines, Taiwan or Brazil): item and shop ids, name, link and image, the price in the market's currency, the crossed-out price and discount where Shopee shows them, the average rating, where the seller ships from and the promotion labels. Sort, filter by price, keep one shop's products, or pass a Shopee search or category link as it is.
-- **`/marketplace/shopee-product`** - one product: price, rating, labels and images, and the shop's public profile (rating and rating count, followers, number of products, response rate, official and preferred flags, join date). In Singapore, Malaysia, Taiwan and Brazil it also returns the full listing: description, brand, condition, categories, videos, variations and models, attributes, pre-order flag, estimated shipping days and listing date.
+- **`/marketplace/shopee-product`** - one product: price, rating, labels and images, and the shop's public profile (rating and rating count, followers, number of products, response rate, official and preferred flags, join date). In Singapore, Malaysia, Taiwan and Brazil it also returns the full listing: availability (in stock, sold out or withdrawn), description, brand, condition, the category path the product page shows, videos, variations and models (with which variations are sold out), attributes, pre-order flag, estimated shipping days and listing date. A product Shopee no longer has comes back as a `404` with `"status": "not_found"`.
 
-What Shopee does not show: Shopee serves one results page per search, so one call returns at most 40 products; run several sort orders or price ranges for more. In Indonesia, Thailand, Vietnam and the Philippines a product comes back with its title and main image only, plus price, rating, labels and shop (`dataLevel` says which you got). The same `meta` level comes back in the other markets when Shopee refuses to render the product page; it is then read from the product's search card, so pass the product link with its title in it (not `/product/<shop>/<item>`). Stock, units sold, a product's rating count and reviews are not included, because Shopee leaves them out of every page it shows signed-out visitors. `price` is what Shopee shows a signed-out shopper, which can be a promotional or new-customer price (see `labels`). No Shopee account or API key is involved.
+What Shopee does not show: Shopee serves one results page per search, so one call returns at most 40 products; run several sort orders or price ranges for more. In Indonesia, Thailand, Vietnam and the Philippines a product comes back with its title and main image only, plus price, rating, labels and shop (`dataLevel` says which you got). The same `meta` level comes back in the other markets when Shopee refuses to render the product page; it is then read from the product's search card, so pass the product link with its title in it (not `/product/<shop>/<item>`). Per-variation prices, stock counts, units sold, a product's rating count and reviews are not included, because Shopee leaves them out of every page it shows signed-out visitors (whether each variation can be bought is included). In Brazil many products show their Pix price: the card then gives the discount against the list price but not the list price itself, so `originalPrice` is `null` and `isPixPrice` is `true`. `price` is what Shopee shows a signed-out shopper, which can be a promotional or new-customer price (see `labels`). No Shopee account or API key is involved.
 
 <Note>
 Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
@@ -96,6 +96,7 @@ To list one shop, leave the keyword out and pass `shop_id`, e.g. `su.shopee_sear
       "price": 34.9,
       "originalPrice": null,
       "discountPercent": 41,
+      "isPixPrice": false,
       "currency": "SGD",
       "rating": 4.4,
       "location": "SG",
@@ -111,6 +112,7 @@ To list one shop, leave the keyword out and pass `shop_id`, e.g. `su.shopee_sear
       "price": 73.9,
       "originalPrice": null,
       "discountPercent": 32,
+      "isPixPrice": false,
       "currency": "SGD",
       "rating": 4.9,
       "location": "SG",
@@ -125,7 +127,8 @@ To list one shop, leave the keyword out and pass `shop_id`, e.g. `su.shopee_sear
 | `itemId` / `shopId` | Shopee's ids. Pass them (with `country`), or the `url`, to [Product](#product). |
 | `name` / `url` / `image` | Product name, link and main image. |
 | `price` / `currency` | The price in the market's currency, as Shopee shows a signed-out shopper. |
-| `originalPrice` / `discountPercent` | The crossed-out price and the discount, when Shopee shows them. Some result cards carry the discount badge without the crossed-out price (Singapore and the Philippines always, Brazil on some cards), so `discountPercent` can come without `originalPrice`. |
+| `originalPrice` / `discountPercent` | The crossed-out price and the discount, when Shopee shows them. Some result cards carry the discount badge without the crossed-out price (Singapore and the Philippines always, Brazil on cards that show the Pix price), so `discountPercent` can come without `originalPrice`. |
+| `isPixPrice` | `true` when a Brazilian card shows the price paid with Pix: `price` is then the Pix price, `discountPercent` is measured against the list price, and the list price is not on the card. `false` elsewhere. |
 | `rating` | Average star rating, `null` for a product nobody has rated yet. |
 | `location` | Where the seller ships from. |
 | `labels` | Promotion badges, e.g. a campaign price. |
@@ -204,6 +207,7 @@ To pass ids instead, leave the link out: `su.shopee_product(shop_id="442800909",
     "price": 34.9,
     "originalPrice": null,
     "discountPercent": 41,
+    "isPixPrice": false,
     "currency": "SGD",
     "rating": 4.4,
     "labels": ["10.25 PRICE: $34.90"],
@@ -211,10 +215,18 @@ To pass ids instead, leave the link out: `su.shopee_product(shop_id="442800909",
       "https://down-sg.img.susercontent.com/file/sg-11134301-824it-mep5fifb7v29e1",
       "https://down-sg.img.susercontent.com/file/sg-11134301-824gc-mep5fm15a03nb8"
     ],
+    "availability": "in_stock",
+    "inStock": true,
     "description": "Stylish double-shot hardshell case with soft microfiber lining\n\nBuilt to protect your ...",
     "brand": "Apple",
     "condition": "new",
     "categories": [
+      { "id": 100013, "name": "Mobile & Gadgets" },
+      { "id": 100075, "name": "Accessories" },
+      { "id": 100290, "name": "Cases, Covers, & Skins" },
+      { "id": 100490, "name": "Phone Cases, Covers, & Skins" }
+    ],
+    "browseCategories": [
       { "id": 11013350, "name": "Mobile & Gadgets" },
       { "id": 11013434, "name": "Mobile Accessories" },
       { "id": 11027839, "name": "Cases & Covers" }
@@ -229,8 +241,8 @@ To pass ids instead, leave the link out: `su.shopee_product(shop_id="442800909",
       { "name": "Size", "options": ["iPhone Air", "iPhone 17", "iPhone 17 Pro"] }
     ],
     "models": [
-      { "modelId": 261643873757, "name": "Lime Stone,iPhone Air" },
-      { "modelId": 261643873765, "name": "Bedrock Blue,iPhone Air" }
+      { "modelId": 261643873759, "name": "Lime Stone,iPhone 17 Pro", "available": false, "tierIndex": [1, 2] },
+      { "modelId": 261643873765, "name": "Bedrock Blue,iPhone Air", "available": true, "tierIndex": [3, 0] }
     ],
     "attributes": [],
     "isOfficialShop": true,
@@ -269,8 +281,10 @@ To pass ids instead, leave the link out: `su.shopee_product(shop_id="442800909",
 | `dataLevel` | `full`: the whole listing. `meta`: Shopee showed only the title and main image (Indonesia, Thailand, Vietnam and the Philippines); price, rating, labels and shop are still included. |
 | `title` / `images` / `price` / `originalPrice` / `discountPercent` / `currency` / `rating` / `labels` | As in search. |
 | `description` / `brand` / `condition` | Listing text, brand and condition (`full` only). |
-| `categories` | The category path, each with `id` and `name` (`full` only). |
-| `variations` / `models` | Option names with their values (and images where the seller set them), and every model with `modelId` and `name` (`full` only). |
+| `availability` / `inStock` | `in_stock`, `sold_out` (every variation sold out) or `unavailable` (the seller withdrew the listing); `inStock` is `true` only for `in_stock` (`full` only). |
+| `categories` | The category path the product page's breadcrumb shows, each with `id` and `name` (`full` only). |
+| `browseCategories` | The same product's place in Shopee's browse tree; these ids are the ones in category links (`-cat.<id>`), which [Search](#search) takes as `url` (`full` only). |
+| `variations` / `models` | Option names with their values (and images where the seller set them), and every model with `modelId`, `name`, `available` (`false` for a sold-out variation) and `tierIndex` (the model's option in each variation, in order) (`full` only). Shopee does not show signed-out visitors a price or stock count per model. |
 | `attributes` / `videos` | Specifications and product videos (`full` only). |
 | `isOfficialShop` / `isPreOrder` / `estimatedShippingDays` / `createdAt` | Official shop and pre-order flags, the shipping estimate in days and the listing date (`full` only). |
 | `shopLocation` | Where the shop ships from. |
@@ -281,8 +295,8 @@ To pass ids instead, leave the link out: `su.shopee_product(shop_id="442800909",
 | Status | Meaning |
 | --- | --- |
 | `400` | Invalid parameters, e.g. none of `q`, `shop_id` and `url` on a search, or neither a product `url` nor `shop_id` + `item_id`. |
-| `404` | Shopee found no products for the search, or has no such product. |
-| `502` | Shopee blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+| `404` | Shopee found no products for the search, or has no such product. For a product the body is JSON: `{"status": "not_found", "country": "br", "shopId": 341216199, "itemId": 11726761814, "message": "..."}` - Shopee says the product was removed or never existed. |
+| `502` | Shopee blocked every attempt, gave an unusable answer, or did not answer in time. This is a failed call, not an answer about the product: retry. |
 
 ## What you can build
 
