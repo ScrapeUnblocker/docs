@@ -18095,11 +18095,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "description": "Result order: relevance, price_low, price_high, rating, newest, best_selling, brand.",
+              "description": "Result order: relevance, price_low, price_high, rating, newest, brand.",
               "default": "relevance",
               "title": "Sort"
             },
-            "description": "Result order: relevance, price_low, price_high, rating, newest, best_selling, brand."
+            "description": "Result order: relevance, price_low, price_high, rating, newest, brand."
           },
           {
             "name": "page",
@@ -18300,7 +18300,7 @@
           "Plugins"
         ],
         "summary": "Scrape Publix grocery search",
-        "description": "Searches publix.com (US) for `query` at one store and returns `products`: `productId`, `itemCode`, `title`, `brand`, `size`, `url`, `image`, `price`, `priceText`, `unit` (e.g. 'lb' for items sold by weight), `wasPrice`, `currency`, `onSale`, `promotion` (`type` such as BOGO, `message`, `conditions`, `validThrough`, `savings`), `hasCoupon`, `soldByWeight`, `aisle`, `category`, `categoryPath` and `storeId`, plus `store` (the store the prices are for), `totalResults`, `totalPages` and `nextPage`. Publix publishes a price online only while an item is on promotion, so `price` is null for the rest. A keyword Publix sends to a category returns that category, named in `redirectedTo`.",
+        "description": "Searches publix.com (US) for `query` at one store and returns `products`: `productId`, `itemCode`, `title`, `brand`, `size`, `url`, `image`, `price`, `priceText`, `unit` (e.g. 'lb' for items sold by weight), `wasPrice`, `currency`, `onSale`, `promotion` (`type` such as BOGO, `message`, `conditions`, `validThrough`, `savings`), `hasCoupon`, `soldByWeight`, `aisle`, `category`, `categoryPath` and `storeId`, plus `store` (the store the prices are for), `totalResults`, `totalPages` and `nextPage`. Publix publishes a price online only while an item is on promotion, so `price` is null for the rest. A keyword Publix sends to a category returns that category, named in `redirectedTo`; one it sends to a page that lists no products (the weekly ad, cake ordering, store locations) answers with no products and `sentElsewhere` true.",
         "operationId": "publix_search_groceries_publix_search_post",
         "parameters": [
           {
