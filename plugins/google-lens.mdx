@@ -1,0 +1,185 @@
+---
+title: "Google Lens plugin"
+description: "Google Lens visual search as clean JSON - give an image URL and get the visual matches (page, site, matching image, size, and price for product matches), what Lens recognised in the image, and Google's own description of it."
+sidebarTitle: "Google Lens"
+---
+
+The **Google Lens** plugin runs a Google Lens search for an image and returns the results as structured JSON. Give it the public URL of an image - a product photo, a landmark, a logo - and it returns the **visual matches** Lens finds (usually around 60): the page each match is on, its site and domain, the matching image with its size and thumbnail, and, for product matches, the price and currency (plus the product name, brand and description when Google has them) and the price text, rating and review count as the tile shows them.
+
+The response also carries `relatedSearches` - what Lens recognised in the image, such as `Eiffel Tower` with its Knowledge Graph id - and `aiOverview`, Google's own description of the image when it is ready in time (else `null`). Google fetches the image itself, so the URL must be publicly reachable. No Google account or API key is involved. To search images by keyword instead, use [Google Images](/plugins/google-images).
+
+<Note>
+Google loads Lens matches for non-US visitors only, so every call is served from a non-US exit, a US request included (by default from a European country). `proxyCountry` in the response says which country served the call. Shopping matches and prices follow that country; `gl` and `hl` set the Google market and language.
+</Note>
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /images/google-lens
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `url` | yes | Public `http(s)` URL of the image to search with, e.g. a product photo. Google fetches the image itself. |
+| `proxy_country` | no | Country the request is sent from (ISO-2, e.g. `DE`, `FR`). Shopping matches and prices follow the country Google sees the request from. A `US` request is served from a non-US exit (see the note above). |
+| `gl` | no | Google market override (ISO-2). Default: `proxy_country`, else `us`. |
+| `hl` | no | Google UI language, e.g. `en`, `de`. Default `en`. |
+| `max_results` | no | Cap on the visual matches returned, `1`-`100`. Default: all (usually around 60). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/images/google-lens?url=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2F8%2F85%2FTour_Eiffel_Wikimedia_Commons_%2528cropped%2529.jpg%2F500px-Tour_Eiffel_Wikimedia_Commons_%2528cropped%2529.jpg&max_results=5" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+image = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg/500px-Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg"
+result = su.google_lens(image, max_results=5)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const image =
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg/500px-Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg";
+const result = await su.googleLens(image, { maxResults: 5 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$image = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg/500px-Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg';
+$result = $su->googleLens($image, ['max_results' => 5]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+image = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg/500px-Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg"
+result = su.google_lens(image, max_results: 5)
+```
+</CodeGroup>
+
+In cURL the image URL goes in the query string, so URL-encode it; the SDKs do that for you.
+
+Each search is billed as one request. A `502` (no visual matches) is not billed.
+
+### Response
+
+```json
+{
+  "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg/500px-Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg",
+  "hl": "en",
+  "gl": "us",
+  "proxyCountry": "HR",
+  "resultsCollected": 5,
+  "visualMatches": [
+    {
+      "title": "Eiffel Tower - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Eiffel_Tower",
+      "domain": "en.wikipedia.org",
+      "source": "Wikipedia",
+      "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/85/Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg/330px-Tour_Eiffel_Wikimedia_Commons_%28cropped%29.jpg?...",
+      "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRsLnX_DhVVhQnaNoSf8MRjfK-eLihm3UjInCrleMPBw8-qjbrH",
+      "width": 330,
+      "height": 550,
+      "price": null,
+      "currency": null,
+      "product": null,
+      "priceText": null,
+      "rating": null,
+      "reviews": null,
+      "position": 1
+    },
+    {
+      "title": "Eiffel Tower | History, Height, & Facts | Britannica",
+      "url": "https://www.britannica.com/topic/Eiffel-Tower-Paris-France",
+      "domain": "britannica.com",
+      "source": "Britannica",
+      "imageUrl": "https://cdn.britannica.com/67/76367-004-5A99F5E4/Eiffel-Tower-wrought-iron-Gustave-Paris.jpg",
+      "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQDbQl_nqiW3H7bg_eklsxlN5GzD3lo7hIyjlaF7Ft1VkoqgWZr",
+      "width": 367,
+      "height": 550,
+      "price": null,
+      "currency": null,
+      "product": null,
+      "priceText": null,
+      "rating": null,
+      "reviews": null,
+      "position": 4
+    }
+  ],
+  "relatedSearches": [
+    {
+      "query": "Eiffel Tower",
+      "kgmid": "/m/02j81",
+      "url": "https://www.google.com/search?q=Eiffel+Tower&kgmid=%2Fm%2F02j81"
+    }
+  ],
+  "aiOverview": {
+    "text": "The image shows the Eiffel Tower viewed from the Champ de Mars in Paris, France.\nKey Facts\n- Location: 7th arrondissement of Paris, France (on the Champ de Mars)\n...",
+    "markdown": "The image shows the Eiffel Tower viewed from the Champ de Mars in Paris, France.\n\n### Key Facts\n\n- **Location:** 7th arrondissement of Paris, France (on the Champ de Mars)\n...",
+    "references": [
+      {
+        "title": "Eiffel Tower - Wikipedia",
+        "url": "https://en.wikipedia.org/wiki/Eiffel_Tower",
+        "source": "Wikipedia",
+        "domain": "en.wikipedia.org",
+        "snippet": "Eiffel Tower - Wikipedia",
+        "position": 1
+      }
+    ]
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `visualMatches` | The matches in Lens order. Each has `title`, `url` (the page the image is on), `domain`, `source` (site name), `imageUrl` (the matching image), `thumbnailUrl`, `width`, `height` and `position`. |
+| `price` / `currency` / `product` | For product matches: the price and currency, and `product` with `name`, `brand` and `description` when Google has them (else `null`). |
+| `priceText` / `rating` / `reviews` | The price, rating and review count as the match tile shows them, when it does. |
+| `relatedSearches` | What Lens recognised in the image: `query`, its Knowledge Graph id `kgmid` and the Google search `url`. |
+| `aiOverview` | Google's own description of the image (`text`, `markdown`, and the `references` it cites), or `null` when it was not ready in time. |
+| `proxyCountry` | The country that served the call, which shopping matches and prices follow. |
+| `resultsCollected` | Number of visual matches returned. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, or the image URL is unusable (it answers `404`, or is a web page instead of an image). Plain-text message. |
+| `403` | Google kept answering with a CAPTCHA after retries. Try another `proxy_country`. |
+| `502` | No visual matches: Google could not fetch the image, the request was blocked, or the call did not finish in time. Not billed. Retry. |
+| `503` | No proxy exit was free for this market. Retry, or pick another `proxy_country`. |
+
+## What you can build
+
+- **Find where an image appears** - list the pages and sites that use a product photo, a logo or artwork.
+- **Visual product search** - turn a product photo into shopping matches with prices for a market.
+- **Counterfeit and reseller monitoring** - spot shops reusing your product images.
+- **Image recognition** - get what Lens recognises in an image (landmarks, products, brands) with its Knowledge Graph id.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Google Lens search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

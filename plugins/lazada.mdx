@@ -1,0 +1,291 @@
+---
+title: "Lazada plugin"
+description: "Lazada product data as clean JSON for Singapore, Malaysia, Thailand, the Philippines, Vietnam and Indonesia - search results with price, discount, rating, units sold, seller and LazMall flag, plus one product with every variant, specifications, seller and delivery."
+sidebarTitle: "Lazada"
+---
+
+The **Lazada** plugin returns products from Lazada, Southeast Asia's marketplace, as structured JSON. It covers six markets - Singapore (`sg`), Malaysia (`my`), Thailand (`th`), the Philippines (`ph`), Vietnam (`vn`) and Indonesia (`id`) - picked with `country`. It is two endpoints:
+
+- **`/marketplace/lazada-search`** - the products for a keyword, in Lazada's order: item and SKU id, name, price with the crossed-out price and discount, rating, review count, units sold, brand, seller, where it ships from, stock, the LazMall, free shipping and sponsored flags, image and link. Sort, filter by price and collect across pages.
+- **`/marketplace/lazada-product`** - one product: title, brand, description, highlights, category path, price and discount, rating with its 1-5 star breakdown, stock and the maximum order quantity, images, the specification table, every variant (SKU, attributes, price, image, availability, link), the seller with its positive rating and store highlights, the delivery option and estimate, and the warranties.
+
+Prices are in the market's currency (SGD, MYR, THB, PHP, VND or IDR). No Lazada account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/lazada-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `iphone case` or `air fryer`. |
+| `country` | no | Lazada market: `sg` (lazada.sg), `my` (lazada.com.my), `th` (lazada.co.th), `ph` (lazada.com.ph), `vn` (lazada.vn), `id` (lazada.co.id). Default `sg`. |
+| `sort` | no | Result order: `relevance`, `price_asc`, `price_desc`. Default `relevance`. |
+| `page` | no | First Lazada results page to read, `1`-`102`. Default `1`. |
+| `min_price` / `max_price` | no | Price range in the market's currency. |
+| `max_results` | no | Products to collect across pages, `1`-`400`. Default `40`. A page holds 40 products. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/lazada-search?query=yoga%20mat&country=sg&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.lazada_search("yoga mat", country="sg", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.lazadaSearch("yoga mat", { country: "sg", maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->lazadaSearch('yoga mat', ['country' => 'sg', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.lazada_search("yoga mat", country: "sg", max_results: 3)
+```
+</CodeGroup>
+
+Each Lazada page read is billed as one request (`pagesFetched`).
+
+### Response
+
+```json
+{
+  "query": "yoga mat",
+  "country": "sg",
+  "sort": "relevance",
+  "page": 1,
+  "minPrice": null,
+  "maxPrice": null,
+  "url": "https://www.lazada.sg/catalog/?q=yoga+mat",
+  "currency": "SGD",
+  "total": 4080,
+  "matches": 7490,
+  "pagesFetched": 1,
+  "nextPage": 2,
+  "pagingStopped": null,
+  "resultsCollected": 3,
+  "products": [
+    {
+      "itemId": "1765714112",
+      "skuId": "13828129056",
+      "sku": "1765714112_SGAMZ",
+      "name": "TPE Yoga Mat Eco Friendly Premium Quality Double Layer Double Colour Foam Roller",
+      "price": 14.4,
+      "priceText": "$14.40",
+      "originalPrice": 16.9,
+      "discountPercent": 15,
+      "rating": 4.91,
+      "reviewCount": 632,
+      "sold": 2700,
+      "soldText": "2.7K sold",
+      "brand": "No Brand",
+      "brandId": "39704",
+      "seller": "Lavishsg",
+      "sellerId": "1141371076",
+      "location": "Singapore",
+      "inStock": true,
+      "lazMall": false,
+      "freeShipping": true,
+      "sponsored": false,
+      "image": "https://sg-live-01.slatic.net/p/79889d1e237679ac280e12ceefa8e533.jpg",
+      "url": "https://www.lazada.sg/products/pdp-i1765714112.html",
+      "position": 3
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `itemId` / `skuId` / `sku` | Lazada's item id, the default SKU id and the SKU code. Pass `itemId` (and `country`) to [Product](#product). |
+| `name` / `image` / `url` | Product name, image and link. |
+| `price` / `priceText` / `originalPrice` / `discountPercent` | Price in the market's currency, as printed, the crossed-out price and the discount. |
+| `rating` / `reviewCount` | Average rating and review count. |
+| `sold` / `soldText` | Units sold, as Lazada rounds it, and the text it shows (e.g. `2.7K sold`). |
+| `brand` / `brandId` / `seller` / `sellerId` | Brand and seller with their ids. |
+| `location` | Where the product ships from. |
+| `inStock` / `lazMall` / `freeShipping` / `sponsored` | Stock, the LazMall (official store) flag, free shipping and the sponsored flag. |
+| `position` | Rank in Lazada's results. |
+| `total` / `matches` / `nextPage` | Results Lazada lets you page through, all matches it reports, and the `page` to pass to continue. |
+
+## Product
+
+```
+POST /marketplace/lazada-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `item_id` | one of `item_id` / `url` | Lazada item id - the number after `-i` in a product link, e.g. `13907853520`. Pair with `country`. |
+| `url` | one of `item_id` / `url` | A Lazada product link, e.g. `https://www.lazada.sg/products/apple-iphone-18-pro-max-i13907853520-s124925162667.html`. Used instead of `item_id` and `country`. |
+| `sku_id` | no | SKU id (the number after `-s`) to select one variant. |
+| `country` | no | Lazada market of `item_id`: `sg`, `my`, `th`, `ph`, `vn` or `id`. Default `sg`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/lazada-product?item_id=13644697448&country=sg" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.lazada_product("13644697448", country="sg")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.lazadaProduct("13644697448", { country: "sg" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->lazadaProduct('13644697448', ['country' => 'sg']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.lazada_product("13644697448", country: "sg")
+```
+</CodeGroup>
+
+To look a product up by link, leave the first argument out and pass `url` (`su.lazada_product(url="https://www.lazada.sg/products/...")` in Python, `su.lazadaProduct(undefined, { url })` in Node.js). Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "itemId": "13644697448",
+  "skuId": "124126301269",
+  "country": "sg",
+  "title": "Silver Crest Extra Large Air Fryer 6L | 2400W | 9 Cooking Presets | LCD Touch Control Singapore Plug",
+  "brand": "No Brand",
+  "description": "Upgrade your kitchen with the Silver Crest Extra Large Air Fryer, designed for fast, healthy, and convenient cooking. ...",
+  "highlights": null,
+  "categories": ["Home Appliances", "Kitchen Appliances", "Cooking Equipment", "Fryers", "Air Fryers"],
+  "price": 34.99,
+  "priceText": "$34.99",
+  "originalPrice": 39.99,
+  "discountPercent": 13,
+  "currency": "SGD",
+  "rating": 3.5,
+  "reviewCount": 2,
+  "ratingBreakdown": { "5": 1, "4": 0, "3": 0, "2": 1, "1": 0 },
+  "inStock": true,
+  "maxQuantity": 4,
+  "images": [
+    "https://laz-img-sg.alicdn.com/p/596b955820f884eb9aa1c0ae7f0d479d.png",
+    "https://img.lazcdn.com/us/lzd_seller_ai_business/seller/ai/981fd737-570c-4154-94a4-ae2bc428fa3a.jpg"
+  ],
+  "specifications": {
+    "SKU": "13644697448_SGAMZ-124126301269",
+    "Air Fryer Features": "Pre-Set Menu,Favorite Setting Save,Touch Control,lcd display",
+    "Power Source": "Electric"
+  },
+  "variantDimensions": [],
+  "variants": [
+    {
+      "skuId": "124126301269",
+      "attributes": {},
+      "price": 34.99,
+      "originalPrice": 39.99,
+      "image": "https://laz-img-sg.alicdn.com/p/596b955820f884eb9aa1c0ae7f0d479d.png",
+      "available": true,
+      "url": "https://www.lazada.sg/products/silver-crest-extra-large-air-fryer-6l-2400w-9-cooking-presets-lcd-touch-control-singapore-plug-i13644697448-s124126301269.html"
+    }
+  ],
+  "seller": {
+    "id": "2373",
+    "shopId": 6149,
+    "name": "BLOSSOMS",
+    "positiveRating": "96%",
+    "highlights": [
+      "Top 17 Seller for Personal Care Appliances",
+      "22.4K Sold by Store",
+      "11-Year Store",
+      "Fast Shipping: 98% Shipped in 48 hrs"
+    ],
+    "url": "https://www.lazada.sg/shop/blossoms/?itemId=13644697448&channelSource=pdp"
+  },
+  "delivery": {
+    "option": "Priority 48H,with shipping fee $1.99",
+    "estimate": "Guaranteed by Sat, 31 Oct"
+  },
+  "warranties": ["Change of Mind", "15 Days Free Return"],
+  "url": "https://www.lazada.sg/products/pdp-i13644697448-s124126301269.html"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `itemId` / `skuId` / `country` | The item, the SKU the top-level price is for, and the market. |
+| `title` / `brand` / `description` / `highlights` / `categories` | Listing text, brand, highlight bullets and the category path. |
+| `price` / `priceText` / `originalPrice` / `discountPercent` / `currency` | Price of the selected SKU, as printed, the crossed-out price, the discount and the currency. |
+| `rating` / `reviewCount` / `ratingBreakdown` | Average rating, review count and the number of ratings per star. |
+| `inStock` / `maxQuantity` | Stock and the most a buyer can order. |
+| `images` / `specifications` | Image gallery and the specification table as name / value pairs. |
+| `variantDimensions` / `variants` | The variant dimensions (e.g. colour and storage with their values) and every SKU with its `attributes`, `price`, `originalPrice`, `image`, `available` and `url`. |
+| `seller` | `id`, `shopId`, `name`, `positiveRating`, the store `highlights` and the shop `url`. |
+| `delivery` / `warranties` | The delivery option with its fee and the estimate, and the return and warranty terms. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query`, an unknown `country`, or neither `item_id` nor `url`. |
+| `404` | Lazada found no products for this search, or has no active product with this id (or shows it in its mobile app only). |
+| `502` | Lazada blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Southeast Asia price monitoring** - track the same products across six Lazada markets in their own currencies.
+- **Market research** - rank a category by units sold, rating and review count.
+- **Seller analysis** - compare sellers by positive rating, LazMall status and where they ship from.
+- **Catalog enrichment** - pull specifications, variants and images for a product feed.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Lazada search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

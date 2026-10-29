@@ -1,0 +1,298 @@
+---
+title: "Instacart plugin"
+description: "Instacart grocery data for any retailer on it (Costco, ALDI, Publix, Safeway, Kroger, CVS, Sprouts and hundreds more) as clean JSON - price, sale price, unit price, deals, stock and dietary tags for a search, priced at the store serving a ZIP code, and one product with description and ingredients."
+sidebarTitle: "Instacart"
+---
+
+The **Instacart** plugin returns grocery data from Instacart (instacart.com) as structured JSON, for any retailer that sells there: Costco, ALDI, Publix, Safeway and the other Albertsons banners, Kroger, CVS, Sprouts, Wegmans, Sam's Club and hundreds of others. It is two endpoints:
+
+- **`/groceries/instacart-search`** - the products for a keyword at one retailer, in Instacart's order: item and product id, name, brand, size, the price with any was-price and promotions, unit price, whether it is sold each or by weight, stock, rating, category, store-brand flag, dietary tags, image and link. Up to 300 products per call.
+- **`/groceries/instacart-product`** - one product: the same fields plus the description, ingredients, directions, warnings, the product page sections and the image gallery.
+
+Instacart prices a retailer's catalogue at the store that serves a delivery area, so every answer is for one ZIP code (default `94105`, San Francisco); `store` names the shop Instacart assigned. Prices are Instacart's prices in USD, which can differ from the retailer's own in-store prices. No Instacart account is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /groceries/instacart-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `milk`, `greek yogurt` or `paper towels`. |
+| `retailer` | yes | The retailer's Instacart slug: the part after `/store/` in an Instacart link, e.g. `costco`, `aldi`, `publix`, `safeway`, `kroger`, `cvs`, `sprouts`, `wegmans`, `sams-club`. An Instacart store link is accepted too. |
+| `zip` | no | 5-digit US ZIP code of the delivery area. Prices and stock belong to the store serving it. Default `94105` (San Francisco). |
+| `max_results` | no | Products to return, `1`-`300`, in Instacart's order. Default `30`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/instacart-search?query=greek%20yogurt&retailer=safeway&zip=94110&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.instacart_search("greek yogurt", retailer="safeway", zip="94110", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.instacartSearch("greek yogurt", {
+  retailer: "safeway",
+  zip: "94110",
+  maxResults: 3,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->instacartSearch('greek yogurt', ['retailer' => 'safeway', 'zip' => '94110', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.instacart_search("greek yogurt", retailer: "safeway", zip: "94110", max_results: 3)
+```
+</CodeGroup>
+
+A search is billed one request per 30 products returned (rounded up, at least one; echoed as `pagesFetched`). A search with no matches is a `200` with an empty `products` list.
+
+### Response
+
+```json
+{
+  "retailer": "safeway",
+  "query": "greek yogurt",
+  "zip": "94110",
+  "store": {
+    "shopId": "5468",
+    "retailerId": "1",
+    "retailerLocationId": "75",
+    "retailerName": "Safeway",
+    "serviceType": "delivery",
+    "postalCode": "94110",
+    "zoneId": "1"
+  },
+  "totalResults": 300,
+  "resultsCollected": 3,
+  "products": [
+    {
+      "id": "items_75-227483",
+      "productId": "227483",
+      "name": "Greek Gods Yogurt, Greek Style, Plain Traditional",
+      "brand": "Greek Gods",
+      "brandId": "17042",
+      "size": "32 oz",
+      "packageSize": "32 oz",
+      "price": 7.99,
+      "priceText": "$7.99",
+      "wasPrice": 8.99,
+      "onSale": true,
+      "unitPrice": { "price": 0.25, "per": "oz", "text": "$0.25/oz" },
+      "soldBy": "each",
+      "estimatedWeight": null,
+      "promotions": [{ "text": "11% off", "type": "sale", "details": null }],
+      "available": true,
+      "stockLevel": "high",
+      "stockText": "Many in stock",
+      "rating": null,
+      "reviewCount": null,
+      "category": "Greek & Icelandic Yogurt",
+      "storeBrand": false,
+      "dietary": [],
+      "aisle": null,
+      "image": "https://d2lnr5mha7bycj.cloudfront.net/product-image/file/large_70c7d9a6-2e3e-47a3-851b-...png",
+      "sponsored": false,
+      "url": "https://www.instacart.com/products/227483-greek-gods-plain-traditional-greek-style-yogurt-32-0-oz?retailerSlug=safeway",
+      "retailer": "safeway"
+    }
+  ],
+  "pagesFetched": 1,
+  "url": "https://www.instacart.com/store/safeway/s?k=greek%20yogurt"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` / `productId` | The item id (retailer location and product) and Instacart's product id. Pass either to [Product](#product). |
+| `name` / `brand` / `brandId` / `size` / `packageSize` | Name, brand, Instacart's brand id and the pack size. |
+| `price` / `priceText` / `wasPrice` / `onSale` | Instacart's price at this store in USD, as printed, and the crossed-out price when the item is on sale. |
+| `unitPrice` | `price`, `per` (e.g. `oz`) and `text`. |
+| `soldBy` / `estimatedWeight` | `each` or `weight`; for weighed items the estimated weight the price is based on. |
+| `promotions` | Deals on the item, each with `text`, `type` and `details`. |
+| `available` / `stockLevel` / `stockText` | Whether it can be ordered now, and Instacart's stock level and label (e.g. `Many in stock`). |
+| `rating` / `reviewCount` | Rating and review count, when Instacart has them. |
+| `category` / `aisle` / `storeBrand` / `dietary` | Category, aisle, whether it is the retailer's own brand, and dietary tags (e.g. `Fat-free`, `Gluten-free`). |
+| `image` / `url` / `sponsored` | Image, product link and whether the slot is sponsored. |
+| `store` | The shop Instacart assigned to the ZIP code: `shopId`, `retailerId`, `retailerLocationId`, `retailerName`, `serviceType`, `postalCode` and `zoneId`. |
+| `totalResults` / `resultsCollected` | The match count Instacart reports, and how many products this call returned. |
+
+## Product
+
+```
+POST /groceries/instacart-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product` | yes | An Instacart product id (`16902650`), an item id from a search result (`items_4142-16902650`) or a product link (`https://www.instacart.com/products/16902650-...`). |
+| `retailer` | see notes | The retailer's Instacart slug, as in search. Optional when `product` is a link carrying `retailerSlug`. |
+| `zip` | no | 5-digit US ZIP code of the delivery area, as in search. Default `94105`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/instacart-product?product=16902650&retailer=costco&zip=94110" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.instacart_product("16902650", retailer="costco", zip="94110")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.instacartProduct("16902650", {
+  retailer: "costco",
+  zip: "94110",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->instacartProduct('16902650', ['retailer' => 'costco', 'zip' => '94110']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.instacart_product("16902650", retailer: "costco", zip: "94110")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "retailer": "costco",
+  "zip": "94110",
+  "store": {
+    "shopId": "12",
+    "retailerId": "5",
+    "retailerLocationId": "74",
+    "retailerName": "Costco",
+    "serviceType": "delivery",
+    "postalCode": "94110",
+    "zoneId": "1"
+  },
+  "product": {
+    "id": "items_74-16902650",
+    "productId": "16902650",
+    "name": "Kirkland Signature Whole Milk, 1 gal",
+    "brand": "Kirkland Signature",
+    "brandId": "7632",
+    "size": "each",
+    "packageSize": null,
+    "price": 6.43,
+    "priceText": "$6.43",
+    "wasPrice": null,
+    "onSale": false,
+    "unitPrice": null,
+    "soldBy": "each",
+    "estimatedWeight": null,
+    "promotions": [],
+    "available": false,
+    "stockLevel": "in_stock",
+    "stockText": "Out of stock",
+    "rating": null,
+    "reviewCount": null,
+    "category": "Plain Milk",
+    "storeBrand": true,
+    "dietary": [],
+    "aisle": null,
+    "image": "https://d2lnr5mha7bycj.cloudfront.net/product-image/file/large_82659b6f-4662-4758-97d0-...jpg",
+    "sponsored": false,
+    "url": "https://www.instacart.com/products/16902650-kirkland-signature-homogenized-milk-1-gal-4-qt?retailerSlug=costco",
+    "retailer": "costco",
+    "description": "Grade A; Pasteurized; Homogenized; Produced without Artificial Growth Hormones.",
+    "ingredients": "Grade A Milkand Vitamin D3.",
+    "directions": null,
+    "warnings": null,
+    "sections": [
+      { "title": "Details", "text": "Grade A; Pasteurized; Homogenized; Produced without Artificial Growth Hormones." },
+      { "title": "Ingredients", "text": "Grade A Milkand Vitamin D3." }
+    ],
+    "images": [
+      "https://www.instacart.com/assets/domains/product-image/file/large_82659b6f-4662-4758-97d0-...jpg",
+      "https://www.instacart.com/assets/domains/product-image/file/large_b585a841-3e90-4ce5-9ed8-...jpg"
+    ]
+  },
+  "url": "https://www.instacart.com/products/16902650-kirkland-signature-homogenized-milk-1-gal-4-qt?retailerSlug=costco"
+}
+```
+
+`product` carries every search field above, plus:
+
+| Field | Notes |
+| --- | --- |
+| `description` / `ingredients` / `directions` / `warnings` | The product page text, as Instacart shows it (`null` when the page has none). |
+| `sections` | Every titled section of the product page, each with `title` and `text`. |
+| `images` | The image gallery. |
+
+`available` says whether the item can be ordered at this store right now; read it before `stockLevel`, which is Instacart's own stock signal and can disagree (as in the example above).
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query`, `retailer` or `product`, a `zip` that is not 5 digits or that Instacart does not know, or `max_results` outside `1`-`300`. |
+| `404` | No such retailer on Instacart, none of its stores serves the ZIP code, or (product) the store does not sell the product. |
+| `502` | Instacart refused every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Retailer price comparison** - price one basket at Costco, ALDI, Safeway and Kroger in the same ZIP code.
+- **Regional price tracking** - follow how a product's price and deals differ across delivery areas.
+- **Promotion monitoring** - catch sales and multibuy deals as they appear.
+- **Catalogue and assortment research** - see which retailers stock a brand, and with which store brands they compete.
+- **Everyday Publix prices** - Publix publishes prices on publix.com only for items on promotion; use this plugin with `retailer=publix` for the rest (see the [Publix plugin](/plugins/publix)).
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Instacart search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

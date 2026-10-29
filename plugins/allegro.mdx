@@ -1,0 +1,335 @@
+---
+title: "Allegro plugin"
+description: "Allegro (Poland) offers as clean JSON - search results with price, price with delivery, Smart! flag, rating, recent buyers and seller, plus one offer with parameters, description, variants, seller company details, shipping methods, warranty and reviews."
+sidebarTitle: "Allegro"
+---
+
+The **Allegro** plugin returns offers from Allegro (allegro.pl), Poland's largest marketplace, as structured JSON. It is two endpoints:
+
+- **`/marketplace/allegro-search`** - the offers for a keyword, in Allegro's order: offer and product id, title, price, price with delivery and the cheapest delivery, free delivery and Allegro Smart! flags, the delivery label, rating, rating count, recent buyers (bought in the last 30 days), the sponsored, promoted and Super Seller flags, the seller (id, login, company, positive feedback share), the offer parameters, images and link. Filter by price, condition, where it ships from, delivery speed, offer type and the seller's town or region; sort; collect across pages.
+- **`/marketplace/allegro-product`** - one offer: title, catalogue product name, brand and GTIN, price and crossed-out price, selling mode (buy now or auction), stock, condition, rating with its 1-5 star breakdown, recent buyers, category and breadcrumbs, the parameter table, description, images, variants, the seller (Super Seller flag, feedback counts, company name and tax id), location, Smart!, delivery, every shipping method with its price, return days, warranty, end time and reviews.
+
+Prices are in Polish zloty (PLN). No Allegro account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/allegro-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `iphone 15` or `lego`. |
+| `sort` | no | Result order: `relevance`, `price_asc`, `price_desc`, `price_with_delivery_asc`, `price_with_delivery_desc`, `popularity`, `ending_soon`, `newest`, `rating`. Default `relevance`. |
+| `page` | no | First Allegro results page to read, `1`-`100`. Default `1`. |
+| `min_price` / `max_price` | no | Price range in zloty (PLN). |
+| `condition` | no | Item condition: `new`, `like_new`, `refurbished`, `used`, `damaged`. |
+| `shipping_from` | no | Where the item ships from: `pl`, `cz`, `sk`, `hu`, `cn`, `eu`, `allegro_warehouse`. |
+| `delivery_time` | no | Delivery speed: `one_day` (tomorrow), `two_days`, `three_days`. |
+| `offer_type` | no | `buy_now` (fixed price) or `auction`. |
+| `store_city` | no | The seller's town, e.g. `Kraków`. |
+| `store_region` | no | The seller's voivodeship, e.g. `mazowieckie` or `slaskie` (or its number `1`-`16`). |
+| `max_results` | no | Offers to collect across pages, `1`-`300`. Default `60`. A page holds about 60 offers. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `DE`, `CZ`). Best left blank: Allegro refuses exits from some countries, and the API picks ones it accepts. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/allegro-search?query=iphone%2015&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.allegro_search("iphone 15", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.allegroSearch("iphone 15", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->allegroSearch('iphone 15', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.allegro_search("iphone 15", max_results: 3)
+```
+</CodeGroup>
+
+Each Allegro page read is billed as one request (`pagesFetched`).
+
+### Response
+
+```json
+{
+  "query": "iphone 15",
+  "sort": "relevance",
+  "page": 1,
+  "filters": {},
+  "url": "https://allegro.pl/listing?string=iphone+15&order=m",
+  "currency": "PLN",
+  "category": ["Elektronika", "Telefony i Akcesoria", "Smartfony i telefony komórkowe", "Apple", "iPhone 15"],
+  "total": 20116,
+  "available": 6000,
+  "lastPage": 100,
+  "pagesFetched": 1,
+  "nextPage": 2,
+  "pagingStopped": null,
+  "resultsCollected": 3,
+  "products": [
+    {
+      "offerId": "16566058868",
+      "productId": "c933b01a-49e0-4cf6-be7c-42b39ac4c42d",
+      "title": "Smartfon Apple iPhone 15 Pro 8 GB / 128 GB 5G czarny",
+      "price": 2389,
+      "buyNowPrice": null,
+      "currency": "PLN",
+      "endsIn": null,
+      "priceWithDelivery": 2389,
+      "deliveryFrom": 0,
+      "freeDelivery": false,
+      "smart": true,
+      "deliveryLabel": "dostawa wt. 3 lis.",
+      "rating": 4.93,
+      "ratingCount": 337,
+      "recentBuyers": 77,
+      "recentBuyersLabel": "77 osób kupiło ostatnio",
+      "offersOfProduct": 1,
+      "quantity": null,
+      "sponsored": true,
+      "promoted": false,
+      "superSeller": false,
+      "seller": {
+        "id": "46619855",
+        "login": "luxtrade-pl",
+        "company": true,
+        "positiveFeedbackPercent": 97.3,
+        "url": "https://allegro.pl/uzytkownik/luxtrade-pl"
+      },
+      "parameters": {
+        "Stan": "Powystawowy",
+        "Kolor": "czarny",
+        "Przekątna ekranu": "6.1\"",
+        "Wbudowana pamięć": "128 GB"
+      },
+      "image": "https://a.allegroimg.com/s720/11860d/149c0c4a432dbed0a53c3c244310/Apple-iPhone-15-Pro-128GB-Czarny-Stan-bardzo-dobry-Standard-SIM",
+      "images": [
+        "https://a.allegroimg.com/s360/11860d/149c0c4a432dbed0a53c3c244310/Apple-iPhone-15-Pro-128GB-Czarny-Stan-bardzo-dobry-Standard-SIM"
+      ],
+      "url": "https://allegro.pl/oferta/16566058868",
+      "position": 2
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `offerId` / `productId` | The offer number and Allegro's catalogue product id. Pass `offerId` to [Offer](#offer). |
+| `title` / `image` / `images` / `url` | Offer title, images and link. |
+| `price` / `buyNowPrice` / `currency` / `endsIn` | Price in PLN; for an auction, the current bid with the buy-now price and the time left. |
+| `priceWithDelivery` / `deliveryFrom` / `freeDelivery` | Price including the cheapest delivery, that delivery cost, and the free delivery flag. |
+| `smart` / `deliveryLabel` | Allegro Smart! eligibility and the delivery promise as printed. |
+| `rating` / `ratingCount` | Product rating and rating count. |
+| `recentBuyers` / `recentBuyersLabel` | People who bought in the last 30 days, as a number and as printed. |
+| `offersOfProduct` / `quantity` | How many offers Allegro groups under this product, and stock when shown. |
+| `sponsored` / `promoted` / `superSeller` | Ad and promotion flags, and the seller's Super Seller badge. |
+| `seller` | `id`, `login`, `company` (business seller), `positiveFeedbackPercent` and profile `url`. |
+| `parameters` | The offer parameters shown on the card (condition, colour, memory, ...), in Polish as Allegro prints them. |
+| `total` / `available` / `lastPage` / `nextPage` | All matches, offers Allegro lets you page through, the last page and the `page` to pass to continue. |
+
+## Offer
+
+```
+POST /marketplace/allegro-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `offer_id` | one of `offer_id` / `url` | Allegro offer number, e.g. `16680923539` (the number at the end of an `/oferta/` link, or an `offerId`). |
+| `url` | one of `offer_id` / `url` | An Allegro offer or product link, e.g. `https://allegro.pl/oferta/16680923539` or `https://allegro.pl/produkt/...?offerId=16680923539`. Used instead of `offer_id`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Best left blank, as in search. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/allegro-product?offer_id=18333730120" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.allegro_product("18333730120")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.allegroProduct("18333730120");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->allegroProduct('18333730120');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.allegro_product("18333730120")
+```
+</CodeGroup>
+
+To look an offer up by link, leave the first argument out and pass `url` (`su.allegro_product(url="https://allegro.pl/oferta/...")` in Python, `su.allegroProduct(undefined, { url })` in Node.js). Each offer is billed as one request.
+
+### Response
+
+```json
+{
+  "offerId": "18333730120",
+  "productId": "3c0d47dd-232f-4fd6-b018-16ac0916b8cd",
+  "title": "Słuchawki bezprzewodowe JBL Tune 530BT Niebieski",
+  "productName": "Słuchawki bezprzewodowe nauszne JBL Tune 530BT niebieskie",
+  "brand": "JBL",
+  "gtin": "1200130029981",
+  "price": 132.99,
+  "originalPrice": null,
+  "currency": "PLN",
+  "sellingMode": "buy_now",
+  "auction": null,
+  "available": 6,
+  "availableLabel": "z 6 sztuk",
+  "condition": "Nowy",
+  "rating": 4.95,
+  "ratingCount": 42,
+  "ratingBreakdown": { "5": 40, "4": 2, "3": 0, "2": 0, "1": 0 },
+  "recentBuyers": 74,
+  "recentBuyersLabel": "74 osoby kupiły 86 sztuk",
+  "category": { "id": "85166", "name": "Bezprzewodowe" },
+  "breadcrumbs": ["Elektronika", "RTV i AGD", "..."],
+  "parameters": [
+    { "group": null, "name": "Stan", "value": "Nowy" },
+    { "group": null, "name": "Faktura", "value": "Wystawiam fakturę VAT" }
+  ],
+  "description": "Słuchawki bezprzewodowe JBL Tune 530BT Niebieski\nNumer produktu: 1502021\n\n...",
+  "images": [
+    "https://a.allegroimg.com/original/11419d/7ed7a8e14c3397b6e299ac4d971f/Sluchawki-bezprzewodowe-JBL-Tune-530BT-Niebieski"
+  ],
+  "variants": [
+    {
+      "dimension": "Kolor/Wzór",
+      "value": null,
+      "offerId": "18333729616",
+      "title": "Słuchawki bezprzewodowe JBL Tune 530BT Beżowy",
+      "selected": false,
+      "available": true,
+      "url": "https://allegro.pl/produkt/sluchawki-bezprzewodowe-nauszne-jbl-tune-530bt-bezowe-be05c2a9-7ef6-4f9d-a59f-96c7b5690ff7?offerId=18333729616"
+    }
+  ],
+  "seller": {
+    "id": "77880085",
+    "login": "MediaMarktPolska",
+    "superSeller": true,
+    "positiveFeedbackPercent": 97.3,
+    "positiveFeedbackCount": 18836,
+    "negativeFeedbackCount": 538,
+    "companyName": "Media Saturn Online Sp. z o.o.",
+    "taxId": "701-032-76-11",
+    "url": "https://allegro.pl/uzytkownik/MediaMarktPolska"
+  },
+  "location": { "city": "Warszawa", "region": "mazowieckie", "country": "PL" },
+  "smart": false,
+  "delivery": [
+    { "name": "Kup do 19:00 - jutro u Ciebie", "value": null },
+    { "name": "Dostawa za darmo", "value": null }
+  ],
+  "shippingMethods": [
+    { "group": "Odbiór w punkcie", "name": "InPost Paczkomat, InPost", "price": 0, "smartPrice": null }
+  ],
+  "returnDays": "14 dni",
+  "warranty": "Produkt jest objęty gwarancją producenta/dystrybutora przez 24 miesiące od zakupu.",
+  "endsAt": null,
+  "endedAt": null,
+  "reviews": [
+    {
+      "rating": 5,
+      "text": "Bardzo dobra jakość produktu w stosunku do ceny. ...",
+      "date": "2026-04-12T17:07:18.687Z",
+      "author": "C...8"
+    }
+  ],
+  "url": "https://allegro.pl/produkt/sluchawki-bezprzewodowe-nauszne-jbl-tune-530bt-niebieskie-3c0d47dd-232f-4fd6-b018-16ac0916b8cd?offerId=18333730120"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `title` / `productName` / `brand` / `gtin` | The offer title, Allegro's catalogue product name, brand and barcode. |
+| `price` / `originalPrice` / `currency` | Price in PLN and the crossed-out price when the offer shows one. |
+| `sellingMode` / `auction` | `buy_now` or `auction`. For an auction, `auction` has `currentBid`, `nextMinimumBid`, `bidStep` and `bidCount`; it is `null` for a buy-now offer. |
+| `available` / `availableLabel` / `condition` | Units in stock, as a number and as printed, and the condition. |
+| `rating` / `ratingCount` / `ratingBreakdown` | Product rating, count and the number of ratings per star. |
+| `recentBuyers` / `recentBuyersLabel` | Recent buyers, as a number and as printed. |
+| `category` / `breadcrumbs` | The category `id` and `name`, and the category path. |
+| `parameters` / `description` / `images` | The parameter table (`group` / `name` / `value`), the description text and the image gallery. |
+| `variants` | Other variants of the offer: `dimension`, `value`, `offerId`, `title`, `selected`, `available` and `url`. |
+| `seller` | `id`, `login`, `superSeller`, feedback share and counts, and the business `companyName` and `taxId` (NIP) Allegro publishes. |
+| `location` / `smart` | Where the item ships from, and Allegro Smart! eligibility. |
+| `delivery` / `shippingMethods` | The delivery promises, and every shipping method with its `group`, `name`, `price` and Smart! price. |
+| `returnDays` / `warranty` | Return period and warranty text. |
+| `endsAt` / `endedAt` | When the offer ends or ended, for time-limited offers and auctions. |
+| `reviews` | Reviews shown on the offer: `rating`, `text`, `date` and the masked `author` Allegro prints. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query`, an unknown filter value, or neither `offer_id` nor `url`. |
+| `404` | Allegro found no offers for this search, or has no offer with this number. |
+| `502` | Allegro blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Price monitoring in Poland** - track prices and prices with delivery for your products and your competitors'.
+- **Seller research** - find who sells a product, with Super Seller status, feedback and the published company details.
+- **Demand signals** - rank offers by recent buyers and ratings.
+- **Catalog enrichment** - pull GTINs, parameters and images for a product feed.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run an Allegro search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

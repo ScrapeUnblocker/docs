@@ -1,0 +1,319 @@
+---
+title: "Magazine Luiza plugin"
+description: "Magazine Luiza (Magalu, Brazil) products as clean JSON - search results with price, Pix price, list price and discount, installments, rating and seller, plus one product with the technical sheet, rating breakdown, first reviews and the seller's card."
+sidebarTitle: "Magazine Luiza"
+---
+
+The **Magazine Luiza** plugin returns products from Magazine Luiza (Magalu, magazineluiza.com.br), one of Brazil's largest retailers and marketplaces, as structured JSON. It is two endpoints:
+
+- **`/marketplace/magazineluiza-search`** - the products for a keyword, in Magalu's order: product and offer id, title, brand and link, the price, the best price with its payment method (usually Pix), the list price and discount, installments, rating and review count, the seller, availability, the sponsored and "Magalu indica" flags, category and subcategory, badges, the image and the variation summary (e.g. colour and voltage). Magalu shows 40 products per page; one call collects up to 200.
+- **`/marketplace/magazineluiza-product`** - one product in full: description and key selling points, prices and installments, the rating histogram and per-aspect ratings, the first page of reviews, the seller's card (legal name, city, seller since, score, total sales), the coupon, breadcrumbs, the technical sheet, every variation option with its own product id, images, videos and package dimensions.
+
+Prices are in Brazilian reais (BRL). No Magalu account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/magazineluiza-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | one of `query` / `url` | What to search, e.g. `geladeira`, `smart tv 55` or `air fryer`. |
+| `url` | one of `query` / `url` | A Magazine Luiza search link instead of `query`, e.g. `https://www.magazineluiza.com.br/busca/geladeira/`. Its sort and page are used. |
+| `sort` | no | `relevance`, `price_low`, `price_high`, `best_selling`, `rating`, `newest`, `fastest_delivery` or `price_with_shipping_low`. Default `relevance`. |
+| `page` | no | 1-based results page to start from, `1`-`25`. Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`200`. Default `40`. Magalu serves 40 per page and **each page fetched is billed as one request** (`pagesFetched`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/magazineluiza-search?query=air%20fryer&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.magazineluiza_search("air fryer", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.magazineluizaSearch("air fryer", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->magazineluizaSearch('air fryer', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.magazineluiza_search("air fryer", max_results: 3)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "air fryer",
+  "sort": "relevance",
+  "page": 1,
+  "url": "https://www.magazineluiza.com.br/busca/air+fryer/",
+  "currency": "BRL",
+  "totalResults": 10000,
+  "lastPage": 25,
+  "resultsCollected": 3,
+  "pagesFetched": 1,
+  "lastPageFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "products": [
+    {
+      "productId": "240895000",
+      "offerId": "240894900",
+      "title": "Air Fryer Wap Barbecue Flame 10L Digital Preta e Cinza FW012055",
+      "brand": "Wap",
+      "url": "https://www.magazineluiza.com.br/air-fryer-wap-barbecue-flame-10l-digital-preta-e-cinza-fw012055/p/240895000/ep/efso/",
+      "price": 842,
+      "bestPrice": 799.9,
+      "bestPriceMethod": "no Pix",
+      "originalPrice": null,
+      "discountPercent": null,
+      "currency": "BRL",
+      "installments": { "count": 10, "amount": 84.2, "total": 842, "interestFree": true },
+      "rating": 4.86,
+      "reviewCount": 141,
+      "sellerId": "magazineluiza",
+      "sellerName": "Magalu",
+      "available": true,
+      "sponsored": true,
+      "magaluIndica": true,
+      "category": "Eletroportáteis",
+      "subcategory": "Fritadeira sem Óleo / Air Fryer",
+      "badges": [],
+      "image": "https://a-static.mlcdn.com.br/800x560/air-fryer-wap-barbecue-flame-10l-digital-preta-e-cinza-fw012055/magazineluiza/240895000/...jpg",
+      "variations": [
+        { "name": "Cor", "current": "Preto e Cinza", "options": 16 },
+        { "name": "Voltagem", "current": "220V", "options": 16 }
+      ],
+      "position": 1
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `offerId` / `url` | Magalu's product id, the offer id and the product link. Pass `productId` or `url` to [Product](#product). |
+| `title` / `brand` / `image` | Name, brand and main image. |
+| `price` | The regular price (what the installments add up to). |
+| `bestPrice` / `bestPriceMethod` | The lowest price and how to get it, usually `no Pix` (paid by Pix). |
+| `originalPrice` / `discountPercent` | The crossed-out list price and the discount, when shown. |
+| `installments` | `count`, `amount` per installment, `total` and whether it is `interestFree`. |
+| `rating` / `reviewCount` | Average rating and number of reviews. |
+| `sellerId` / `sellerName` | The seller: Magalu itself (`magazineluiza`) or a marketplace seller. |
+| `available` / `sponsored` / `magaluIndica` / `badges` | Stock, sponsored placement, the "Magalu indica" recommendation flag and other badges. |
+| `category` / `subcategory` | Magalu's category and subcategory. |
+| `variations` | Each variation dimension with its `name`, the `current` value and the number of `options`. |
+| `position` | Rank in Magalu's results. |
+| `totalResults` / `lastPage` / `hasMore` / `nextPage` | Magalu's match count as it reports it, its last page, whether more pages exist, and the page to pass as `page` to continue. |
+
+## Product
+
+```
+POST /marketplace/magazineluiza-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | Magalu product id, e.g. `240354400` or `jc60hbaa6d` (the part after `/p/` in a product link). |
+| `url` | one of `product_id` / `url` | A Magazine Luiza product link instead, e.g. `https://www.magazineluiza.com.br/notebook-acer-aspire-go/p/240354400/in/nota/`. Give `product_id` or `url`, not both. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/magazineluiza-product?product_id=240354400" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.magazineluiza_product(product_id="240354400")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.magazineluizaProduct({ productId: "240354400" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->magazineluizaProduct(['product_id' => '240354400']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.magazineluiza_product(product_id: "240354400")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "productId": "240354400",
+    "offerId": "240354400",
+    "url": "https://www.magazineluiza.com.br/notebook-acer-aspire-go-intel-core-i5-13420h-8gb-ram-512gb-ssd-156-full-hd-windows-11-ag15-71p-53gm/p/240354400/in/nota/",
+    "title": "Notebook Acer Aspire Go Intel Core i5 13420H 8GB RAM 512GB SSD 15,6\" Full HD Windows 11 AG15-71P-53GM",
+    "brand": "Acer",
+    "reference": null,
+    "description": "O notebook Acer Aspire Go 15 AG15-71P-53GM (NX.JF6AL.001) é a escolha ideal para quem busca eficiência e um design moderno. ...",
+    "keySellingPoints": [
+      "Processador Intel Core i5 13ª geração",
+      "8GB de memória RAM",
+      "SSD de 512GB"
+    ],
+    "price": 4179,
+    "bestPrice": 4179,
+    "bestPriceMethod": "no Pix",
+    "originalPrice": 6000,
+    "discountPercent": 30,
+    "currency": "BRL",
+    "installments": { "count": 10, "amount": 417.9, "total": 4179, "interestFree": true },
+    "available": true,
+    "rating": 4.85,
+    "reviewCount": 2850,
+    "commentCount": 1334,
+    "ratingHistogram": { "1": 48, "2": 10, "3": 12, "4": 178, "5": 2602 },
+    "ratingAspects": [
+      { "name": "Bom desempenho", "rating": 4.94 },
+      { "name": "Ótimo custo-benefício", "rating": 4.95 }
+    ],
+    "reviews": [
+      {
+        "rating": 5,
+        "title": null,
+        "text": "Muito bom, atende minha necessidade e a configuração é super fácil",
+        "author": "Jessica",
+        "date": "2026-10-12T11:21:33.774Z",
+        "images": ["https://review-produtos-storage-prd.magalu.com/review/Magalu-Mktplace/magazineluiza/240354400/image/processed/...jpeg"]
+      }
+    ],
+    "seller": {
+      "id": "magazineluiza",
+      "name": "Magalu",
+      "legalName": "Magazine Luiza SA",
+      "deliveredBy": "Magalu",
+      "city": "Franca",
+      "state": "SP",
+      "sellerSince": "2016-06-01T00:00:00.000+00:00",
+      "score": 5,
+      "totalSales": 246311987,
+      "answerRate": "Responde rápido",
+      "deliveryRate": null
+    },
+    "coupon": { "code": "TECNO200", "message": "R$ 200.00 OFF com cupom: TECNO200" },
+    "badges": ["LIQUIDA_OFERTA_DA_TV"],
+    "breadcrumbs": ["Informática", "Notebook", "Notebook Acer"],
+    "category": "Informática",
+    "subcategory": "Notebook Acer",
+    "specifications": [
+      { "group": "Ficha-Técnica", "name": "Processador", "value": "Intel Core i5" },
+      { "group": "Ficha-Técnica", "name": "Memória RAM", "value": "8GB" }
+    ],
+    "variations": [
+      {
+        "name": "Cor",
+        "type": "color",
+        "current": "Cinza Aço",
+        "options": [
+          {
+            "value": "Cinza Aço",
+            "productId": "240354400",
+            "available": true,
+            "url": "https://www.magazineluiza.com.br/notebook-acer-aspire-go-intel-core-i5-13420h-8gb-ram-512gb-ssd-156-full-hd-windows-11-ag15-71p-53gm/p/240354400/in/nota/"
+          }
+        ]
+      }
+    ],
+    "images": [
+      "https://a-static.mlcdn.com.br/800x560/notebook-acer-aspire-go-intel-core-i5-13420h-8gb-ram-512gb-ssd-156-full-hd-windows-11-ag15-71p-53gm/magazineluiza/240354400/...jpg"
+    ],
+    "videos": ["https://ugc-magalu-videos.magazineluiza.com.br/embed/7873d756-9a3b-4d26-aca6-0f52db5b6c3e?external=..."],
+    "dimensions": { "depth": 0.35, "height": 0.08, "weight": 2.2, "width": 0.452 },
+    "offerCount": 1
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `reference` / `description` / `keySellingPoints` | The manufacturer reference when Magalu shows one, the description and the highlighted selling points. |
+| `price` / `bestPrice` / `bestPriceMethod` / `originalPrice` / `discountPercent` / `installments` | Prices, as in search. |
+| `rating` / `reviewCount` / `commentCount` | Average rating, number of ratings and number of written reviews. |
+| `ratingHistogram` / `ratingAspects` | Ratings per star (`1`-`5`) and per aspect (e.g. performance, value for money). |
+| `reviews` | The first page of reviews: `rating`, `title`, `text`, `author` (first name as Magalu shows it), `date` and review `images`. |
+| `seller` | `id`, `name`, `legalName`, `deliveredBy`, `city`, `state`, `sellerSince`, `score`, `totalSales`, `answerRate` and `deliveryRate`. |
+| `coupon` / `badges` | A coupon offered on the product (`code`, `message`) and Magalu's badges. |
+| `breadcrumbs` / `category` / `subcategory` | The category path. |
+| `specifications` | The technical sheet, each `group` / `name` / `value`. |
+| `variations` | Each variation dimension (`name`, `type`, `current`) with every option's `value`, `productId`, `available` and `url`. |
+| `images` / `videos` / `dimensions` | The gallery, product videos and the package dimensions and weight. |
+| `offerCount` | Number of offers Magalu lists for the product. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. neither `query` nor `url`, a `url` that is not a Magazine Luiza search or product link, or both `product_id` and `url`. |
+| `404` | Search: Magalu found no products. Product: no such product. |
+| `502` | Magalu blocked every attempt, returned no results page or product data, or the call did not finish in time. Retry, or ask for fewer pages. |
+
+## What you can build
+
+- **Price and Pix-discount monitoring** - track regular, Pix and installment prices for the products you sell or compete with.
+- **Marketplace seller research** - see who sells a product, their score, total sales and where they are based.
+- **Review and rating analysis** - follow star histograms, per-aspect ratings and new reviews.
+- **Assortment tracking** - follow categories, sponsored placements and coupons in Brazil's e-commerce.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Magazine Luiza search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

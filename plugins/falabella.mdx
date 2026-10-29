@@ -1,0 +1,333 @@
+---
+title: "Falabella plugin"
+description: "Falabella (Chile, Colombia, Peru) products as clean JSON - search results with price, CMR card price, list price and discount, rating, seller, delivery and installments, plus one product with every variant, specifications and images."
+sidebarTitle: "Falabella"
+---
+
+The **Falabella** plugin returns products from Falabella, the largest department store and marketplace in Chile, Colombia and Peru, as structured JSON. It is two endpoints:
+
+- **`/marketplace/falabella-search`** - the products for a keyword, in Falabella's order: product and SKU id, title, brand and link, the price (or price range), the price with the Falabella CMR card, the crossed-out list price and the discount, rating and review count, the seller, the sponsored and best-seller flags, free shipping and delivery labels, interest-free installments, images, the top specifications and the colour or size options. Falabella shows 48 products per page; one call collects up to 480.
+- **`/marketplace/falabella-product`** - one product in full: description and long description, prices, availability, the low-stock count when Falabella shows one, rating, seller, delivery labels, breadcrumbs, specifications, images, videos, the return policy and every colour and size SKU with its own price, availability, delivery options and images.
+
+Pick the store with `country`: `cl` (falabella.com, prices in CLP), `co` (falabella.com.co, COP) or `pe` (falabella.com.pe, PEN). No Falabella account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/falabella-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | one of `query` / `url` | What to search, e.g. `zapatillas nike`, `televisor 55` or `notebook`. |
+| `url` | one of `query` / `url` | A Falabella search link instead of `query`, e.g. `https://www.falabella.com/falabella-cl/search?Ntt=zapatillas`. Its store, sort and page are used. |
+| `country` | no | Falabella store: `cl`, `co` or `pe`. Default `cl`. |
+| `sort` | no | `relevance`, `price_low`, `price_high`, `rating` or `brand`. Default `relevance`. |
+| `page` | no | 1-based results page to start from, `1`-`200`. Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`480`. Default `48`. Falabella serves 48 per page and **each page fetched is billed as one request** (`pagesFetched`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/falabella-search?query=zapatillas%20running&country=cl&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.falabella_search("zapatillas running", country="cl", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.falabellaSearch("zapatillas running", {
+  country: "cl",
+  maxResults: 3,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->falabellaSearch('zapatillas running', [
+    'country' => 'cl',
+    'max_results' => 3,
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.falabella_search("zapatillas running", country: "cl", max_results: 3)
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "query": "zapatillas running",
+  "country": "cl",
+  "sort": "relevance",
+  "page": 1,
+  "url": "https://www.falabella.com/falabella-cl/search?Ntt=zapatillas+running",
+  "currency": "CLP",
+  "correctedQuery": null,
+  "totalResults": 2834,
+  "resultsCollected": 3,
+  "pagesFetched": 1,
+  "lastPageFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "products": [
+    {
+      "productId": "80397735",
+      "skuId": "80397810",
+      "title": "Runfalcon 5 Zapatilla Running Hombre Negro",
+      "brand": "ADIDAS",
+      "url": "https://www.falabella.com/falabella-cl/product/80397735/Runfalcon-5-Zapatilla-Running-Hombre-Negro-Adidas",
+      "price": 29990,
+      "priceMax": null,
+      "cmrPrice": null,
+      "originalPrice": 59990,
+      "discountPercent": 50,
+      "currency": "CLP",
+      "rating": 4.7741,
+      "reviewCount": 726,
+      "sellerId": "FALABELLA_CHILE",
+      "sellerName": "Falabella",
+      "sponsored": false,
+      "bestSeller": false,
+      "freeShipping": false,
+      "deliveryLabels": ["Llega hoy", "Retira hoy", "Envío Plus +"],
+      "badges": ["Exclusivo Falabella"],
+      "installmentsWithoutInterest": 3,
+      "image": "https://media.falabella.com/falabellaCL/80397810_1/public",
+      "images": [
+        "https://media.falabella.com/falabellaCL/80397810_1/public",
+        "https://media.falabella.com/falabellaCL/80397810_2/public"
+      ],
+      "topSpecifications": [],
+      "variants": [
+        { "type": "SIZES", "options": ["44 CL", "43.5 CL", "42.5 CL", "41 CL", "41.5 CL"] }
+      ],
+      "position": 3
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `skuId` / `url` | Falabella's product id, the SKU shown in the results and the product link. Pass `productId` (with `country`) or `url` to [Product](#product). |
+| `title` / `brand` / `image` / `images` | Name, brand and images. |
+| `price` / `priceMax` | The price, and the top of the range when the product is listed with a price range. |
+| `cmrPrice` | The price with the Falabella CMR card, when it is lower. |
+| `originalPrice` / `discountPercent` | The crossed-out list price and the discount, when the product is on sale. |
+| `currency` | `CLP`, `COP` or `PEN`, by store. |
+| `rating` / `reviewCount` | Average rating and number of reviews. |
+| `sellerId` / `sellerName` | The seller: Falabella itself or a marketplace seller. |
+| `sponsored` / `bestSeller` / `badges` | Sponsored placement, best-seller flag and other badges (e.g. `Exclusivo Falabella`). |
+| `freeShipping` / `deliveryLabels` | Free shipping flag and the delivery and pickup labels Falabella shows. |
+| `installmentsWithoutInterest` | Number of interest-free installments offered. |
+| `topSpecifications` / `variants` | The key specifications on the tile, and the colour (`COLOR`) or size (`SIZES`) options. |
+| `position` | Rank in Falabella's results. |
+| `totalResults` / `hasMore` / `nextPage` | Falabella's match count, whether more pages exist, and the page to pass as `page` to continue. |
+| `correctedQuery` | The query Falabella searched instead, when it corrected the spelling. |
+
+## Product
+
+```
+POST /marketplace/falabella-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | Falabella product id, e.g. `17776888` or `prod11930024` (the part after `/product/` in a product link). Needs `country` unless the store is `cl`. |
+| `url` | one of `product_id` / `url` | A Falabella product link instead, e.g. `https://www.falabella.com/falabella-cl/product/17776888/...`. Its store and SKU are used. Give `product_id` or `url`, not both. |
+| `sku` | no | The variant (SKU) whose price and availability fill the top-level fields. Default: the product's main variant. Every variant is in `variants` either way. |
+| `country` | no | With `product_id`: the store, `cl`, `co` or `pe`. Default `cl`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/falabella-product?product_id=150061781&country=cl" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.falabella_product(product_id="150061781", country="cl")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.falabellaProduct({
+  productId: "150061781",
+  country: "cl",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->falabellaProduct([
+    'product_id' => '150061781',
+    'country' => 'cl',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.falabella_product(product_id: "150061781", country: "cl")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "country": "cl",
+  "product": {
+    "productId": "150061781",
+    "skuId": "150061786",
+    "url": "https://www.falabella.com/falabella-cl/product/150061781/zapatillas-nike-revolution-8-negro-hombre/150061786",
+    "title": "Zapatillas Nike Revolution 8 Negro Hombre",
+    "brand": "NIKE",
+    "description": "Marca el ritmo al comenzar a vivir la experiencia de correr con la sensación de suavidad de los Nike Revolution 8. ...",
+    "longDescription": "Las zapatillas Nike Revolution 8 Negro para hombre te invitan a experimentar una carrera suave y cómoda, ...",
+    "price": 62990,
+    "priceMax": null,
+    "cmrPrice": null,
+    "originalPrice": null,
+    "discountPercent": null,
+    "currency": "CLP",
+    "available": true,
+    "stockUnits": null,
+    "rating": 4.7,
+    "reviewCount": 115,
+    "sellerId": "SC7D7F2",
+    "sellerName": "TIENDA OFICIAL NIKE",
+    "freeShipping": true,
+    "deliveryLabels": ["Llega mañana", "Envío gratis", "Retira mañana", "Envío Plus +"],
+    "badges": [],
+    "installmentsWithoutInterest": 3,
+    "breadcrumbs": ["Zapatillas urbanas hombre", "Zapatillas Hombre", "Calzado - Zapatillas"],
+    "categoryId": "cat7500133",
+    "topSpecifications": [
+      { "name": "Género", "value": "Hombre" },
+      { "name": "Tipo de ajuste", "value": "Cordones" }
+    ],
+    "specifications": [
+      { "name": "Material", "value": "Sintético" },
+      { "name": "Material de la plantilla", "value": "Espuma" }
+    ],
+    "images": [
+      "https://media.falabella.com/falabellaCL/150061786_01/public",
+      "https://media.falabella.com/falabellaCL/150061786_02/public"
+    ],
+    "videos": [],
+    "variants": [
+      {
+        "skuId": "150061782",
+        "name": "Zapatillas Nike Revolution 8 Negro Hombre",
+        "color": "Negro",
+        "size": "40",
+        "url": "https://www.falabella.com/falabella-cl/product/150061781/zapatillas-nike-revolution-8-negro-hombre/150061782",
+        "price": 62990,
+        "priceMax": null,
+        "cmrPrice": null,
+        "originalPrice": null,
+        "available": true,
+        "freeShipping": true,
+        "homeDelivery": true,
+        "storePickup": true,
+        "sellerName": "TIENDA OFICIAL NIKE",
+        "images": ["https://media.falabella.com/falabellaCL/150061782_01/public"],
+        "videos": []
+      },
+      {
+        "skuId": "150061785",
+        "name": "Zapatillas Nike Revolution 8 Negro Hombre",
+        "color": "Negro",
+        "size": "38.5",
+        "url": "https://www.falabella.com/falabella-cl/product/150061781/zapatillas-nike-revolution-8-negro-hombre/150061785",
+        "price": 62990,
+        "priceMax": null,
+        "cmrPrice": null,
+        "originalPrice": null,
+        "available": false,
+        "freeShipping": true,
+        "homeDelivery": null,
+        "storePickup": null,
+        "sellerName": "TIENDA OFICIAL NIKE",
+        "images": ["https://media.falabella.com/falabellaCL/150061785_01/public"],
+        "videos": []
+      }
+    ],
+    "returnPolicy": "Tienes 30 días desde que lo recibes"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `price` / `priceMax` / `cmrPrice` / `originalPrice` / `discountPercent` | Prices of the selected SKU (`sku`, default the main variant), as in search. |
+| `available` / `stockUnits` | Whether the SKU can be bought, and the units left when Falabella shows a low-stock count (else `null`). |
+| `description` / `longDescription` | The short description and the long one, as plain text. |
+| `breadcrumbs` / `categoryId` | The category path and Falabella's category id. |
+| `topSpecifications` / `specifications` | The key specifications and the full list, each `name` / `value`. |
+| `images` / `videos` | The gallery and any product videos. |
+| `variants` | Every colour and size SKU: `skuId`, `name`, `color`, `size`, `url`, its own prices, `available`, `freeShipping`, `homeDelivery`, `storePickup`, `sellerName`, `images` and `videos`. |
+| `returnPolicy` | The return policy text. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. neither `query` nor `url`, a missing or malformed `product_id` / `url`, both `product_id` and `url`, or an unknown `country`. |
+| `404` | Search: Falabella found no products, or sends the keyword to a landing page without a results list. Product: no such product. |
+| `502` | Falabella blocked every attempt, returned no results page or product data, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Price monitoring across Chile, Colombia and Peru** - track list price, sale price and the CMR card price per SKU.
+- **Marketplace seller research** - see which sellers list a product and how they price it against Falabella itself.
+- **Assortment and size availability** - read every variant's stock, home delivery and store pickup.
+- **Promotion tracking** - follow discounts, badges and interest-free installment offers over time.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Falabella search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

@@ -1,0 +1,203 @@
+---
+title: "Amazon seller plugin"
+description: "An Amazon seller's public profile as clean JSON - headline rating, feedback summary for 30 days, 90 days, 12 months and lifetime, the business name, address and registration details Amazon publishes, and the recent feedback, on 20 regional marketplaces."
+sidebarTitle: "Amazon Seller"
+---
+
+The **Amazon seller** plugin returns an Amazon third-party seller's public profile page as structured JSON. It is one endpoint:
+
+- **`/marketplace/amazon-seller`** - one seller: name, logo and storefront link, the headline rating, rating count and positive share Amazon shows, the feedback summary for 30 days, 90 days, 12 months and lifetime (average rating, counts, positive / neutral / negative split and the 5-to-1 star histogram), the seller's own "about" text, the business name, address and every row of Amazon's "Detailed Seller Information" (business type, trade register and VAT number where the marketplace shows them), a link to Amazon's contact form, and the recent feedback.
+
+Identify the seller with `seller_id` plus `marketplace` - for example the `sellerId` of an offer from the [Amazon offers plugin](/plugins/amazon-offers) - or with any Amazon URL that names the seller. Ratings and feedback are per marketplace, so the same seller can look different on `amazon.de` and `amazon.co.uk`. Amazon's own retail sellers show no ratings; those fields are `null`.
+
+<Note>
+The plugin returns what Amazon publishes on the profile page and nothing more. There is no phone number or e-mail field: Amazon routes buyers through its contact form, returned as `contactUrl`. Business name, address, trade register and VAT number come back where the marketplace shows them (EU and UK marketplaces mostly do).
+</Note>
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Seller profile
+
+```
+POST /marketplace/amazon-seller
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `seller_id` | one of `seller_id` / `url` | Amazon seller (merchant) id, e.g. `A3PEV2IAOYFKM6` - the `sellerId` of an offer from `/marketplace/amazon-offers`. Pair with `marketplace`. |
+| `url` | one of `seller_id` / `url` | Any Amazon URL that names the seller: the profile (`https://www.amazon.de/sp?seller=A1J6G6R957S11K`), a storefront (`/s?me=...`) or a sold-by link. The seller id and marketplace are read from it. |
+| `marketplace` | no | Regional Amazon site the seller sells on. Default `amazon.com`. One of `amazon.com`, `amazon.co.uk`, `amazon.de`, `amazon.fr`, `amazon.it`, `amazon.es`, `amazon.nl`, `amazon.se`, `amazon.pl`, `amazon.com.be`, `amazon.com.tr`, `amazon.ca`, `amazon.com.mx`, `amazon.com.br`, `amazon.co.jp`, `amazon.in`, `amazon.ae`, `amazon.sa`, `amazon.sg`, `amazon.com.au`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). Optional: a seller profile is the same from every country, so by default any country is used. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/amazon-seller?seller_id=A133RA3ZUAU4I7&marketplace=amazon.de" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.amazon_seller(seller_id="A133RA3ZUAU4I7", marketplace="amazon.de")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.amazonSeller({
+  sellerId: "A133RA3ZUAU4I7",
+  marketplace: "amazon.de",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->amazonSeller([
+    'seller_id' => 'A133RA3ZUAU4I7',
+    'marketplace' => 'amazon.de',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.amazon_seller(seller_id: "A133RA3ZUAU4I7", marketplace: "amazon.de")
+```
+</CodeGroup>
+
+Each profile is billed as one request.
+
+### Response
+
+The example is shortened: `feedbackSummary` also has `30d` and `90d` with the same fields as `12m`, and `recentFeedback` usually holds five entries.
+
+```json
+{
+  "sellerId": "A133RA3ZUAU4I7",
+  "marketplace": "amazon.de",
+  "url": "https://www.amazon.de/sp?seller=A133RA3ZUAU4I7",
+  "name": "e-joker",
+  "logo": "https://m.media-amazon.com/images/I/31en7Se+8oL.jpg",
+  "storefrontUrl": "https://www.amazon.de/-/en/s?ie=UTF8&marketplaceID=A1PA6795UKMFR9&me=A133RA3ZUAU4I7",
+  "rating": 4.5,
+  "ratingCount": 4157,
+  "positivePercent": 88,
+  "ratingPeriod": "12m",
+  "ratingSummary": "4.5 out of 5 stars 88% positive in the last 12 months (4157 ratings)",
+  "feedbackSummary": {
+    "12m": {
+      "rating": 4.5,
+      "ratingCount": 4157,
+      "ratingsWithText": 4157,
+      "positivePercent": 88,
+      "neutralPercent": 1,
+      "negativePercent": 11,
+      "positiveCount": 3666,
+      "neutralCount": 41,
+      "negativeCount": 450,
+      "stars": {
+        "5": { "percent": 82, "count": 3424 },
+        "4": { "percent": 6, "count": 242 },
+        "3": { "percent": 1, "count": 41 },
+        "2": { "percent": 1, "count": 45 },
+        "1": { "percent": 10, "count": 405 }
+      }
+    },
+    "lifetime": {
+      "rating": 4.7,
+      "ratingCount": 184343,
+      "ratingsWithText": 184299,
+      "positivePercent": 93,
+      "neutralPercent": 2,
+      "negativePercent": 5,
+      "positiveCount": 171569,
+      "neutralCount": 2792,
+      "negativeCount": 9982,
+      "stars": {
+        "5": { "percent": 82, "count": 150628 },
+        "4": { "percent": 11, "count": 20941 },
+        "3": { "percent": 2, "count": 2792 },
+        "2": { "percent": 1, "count": 2351 },
+        "1": { "percent": 4, "count": 7631 }
+      }
+    }
+  },
+  "about": "Anschrift:\netronixx Sales GmbH\nBrandstücken 25 -27\nD-22549 Hamburg\n...",
+  "businessName": "etronixx Sales GmbH",
+  "businessAddress": "Brandstücken 27, Hamburg, 22549, DE",
+  "businessAddressLines": ["Brandstücken 27", "Hamburg", "22549", "DE"],
+  "businessDetails": [
+    { "label": "Business Name", "value": "etronixx Sales GmbH" },
+    { "label": "Business Type", "value": "Privately-owned business" },
+    { "label": "Trade Register Number", "value": "HRB78175" },
+    { "label": "VAT Number", "value": "DE813126695" },
+    { "label": "Business Address", "value": "Brandstücken 27, Hamburg, 22549, DE" }
+  ],
+  "contactUrl": "https://amazon.de/gp/help/contact-seller/contact-seller.html?marketplaceID=A1PA6795UKMFR9&sellerID=A133RA3ZUAU4I7&ref_=v_sp_contact_seller",
+  "recentFeedback": [
+    {
+      "rating": 5.0,
+      "text": "Gerne wieder, schnelle Lieferung, Top.",
+      "author": "Amazon Kunde",
+      "date": "29 October 2026",
+      "rater": "By Amazon Kunde on 29 October 2026.",
+      "struckThrough": false,
+      "amazonMessage": null
+    }
+  ],
+  "recentFeedbackCount": 5,
+  "proxyCountry": null,
+  "exitCountry": "de",
+  "exitProvider": "isp"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `name` / `logo` / `storefrontUrl` | The seller's display name, logo and storefront link. |
+| `rating` / `ratingCount` / `positivePercent` | The headline numbers Amazon shows. |
+| `ratingPeriod` / `ratingSummary` | Which period the headline covers (`12m`, or `lifetime` for a seller with few recent ratings) and the summary line as printed. |
+| `feedbackSummary` | One entry per period (`30d`, `90d`, `12m`, `lifetime`): average `rating`, `ratingCount`, `ratingsWithText`, `positivePercent` / `neutralPercent` / `negativePercent` (4-5, 3 and 1-2 stars), the matching counts, and the `stars` histogram with `percent` and `count` per star. |
+| `about` | The seller's own description, as free text. |
+| `businessName` / `businessAddress` / `businessAddressLines` | The business name and address Amazon publishes, as one line and split into lines. |
+| `businessDetails` | Every row of Amazon's "Detailed Seller Information" as `label` / `value` (e.g. business type, trade register number, VAT number, customer services address), where the marketplace shows them. |
+| `contactUrl` | Amazon's contact-seller form. The plugin returns no phone number or e-mail field. |
+| `recentFeedback` | The recent feedback on the profile: `rating`, `text`, `author`, `date`, the `rater` line, `struckThrough` (feedback Amazon struck out) and `amazonMessage` (when Amazon took responsibility for the order). |
+| `exitCountry` / `exitProvider` | The country and the type (`isp`, `residential` or `datacenter`) of the proxy that served the call. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | No or invalid `seller_id` / `url`, or an unsupported `marketplace`. |
+| `404` | Amazon has no seller profile with this id on this marketplace. |
+| `502` | Amazon blocked every attempt, returned no profile page, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Seller vetting** - check a seller's rating trend (30 days against lifetime) and negative share before you buy from them or partner with them.
+- **Competitor monitoring** - track the sellers on your products, together with the [Amazon offers plugin](/plugins/amazon-offers).
+- **Brand protection** - identify the businesses behind unauthorised offers by their published name, address and registration details.
+- **Marketplace research** - map who sells in a category and how their feedback develops.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Look up a seller and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

@@ -1,0 +1,170 @@
+---
+title: "Google AI Mode plugin"
+description: "Google AI Mode answers as clean JSON - the full answer as plain text, Markdown and ordered blocks (paragraphs, headings, lists, tables, code), the pages it cites, the links in its text and its follow-up questions, from any market."
+sidebarTitle: "Google AI Mode"
+---
+
+The **Google AI Mode** plugin asks Google AI Mode a question and returns its full answer as structured JSON. AI Mode is Google's conversational search tab (`udm=50`), not the AI Overview that sits on top of a normal results page: the answer is longer, structured with headings, lists and tables, and backed by a list of cited pages.
+
+Every call returns the answer three ways - plain text, Markdown, and ordered `blocks` (paragraphs, headings, lists, tables and code) for when you want to render or analyse its structure - plus the `references` the answer cites (title, URL, domain, site name and snippet), the `links` written into the answer text and the `followUps` Google closes the answer with. Use it to see which sites Google's AI recommends for a question, how it describes your brand or product, and how that changes by market.
+
+Set `proxy_country` to ask from a market (the Google market `gl` follows it) and `hl` for the answer's language. Answers differ between identical requests, as they do for a person, so track them over several calls rather than reading one answer as fixed. No Google account or API key is involved. For the AI Overview on a regular results page, use [`/serpApi`](/guides/serp-scraping), whose response carries an `aiOverview` block.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /search/google-ai-mode
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `q` | yes | The question to ask, e.g. `how to learn python fast`. |
+| `proxy_country` | no | Country the request is sent from (ISO-2, e.g. `US`, `DE`). The Google market (`gl`) follows it unless `gl` is set. |
+| `gl` | no | Google market override (ISO-2, e.g. `us`, `de`). Default: `proxy_country`, else `us`. |
+| `hl` | no | Language Google answers in, e.g. `en`, `de`, `pt-BR`. Default `en`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/search/google-ai-mode?q=how%20to%20learn%20python%20fast" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_ai_mode("how to learn python fast")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.googleAiMode("how to learn python fast");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->googleAiMode('how to learn python fast');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.google_ai_mode("how to learn python fast")
+```
+</CodeGroup>
+
+To ask from another market, add `proxy_country` (and `hl` for the language), e.g. `su.google_ai_mode("beste laptop für studenten", proxy_country="DE", hl="de")`.
+
+Each answer is billed as one request. A `502` (no complete answer) is not billed.
+
+### Response
+
+```json
+{
+  "query": "how to learn python fast",
+  "hl": "en",
+  "gl": "us",
+  "proxyCountry": "US",
+  "url": "https://www.google.com/search?q=how+to+learn+python+fast&udm=50&hl=en&gl=us",
+  "answer": {
+    "text": "To learn Python fast, you must strictly follow the 20/80 rule: spend 20% of your time studying concepts and 80% of your time writing actual code. Watching hours of tutorials without typing along creates an illusion of competence and slows you down.\nBy focusing only on high-utility concepts and building small projects immediately, you can gain a functional grasp of Python in a matter of weeks.\n...",
+    "markdown": "To learn Python fast, you must **strictly follow the 20/80 rule: spend 20% of your time studying concepts and 80% of your time writing actual code**. Watching hours of tutorials without typing along creates an illusion of competence and slows you down.\n\n...",
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "To learn Python fast, you must strictly follow the 20/80 rule: spend 20% of your time studying concepts and 80% of your time writing actual code. ..."
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          { "text": "Variables & Types: Storing data via strings, integers, and booleans.", "level": 0 },
+          { "text": "Control Flow: Making decisions using if, elif, and else statements.", "level": 0 }
+        ]
+      },
+      {
+        "type": "table",
+        "header": ["Goal / Pathway", "Essential Tools & Libraries to Learn"],
+        "rows": [
+          ["Data Science & AI", "NumPy (math), Pandas (dataframes), and Scikit-Learn (ML)"],
+          ["Web Development", "Django or Flask (building backend APIs and web apps)"]
+        ]
+      }
+    ]
+  },
+  "followUps": [],
+  "references": [
+    {
+      "title": "How I Would Learn Python FAST (if I could start over)",
+      "url": "https://www.youtube.com/watch?v=ywjyvKzc8e4&t=211",
+      "source": "YouTube",
+      "domain": "youtube.com",
+      "snippet": "To learn Python quickly, start by understanding its context within the software lifecycle, dedicating a few days to a week for thi...",
+      "position": 2
+    },
+    {
+      "title": "Learn Python 3 - Codecademy",
+      "url": "https://www.codecademy.com/learn/learn-python-3",
+      "source": "Codecademy",
+      "domain": "codecademy.com",
+      "snippet": "Learn how to build control flow into your python code by including if, else, and elif statements. Expect to learn all you need to ...",
+      "position": 6
+    }
+  ],
+  "links": [
+    { "text": "LearnPython.org", "url": "https://www.learnpython.org/" },
+    { "text": "Python Tutor", "url": "https://pythontutor.com/" }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `answer.text` | The whole answer as plain text. |
+| `answer.markdown` | The whole answer as Markdown, with bold, headings, lists and tables kept. |
+| `answer.blocks` | The answer in order, one object per block: `paragraph` and `code` (`text`), `heading` (`level`, `text`), `list` (`ordered`, `items` with `text` and nesting `level`) and `table` (`header`, `rows`). |
+| `references` | The pages the answer cites, in Google's order: `title`, `url`, `domain`, `source` (site name), `snippet` and `position`. |
+| `links` | Links written into the answer text, each with its anchor `text` and `url`. |
+| `followUps` | The follow-up questions Google closes the answer with, when it offers any (else an empty list). |
+| `hl` / `gl` / `proxyCountry` | The language and market used, and the country the request was sent from. |
+| `url` | The AI Mode address the answer was read from. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. an empty `q` (plain-text message). |
+| `403` | Google kept answering with a CAPTCHA after retries. Try another `proxy_country`. |
+| `502` | No complete AI Mode answer: Google blocked the request, the answer did not finish streaming, or the call did not finish in time. Not billed. Retry. |
+| `503` | No proxy exit was free for this market. Retry, or pick another `proxy_country`. |
+
+## What you can build
+
+- **AI search visibility tracking** - see whether Google's AI recommends your brand, product or site for the questions your customers ask, and which competitors it cites instead.
+- **Citation monitoring** - track which domains AI Mode cites for a topic and how that shifts over time and by market.
+- **Content research** - read how Google's AI structures an answer (steps, comparison tables, recommended tools) to plan your own content.
+- **Market comparison** - ask the same question from several countries and languages and compare the answers.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Ask Google AI Mode and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

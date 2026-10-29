@@ -3,6 +3,46 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-10-29" description="Kroger, Instacart, Publix, Costco, Amazon offers and seller, Flipkart, Lazada, Allegro, Falabella, Magazine Luiza, Google AI Mode, Google Lens and Gemini plugins; SDKs 0.15.0">
+  **Fourteen new plugin pages, 23 endpoints:**
+
+  - **Groceries:** [Kroger](/plugins/kroger) (Kroger and its 18 banner
+    stores, priced for one store, with deals, stock, aisle and nutrition;
+    a search returns the first page, up to 24 products),
+    [Instacart](/plugins/instacart) (any retailer on Instacart, priced for a
+    ZIP code) and [Publix](/plugins/publix) (one store's promotions; Publix
+    shows a price online only for items on promotion, so use Instacart with
+    `retailer=publix` for everyday prices).
+  - **E-commerce:** [Amazon Offers](/plugins/amazon-offers) (every seller's
+    offer for a product, Buy Box first) and
+    [Amazon Seller](/plugins/amazon-seller) (a seller's public profile and
+    feedback; no phone number or e-mail), [Costco](/plugins/costco) (US and
+    Canada), [Flipkart](/plugins/flipkart) (India),
+    [Lazada](/plugins/lazada) (six Southeast Asian markets),
+    [Allegro](/plugins/allegro) (Poland), [Falabella](/plugins/falabella)
+    (Chile, Colombia, Peru) and [Magazine Luiza](/plugins/magazine-luiza)
+    (Brazil), each with a search and a product endpoint.
+  - **Google and AI:** [Google AI Mode](/plugins/google-ai-mode) (the AI Mode
+    answer with the pages it cites), [Google Lens](/plugins/google-lens)
+    (visual matches for an image URL; Lens matches load from European
+    exits, so a US request is served from one) and
+    [Gemini](/plugins/gemini) (Gemini's answer with citations and sources),
+    under a new **AI** group in the plugin list.
+
+  **SDKs 0.15.0** ([Python](/sdks/python), [Node.js](/sdks/nodejs),
+  [PHP](/sdks/php), [Ruby](/sdks/ruby)) add 23 plugin methods:
+  `kroger_search`, `kroger_product`, `instacart_search`,
+  `instacart_product`, `publix_search`, `publix_product`, `amazon_offers`,
+  `amazon_seller`, `costco_search`, `costco_product`, `flipkart_search`,
+  `flipkart_product`, `lazada_search`, `lazada_product`, `allegro_search`,
+  `allegro_product`, `falabella_search`, `falabella_product`,
+  `magazineluiza_search`, `magazineluiza_product`, `google_ai_mode`,
+  `google_lens` and `gemini` (camelCase in Node.js and PHP). The
+  [MCP server](/sdks/mcp) (**0.9.0** on npm) and the hosted connector
+  (**0.10.0**) have the new plugins in their catalog, so `list_plugins`
+  lists them and `run_plugin` runs them.
+</Update>
+
 <Update label="2026-10-26" description="Markdown without cookie banners; parsed_data price of variant offers; SERP countries; SHEIN and Shopee fixes">
   - **Markdown:** with `main_content_only` (the default), cookie consent banners
     (Cookiebot, OneTrust and other consent managers) are removed. A banner's

@@ -1,0 +1,304 @@
+---
+title: "Publix plugin"
+description: "Publix (publix.com) groceries as clean JSON - search results at one store with promotions such as BOGO, coupons, aisle and category, and one product with images, description, ingredients, allergens, badges and related products."
+sidebarTitle: "Publix"
+---
+
+The **Publix** plugin returns grocery data from Publix (publix.com, US) as structured JSON. It is two endpoints:
+
+- **`/groceries/publix-search`** - the products for a keyword at one store: product id and item code, title, brand, size, link and image, the promotion (type such as BOGO, message, conditions, valid dates and saving) with its price, whether a coupon applies, whether it is sold by weight, the aisle, category and category path. 48 products per page; one call collects up to 480.
+- **`/groceries/publix-product`** - one product: the same fields plus the image gallery, description, ingredients, directions, allergens, availability, categories, badges, coupon count, SmartLabel link and related products.
+
+Promotions and aisles differ per store, so every answer is for one store, named in `store`. Pick it with `store_id`, or with a `zip` code (the nearest Publix store); with neither, a store in Lakeland, FL is used. No Publix account is involved.
+
+<Warning>
+Publix publishes a price on publix.com only while an item is on promotion. For every other item `price` is `null`. For everyday Publix shelf prices use the [Instacart plugin](/plugins/instacart) with `retailer=publix`, which prices Publix's catalogue at the store serving a ZIP code (Instacart's prices, which can differ from in-store prices).
+</Warning>
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /groceries/publix-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `milk`, `cheerios` or `chicken breast`. |
+| `store_id` | no | Publix store number whose promotions and aisles to return, e.g. `1614`. Give this or `zip`, not both; with neither, a store in Lakeland, FL is used. |
+| `zip` | no | US ZIP code; the nearest Publix store is used, e.g. `33801`. |
+| `page` | no | 1-based results page to start from (48 products per page), `1`-`50`. Default `1`. |
+| `max_results` | no | Products to collect from `page` on, `1`-`480`. Default `48`. Each page fetched is billed as one request (`pagesFetched`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/publix-search?query=cereal&store_id=1614&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.publix_search("cereal", store_id="1614", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.publixSearch("cereal", { storeId: "1614", maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->publixSearch('cereal', ['store_id' => '1614', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.publix_search("cereal", store_id: "1614", max_results: 3)
+```
+</CodeGroup>
+
+A search with no matches is a `200` with an empty `products` list. Some keywords Publix does not search at all:
+
+- A keyword Publix sends to a category (as `cereal` above) returns that category's products, and `redirectedTo` names the category page.
+- A keyword Publix sends to a page that lists no products (the weekly ad, cake ordering, store locations) answers `200` with no products and `sentElsewhere: true`.
+
+### Response
+
+```json
+{
+  "query": "cereal",
+  "store": {
+    "storeId": "1614",
+    "name": "3 Miami Central",
+    "address": "601 NW 2nd Ave",
+    "city": "Miami",
+    "state": "FL",
+    "zip": "33136",
+    "phone": "(305) 374-6806"
+  },
+  "page": 1,
+  "pageSize": 48,
+  "totalResults": 137,
+  "totalPages": 3,
+  "nextPage": 2,
+  "resultsCollected": 3,
+  "redirectedTo": "https://www.publix.com/c/cereals-and-granola/a09a497e-8647-45bc-8eb6-89f50e99b2de",
+  "url": "https://www.publix.com/search?searchTerm=cereal&srt=products",
+  "correctedQuery": null,
+  "products": [
+    {
+      "productId": "RIO-PCI-103365",
+      "itemCode": 8647,
+      "title": "Cheerios Honey Nut Cereal",
+      "brand": "Cheerios",
+      "size": "10.8 oz (306 g)",
+      "url": "https://www.publix.com/pd/cheerios-honey-nut-cereal/RIO-PCI-103365",
+      "image": "https://images.publixcdn.com/pct/images/products/5000/008647-600x600-A.jpg",
+      "price": 5.44,
+      "priceText": "$5.44",
+      "unit": null,
+      "wasPrice": null,
+      "currency": "USD",
+      "onSale": true,
+      "promotion": {
+        "type": "BOGO",
+        "message": "Buy 1 Get 1 Free",
+        "conditions": "of equal or lesser price",
+        "validThrough": "Valid 10/29-11/4",
+        "savings": 5.44
+      },
+      "hasCoupon": true,
+      "soldByWeight": false,
+      "aisle": "Aisle 2 - Cereal",
+      "category": "Cereals and Granola",
+      "categoryPath": ["Grocery", "Breakfast and Cereal", "Cereals and Granola"],
+      "storeId": "1614"
+    }
+  ],
+  "pagesFetched": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `itemCode` | Publix product id (e.g. `RIO-PCI-103365`) and item code. Pass the id to [Product](#product). |
+| `title` / `brand` / `size` / `url` / `image` | Name, brand, pack size, link and image. |
+| `price` / `priceText` / `currency` | The price, only while the item is on promotion (`null` otherwise), as printed, and `USD`. |
+| `unit` / `soldByWeight` | The unit the price is per for items sold by weight (e.g. `lb`), and the weight flag. |
+| `wasPrice` / `onSale` | The crossed-out price, when Publix shows one, and whether the item is on promotion. |
+| `promotion` | `type` (e.g. `BOGO`), `message`, `conditions`, `validThrough` and `savings`. |
+| `hasCoupon` | Whether a Publix coupon applies to the item. |
+| `aisle` / `category` / `categoryPath` | Aisle at this store, category and the full category path. |
+| `storeId` / `store` | The store the promotions are for: `storeId`, `name`, `address`, `city`, `state`, `zip` and `phone`. |
+| `totalResults` / `totalPages` / `nextPage` | Publix's result count and page count; pass `nextPage` as `page` to continue. |
+| `redirectedTo` / `sentElsewhere` / `correctedQuery` | The category page Publix sent the keyword to, `true` when it sent the keyword to a page without products, and Publix's spelling correction, if any. |
+
+## Product
+
+```
+POST /groceries/publix-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product` | yes | A Publix product id (`RIO-PCI-103438`) or product link (`https://www.publix.com/pd/cheerios-cereal-large-size/RIO-PCI-103438`). |
+| `store_id` | no | Publix store number whose promotion to return, as in search. |
+| `zip` | no | US ZIP code; the nearest Publix store is used, as in search. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/publix-product?product=RIO-PCI-103438&zip=33801" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.publix_product("RIO-PCI-103438", zip="33801")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.publixProduct("RIO-PCI-103438", { zip: "33801" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->publixProduct('RIO-PCI-103438', ['zip' => '33801']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.publix_product("RIO-PCI-103438", zip: "33801")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "productId": "RIO-PCI-103438",
+    "itemCode": 8655,
+    "title": "Cheerios Cereal Large Size",
+    "brand": "Cheerios",
+    "size": "12 oz (340 g)",
+    "url": "https://www.publix.com/pd/cheerios-cereal-large-size/RIO-PCI-103438",
+    "image": "https://images.publixcdn.com/pct/images/products/5000/008655-600x600-A.jpg",
+    "price": 6.49,
+    "priceText": "$6.49",
+    "unit": null,
+    "wasPrice": null,
+    "currency": "USD",
+    "onSale": true,
+    "promotion": {
+      "type": "BOGO",
+      "message": "Buy 1 Get 1 Free",
+      "conditions": "of equal or lesser price",
+      "validThrough": "Valid 10/29-11/4",
+      "savings": 6.49
+    },
+    "hasCoupon": false,
+    "soldByWeight": false,
+    "aisle": "Aisle 2 - Cereal",
+    "category": "Cereals and Granola",
+    "categoryPath": ["Grocery", "Breakfast and Cereal", "Cereals and Granola"],
+    "storeId": "1651",
+    "images": ["https://images.publixcdn.com/pct/images/products/5000/008655-600x600-A.jpg"],
+    "description": "Toasted whole grain oat cereal. No artificial flavors. Per 1-1/2 Cup Serving: 140 calories; ...",
+    "ingredients": "Whole Grain Oats, Corn Starch, Sugar, Salt, Tripotassium Phosphate, Vitamin E (Mixed Tocopherols) ...",
+    "directions": null,
+    "allergens": null,
+    "available": true,
+    "categories": ["Grocery", "Breakfast and Cereal", "Cereals and Granola"],
+    "badges": [
+      "Contains more nutrients you need, like fiber, and less you don't, like saturated fat, added sodium or added sugar, ...",
+      "Gluten Free"
+    ],
+    "couponCount": 8,
+    "smartLabelUrl": "http://smartlabel.generalmills.com/16000487727",
+    "relatedProducts": [
+      {
+        "productId": "RIO-PCI-103309",
+        "title": "Cheerios Apple Cinnamon Cereal",
+        "url": "https://www.publix.com/pd/cheerios-apple-cinnamon-cereal/RIO-PCI-103309"
+      }
+    ]
+  },
+  "store": {
+    "storeId": "1651",
+    "name": "Grove Park Shopping Center",
+    "address": "1617 US Hwy 98 S",
+    "city": "Lakeland",
+    "state": "FL",
+    "zip": "33801",
+    "phone": "(863) 413-0626"
+  },
+  "query": { "product": "RIO-PCI-103438" }
+}
+```
+
+`product` carries every search field above, plus:
+
+| Field | Notes |
+| --- | --- |
+| `images` / `description` | The image gallery and the product text. |
+| `ingredients` / `directions` / `allergens` | As Publix lists them (`null` when the page has none). |
+| `available` | Whether the product is available at this store. |
+| `categories` / `badges` | Category path and Publix's badges (e.g. `Gluten Free`). |
+| `couponCount` / `smartLabelUrl` | Number of coupons on the product page, and the manufacturer's SmartLabel link. |
+| `relatedProducts` | Related products, each with `productId`, `title` and `url`. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query` or `product`, both `store_id` and `zip`, a `zip` that is not 5 digits, or `page` above `50`. |
+| `404` | No Publix store with that number or near that ZIP code, or (product) Publix has no such product. |
+| `502` | Publix blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Promotion tracking** - follow Publix BOGO and sale deals per store, with their valid dates and savings.
+- **Coupon monitoring** - flag the items a Publix coupon applies to.
+- **Product data** - collect ingredients, allergens, badges and images for a catalogue.
+- **Store mapping** - map products to their aisle at each store.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Publix search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

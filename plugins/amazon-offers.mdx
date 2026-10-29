@@ -1,0 +1,205 @@
+---
+title: "Amazon offers plugin"
+description: "Every seller's offer for an Amazon product as clean JSON - the Buy Box offer first, then all other offers with price, shipping, total, condition, delivery dates, seller rating and whether Amazon fulfils it, on 20 regional marketplaces."
+sidebarTitle: "Amazon Offers"
+---
+
+The **Amazon offers** plugin returns the offers Amazon lists for a product under "All buying options", as structured JSON. It is one endpoint:
+
+- **`/marketplace/amazon-offers`** - every offer for a product: the seller (name, id, link, rating, rating count, positive share), the price with its currency, list price and savings, shipping and total price, the condition (new, used, collectible, refurbished) with the seller's condition note, the delivery dates and the faster alternative Amazon offers, where it ships from, and whether Amazon sells it, fulfils it or it is Prime. The response also carries the product title, rating, review count, image and the total number of offers.
+
+Page 1 starts with the Buy Box (featured) offer, also returned on its own as `buyBox`. Pass an offer's `sellerId` to the [Amazon seller plugin](/plugins/amazon-seller) for that seller's profile and feedback, and the ASIN to the [Amazon plugin](/plugins/amazon) for the full product page.
+
+Amazon prices every page for the delivery location it infers from the visitor, so `proxy_country` defaults to the marketplace's home country (`amazon.com` -> US, `amazon.de` -> DE, ...): prices, shipping costs and delivery dates are the ones a local shopper sees. The proxy that served the call is reported as `exitCountry` and `exitProvider`. No Amazon seller account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Offers
+
+```
+POST /marketplace/amazon-offers
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `asin` | one of `asin` / `url` | Amazon product id, e.g. `B07VGRJDFY` (books use their ISBN-10). Pair with `marketplace`. |
+| `url` | one of `asin` / `url` | Full product URL, e.g. `https://www.amazon.de/dp/1847941834`. The ASIN and marketplace are read from it. |
+| `marketplace` | no | Regional Amazon site whose offers to list. Default `amazon.com`. One of `amazon.com`, `amazon.co.uk`, `amazon.de`, `amazon.fr`, `amazon.it`, `amazon.es`, `amazon.nl`, `amazon.se`, `amazon.pl`, `amazon.com.be`, `amazon.com.tr`, `amazon.ca`, `amazon.com.mx`, `amazon.com.br`, `amazon.co.jp`, `amazon.in`, `amazon.ae`, `amazon.sa`, `amazon.sg`, `amazon.com.au`. |
+| `condition` | no | Only offers in this condition: `all`, `new`, `used`, `used_like_new`, `used_very_good`, `used_good`, `used_acceptable`. Default `all`. |
+| `free_shipping` | no | `true` for offers with free delivery only. Default `false`. |
+| `prime` | no | `true` for Prime-eligible offers only. Default `false`. |
+| `page` | no | 1-based offers page to start at. Amazon lists 10 offers per page; page 1 also carries the Buy Box offer and the product header. Default `1`. |
+| `pages` | no | How many consecutive pages to read in this call, `1`-`5`. Reading stops early at the last page. Default `1`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). Defaults to the marketplace's home country. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/amazon-offers?asin=B07VGRJDFY&marketplace=amazon.com" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.amazon_offers(asin="B07VGRJDFY", marketplace="amazon.com")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.amazonOffers({
+  asin: "B07VGRJDFY",
+  marketplace: "amazon.com",
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->amazonOffers([
+    'asin' => 'B07VGRJDFY',
+    'marketplace' => 'amazon.com',
+]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.amazon_offers(asin: "B07VGRJDFY", marketplace: "amazon.com")
+```
+</CodeGroup>
+
+Each page delivered is billed as one request (`pagesFetched`). The Buy Box offer is shown whatever filter is set. A product nobody sells right now is a `200` with an empty `offers` list.
+
+### Response
+
+```json
+{
+  "asin": "B07VGRJDFY",
+  "marketplace": "amazon.com",
+  "url": "https://www.amazon.com/dp/B07VGRJDFY",
+  "title": "Nintendo Switch with Neon Blue and Neon Red Joy-Con",
+  "image": "https://m.media-amazon.com/images/I/41BK-AwtV9L.jpg",
+  "rating": 4.8,
+  "reviewCount": 80878,
+  "filters": { "condition": "all", "freeShipping": false, "prime": false },
+  "page": 1,
+  "pagesFetched": 1,
+  "lastPageFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "totalOffers": 66,
+  "totalOffersText": "65 other options",
+  "totalPages": 7,
+  "hasBuyBox": true,
+  "buyBox": {
+    "buyBoxWinner": true,
+    "offerId": "a2o8n2qtAolsTQ5WUHExhGOc6muuu7ovkONAPZkuwGk...",
+    "condition": "New",
+    "conditionType": "new",
+    "price": 324.0,
+    "currency": "USD",
+    "totalPrice": 324.0,
+    "sellerName": "foxracing747",
+    "sellerId": "A2FNJK7KJVY243",
+    "fulfilledByAmazon": true,
+    "prime": true
+  },
+  "offers": [
+    {
+      "buyBoxWinner": false,
+      "offerId": "a2o8n2qtAolsTQ5WUHExhGOc6muuu7ovgdykWSMKjJm...",
+      "condition": "Used - Acceptable",
+      "conditionType": "used",
+      "conditionNote": "SWITCH COMES WITH RANDOM COLORED LEFT AND RIGHT JOY-CON ONLY. WILL HAVE SCRATCHES/WEAR. ...",
+      "price": 169.95,
+      "currency": "USD",
+      "priceRaw": "$169.95",
+      "listPrice": null,
+      "listPriceRaw": null,
+      "savingsPercent": null,
+      "shippingPrice": 0.0,
+      "shippingRaw": "FREE",
+      "totalPrice": 169.95,
+      "delivery": "FREE delivery November 4 - 6",
+      "deliveryDate": "November 4 - 6",
+      "alternativeDelivery": "Or fastest delivery Wednesday, November 4",
+      "alternativeDeliveryDate": "Wednesday, November 4",
+      "shipsFrom": "Console Replay",
+      "internationalShippingNote": null,
+      "sellerName": "Console Replay",
+      "sellerId": "A3PEV2IAOYFKM6",
+      "sellerUrl": "https://www.amazon.com/sp?seller=A3PEV2IAOYFKM6",
+      "sellerRating": 4.0,
+      "sellerRatingCount": 407,
+      "sellerPositivePercent": 74,
+      "soldByAmazon": false,
+      "fulfilledByAmazon": false,
+      "prime": false,
+      "page": 1,
+      "position": 2
+    }
+  ],
+  "offersCollected": 11,
+  "proxyCountry": "US",
+  "exitCountry": "us",
+  "exitProvider": "isp"
+}
+```
+
+The example is shortened: `buyBox` carries the same fields as every offer, and the `offers` list starts with the Buy Box offer (`position` 1) on page 1 - the example shows the second offer.
+
+| Field | Notes |
+| --- | --- |
+| `title` / `image` / `rating` / `reviewCount` | The product header Amazon shows above the offers. |
+| `totalOffers` / `totalOffersText` / `totalPages` | How many offers Amazon reports, as a number and as printed, and how many pages of 10 that makes. |
+| `hasMore` / `nextPage` | Whether more pages follow, and the `page` to pass to continue. |
+| `buyBox` / `hasBuyBox` | The Buy Box (featured) offer, with the same fields as an offer, and whether the product has one. |
+| `offerId` / `buyBoxWinner` / `position` | Amazon's offer id, the Buy Box flag and the offer's place in the list. |
+| `condition` / `conditionType` / `conditionNote` | The condition as Amazon words it, normalised to `new`, `used`, `collectible` or `refurbished`, and the seller's note. |
+| `price` / `currency` / `priceRaw` | Numeric price, ISO currency and the price as printed. |
+| `listPrice` / `savingsPercent` | The crossed-out price and the discount, when the offer shows one. |
+| `shippingPrice` / `shippingRaw` / `totalPrice` | Delivery cost (`0` for free delivery, `null` when Amazon shows no delivery promise for the location) and price plus shipping. |
+| `delivery` / `deliveryDate` | Amazon's delivery promise and its date part. |
+| `alternativeDelivery` / `alternativeDeliveryDate` | The faster or Prime-member delivery option Amazon also offers. |
+| `shipsFrom` / `internationalShippingNote` | Who ships the item, and Amazon's note when it ships from abroad. |
+| `sellerName` / `sellerId` / `sellerUrl` | The seller and its profile link. Pass `sellerId` to the [Amazon seller plugin](/plugins/amazon-seller). |
+| `sellerRating` / `sellerRatingCount` / `sellerPositivePercent` | The seller's rating, rating count and positive share, as the offer shows them. |
+| `soldByAmazon` / `fulfilledByAmazon` / `prime` | Sold by Amazon itself, fulfilled by Amazon (FBA), Prime-eligible. |
+| `exitCountry` / `exitProvider` | The country and the type (`isp`, `residential` or `datacenter`) of the proxy that served the call. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | No or invalid `asin` / `url`, or an unsupported parameter value (e.g. a `marketplace` not in the list). |
+| `404` | Amazon has no product with this ASIN on this marketplace. |
+| `502` | Amazon blocked every attempt, returned no offers panel, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Buy Box monitoring** - track who holds the Buy Box, at what price, and how often it changes hands.
+- **Repricing** - compare your offer's total price (price plus shipping) with every competing seller in the same condition.
+- **Used and refurbished pricing** - read the used and collectible market for a product with `condition`.
+- **Seller discovery** - list every seller of a product, then profile them with the [Amazon seller plugin](/plugins/amazon-seller).
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    List a product's offers and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

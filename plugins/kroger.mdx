@@ -1,0 +1,390 @@
+---
+title: "Kroger plugin"
+description: "Kroger and its 18 banner stores (Ralphs, Fred Meyer, King Soopers, Harris Teeter and more) as clean JSON - store-specific price, sale and multibuy deals, unit price, stock level, aisle and fulfillment for a search, and one product in full with ingredients, allergens and nutrition facts."
+sidebarTitle: "Kroger"
+---
+
+The **Kroger** plugin returns grocery data from Kroger (kroger.com) and its banner sites (Ralphs, Fred Meyer, King Soopers, Fry's Food, Smith's, QFC, Harris Teeter, Mariano's and the rest) as structured JSON. It is two endpoints:
+
+- **`/groceries/kroger-search`** - the products for a keyword at one store, in the site's order: Kroger product id, UPC, name, brand, size, link and image, the price the shopper pays now with the regular and sale price, the promotion (sale, price drop, multibuy, must buy, buy one get one), unit price, stock level, the aisle location, whether the store offers pickup, delivery, in-store or shipping for it, rating, categories and SNAP eligibility.
+- **`/groceries/kroger-product`** - one product by Kroger product id, UPC / GTIN barcode or product link: the same price and stock fields, plus the description, highlights, every image, ingredients, allergens, the nutrition panel, dietary tags and claims, category paths, country of origin, storage and size.
+
+Kroger prices differ from store to store, so every answer is priced for one store, named in `store`. Pick it with `store_id`, or with a `zip` code (the banner's nearest store that takes online orders), or leave both blank for the banner's default store. Prices are in USD. No Kroger account is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /groceries/kroger-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `milk`, `coca cola` or `gluten free bread`. |
+| `banner` | no | Which Kroger-family site to use: `kroger`, `ralphs`, `fredmeyer`, `kingsoopers`, `frysfood`, `smithsfoodanddrug`, `qfc`, `dillons`, `bakersplus`, `citymarket`, `gerbes`, `foodfourless`, `harristeeter`, `marianos`, `metromarket`, `picknsave`, `jaycfoods`, `payless`, `foodsco`. Host names (`ralphs.com`) and common spellings (`food4less`, `smiths`, `frys`) work too. Default `kroger`. |
+| `brand` | no | Only products of these brands, e.g. `Kroger` or `Kroger,Simple Truth` (separate several with commas or a vertical bar). |
+| `store_id` | no | Kroger store id (8 digits, e.g. `01400929`): prices, stock and aisles are that store's. Every answer shows it as `store.storeId`, and `nearbyStores` lists more when you search by `zip`. Give `store_id` or `zip`, not both. |
+| `zip` | no | US ZIP code: prices for the banner's nearest store to it that takes online orders (the nearest store at all when none does). The answer lists the nearby stores in `nearbyStores`. |
+| `max_results` | no | Products to return, `1`-`24`. Default `24`. |
+
+<Note>
+A search returns the first page of Kroger's results only: up to 24 products per call. `totalResults` still reports the site's full match count, so narrow the keyword or add `brand` to reach products further down the list.
+</Note>
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/kroger-search?query=milk&banner=kroger&zip=45202&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.kroger_search("milk", banner="kroger", zip="45202", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.krogerSearch("milk", {
+  banner: "kroger",
+  zip: "45202",
+  maxResults: 3,
+});
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->krogerSearch('milk', ['banner' => 'kroger', 'zip' => '45202', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.kroger_search("milk", banner: "kroger", zip: "45202", max_results: 3)
+```
+</CodeGroup>
+
+Each search is billed as one request.
+
+### Response
+
+```json
+{
+  "banner": "kroger",
+  "bannerName": "Kroger",
+  "query": "milk",
+  "brands": [],
+  "store": {
+    "storeId": "01400473",
+    "name": "Newport",
+    "banner": "kroger",
+    "address": {
+      "line1": "20 W 6th St",
+      "line2": null,
+      "city": "Newport",
+      "state": "KY",
+      "zip": "41071",
+      "country": "US"
+    },
+    "latitude": 39.0894902,
+    "longitude": -84.494807,
+    "fulfillmentMethods": ["pickup", "inStore"],
+    "hours": [{ "days": "Sun - Sat", "hours": "6:00 AM - 10:00 PM" }],
+    "pricesFor": "pickup",
+    "selectedBy": "zip"
+  },
+  "totalResults": 231,
+  "resultsCollected": 3,
+  "products": [
+    {
+      "productId": "0001111041600",
+      "upc": "011110416001",
+      "gtin14": "00011110416001",
+      "name": "Kroger® 2% Reduced Fat Milk Half Gallon",
+      "brand": "Kroger",
+      "size": "1/2 gal",
+      "url": "https://www.kroger.com/p/kroger-2-reduced-fat-milk-half-gallon/0001111041600",
+      "image": "https://www.kroger.com/product/images/large/front/0001111041600",
+      "price": 1.99,
+      "regularPrice": 1.99,
+      "salePrice": 1.99,
+      "onSale": true,
+      "savings": null,
+      "promotion": {
+        "type": "bogo",
+        "text": "Buy 1, Get 1 Free",
+        "quantity": null,
+        "quantityPrice": null,
+        "expiresAt": "2026-11-04T04:59:59.999Z"
+      },
+      "unitPrice": { "price": 0.0311, "unit": "fl oz", "text": "$0.03/fl oz" },
+      "soldBy": "unit",
+      "priceIsEstimate": false,
+      "currency": "USD",
+      "priceText": "Buy 1, Get 1 Free",
+      "available": true,
+      "stockLevel": "HIGH",
+      "unavailableReason": null,
+      "maxOrderQuantity": 138,
+      "fulfillment": { "pickup": true, "delivery": true, "inStore": true, "ship": false },
+      "aisle": { "number": "100", "description": "DAIRY", "side": "L", "bay": "18", "shelf": "3" },
+      "rating": 2.68,
+      "reviewCount": 66,
+      "categories": ["Dairy"],
+      "snapEligible": true,
+      "offers": [],
+      "position": 1,
+      "sponsored": false
+    }
+  ],
+  "url": "https://www.kroger.com/search?query=milk",
+  "nearbyStores": [
+    {
+      "storeId": "01400513",
+      "name": "Kroger On the Rhine",
+      "banner": "kroger",
+      "address": {
+        "line1": "100 E Court St",
+        "line2": null,
+        "city": "Cincinnati",
+        "state": "OH",
+        "zip": "45202",
+        "country": "US"
+      },
+      "latitude": 39.10682,
+      "longitude": -84.51253,
+      "phone": "(513) 263-5900",
+      "distanceMiles": 0.08,
+      "fulfillmentMethods": ["inStore"],
+      "hours": [{ "days": "Sun - Sat", "hours": "6:00 AM - 10:00 PM" }]
+    }
+  ]
+}
+```
+
+In this example the nearest store to `45202` takes no online orders, so the prices are for the nearest one that does (`selectedBy: "zip"`), and `nearbyStores` lists both.
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `upc` / `gtin14` | Kroger's 13-digit product id and the barcodes. Pass any of them to [Product](#product). |
+| `name` / `brand` / `size` / `url` / `image` | Product name, brand, pack size, link and image. |
+| `price` / `priceText` / `currency` | What the shopper pays now at this store, the price as the site prints it (or the deal text), and `USD`. |
+| `regularPrice` / `salePrice` / `onSale` / `savings` | The regular price, the sale price and saving when there is one. |
+| `promotion` | `type` (`sale`, `price_drop`, `multibuy`, `must_buy`, `bogo`), `text`, for multibuy deals `quantity` and `quantityPrice`, and `expiresAt`. |
+| `unitPrice` | `price`, `unit` and `text`, e.g. `$0.03/fl oz`. |
+| `soldBy` / `priceIsEstimate` | `unit` or `weight`; for weighed items the price is Kroger's per-item estimate and `priceIsEstimate` is `true`. |
+| `available` / `stockLevel` / `unavailableReason` / `maxOrderQuantity` | Whether the store sells it now, `HIGH`, `LOW` or `TEMPORARILY_OUT_OF_STOCK`, the site's reason when it cannot be ordered, and the order limit. |
+| `fulfillment` | `pickup`, `delivery`, `inStore`, `ship`: whether the store offers the product that way. |
+| `aisle` | Where it is in the store: `number`, `description`, `side`, `bay`, `shelf`. |
+| `rating` / `reviewCount` / `categories` / `snapEligible` | Rating, review count, categories and SNAP eligibility. |
+| `offers` | Extra deals on the product, such as `Save $2 each when you buy 3`. |
+| `position` / `sponsored` | Rank in the results, and whether the slot is sponsored. |
+| `store` | The store the prices are for: `storeId`, `name`, `banner`, `address`, `latitude`, `longitude`, `fulfillmentMethods`, `hours`, `pricesFor` (`pickup` or `inStore`) and `selectedBy` (`store_id`, `zip` or `default`). |
+| `nearbyStores` | With `zip`: the banner's stores near it, with `phone` and `distanceMiles`. Pass a `storeId` as `store_id` to price another one. |
+| `totalResults` / `resultsCollected` | The site's total match count, and how many products this call returned. |
+
+## Product
+
+```
+POST /groceries/kroger-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product` | yes | Kroger's 13-digit product id (`0001111041700`), a UPC or GTIN barcode (`011110417005`), or a product link from any banner (`https://www.kroger.com/p/kroger-2-reduced-fat-milk/0001111041700`). A link picks its banner by itself. |
+| `banner` | no | Which Kroger-family site to use, as in search. Default `kroger`. |
+| `store_id` | no | Kroger store id whose price, stock and aisle to return, as in search. |
+| `zip` | no | US ZIP code: prices for the banner's nearest store to it that takes online orders, as in search. Leave both blank for the banner's default store. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/kroger-product?product=0001111041700" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.kroger_product("0001111041700")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.krogerProduct("0001111041700");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->krogerProduct('0001111041700');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.kroger_product("0001111041700")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "banner": "kroger",
+  "bannerName": "Kroger",
+  "store": {
+    "storeId": "01400929",
+    "name": "University Plaza",
+    "banner": "kroger",
+    "address": {
+      "line1": "1 W Corry St",
+      "line2": null,
+      "city": "Cincinnati",
+      "state": "OH",
+      "zip": "45219",
+      "country": "US"
+    },
+    "latitude": 39.128667,
+    "longitude": -84.509336,
+    "fulfillmentMethods": ["pickup", "inStore"],
+    "hours": [{ "days": "Sun - Sat", "hours": "6:00 AM - 11:00 PM" }],
+    "pricesFor": "pickup",
+    "selectedBy": "default"
+  },
+  "product": {
+    "productId": "0001111041700",
+    "upc": "011110417008",
+    "gtin14": "00011110417008",
+    "name": "Kroger® 2% Reduced Fat Milk Gallon",
+    "brand": "Kroger",
+    "size": "1 gal",
+    "url": "https://www.kroger.com/p/kroger-2-reduced-fat-milk-gallon/0001111041700",
+    "image": "https://www.kroger.com/product/images/large/front/0001111041700",
+    "price": 2.99,
+    "regularPrice": 2.99,
+    "salePrice": null,
+    "onSale": false,
+    "savings": null,
+    "promotion": null,
+    "unitPrice": { "price": 0.0234, "unit": "fl oz", "text": "$0.02/fl oz" },
+    "soldBy": "unit",
+    "priceIsEstimate": false,
+    "currency": "USD",
+    "priceText": "$2.99",
+    "available": true,
+    "stockLevel": "HIGH",
+    "unavailableReason": null,
+    "maxOrderQuantity": 134,
+    "fulfillment": { "pickup": true, "delivery": true, "inStore": true, "ship": false },
+    "aisle": { "number": "100", "description": "DAIRY", "side": "L", "bay": "3", "shelf": "1" },
+    "rating": 3.09,
+    "reviewCount": 88,
+    "categories": ["Dairy"],
+    "snapEligible": true,
+    "offers": [],
+    "description": "Kroger® Reduced Fat 2% Milkfat Milk Gallon is refreshing and contains 35% less fat than regular milk. ...",
+    "highlights": [
+      "1 gal Jug of Kroger® 2% Reduced Fat Milk Gallon",
+      "Keeps all the creamy taste you love with 35% less fat than regular milk"
+    ],
+    "images": [
+      "https://www.kroger.com/product/images/xlarge/front/0001111041700",
+      "https://www.kroger.com/product/images/xlarge/back/0001111041700"
+    ],
+    "ingredients": "Milk, Skim Milk, Vitamin A Palmitate, Vitamin D3.",
+    "allergens": "Contains Milk and its derivates.",
+    "nutrition": {
+      "servingSize": "8 fl oz (240mL)",
+      "servingsPerContainer": 16.0,
+      "preparation": null,
+      "nutrients": [
+        { "name": "Calories", "amount": 120.0, "unit": "kcal", "dailyValuePercent": null },
+        { "name": "Total Fat", "amount": 5.0, "unit": "g", "dailyValuePercent": 6.0 },
+        { "name": "Sodium", "amount": 105.0, "unit": "mg", "dailyValuePercent": 4.0 }
+      ]
+    },
+    "dietary": ["Kosher", "Pescatarian", "Vegetarian"],
+    "claims": ["Low Sodium", "No Artificial Ingredients", "No Added Sugar", "Live Naturally"],
+    "organic": false,
+    "glutenFree": false,
+    "kosher": true,
+    "nonGmo": false,
+    "taxonomy": ["Dairy & Eggs > Milk & Dairy Free Milk > 1%, 2%, & Skim Milk"],
+    "countryOfOrigin": "UNITED STATES",
+    "storage": "Refrigerated",
+    "dimensions": { "height": "9.9 [in_i]", "width": "6.2 [in_i]", "length": "6.2 [in_i]" },
+    "weight": "8.62 [lb_av]",
+    "receiptName": "KROGER 2% RF MILK",
+    "ratingBreakdown": { "5": 39, "4": 4, "3": 4, "2": 8, "1": 33 },
+    "alcohol": false,
+    "ageRestricted": false
+  },
+  "url": "https://www.kroger.com/p/kroger-2-reduced-fat-milk-gallon/0001111041700"
+}
+```
+
+`product` carries every search field above, plus:
+
+| Field | Notes |
+| --- | --- |
+| `description` / `highlights` / `images` | Product text, the bullet highlights and every image angle, large. |
+| `ingredients` / `allergens` | As printed on the product page. |
+| `nutrition` | `servingSize`, `servingsPerContainer`, `preparation` and `nutrients`, each with `name`, `amount`, `unit` and `dailyValuePercent`. |
+| `dietary` / `claims` | Dietary tags (e.g. `Kosher`, `Vegetarian`) and label claims (e.g. `No Added Sugar`). |
+| `organic` / `glutenFree` / `kosher` / `nonGmo` | The same tags as flags. |
+| `taxonomy` | Category paths, e.g. `Dairy & Eggs > Milk & Dairy Free Milk > ...`. |
+| `countryOfOrigin` / `storage` / `dimensions` / `weight` | Origin, storage type, package dimensions and weight as Kroger lists them. |
+| `receiptName` | The product's name on the till receipt. |
+| `ratingBreakdown` | Number of ratings per star, `5` to `1`. |
+| `alcohol` / `ageRestricted` | Whether the product is alcohol, and whether it needs an age check. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query` or `product`, an unknown `banner`, a `store_id` that is not 8 digits, both `store_id` and `zip`, or `max_results` outside `1`-`24`. |
+| `404` | No store of the banner near `zip`, `store_id` is not one of the banner's stores, or (product) the banner has no such product at that store. |
+| `502` | Kroger blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Store-level price tracking** - follow the price, sale and promotion of a basket of products at the stores you care about.
+- **Price comparison across banners** - read the same UPC on Kroger, Ralphs, Fred Meyer or Harris Teeter and compare.
+- **Promotion monitoring** - catch buy one get one, multibuy and price drop deals with their expiry dates.
+- **Nutrition and ingredient data** - build product databases with ingredients, allergens and full nutrition facts.
+- **In-store navigation** - map products to their aisle, bay and shelf.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Kroger search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

@@ -91,7 +91,17 @@
                   "plugins/google-jobs",
                   "plugins/google-hotels",
                   "plugins/google-news",
-                  "plugins/google-ads-transparency"
+                  "plugins/google-ads-transparency",
+                  "plugins/google-ai-mode",
+                  "plugins/google-lens"
+                ]
+              },
+              {
+                "group": "AI",
+                "icon": "robot",
+                "expanded": false,
+                "pages": [
+                  "plugins/gemini"
                 ]
               },
               {
@@ -113,10 +123,13 @@
                   "plugins/amazon",
                   "plugins/amazon-bestsellers",
                   "plugins/amazon-reviews",
+                  "plugins/amazon-offers",
+                  "plugins/amazon-seller",
                   "plugins/walmart",
                   "plugins/target",
                   "plugins/best-buy",
                   "plugins/home-depot",
+                  "plugins/costco",
                   "plugins/etsy",
                   "plugins/shein",
                   "plugins/zalando",
@@ -128,7 +141,12 @@
                   "plugins/smyths",
                   "plugins/wish",
                   "plugins/shopee",
-                  "plugins/taobao"
+                  "plugins/taobao",
+                  "plugins/flipkart",
+                  "plugins/lazada",
+                  "plugins/allegro",
+                  "plugins/falabella",
+                  "plugins/magazine-luiza"
                 ]
               },
               {
@@ -148,7 +166,10 @@
                 "pages": [
                   "plugins/woolworths",
                   "plugins/coles",
-                  "plugins/aldi-au"
+                  "plugins/aldi-au",
+                  "plugins/kroger",
+                  "plugins/instacart",
+                  "plugins/publix"
                 ]
               },
               {

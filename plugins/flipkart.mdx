@@ -1,0 +1,308 @@
+---
+title: "Flipkart plugin"
+description: "Flipkart (India) product data as clean JSON - search results with price, MRP, discount, rating, F-Assured badge and stock, plus one product with best offer price, specifications, highlights, variants, seller, bank offers and top reviews."
+sidebarTitle: "Flipkart"
+---
+
+The **Flipkart** plugin returns products from Flipkart (flipkart.com, India) as structured JSON. It is two endpoints:
+
+- **`/marketplace/flipkart-search`** - the products for a keyword, in Flipkart's order: the product id (FSN), title, brand, price, MRP and discount, rating, rating and review counts, the F-Assured badge, sponsored flag, Flipkart's badge (e.g. Bestseller), stock, key specs, category, images and link. Sort, filter by price and collect across pages.
+- **`/marketplace/flipkart-product`** - one product: description, category path, price, MRP, discount and the best price with bank offers, stock, rating with its 1-5 star breakdown and the per-aspect ratings (Camera, Battery, ...), highlights, the full specification table, images, every variant, the seller with its rating, the bank and exchange offers, delivery days, cash on delivery, the return policy and the top reviews.
+
+Prices are in Indian rupees (INR). No Flipkart account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/flipkart-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `iphone 17` or `running shoes`. |
+| `sort` | no | Result order: `relevance`, `popularity`, `price_asc`, `price_desc`, `newest`. Default `relevance`. |
+| `page` | no | First Flipkart results page to read, `1`-`100`. Default `1`. |
+| `min_price` / `max_price` | no | Price range in rupees (INR). |
+| `max_results` | no | Products to collect across pages, `1`-`240`. Default `24`. A page holds 24 products (40 in fashion grids). |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`, `DE`). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/flipkart-search?query=iphone%2015&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.flipkart_search("iphone 15", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.flipkartSearch("iphone 15", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->flipkartSearch('iphone 15', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.flipkart_search("iphone 15", max_results: 3)
+```
+</CodeGroup>
+
+Each Flipkart page read is billed as one request (`pagesFetched`).
+
+### Response
+
+```json
+{
+  "query": "iphone 15",
+  "sort": "relevance",
+  "page": 1,
+  "minPrice": null,
+  "maxPrice": null,
+  "url": "https://www.flipkart.com/search?q=iphone+15",
+  "currency": "INR",
+  "category": "Mobiles",
+  "total": 403,
+  "totalPages": 17,
+  "pagesFetched": 1,
+  "nextPage": 2,
+  "pagingStopped": null,
+  "resultsCollected": 3,
+  "products": [
+    {
+      "productId": "MOBHQV9YZGYG64U7",
+      "itemId": "itm387c20f1f5347",
+      "listingId": "LSTMOBHQV9YZGYG64U7WLKZD8",
+      "title": "Apple iPhone 15 (Blue, 128 GB)",
+      "brand": "Apple",
+      "subtitle": null,
+      "price": 69999,
+      "originalPrice": 74900,
+      "discountPercent": 6,
+      "currency": "INR",
+      "rating": 4.6,
+      "ratingCount": 250026,
+      "reviewCount": 9892,
+      "assured": true,
+      "sponsored": false,
+      "badge": "Bestseller",
+      "availability": "IN_STOCK",
+      "inStock": true,
+      "keySpecs": [
+        "128 GB ROM",
+        "15.49 cm (6.1 inch) Super Retina XDR Display",
+        "48MP + 12MP | 12MP Front Camera",
+        "A16 Bionic Chip, 6 Core Processor Processor"
+      ],
+      "category": "Mobile",
+      "image": "https://rukmini1.flixcart.com/image/832/832/xif0q/mobile/z/h/l/-original-imahqvadwhgxgx2n.jpeg?q=70",
+      "images": [
+        "https://rukmini1.flixcart.com/image/832/832/xif0q/mobile/z/h/l/-original-imahqvadwhgxgx2n.jpeg?q=70",
+        "https://rukmini1.flixcart.com/image/832/832/xif0q/mobile/w/q/k/-original-imahggeuqttycktu.jpeg?q=70"
+      ],
+      "url": "https://www.flipkart.com/apple-iphone-15-blue-128-gb/p/itm387c20f1f5347?pid=MOBHQV9YZGYG64U7&lid=LSTMOBHQV9YZGYG64U7WLKZD8",
+      "position": 1
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `itemId` / `listingId` | The FSN (Flipkart's product id), the `itm...` id from the link and the listing id. Pass `productId` to [Product](#product). |
+| `title` / `brand` / `subtitle` | Product name, brand and Flipkart's subtitle line, when it has one. |
+| `price` / `originalPrice` / `discountPercent` / `currency` | Selling price, MRP (when discounted), the discount and `INR`. |
+| `rating` / `ratingCount` / `reviewCount` | Average rating and how many ratings and written reviews it has. |
+| `assured` / `sponsored` / `badge` | The F-Assured badge, the sponsored flag and Flipkart's label (e.g. `Bestseller`). |
+| `availability` / `inStock` | Flipkart's stock status and a boolean derived from it. |
+| `keySpecs` / `category` | The spec bullets on the result card and the product category. |
+| `image` / `images` / `url` | Main image, gallery and product link. |
+| `position` | Rank in Flipkart's results. |
+| `total` / `totalPages` / `nextPage` | Flipkart's result count, page count and the `page` to pass to continue. |
+
+## Product
+
+```
+POST /marketplace/flipkart-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | Flipkart product id: the FSN (`pid`, e.g. `MOBHQV9YCUG4ZQZK`) or the `itm...` id from a product link. |
+| `url` | one of `product_id` / `url` | A Flipkart product link, e.g. `https://www.flipkart.com/apple-iphone-17-black-256-gb/p/itmc61b40459dd98?pid=MOBHQV9YCUG4ZQZK`. Used instead of `product_id`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/flipkart-product?product_id=MOBHQV9YCUG4ZQZK" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.flipkart_product("MOBHQV9YCUG4ZQZK")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.flipkartProduct("MOBHQV9YCUG4ZQZK");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->flipkartProduct('MOBHQV9YCUG4ZQZK');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.flipkart_product("MOBHQV9YCUG4ZQZK")
+```
+</CodeGroup>
+
+To look a product up by link, leave the first argument out and pass `url` (`su.flipkart_product(url="https://www.flipkart.com/...")` in Python, `su.flipkartProduct(undefined, { url })` in Node.js). Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "productId": "MOBHQV9YCUG4ZQZK",
+  "itemId": "itmc61b40459dd98",
+  "listingId": "LSTMOBHQV9YCUG4ZQZKUTWGGY",
+  "title": "Apple iPhone 17 (Black, 256 GB)",
+  "brand": "APPLE",
+  "description": "Buy Apple iPhone 17 online at best price with offers in India. ...",
+  "category": "mobile",
+  "breadcrumbs": ["Mobiles & Accessories", "Mobiles", "APPLE Mobiles"],
+  "price": 91999,
+  "originalPrice": 99900,
+  "discountPercent": 8,
+  "bestPrice": 84999,
+  "currency": "INR",
+  "availability": "IN_STOCK",
+  "inStock": true,
+  "rating": 4.6,
+  "ratingCount": 46595,
+  "reviewCount": 3099,
+  "ratingBreakdown": { "1": 1923, "2": 459, "3": 1188, "4": 6035, "5": 36990 },
+  "aspectRatings": [
+    { "name": "Camera", "rating": 4.7 },
+    { "name": "Battery", "rating": 4.3 }
+  ],
+  "assured": true,
+  "selectedAttributes": { "color": "Black", "storage+ram": "256 GB" },
+  "highlights": [
+    "256 GB ROM",
+    "A19 Chip, 6 Core Processor | Hexa Core | 4.26 GHz Clock Speed"
+  ],
+  "specifications": [
+    { "group": "Battery & Power Features", "name": "Battery Type", "value": "Lithium Ion" },
+    { "group": "Dimensions", "name": "Width", "value": "71.5 mm (7.15 cm)" }
+  ],
+  "images": [
+    "https://rukmini1.flixcart.com/image/1500/1500/xif0q/mobile/2/p/o/-original-imahqvad9pbyujab.jpeg?q=70"
+  ],
+  "variants": [
+    {
+      "dimension": "Color",
+      "value": "Lavender",
+      "productId": "MOBHQV9YDG7CGRAM",
+      "price": null,
+      "available": true,
+      "stockNote": null,
+      "image": "https://rukminim1.flixcart.com/image/832/832/xif0q/mobile/0/a/f/-original-imahqvadmn9uydqz.jpeg?q=70",
+      "url": "https://www.flipkart.com/apple-iphone-17-lavender-256-gb/p/itm5c650337c09ee?pid=MOBHQV9YDG7CGRAM&lid=LSTMOBHQV9YDG7CGRAMOQWOKL"
+    }
+  ],
+  "seller": {
+    "name": "GRAHGOODS RETAIL",
+    "rating": 4.6,
+    "yearsOnPlatform": "6 years with Flipkart",
+    "id": "cefe51c4e5b94709"
+  },
+  "offerCount": 37,
+  "offers": [
+    { "type": "bank", "provider": "SBI", "instrument": "Credit Card", "text": "₹7,000 off" }
+  ],
+  "deliveryDays": 3,
+  "cashOnDelivery": true,
+  "returnPolicy": "7_day_replacement_service_centre_action",
+  "reviews": [
+    { "title": "Super!", "rating": 5, "text": "One of the best phone ...", "date": "2026-01-27" }
+  ],
+  "url": "https://www.flipkart.com/x/p/itmc61b40459dd98?pid=MOBHQV9YCUG4ZQZK"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `price` / `originalPrice` / `discountPercent` | Selling price, MRP and the discount. |
+| `bestPrice` | The lowest price with the bank offers applied, as Flipkart shows it. |
+| `availability` / `inStock` | Flipkart's stock status and a boolean derived from it. |
+| `rating` / `ratingCount` / `reviewCount` / `ratingBreakdown` | Average rating, counts and the number of ratings per star. |
+| `aspectRatings` | Flipkart's per-aspect ratings, e.g. Camera, Battery, Display. |
+| `selectedAttributes` | The variant this product id is (e.g. color and storage). |
+| `highlights` / `specifications` | The highlight bullets and the full specification table as `group` / `name` / `value`. |
+| `variants` | Every variant: `dimension`, `value`, `productId`, `price`, `available`, `stockNote`, `image` and `url`. |
+| `seller` | The selling seller: `name`, `rating`, `yearsOnPlatform` and `id`. `offerCount` is how many offers Flipkart lists. |
+| `offers` | Bank and exchange offers: `type`, `provider`, `instrument` and the offer `text`. |
+| `deliveryDays` / `cashOnDelivery` / `returnPolicy` | Delivery estimate in days, cash on delivery availability and Flipkart's return policy code. |
+| `reviews` | The top reviews: `title`, `rating`, `text` and `date`. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query`, or neither `product_id` nor `url`. |
+| `404` | Flipkart found no products for this search, or has no product with this id. |
+| `502` | Flipkart blocked every attempt, gave an unusable answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Price monitoring for India** - track selling price, MRP, discount and the best bank-offer price over time.
+- **Assortment research** - collect a category's results with ratings and review counts as demand signals.
+- **Seller and offer tracking** - watch who sells a product and which bank and exchange offers apply.
+- **Spec comparison** - compare specification tables and aspect ratings across rival products.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Flipkart search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

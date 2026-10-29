@@ -1,0 +1,166 @@
+---
+title: "Gemini plugin"
+description: "Ask Google Gemini a question and get its answer as clean JSON - plain text and Markdown, the pages it cites with the sentences each one backs, the sources it searched, its follow-up prompts and the model label, from a country you pick."
+sidebarTitle: "Gemini"
+---
+
+The **Gemini** plugin asks Google Gemini (gemini.google.com) one question, as a signed-out visitor, and returns its answer as structured JSON: the answer as plain text and as Markdown, the **citations** (the pages Gemini cites inline, each with the answer sentences it backs and where in the answer the first of them appears), the **sources** Gemini consulted when it searched the web, whether it searched at all, its follow-up prompts, the model label the app shows and where Gemini placed the visitor.
+
+Use it to see what Gemini recommends for the questions your customers ask, which sites it cites, and how that changes from one country to another. Set `country` to ask from that country: Gemini tailors local results, currency and language defaults to where it locates the visitor, and `locationCountry` in the answer says where it placed the call.
+
+A few things to know:
+
+- **Answers vary.** Each call starts a new conversation, and identical calls get different answers, as they do for people. Track a question over several calls rather than reading one answer as fixed.
+- **Calls can be slow.** Gemini writes its answer before we can return it, and a call can take a minute or two. Give your HTTP client a generous timeout (the SDKs wait 180 seconds by default; raise it to 300, e.g. `Client(timeout=300)` in Python).
+- **No account.** Gemini is used signed out; no Google account or API key is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Endpoint
+
+```
+POST /ai/gemini
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `prompt` | yes | The question to ask, as a user would type it, e.g. `best CRM for small business`. At most 4,000 characters. Each call starts a new conversation. |
+| `country` | no | Two-letter country code to ask from, e.g. `US`, `GB`, `DE`. Leave blank for any European location. A country we cannot ask from is a `400` that lists the available ones. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/ai/gemini?prompt=best%20CRM%20for%20small%20business&country=US" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  --max-time 300
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client(timeout=300)  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.gemini("best CRM for small business", country="US")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient({ timeout: 300_000 }); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.gemini("best CRM for small business", { country: "US" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(null, ['timeout' => 300]); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->gemini('best CRM for small business', ['country' => 'US']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new(timeout: 300) # reads SCRAPEUNBLOCKER_KEY
+
+result = su.gemini("best CRM for small business", country: "US")
+```
+</CodeGroup>
+
+Each answer is billed as one request.
+
+### Response
+
+```json
+{
+  "url": "https://gemini.google.com/app",
+  "country": "US",
+  "proxyCountry": "US",
+  "prompt": "best CRM for small business",
+  "answer": "Choosing the \"best\" CRM for a small business depends heavily on your budget, sales process, and tech stack. There is no single one-size-fits-all, but the top options stand out in specific categories:\n\n1. Best for Beginners & Generous Free Tier: HubSpot CRM\n- Best For: Teams wanting an easy-to-use platform that scales.\n...",
+  "answerMarkdown": "Choosing the \"best\" CRM for a small business depends heavily on your budget, sales process, and tech stack. There is no single one-size-fits-all, but the top options stand out in specific categories:\n\n---\n\n### 1. Best for Beginners & Generous Free Tier: **HubSpot CRM**\n* **Best For:** Teams wanting an easy-to-use platform that scales.\n...",
+  "citations": [
+    {
+      "position": 1,
+      "title": "10 Best CRM Tools for Small Businesses in 2026 - Helpmonks",
+      "url": "https://helpmonks.com/blog/best-crm-tools-small-businesses-2026/",
+      "domain": "helpmonks.com",
+      "siteName": "Helpmonks",
+      "description": "You get contact management, deal pipelines, email tracking, and basic reporting without spending a cent. The tradeoff: as you grow and need more automation or a...",
+      "citedText": [
+        "Teams wanting an easy-to-use platform that scales.",
+        "It handles contact management, basic deal pipelines, email tracking, and ticketing without forcing you to pull out a credit card."
+      ],
+      "firstCitedAt": 286
+    }
+  ],
+  "sources": [
+    {
+      "position": 1,
+      "title": "10 Best CRM Tools for Small Businesses in 2026 - Helpmonks",
+      "url": "https://helpmonks.com/blog/best-crm-tools-small-businesses-2026/",
+      "domain": "helpmonks.com"
+    },
+    {
+      "position": 2,
+      "title": "The Best CRM Software We've Tested for 2026 | PCMag",
+      "url": "https://www.pcmag.com/picks/the-best-crm-software",
+      "domain": "pcmag.com"
+    }
+  ],
+  "webSearch": true,
+  "followUpPrompts": [
+    {
+      "label": "Compare HubSpot vs. Pipedrive for a 5-person sales team",
+      "prompt": "Compare HubSpot and Pipedrive specifically for a 5-person sales team, focusing on pricing, ease of use, and automation."
+    }
+  ],
+  "richBlocks": 1,
+  "model": "3.5 Flash-Lite",
+  "location": "United States",
+  "locationCountry": "US",
+  "complete": true,
+  "conversationId": "c_b882f781af141b6f"
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `answer` / `answerMarkdown` | The answer as plain text and as Markdown (headings, bold, lists and tables kept). |
+| `citations` | Pages Gemini cites inline: `position`, `title`, `url`, `domain`, `siteName`, `description`, `citedText` (the answer sentences that page backs) and `firstCitedAt` (the character offset of the first of them in `answerMarkdown`). |
+| `sources` | Pages Gemini consulted when it searched the web: `position`, `title`, `url` and `domain`. |
+| `webSearch` | Whether Gemini searched the web for this answer. |
+| `followUpPrompts` | The follow-up suggestions Gemini offers: the short `label` and the full `prompt` it would send. |
+| `richBlocks` | Number of cards Gemini drew that have no text (e.g. a sports score or an image strip); they are left out of the answer. |
+| `model` | The model label the Gemini app shows. |
+| `location` / `locationCountry` | Where Gemini placed the visitor. |
+| `country` / `proxyCountry` | The country you asked for, and the country the call was sent from. |
+| `complete` | `true` when Gemini finished its answer. |
+| `conversationId` | Gemini's id for this one-question conversation. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters: an empty or too long `prompt`, or a `country` we cannot ask from (the message lists the available ones). |
+| `502` | Gemini refused every attempt, gave no answer, or did not answer in time. Retry. |
+
+## What you can build
+
+- **AI visibility tracking** - see whether Gemini recommends your brand or product for the questions your customers ask, and who it names instead.
+- **Citation monitoring** - track which sites Gemini cites and which sentences they back, by topic and country.
+- **Answer comparison** - put Gemini's answer next to [Google AI Mode](/plugins/google-ai-mode) and other assistants for the same question.
+- **Market research** - ask the same question from several countries and compare local recommendations.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Ask Gemini and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>

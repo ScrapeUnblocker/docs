@@ -1,0 +1,285 @@
+---
+title: "Costco plugin"
+description: "Costco (costco.com and costco.ca) as clean JSON - search results with price, was-price, promotions, member-only, online-only and warehouse-only flags, rating and availability, and one product with specifications, images, options and every variant's item number."
+sidebarTitle: "Costco"
+---
+
+The **Costco** plugin returns products from Costco (costco.com, or costco.ca with `domain=ca`) as structured JSON. It is two endpoints:
+
+- **`/marketplace/costco-search`** - the products for a keyword: product id and item number, title, brand, link and image, the price (and the top of a price range), was-price, promotions and marketing text, rating and review count, the member-only, online-only and warehouse-only flags, badges, availability, whether it is sold in the warehouse or shipped, the model, features and category path. 24 products per page, as on costco.com; one call collects up to 240.
+- **`/marketplace/costco-product`** - one product by product id, item number or link: price and discount, rating, description, details, features, shipping, manufacturer and part number, UPC, order limits, category path, specifications, images, the options (e.g. every color and size) and every variant with its item number and UPC.
+
+No Costco membership is involved. Some Costco prices are shown only in the cart; those products carry `priceShownInCartOnly: true`.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /marketplace/costco-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | yes | What to search for, e.g. `paper towels`, `kirkland coffee` or `tv`. |
+| `sort` | no | Result order: `relevance`, `price_low`, `price_high`, `rating`, `newest`, `brand`. Default `relevance`. |
+| `page` | no | 1-based results page to start from (24 products per page, as on costco.com). Default `1`. |
+| `max_results` | no | Products to collect from `page` on, `1`-`240`. Default `24`. |
+| `include_out_of_stock` | no | Also return products that are out of stock (Costco hides them by default). Default `false`. |
+| `domain` | no | Costco storefront: `com` (costco.com) or `ca` (costco.ca). Default `com`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank to let the API pick. Costco computes `availability` for the delivery location it derives from the visitor, named in `deliveryLocation`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/costco-search?query=paper%20towels&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.costco_search("paper towels", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.costcoSearch("paper towels", { maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->costcoSearch('paper towels', ['max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.costco_search("paper towels", max_results: 3)
+```
+</CodeGroup>
+
+Up to 120 products are billed as one request (`max_results` above 120 is two). A search with no matches is a `200` with an empty `products` list. A keyword Costco sends to a category page (e.g. `tv`) returns that category's products, named in `redirectedTo`.
+
+### Response
+
+```json
+{
+  "query": "paper towels",
+  "domain": "com",
+  "sort": "relevance",
+  "page": 1,
+  "pageSize": 24,
+  "totalResults": 936,
+  "resultsCollected": 3,
+  "redirectedTo": null,
+  "correctedQuery": null,
+  "deliveryLocation": { "postalCode": "98101", "state": "WA", "city": "Times Square" },
+  "url": "https://www.costco.com/s?keyword=paper+towels",
+  "products": [
+    {
+      "productId": "100234271",
+      "itemNumber": "512599",
+      "title": "Kirkland Signature Paper Towels, 2-Ply, 160 Sheets, 12 Individually Wrapped Rolls",
+      "brand": "Kirkland Signature",
+      "url": "https://www.costco.com/p/-/kirkland-signature-paper-towels-2-ply-160-sheets-12-individually-wrapped-rolls/100234271",
+      "image": "https://gdx-assets.costco.com/adobe/assets/urn:aaid:aem:742eba68-7706-48b1-b5c9-.../100234271-847__1.avif",
+      "price": 23.99,
+      "priceMax": null,
+      "wasPrice": null,
+      "currency": "USD",
+      "promotions": [],
+      "marketingStatement": null,
+      "rating": 4.81,
+      "reviewCount": 41391,
+      "memberOnly": false,
+      "onlineOnly": false,
+      "warehouseOnly": false,
+      "badges": [],
+      "availability": "in_stock",
+      "inWarehouse": true,
+      "shipIt": true,
+      "buyableOnline": true,
+      "priceShownInCartOnly": false,
+      "model": null,
+      "features": [],
+      "category": "Paper Towels & Napkins",
+      "categoryPath": ["Grocery & Household Essentials", "Paper & Plastic Products", "Paper Towels & Napkins"],
+      "variantCount": 1
+    }
+  ],
+  "requestsMade": 1
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `itemNumber` | Costco's product id and item number. Pass either to [Product](#product). |
+| `title` / `brand` / `url` / `image` | Name, brand, link and image. |
+| `price` / `priceMax` / `wasPrice` / `currency` | The price (the low end of a price range, with `priceMax` the high end), the crossed-out price and the currency (`USD` or `CAD`). |
+| `promotions` / `marketingStatement` | Promotion texts and Costco's marketing line, when shown. |
+| `rating` / `reviewCount` | Rating and review count. |
+| `memberOnly` / `onlineOnly` / `warehouseOnly` | Costco's member-only, online-only and warehouse-only flags. |
+| `badges` | Badges on the product tile. |
+| `availability` / `inWarehouse` / `shipIt` / `buyableOnline` | Availability for the delivery location in `deliveryLocation`, and how the product is sold. |
+| `priceShownInCartOnly` | `true` when Costco shows the price only in the cart. |
+| `model` / `features` / `category` / `categoryPath` / `variantCount` | Model number, feature bullets, category, the full category path and the number of variants. |
+| `totalResults` / `resultsCollected` | Costco's result count, and how many products this call returned. |
+| `redirectedTo` / `correctedQuery` | The category page Costco sent the keyword to, and Costco's spelling correction, if any. |
+| `deliveryLocation` | The delivery location Costco derived from the visitor and used for `availability`: `postalCode`, `state`, `city`. |
+
+## Product
+
+```
+POST /marketplace/costco-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product` | yes | A Costco product id (`100361434`), item number (`17767`) or product link (`https://www.costco.com/p/-/kirkland-signature-colombian-coffee-dark-roast-3-lbs/100361434`). |
+| `domain` | no | Costco storefront: `com` or `ca`. Defaults to the link's storefront, else `com`. |
+| `proxy_country` | no | Proxy country the request is sent from (ISO-2, e.g. `US`). Leave blank to let the API pick. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/marketplace/costco-product?product=100361434" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.costco_product("100361434")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.costcoProduct("100361434");
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->costcoProduct('100361434');
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.costco_product("100361434")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "productId": "100361434",
+    "itemNumber": "17767",
+    "title": "Kirkland Signature Colombian Coffee, Dark Roast, 3 lbs",
+    "brand": "Kirkland Signature",
+    "url": "https://www.costco.com/p/-/kirkland-signature-colombian-coffee-dark-roast-3-lbs/100361434",
+    "price": 24.99,
+    "discount": null,
+    "currency": "USD",
+    "rating": 4.77,
+    "reviewCount": 9216,
+    "memberOnly": false,
+    "onlineOnly": null,
+    "buyable": true,
+    "inWarehouse": true,
+    "shipIt": true,
+    "description": "Kirkland Signature Colombian Coffee, Dark Roast, 3 lbs, Columbian Coffee, Dark Roast, Fine Grind, Supremo Bean, ...",
+    "details": "3 lb. Can Colombian Coffee Dark Roast Fine Grind",
+    "features": ["Columbian Coffee", "Dark Roast", "Fine Grind", "Supremo Bean", "Total Net Weight 3lb"],
+    "marketingStatement": null,
+    "promotionalStatement": null,
+    "shipping": "$3.00",
+    "manufacturer": "MASSIMO ZANETTI BEVERAGE",
+    "manufacturerPartNumber": null,
+    "minQuantity": 1,
+    "maxQuantity": 9999,
+    "categoryPath": ["Grocery & Household Essentials", "Coffee", "Ground Coffee"],
+    "specifications": {
+      "Brand": "Kirkland Signature",
+      "Caffeine Type": "Caffeinated",
+      "Dietary Features": "Kosher",
+      "Form": "Ground",
+      "Roast": "Dark Roast",
+      "Package Net Weight": "3 lb"
+    },
+    "images": [
+      "https://gdx-assets.costco.com/adobe/assets/urn:aaid:aem:0900b973-9c82-4620-b41a-.../100361434-847__1.jpg",
+      "https://gdx-assets.costco.com/adobe/assets/urn:aaid:aem:235a8a11-31f1-4f1f-b2a5-.../100361434-847__2.jpg"
+    ],
+    "options": {},
+    "variants": [
+      { "itemNumber": "17767", "options": {}, "upc": "096619177677", "buyable": true, "published": true }
+    ]
+  },
+  "query": { "product": "100361434", "domain": "com" }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `itemNumber` / `title` / `brand` / `url` | Identity and link. |
+| `price` / `discount` / `currency` | The price, the discount when Costco shows one, and the currency. |
+| `rating` / `reviewCount` | Rating and review count. |
+| `memberOnly` / `onlineOnly` / `buyable` / `inWarehouse` / `shipIt` | Costco's flags: member-only, online-only, can be bought online, sold in the warehouse, shipped. |
+| `description` / `details` / `features` / `marketingStatement` / `promotionalStatement` | Product text, feature bullets and Costco's marketing and promotion lines. |
+| `shipping` | Shipping and handling as Costco states it (e.g. `$3.00`). |
+| `manufacturer` / `manufacturerPartNumber` / `upc` | Manufacturer, part number and UPC, when Costco lists them. |
+| `minQuantity` / `maxQuantity` | Order limits. |
+| `categoryPath` / `specifications` / `images` | Category path, the specification table and the image gallery. |
+| `options` | The product's options, e.g. every color and size with its values. |
+| `variants` | Every variant: `itemNumber`, its `options` values, `upc`, `buyable` and `published`. |
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. a missing `query` or `product`, an unknown `sort` or `domain`, or `max_results` outside `1`-`240`. |
+| `404` | Costco has no such product. |
+| `502` | Costco blocked every attempt, gave an unusable page, or did not answer in time. Retry. |
+
+## What you can build
+
+- **Price monitoring** - follow Costco prices, was-prices and promotions for the products you sell or buy.
+- **Assortment research** - see which brands and Kirkland Signature products Costco carries in a category.
+- **Cross-border comparison** - compare the same item on costco.com and costco.ca with `domain`.
+- **Product data** - collect specifications, UPCs and variant item numbers for a catalogue.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Costco search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
