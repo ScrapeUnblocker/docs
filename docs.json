@@ -182,7 +182,8 @@
                   "plugins/aldi-au",
                   "plugins/kroger",
                   "plugins/instacart",
-                  "plugins/publix"
+                  "plugins/publix",
+                  "plugins/bodega-aurrera"
                 ]
               },
               {

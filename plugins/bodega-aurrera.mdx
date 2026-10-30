@@ -1,0 +1,288 @@
+---
+title: "Bodega Aurrera plugin"
+description: "Bodega Aurrera (Walmart de Mexico's discount chain) groceries as clean JSON - search results with MXN price, promotion, stock, seller, category and pickup or delivery labels, and one product with specifications, rating breakdown, installments and the store the price is for."
+sidebarTitle: "Bodega Aurrera"
+---
+
+The **Bodega Aurrera** plugin returns grocery and household products from Bodega Aurrera (bodegaaurrera.com.mx), Walmart de Mexico's discount chain, as structured JSON. It is two endpoints:
+
+- **`/groceries/bodegaaurrera-search`** - the products for a keyword: product id, name, brand, link and image, the price, the was-price and saving while a promotion runs, unit price and price range, rating and review count, availability, the seller, the sales unit, department and category path, badges, the pickup and delivery labels and the sponsored flag. About 44 products per page; one call collects up to 220.
+- **`/groceries/bodegaaurrera-product`** - one product: the search fields plus UPC, model, installments, order limit and minimum, the rating breakdown, product type, short and long description, ingredients, specifications, fulfilment options, the store the price is for and the image gallery.
+
+Prices are in Mexican pesos (MXN) and belong to the store the storefront assigns a new visitor, named in `storeId` (search) and `store` (product); a store or postal code cannot be chosen. A keyword the site sends to a category page still returns that category's products. No Bodega Aurrera account is involved.
+
+<Note>
+Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
+</Note>
+
+## Search
+
+```
+POST /groceries/bodegaaurrera-search
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `query` | one of `query` / `url` | What to search, e.g. `leche`, `arroz`, `detergente` or `pañales`. |
+| `url` | one of `query` / `url` | Instead of `query`: a Bodega Aurrera search link, e.g. `https://www.bodegaaurrera.com.mx/search?q=leche` (its sort and page are used). |
+| `sort` | no | `relevance`, `price_low` or `price_high`. Default `relevance`. |
+| `page` | no | 1-based results page to start from, `1`-`25`. Default `1`. |
+| `max_results` | no | Products to collect across pages, `1`-`220`. Default `44` (about one page). Each page read is billed as one request (`pagesFetched`). |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/bodegaaurrera-search?query=leche&sort=price_low&max_results=3" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bodegaaurrera_search("leche", sort="price_low", max_results=3)
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.bodegaaurreraSearch("leche", { sort: "price_low", maxResults: 3 });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->bodegaaurreraSearch('leche', ['sort' => 'price_low', 'max_results' => 3]);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bodegaaurrera_search("leche", sort: "price_low", max_results: 3)
+```
+</CodeGroup>
+
+A results page usually takes 1-3 s.
+
+### Response
+
+```json
+{
+  "query": "leche",
+  "sort": "price_low",
+  "page": 1,
+  "url": "https://www.bodegaaurrera.com.mx/search?q=leche&sort=price_low",
+  "currency": "MXN",
+  "storeId": "3874",
+  "correctedQuery": null,
+  "totalResults": 144,
+  "resultsCollected": 3,
+  "pagesFetched": 1,
+  "lastPageFetched": 1,
+  "hasMore": true,
+  "nextPage": 2,
+  "products": [
+    {
+      "productId": "00750105591958",
+      "name": "Leche saborizada Alpura Vaquitas sabor Vainilla 180 ml",
+      "brand": "Alpura",
+      "url": "https://www.bodegaaurrera.com.mx/ip/Leche-saborizada-Alpura-Vaquitas-sabor-Vainilla-180-ml/00750105591958",
+      "price": 8,
+      "wasPrice": null,
+      "savings": null,
+      "unitPrice": null,
+      "priceRange": null,
+      "currency": "MXN",
+      "rating": null,
+      "reviewCount": 0,
+      "availability": "IN_STOCK",
+      "availabilityText": "Disponible",
+      "inStock": true,
+      "seller": "Bodega Aurrera",
+      "sellerType": "INTERNAL",
+      "salesUnit": "EACH",
+      "department": "Lácteos",
+      "category": ["Lácteos", "Leche", "Leche Entera"],
+      "badges": ["MSI"],
+      "fulfillment": ["Recoge sin costo hoy", "Envío, llega hoy"],
+      "sponsored": false,
+      "image": "https://i5-mx.walmartimages.com/asr/5db75c79-a97b-4d0f-9fe0-691e72c19844...",
+      "position": 1
+    }
+  ]
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `productId` / `url` | Bodega Aurrera item id and link. Pass the id as `product_id` to [Product](#product). |
+| `name` / `brand` / `image` | Name, brand and image. |
+| `price` / `currency` | The price in MXN at the assigned store. |
+| `wasPrice` / `savings` | The previous price and the saving, only while a promotion runs. |
+| `unitPrice` / `priceRange` | Price per unit and the price range of a product with options, when the site shows them. |
+| `rating` / `reviewCount` | Rating and number of reviews (`null` and `0` for an unrated product). |
+| `availability` / `availabilityText` / `inStock` | Stock status code, its text as the site prints it, and a boolean. |
+| `seller` / `sellerType` | Who sells it (`INTERNAL` for Bodega Aurrera itself, otherwise a marketplace seller). |
+| `salesUnit` | `EACH` or a weight unit for items sold by weight. |
+| `department` / `category` | Department and full category path. |
+| `badges` / `fulfillment` | Badges such as `MSI` (interest-free months) and the pickup and delivery labels. |
+| `sponsored` / `position` | Paid placement flag and rank in the results. |
+| `storeId` | The store the prices and stock are for. |
+| `correctedQuery` | The query the site searched instead, when it corrected the spelling. |
+| `totalResults` / `nextPage` / `hasMore` | The site's result count; pass `nextPage` as `page` to continue. |
+
+## Product
+
+```
+POST /groceries/bodegaaurrera-product
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `product_id` | one of `product_id` / `url` | Bodega Aurrera item id, e.g. `00750649502153` (the number at the end of an `/ip/` link; search results give it as `productId`). |
+| `url` | one of `product_id` / `url` | Instead of `product_id`: a product link, e.g. `https://www.bodegaaurrera.com.mx/ip/leche-great-value-entera-1-l/00750649502153`. |
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/groceries/bodegaaurrera-product?product_id=00750649502153" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+from scrapeunblocker import Client
+
+su = Client()  # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bodegaaurrera_product(product_id="00750649502153")
+```
+
+```ts Node.js
+import { ScrapeUnblockerClient } from "scrapeunblocker";
+
+const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
+
+const result = await su.bodegaaurreraProduct({ productId: "00750649502153" });
+```
+
+```php PHP
+use ScrapeUnblocker\Client;
+
+$su = new Client(); // reads SCRAPEUNBLOCKER_KEY
+
+$result = $su->bodegaaurreraProduct(['product_id' => '00750649502153']);
+```
+
+```ruby Ruby
+require "scrapeunblocker"
+
+su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
+
+result = su.bodegaaurrera_product(product_id: "00750649502153")
+```
+</CodeGroup>
+
+Each product is billed as one request.
+
+### Response
+
+```json
+{
+  "product": {
+    "productId": "00750649502153",
+    "name": "Leche Great Value entera 1 l",
+    "brand": "Great Value",
+    "url": "https://www.bodegaaurrera.com.mx/ip/leche-great-value-entera-1-l/00750649502153",
+    "upc": "00750649502153",
+    "model": null,
+    "price": 20,
+    "wasPrice": null,
+    "savings": null,
+    "unitPrice": null,
+    "currency": "MXN",
+    "installments": "Hasta 3 meses sin intereses",
+    "availability": "IN_STOCK",
+    "availabilityText": "Disponible",
+    "inStock": true,
+    "orderLimit": 12,
+    "orderMinimum": 1,
+    "salesUnit": "EACH",
+    "seller": "Bodega Aurrera",
+    "sellerId": null,
+    "sellerType": "INTERNAL",
+    "rating": 3.9,
+    "reviewCount": 8,
+    "ratingBreakdown": { "5": 5, "4": 1, "3": 0, "2": 0, "1": 2 },
+    "category": ["Lácteos", "Leche", "Leche Entera"],
+    "productType": "Milks",
+    "shortDescription": "Disfruta del cremoso y fresco sabor de la leche entera Great Value...",
+    "description": "Leche ultrapasteurizada para mayor duración\nAdicionada con vitaminas A y D para nutrición complementaria...",
+    "ingredients": null,
+    "specifications": [
+      { "name": "Tipo de Leche", "value": "Leche de vaca" },
+      { "name": "Tipo de contenedor", "value": "Cartón" }
+    ],
+    "badges": ["MSI"],
+    "fulfillment": ["Recoge en tienda, hoy en BA CANTIL"],
+    "fulfillmentOptions": ["SCHEDULED_PICKUP"],
+    "store": {
+      "storeId": "3874",
+      "postalCode": "04330",
+      "city": "Coyoacan",
+      "state": "CMX",
+      "name": "BA CANTIL"
+    },
+    "image": "https://i5-mx.walmartimages.com/asr/541cfa95-4ecf-459a-9c09-696290caa2fc...",
+    "images": [
+      "https://i5-mx.walmartimages.com/asr/541cfa95-4ecf-459a-9c09-696290caa2fc...",
+      "https://i5-mx.walmartimages.com/asr/8005cf08-293d-44ae-88ec-201aba934e36..."
+    ]
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `upc` / `model` | Barcode and model number, when the site lists them. |
+| `installments` | The interest-free installment offer, as text. |
+| `orderLimit` / `orderMinimum` | How many units one order may hold, and the minimum. |
+| `sellerId` | The marketplace seller's id (`null` for Bodega Aurrera itself). |
+| `ratingBreakdown` | Review counts per star, `5` to `1`. |
+| `productType` / `shortDescription` / `description` / `ingredients` | The product type and the page's texts (`null` when the page has none). |
+| `specifications` | Every row of the specification table as `name` / `value`. |
+| `fulfillment` / `fulfillmentOptions` | The pickup and delivery messages, and the option codes behind them. |
+| `store` | The store the price and stock are for: `storeId`, `postalCode`, `city`, `state` and `name`. |
+| `images` | The image gallery. |
+
+The other fields are the same as in search.
+
+## Errors
+
+| Status | Meaning |
+| --- | --- |
+| `400` | Invalid parameters, e.g. neither `query` nor `url`, both `product_id` and `url`, or `page` above `25`. |
+| `404` | No products for this search, a keyword the site sends to a promotional landing page with no product list (use a more specific query, such as a brand or product type), or (product) no such product. |
+| `502` | The site's bot check refused every attempt, no page came back, or the call did not finish in time. Retry. |
+
+## What you can build
+
+- **Price monitoring in Mexico** - track Bodega Aurrera prices and promotions in MXN for a basket of products.
+- **Assortment research** - map what the chain stocks per category, brand and seller.
+- **Product data** - collect UPCs, specifications, descriptions and images for a catalogue.
+- **Competitive comparison** - compare Bodega Aurrera with other Mexican retailers on the same products.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Open the plugins" icon="play" href="https://app.scrapeunblocker.com/dashboard/plugins">
+    Run a Bodega Aurrera search and grab the JSON.
+  </Card>
+  <Card title="Get an API key" icon="key" href="https://scrapeunblocker.com/pricing">
+    Free trial available on the pricing page.
+  </Card>
+</CardGroup>
