@@ -3938,6 +3938,9 @@
           "400": {
             "description": "Invalid parameters."
           },
+          "404": {
+            "description": "Walmart sends the keyword to a category landing page with no product list (the message names it)."
+          },
           "502": {
             "description": "Blocked by Walmart, no results page returned, or the search did not finish in time."
           },
@@ -10297,11 +10300,11 @@
             "required": false,
             "schema": {
               "type": "string",
-              "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
+              "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
               "default": "segments",
               "title": "Format"
             },
-            "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext."
+            "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext."
           },
           {
             "name": "proxy_country",

@@ -77,6 +77,8 @@ result = su.walmart_search("laptop", sort: "price_low", max_results: 60)
 
 </CodeGroup>
 
+A keyword Walmart sends to a category landing page with no product grid (e.g. `baby` or `pharmacy`) answers `404`, and the message names the landing page URL. Search for something more specific, such as a product type or brand.
+
 ## Response
 
 ```json
@@ -377,7 +379,7 @@ Give `item_id` or `url`, not both. Each product is billed as one request.
 | Status | Meaning |
 | --- | --- |
 | `400` | Invalid parameters: a missing `query` (search), or a missing or invalid `item_id` / `url`, or both given (product). |
-| `404` | Product: no such Walmart item (Walmart shows its not-found page). |
+| `404` | Search: Walmart sends the keyword to a category landing page with no product grid (the message names it). Product: no such Walmart item (Walmart shows its not-found page). |
 | `502` | Walmart blocked every attempt, returned no data, or the call did not finish in time. Retry. |
 
 ## What you can build
