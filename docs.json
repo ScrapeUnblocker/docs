@@ -261,6 +261,14 @@
                 ]
               },
               {
+                "group": "Sports",
+                "icon": "futbol",
+                "expanded": false,
+                "pages": [
+                  "plugins/sofascore"
+                ]
+              },
+              {
                 "group": "SEO & Ads",
                 "icon": "chart-line",
                 "expanded": false,
