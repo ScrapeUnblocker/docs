@@ -1,6 +1,6 @@
 ---
 title: "Google SERP scraping"
-description: "Scrape Google search results - organic, ads, totals - through the /serpApi endpoint."
+description: "Scrape Google search results - organic results, ads, AI Overview, People also ask, knowledge panel, news, videos and more - through the /serpApi endpoint."
 ---
 
 The `/serpApi` endpoint scrapes Google search results and returns normalized JSON. It handles the CAPTCHA gauntlet, ad rendering delays, and proxy rotation that make Google scraping painful.
@@ -43,39 +43,52 @@ const data = await res.json();
 
 ```json
 {
-  "keyword": "best running shoes",
+  "keyword": "best crm software",
   "proxyCountry": "us",
-  "totalResults": 458000000,
+  "totalResults": 88,
   "topAdsCount": 1,
   "bottomAdsCount": 0,
-  "organicResultsCount": 1,
-  "resultsCollected": 1,
+  "organicResultsCount": 9,
+  "resultsCollected": 10,
   "pagesFetched": 1,
   "topAds": [
     {
-      "title": "Nike Run Club - Free Shipping",
-      "url": "https://www.nike.com/...",
-      "displayedUrl": "nike.com",
-      "description": "Shop the latest running shoes...",
-      "position": 1
+      "title": "The Current Situation in Ukraine: Russia Ukraine War",
+      "url": "https://hfu.org/",
+      "description": "Here is a detailed analysis of the current situation in Ukraine due to...",
+      "position": 1,
+      "displayedUrl": "https://www.hfu.org",
+      "domain": "hfu.org",
+      "advertiser": "Hope For Ukraine"
     }
   ],
   "bottomAds": [ ... ],
   "organic": [
     {
-      "title": "10 Best Running Shoes of 2026",
-      "url": "https://runnersworld.com/...",
-      "displayedUrl": "runnersworld.com",
-      "description": "Our experts tested...",
-      "position": 1
+      "title": "What's the best CRM software on the market?",
+      "url": "https://www.g2.com/discussions/what-s-the-best-crm-software-on-the-market",
+      "description": "From the G2 category page, the best solutions seem to be: ...",
+      "position": 2,
+      "displayedUrl": "https://www.g2.com › ... › CRM Software Resources",
+      "domain": "g2.com",
+      "source": "G2",
+      "date": "Apr 1, 2025"
     }
   ],
   "aiOverview": {
-    "text": "Running shoes are generally chosen by gait, cushioning and...",
-    "markdown": "Running shoes are generally chosen by gait, cushioning and...",
-    "sources": ["runnersworld.com", "reddit.com"],
+    "text": "...",
+    "markdown": "...",
+    "sources": ["g2.com", "reddit.com"],
     "references": [ ... ]
-  }
+  },
+  "peopleAlsoAsk": [{ "question": "What is the #1 CRM platform?", "position": 1 }],
+  "relatedSearches": ["Best crm software free", "Best crm software for small business"],
+  "knowledgeGraph": null,
+  "topStories": [],
+  "videos": [ ... ],
+  "localResults": [],
+  "shoppingResults": [],
+  "spellingCorrection": null
 }
 ```
 
@@ -83,8 +96,24 @@ Every response carries `keyword`, `proxyCountry`, `totalResults`, the count
 fields (`topAdsCount`, `bottomAdsCount`, `organicResultsCount`,
 `resultsCollected`), `pagesFetched` (how many result pages were rendered - this
 is how many API requests the call was billed, see [`pages_to_check`](#pages-to-check)),
-the three result lists (`topAds`, `bottomAds`, `organic`) and `aiOverview`. On a country fallback it also carries `requestedCountry` and
+the three result lists (`topAds`, `bottomAds`, `organic`), `aiOverview` and the
+[other blocks of the page](#other-blocks-on-the-page). On a country fallback it also carries `requestedCountry` and
 `note` (see [`proxy_country`](#proxy_country) below).
+
+### Organic results and ads
+
+| Field | Notes |
+| --- | --- |
+| `title`, `description`, `position` | As Google shows them. `description` is the snippet, without the date Google prints ahead of it; an empty string when Google shows none. `position` counts across pages. |
+| `url` | The real page URL. Google hides it behind a redirect on the results page; we follow that redirect for you. If it cannot be followed in time, `url` is the site's home page. |
+| `displayedUrl` | The breadcrumb Google prints under the title, e.g. `https://www.g2.com › ... › CRM Software Resources`. |
+| `domain` | The site's hostname, without `www.`. For an ad, the domain the ad shows (an ad's `url` can be a click tracker). |
+| `source` | Organic only: the site's name Google prints above the breadcrumb (`G2`). |
+| `date` | Organic only: the date Google prints with the snippet (`Apr 1, 2025`, `3 days ago`), or `null`. |
+| `advertiser` | Ads only: the advertiser's name. |
+
+The same keys are used by the [Bing](/plugins/bing), DuckDuckGo, Yahoo
+and Brave search endpoints, so switching engines only changes the path.
 
 ### `aiOverview`
 
@@ -146,6 +175,41 @@ A real example, trimmed, for `keyword=how do solar panels work`:
 It is read from the page we already fetched and never waited for, so it costs
 you no extra time. In rare cases where the overview is still being written when
 the page is captured, the field is `null`.
+
+## Other blocks on the page
+
+The first results page also returns Google's other blocks. Each is an empty
+list (`[]`) or `null` when the search has none - which blocks Google shows
+depends on the query and the country.
+
+| Field | What it holds |
+| --- | --- |
+| `peopleAlsoAsk` | The "People also ask" questions: `question`, `position`. Google loads an answer only when a question is opened, so there is none. |
+| `relatedSearches` | The searches Google suggests below the results, as strings. |
+| `knowledgeGraph` | The knowledge panel of an entity search: `title`, `subtitle`, `description`, `source` (`name`, `url`) and `attributes`, the panel's labelled facts. |
+| `topStories` | News cards: `title`, `url`, `source` (publisher), `date` as shown, `publishedAt` (ISO time), `position`. |
+| `videos` | Video cards: `title`, `url`, `platform`, `channel`, `date`, `duration`, `position`. |
+| `localResults` | The map pack: the same fields as [Google Local](/plugins/google-local) (`name`, `rating`, `reviews`, `category`, `address`, `phone`, `website`, `hours`, ...). |
+| `shoppingResults` | Product cards: `title`, `price`, `priceRaw`, `currency`, `currencyCode`, `merchant`, `rating`, `reviewCount`, Google's product ids, `position`. |
+| `spellingCorrection` | `type` (`showing_results_for`, `including_results_for` or `did_you_mean`) and `query` when Google corrected or questioned the query. |
+
+A real knowledge panel, trimmed, for `keyword=barack obama`:
+
+```json
+{
+  "knowledgeGraph": {
+    "title": "Barack Obama",
+    "subtitle": "44th U.S. President",
+    "description": "Barack Hussein Obama II is an American politician who served as the 44th president of the United States from 2009 to 2017. ...",
+    "source": { "name": "Wikipedia", "url": "https://en.wikipedia.org/wiki/Barack_Obama" },
+    "attributes": {
+      "Born": "August 4, 1961 (age 65 years), Kapiʻolani Medical Center for Women & Children, Honolulu, HI",
+      "Party": "Democratic Party",
+      "Vice president": "Joe Biden (2009–2017)"
+    }
+  }
+}
+```
 
 <Note>
   `topAds` and `bottomAds` cover the paid units wherever Google puts them,

@@ -159,7 +159,7 @@
           "Scraping"
         ],
         "summary": "Scrape a Google search SERP for organic + ad results",
-        "description": "Runs a Google web search for `keyword` and returns a normalized JSON structure with `topAds`, `bottomAds`, `organic` results, `totalResults`, `aiOverview` (Google's AI-written summary as `text` and `markdown`, the hostnames it cites as `sources`, and the cited pages as `references` with title, real URL, source, domain and snippet; `null` when the search has none), and the proxy country actually used. Set `pages_to_check` 1-10 to paginate. `wait_after_load` adds a delay after the SERP loads.",
+        "description": "Runs a Google web search for `keyword` and returns a normalized JSON structure with `organic` results (`title`, real `url`, `description`, `position`, `displayedUrl`, `domain`, `source` - the site's name - and `date` when Google shows one), `topAds` / `bottomAds` (`title`, `url`, `description`, `position`, `displayedUrl`, `domain`, `advertiser`), `totalResults`, `aiOverview` (Google's AI-written summary as `text` and `markdown`, the hostnames it cites as `sources`, and the cited pages as `references` with title, real URL, source, domain and snippet; `null` when the search has none), and the proxy country actually used. The first page's other blocks come too, each empty (`[]`) or `null` when the page has none: `peopleAlsoAsk` (`question`), `relatedSearches` (the suggested searches, as strings), `knowledgeGraph` (`title`, `subtitle`, `description`, `source` {`name`, `url`}, `attributes` - the panel's labelled facts), `topStories` (`title`, `url`, `source`, `date`, `publishedAt`), `videos` (`title`, `url`, `platform`, `channel`, `date`, `duration`), `localResults` (the map pack, same fields as `/maps/google-local`), `shoppingResults` (product cards: `title`, `price`, `currency`, `merchant`, `rating`, `reviewCount`, ...) and `spellingCorrection` (`type`, `query`). Set `pages_to_check` 1-10 to paginate. `wait_after_load` adds a delay after the SERP loads.",
         "operationId": "run_serp_serpApi_post",
         "parameters": [
           {
@@ -227,7 +227,7 @@
         ],
         "responses": {
           "200": {
-            "description": "JSON with organic/ads/totals.",
+            "description": "JSON with organic results, ads, totals and the page's other blocks.",
             "content": {
               "application/json": {
                 "schema": {}

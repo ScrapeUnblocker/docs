@@ -3,6 +3,25 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-02" description="Google SERP: every result with its real URL, and the rest of the page; SDKs 0.18.1">
+  **[`/serpApi`](/guides/serp-scraping) returns the whole first results
+  page.** Organic results Google shows without a snippet are no longer left
+  out, every result carries its real URL (also for fresh searches, where a
+  part of them used to come back as the site's home page or a breadcrumb
+  guess), and snippets read exactly as on the page. Organic results and ads
+  add `displayedUrl` and `domain` - the same keys as the Bing, DuckDuckGo,
+  Yahoo and Brave endpoints - organic results also `source` (the site's
+  name) and `date`, ads `advertiser`. Ad descriptions are the ad copy only,
+  without ratings, visit counts or review summaries. New fields, each empty
+  or `null` when Google shows none: `peopleAlsoAsk`, `relatedSearches`,
+  `knowledgeGraph`, `topStories`, `videos`, `localResults`,
+  `shoppingResults` and `spellingCorrection`. Nothing was removed or
+  renamed. **SDKs 0.18.1**, the [MCP server](/sdks/mcp) (**0.12.1**), the
+  hosted connector (**0.13.1**), the n8n node (**0.4.2**, new item types)
+  and the Haystack integration (**0.4.1**, more metadata) describe the new
+  fields.
+</Update>
+
 <Update label="2026-11-02" description="SofaScore plugin; SDKs 0.18.0">
   **New plugin:** [SofaScore](/plugins/sofascore), live scores, fixtures,
   results and stats for 26 sports in a new **Sports** category: a sport's
