@@ -3,6 +3,24 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-03" description="Google SERP and Bing: favicons, sitelinks, ratings, related search links; Bing AI summary and real ad links; SDKs 0.18.2">
+  **[`/serpApi`](/guides/serp-scraping)** organic results now also carry
+  `favicon`, `sitelinks` (`title`, `url`, `description`), `rating` (`value`,
+  `max`, `reviews`, `url`), `richSnippet` (the facts line under the snippet)
+  and `thumbnail`; ads carry `favicon` and `sitelinks`; the page adds
+  `relatedSearchLinks` (each related search with its Google search URL).
+  **[`/search/bing`](/plugins/bing)** returns the same keys plus `source`
+  and `date`, ads gain `advertiser`, and ad `url`s are now the advertiser's
+  landing page instead of Bing's click tracker. Bing responses also add
+  `relatedSearchLinks`, `aiOverview` (Bing's AI summary, in the `/serpApi`
+  shape) and `spellingCorrection`. When Bing's page 1 holds fewer than 8
+  organic results, a one-page call also returns page 2's organic results,
+  still billed as one page. Every new key is always present (`[]` or `null`
+  when the page shows nothing); nothing was removed or renamed.
+  **SDKs 0.18.2**, the [MCP server](/sdks/mcp) and the hosted connector
+  describe the new fields.
+</Update>
+
 <Update label="2026-11-03" description="Secret and configuration files are not fetched">
   `/getPageSource` and `/getImage` now refuse URLs that ask for a secret or
   server configuration file - `/.env` and its variants, a `.git` or `.ssh`

@@ -59,7 +59,9 @@ const data = await res.json();
       "position": 1,
       "displayedUrl": "https://www.hfu.org",
       "domain": "hfu.org",
-      "advertiser": "Hope For Ukraine"
+      "advertiser": "Hope For Ukraine",
+      "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAS...",
+      "sitelinks": []
     }
   ],
   "bottomAds": [ ... ],
@@ -72,7 +74,12 @@ const data = await res.json();
       "displayedUrl": "https://www.g2.com › ... › CRM Software Resources",
       "domain": "g2.com",
       "source": "G2",
-      "date": "Apr 1, 2025"
+      "date": "Apr 1, 2025",
+      "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAg...",
+      "sitelinks": [],
+      "rating": null,
+      "richSnippet": null,
+      "thumbnail": null
     }
   ],
   "aiOverview": {
@@ -83,6 +90,9 @@ const data = await res.json();
   },
   "peopleAlsoAsk": [{ "question": "What is the #1 CRM platform?", "position": 1 }],
   "relatedSearches": ["Best crm software free", "Best crm software for small business"],
+  "relatedSearchLinks": [
+    { "query": "Best crm software free", "url": "https://www.google.com/search?q=Best+crm+software+free" }
+  ],
   "knowledgeGraph": null,
   "topStories": [],
   "videos": [ ... ],
@@ -111,9 +121,16 @@ the three result lists (`topAds`, `bottomAds`, `organic`), `aiOverview` and the
 | `source` | Organic only: the site's name Google prints above the breadcrumb (`G2`). |
 | `date` | Organic only: the date Google prints with the snippet (`Apr 1, 2025`, `3 days ago`), or `null`. |
 | `advertiser` | Ads only: the advertiser's name. |
+| `favicon` | The site icon Google shows next to the result or ad: an image URL, or a small inline `data:` image (up to 4 KB), else `null`. |
+| `sitelinks` | The extra links under a result or an ad: `title`, `url`, `description` (`null` when Google shows none). Organic sitelink URLs are real page URLs, e.g. `{"title": "Ways to save", "url": "https://www.comparethemarket.com/car-insurance/#jump-6-ways-you-could-save-on-your-car-insurance"}`. An ad sitelink behind Google's ad click tracker has `url` `null` (following it would bill the advertiser); one behind a `/goto` redirect keeps Google's link. `[]` when there are none. |
+| `rating` | Organic only: the star line, `{"value", "max", "reviews", "url"}` (`url` is `null`: Google's star line has no link), or `null`. |
+| `richSnippet` | Organic only: the extra facts line under the snippet, e.g. `3.8 (4) · $8.00 · Business/Productivity`, or `null`. |
+| `thumbnail` | Organic only: the result's own picture (an image URL or a small `data:` image), or `null`. |
 
-The same keys are used by the [Bing](/plugins/bing), DuckDuckGo, Yahoo
-and Brave search endpoints, so switching engines only changes the path.
+Every organic result and ad carries these keys, `[]` or `null` when Google
+shows nothing for them. The [Bing](/plugins/bing) endpoint returns the same
+keys; DuckDuckGo, Yahoo and Brave return the keys up to `description`, so
+switching engines only changes the path.
 
 ### `aiOverview`
 
@@ -186,6 +203,7 @@ depends on the query and the country.
 | --- | --- |
 | `peopleAlsoAsk` | The "People also ask" questions: `question`, `position`. Google loads an answer only when a question is opened, so there is none. |
 | `relatedSearches` | The searches Google suggests below the results, as strings. |
+| `relatedSearchLinks` | The same searches as `query` with the Google search `url` for it, in the same order. |
 | `knowledgeGraph` | The knowledge panel of an entity search: `title`, `subtitle`, `description`, `source` (`name`, `url`) and `attributes`, the panel's labelled facts. |
 | `topStories` | News cards: `title`, `url`, `source` (publisher), `date` as shown, `publishedAt` (ISO time), `position`. |
 | `videos` | Video cards: `title`, `url`, `platform`, `channel`, `date`, `duration`, `position`. |

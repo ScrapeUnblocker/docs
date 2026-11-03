@@ -1,12 +1,12 @@
 ---
 title: "Bing plugin"
-description: "Bing web and image search as clean JSON - organic results, top and bottom ads, related searches and result counts, plus image results with the full-resolution image URL, source page and dimensions."
+description: "Bing web and image search as clean JSON - organic results with site name, favicon, date, sitelinks and ratings, top and bottom ads with the advertiser's real URL, related searches with links, Bing's AI summary and result counts, plus image results with the full-resolution image URL, source page and dimensions."
 sidebarTitle: "Bing"
 ---
 
 The **Bing** plugin turns Bing searches into structured JSON. It has two endpoints:
 
-- **Web search** (`/search/bing`) - a keyword to the results page: organic results with position, title, URL, displayed URL, domain and description, top and bottom ads in their own lists, related searches and Bing's total result count. The response has the same shape as Google results from [`/serpApi`](/guides/serp-scraping), so one pipeline reads both engines.
+- **Web search** (`/search/bing`) - a keyword to the results page: organic results with position, title, URL, displayed URL, domain, description, site name, favicon, date, sitelinks, star rating and facts line, top and bottom ads in their own lists (advertiser, real landing URL, favicon, sitelinks), related searches with their links, Bing's AI summary, its spelling correction and the total result count. The response uses the same keys as Google results from [`/serpApi`](/guides/serp-scraping), so one pipeline reads both engines.
 - **Image search** (`/images/bing-search`) - a keyword to image results: the full-resolution image URL on the publisher's site (not a Bing thumbnail), the source domain and page, title, site name, thumbnail, pixel dimensions and a Bing viewer link. The response has the same shape as the [Google Images plugin](/plugins/google-images).
 
 Pick the market with `proxy_country`: it sets both Bing's market and the country the search is sent from, so you get the results and ads a searcher there sees. No Bing or Azure account is involved.
@@ -64,7 +64,7 @@ result = su.bing_search("project management software", proxy_country: "GB", lang
 </CodeGroup>
 
 <Note>
-Each results page fetched is billed as one request: `pages_to_check=3` that returns three pages counts as 3 requests, and `pagesChecked` shows the exact number.
+Each results page fetched is billed as one request: `pages_to_check=3` that returns three pages counts as 3 requests, and `pagesChecked` shows the exact number. Bing often fills page 1 with ads and its AI summary and leaves room for only a few organic results; when a one-page call gets fewer than 8, the organic results of page 2 are added at no extra charge (`pagesChecked` stays `1`).
 </Note>
 
 ### Response
@@ -72,49 +72,79 @@ Each results page fetched is billed as one request: `pages_to_check=3` that retu
 ```json
 {
   "engine": "bing",
-  "keyword": "project management software",
-  "country": "GB",
+  "keyword": "Mailgun API pricing",
+  "country": "US",
   "language": "en",
-  "totalResults": 22600,
-  "resultsCollected": 10,
-  "topAdsCount": 5,
-  "bottomAdsCount": 3,
-  "organicResultsCount": 2,
+  "totalResults": 3070,
+  "resultsCollected": 12,
+  "topAdsCount": 3,
+  "bottomAdsCount": 2,
+  "organicResultsCount": 7,
   "topAds": [
     {
-      "position": 2,
-      "title": "5 Best Project Software Ranked | Project Management Software",
-      "url": "https://www.bing.com/aclk?ld=e8-fNgN8Dt38vusxXHTB2oWjVUCUyL6FOniFCu5FpDMadcGXixeVe...",
-      "displayedUrl": "https://work-management.org › best_project › software",
-      "domain": "work-management.org",
-      "description": "Compare top-rated project tools to organize tasks and improve team performance in 2026..."
+      "position": 1,
+      "title": "Try Mailgun for free today | SMTP relay services",
+      "url": "https://www.mailgun.com/lander/smtp-services/?utm_source=bing&utm_medium=cpc...",
+      "displayedUrl": "https://www.mailgun.com › smtp › service",
+      "domain": "mailgun.com",
+      "description": "Elevate your email with the industry's most trusted SMTP service. Try Mailgun today...",
+      "advertiser": "Mailgun",
+      "favicon": "https://th.bing.com/th/id/ODF.pqDKo04Xo8mChZUOQ4SFOQ?w=32&h=32&o=6&pid=AdsPlus",
+      "sitelinks": [
+        { "title": "Sign Up For Free", "url": "https://monitor.clickcease.com/tracker/tracker.aspx?id=zquIHZH7wUqUz5...&url=https%3A%2F%2Fapp.mailgun.com%2Fsignup...", "description": null }
+      ]
     }
   ],
-  "bottomAds": [
-    {
-      "position": 3,
-      "title": "10 Best Free Project Mgmt Apps | These 10 Tools Rock",
-      "url": "https://www.bing.com/aclk?ld=e8lkAKOAsyIDo-j_yT0UgJyDVUCUyw-gFaazVS0W6CUP814h8YWm2...",
-      "displayedUrl": "https://www.top10.com › Project-Mgmt › free",
-      "domain": "top10.com",
-      "description": "Try for Free Project Management Softwares & Pick The One that Best Manage Your Team Tasks..."
-    }
-  ],
+  "bottomAds": [ ... ],
   "organic": [
     {
       "position": 1,
-      "title": "10 Best Project Management Software of 2026 - Forbes Advisor",
-      "url": "https://www.forbes.com/advisor/business/software/best-project-management-software/",
-      "displayedUrl": "https://www.forbes.com › advisor › business › software › best-project...",
-      "domain": "forbes.com",
-      "description": "Sep 25, 2026 · Compare 22 providers of project management software based on pricing, features, integrations..."
+      "title": "Flexible Email Delivery & API Pricing Plans - Transactional Email API...",
+      "url": "https://www.mailgun.com/pricing/",
+      "displayedUrl": "https://www.mailgun.com › pricing",
+      "domain": "mailgun.com",
+      "description": "Choose a plan that fits your needs with our 4 email delivery solution options...",
+      "source": "Mailgun",
+      "favicon": "https://th.bing.com/th/id/ODF.X14PKBnpm6UZ0BrlMS4zzg?w=32&h=32&qlt=90&pcl=fffffa&o=6&pid=1.2",
+      "date": null,
+      "sitelinks": [
+        { "title": "Sign Up Free", "url": "https://signup.mailgun.com/new/signup?plan_name=dev_free&currency=USD", "description": null },
+        { "title": "Signup", "url": "https://signup.mailgun.com/new/signup", "description": null }
+      ],
+      "rating": null,
+      "richSnippet": null,
+      "thumbnail": null
+    },
+    {
+      "position": 2,
+      "title": "Mailgun: Transactional Email API (2026) | Automation Atlas",
+      "url": "https://automationatlas.io/tools/mailgun",
+      "displayedUrl": "https://automationatlas.io › tools › mailgun",
+      "domain": "automationatlas.io",
+      "description": "Mailgun pricing is volume-based. As of July 2026 the Basic plan starts at $15/month for 10,000 emails...",
+      "source": "automationatlas.io",
+      "favicon": "https://th.bing.com/th/id/ODF.4g6HKjQNZxWfrpLD6U0MjQ?w=32&h=32&qlt=91&pcl=fffffa&o=6&pid=1.2",
+      "date": "Jul 31, 2026",
+      "sitelinks": [],
+      "rating": null,
+      "richSnippet": null,
+      "thumbnail": null
     }
   ],
-  "relatedSearches": [
-    "project management software for small business",
-    "best project management software 2026",
-    "project management software pricing uk"
+  "relatedSearches": ["Mailgun pricing for startups", "mailersend pricing"],
+  "relatedSearchLinks": [
+    { "query": "Mailgun pricing for startups", "url": "https://www.bing.com/search?q=Mailgun+pricing+for+startups&FORM=QSRE1" },
+    { "query": "mailersend pricing", "url": "https://www.bing.com/search?q=mailersend+pricing&FORM=QSRE2" }
   ],
+  "aiOverview": {
+    "text": "Mailgun's API pricing starts with a free trial (~100 emails/day), then paid plans begin at $15/month...\nBasic Plan\n- Price: $15/month\n- Volume: 10,000 emails/month",
+    "markdown": null,
+    "sources": ["mailgun.com"],
+    "references": [
+      { "title": "Pricing | Mailgun", "url": "https://www.mailgun.com/pricing/", "source": "mailgun.com", "domain": "mailgun.com", "snippet": null }
+    ]
+  },
+  "spellingCorrection": null,
   "pagesChecked": 1,
   "hasMore": true
 }
@@ -122,12 +152,14 @@ Each results page fetched is billed as one request: `pages_to_check=3` that retu
 
 | Field | Notes |
 | --- | --- |
-| `organic` | Organic results in page order: `position`, `title`, `url`, `displayedUrl` (as Bing prints it), `domain` and `description` (the snippet). |
-| `topAds` / `bottomAds` | Ads above and below the results, with the same fields. `url` is Bing's ad click link; `domain` is the advertiser's domain. Bing does not show ads on every query, so an empty list is a normal answer. |
-| `relatedSearches` | Bing's related searches. |
-| `totalResults` | Bing's "about N results" count. |
+| `organic` | Organic results in page order: `position`, `title`, `url`, `displayedUrl` (as Bing prints it), `domain`, `description` (the snippet, without the date chip), `source` (the site name Bing prints above the link), `favicon` (the site icon Bing shows: a URL, or a small `data:` image), `date` (the date Bing prints with the snippet), `sitelinks` (the extra links under the result: `title`, `url`, `description`), `rating` (`value`, `max`, `reviews`, `url` of the star line when Bing shows one, e.g. `{"value": 4.4, "max": 5.0, "reviews": null, "url": null}`), `richSnippet` (the facts row under the snippet as one line, e.g. `4.4/5 Category: Utilities Operating System: Web Application`) and `thumbnail`. Every key is always present: `[]` or `null` when Bing shows nothing for it. |
+| `topAds` / `bottomAds` | Ads above and below the results, with the organic keys up to `description` plus `advertiser` (the name Bing shows), `favicon` and `sitelinks`. `url` and the sitelink URLs are the advertiser's landing pages, taken out of Bing's click tracker; `domain` is the advertiser's domain. Bing does not show ads on every query, so an empty list is a normal answer. |
+| `relatedSearches` / `relatedSearchLinks` | Bing's related searches: as strings, and as `query` with the Bing search `url` for it. |
+| `aiOverview` | Bing's AI-written summary at the top of the page, in the [`/serpApi` shape](/guides/serp-scraping#aioverview): `text`, `markdown` (`null` for Bing), `sources` (cited hostnames) and `references` (`title`, `url`, `source`, `domain`, `snippet`). `null` when Bing shows none. |
+| `spellingCorrection` | `type` (`showing_results_for`, `including_results_for` or `did_you_mean`) and `query` when Bing corrected the query; otherwise `null`. |
+| `totalResults` | Bing's "about N results" count, as Bing prints it. |
 | `resultsCollected` | Ads plus organic results returned. `topAdsCount`, `bottomAdsCount` and `organicResultsCount` count each list. |
-| `pagesChecked` / `hasMore` | Pages fetched (the billed number) and whether Bing has more pages. |
+| `pagesChecked` / `hasMore` | Pages billed and whether Bing has more pages. |
 | `country` / `language` | The market the search ran in. |
 
 ## Image search
