@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-03" description="Daily budget limit on pay-as-you-go plans">
+  On a pay-as-you-go plan you can now also set a **daily budget limit** (EUR,
+  excluding VAT) next to the monthly one in your
+  [profile](https://app.scrapeunblocker.com/dashboard/profile). Once today's
+  spend (UTC day) reaches it, API calls return the same **`402`** with the
+  plain-text body `User set budget exceeded` until 00:00 UTC or until you
+  raise or remove the limit. Empty or `0` means no limit. Not billed. See
+  [402 payment required](/errors#user-set-budget-exceeded).
+</Update>
+
 <Update label="2026-11-02" description="Google SERP: every result with its real URL, and the rest of the page; SDKs 0.18.1">
   **[`/serpApi`](/guides/serp-scraping) returns the whole first results
   page.** Organic results Google shows without a snippet are no longer left

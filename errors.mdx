@@ -12,7 +12,7 @@ ScrapeUnblocker uses standard HTTP status codes. `2xx` means the page was delive
 | `200` | The page was delivered. Also used for a dead origin's own `5xx` error page and for the target's own `401`, `451` or empty `500` - then the `X-Origin-Status` header carries the target's status. A target that answers `204` (no content) comes back as an empty `200`. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Response body; `X-Origin-Status` if present |
 | `400` | Bad request: the `x-scrapeunblocker-key` header is missing, the URL is malformed or not `http`/`https`, an unsupported `proxy_country`, or `Hostname cannot be resolved` (the domain does not exist) | Only `Hostname cannot be resolved` | Check the URL and the key header |
 | `401` | Authentication problem - the key is not recognised, or the account behind it has no valid subscription | No | See [401 unauthorized](#401-unauthorized) below and [Authentication](/authentication) |
-| `402` | Billing problem - quota exceeded, credit limit exceeded, repeated payment failures, or your own monthly budget limit reached | No | See [402 payment required](#402-payment-required) below |
+| `402` | Billing problem - quota exceeded, credit limit exceeded, repeated payment failures, or your own monthly or daily budget limit reached | No | See [402 payment required](#402-payment-required) below |
 | `403` | Either the target blocked us on every bypass path, **or** the URL is a login / authentication / payment page we do not fetch (`X-SU-Error-Code: restricted_target`), or a government site (`X-SU-Error-Code: government_target`), or a `steps` action tried to fill a password or payment-card field (`X-SU-Error-Code: restricted_action`) | No | `X-SU-Error-Code` header; [restricted targets](#restricted-targets) or [handling failures](/guides/handling-failures) |
 | `404` | With `X-Origin-Status: 404`: the target site itself says the page does not exist; the body is the target's page. See [Dead URLs](#dead-urls-x-origin-status). Without the header: a plugin found no such item, or the API path is wrong | Only with `X-Origin-Status` | `X-Origin-Status` header, then the body |
 | `410` | The target site itself says the page is gone (`X-Origin-Status: 410`); the body is the target's page. See [Dead URLs](#dead-urls-x-origin-status) | Yes | Drop the URL |
@@ -140,7 +140,7 @@ The body is plain text (`Content-Type: text/plain`), not JSON. There are four me
 | --- | --- | --- |
 | `Quota exceeded` | You have used every request your plan allows this billing period | Upgrade your plan, or wait for the period to reset |
 | `Credit limit exceeded` | Your unpaid balance has grown past your account's credit limit | Pay the outstanding invoice |
-| `User set budget exceeded` | This billing period's spend has reached the monthly budget limit you set | Raise or remove the limit in your profile, or wait for the next billing period |
+| `User set budget exceeded` | This billing period's spend has reached the monthly budget limit you set, or (pay-as-you-go) today's spend has reached your daily budget limit | Raise or remove the limit in your profile, or wait for the next billing period (monthly limit) or 00:00 UTC (daily limit) |
 | `Payment failed - update payment method` | A card payment for an open invoice has failed three times in a row | Update your card, then pay the invoice |
 
 If more than one applies, the most serious wins: payment failure outranks credit limit, which outranks quota, which outranks your own budget limit.
