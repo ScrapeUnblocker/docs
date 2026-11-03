@@ -140,7 +140,7 @@ The body is plain text (`Content-Type: text/plain`), not JSON. There are four me
 | --- | --- | --- |
 | `Quota exceeded` | You have used every request your plan allows this billing period | Upgrade your plan, or wait for the period to reset |
 | `Credit limit exceeded` | Your unpaid balance has grown past your account's credit limit | Pay the outstanding invoice |
-| `User set budget exceeded` | This billing period's spend has reached the monthly budget limit you set, or (pay-as-you-go) today's spend has reached your daily budget limit | Raise or remove the limit in your profile, or wait for the next billing period (monthly limit) or 00:00 UTC (daily limit) |
+| `User set budget exceeded` | This billing period's spend has reached the monthly budget limit you set, or today's spend has reached your daily budget limit | Raise or remove the limit in your profile, or wait for the next billing period (monthly limit) or 00:00 UTC (daily limit) |
 | `Payment failed - update payment method` | A card payment for an open invoice has failed three times in a row | Update your card, then pay the invoice |
 
 If more than one applies, the most serious wins: payment failure outranks credit limit, which outranks quota, which outranks your own budget limit.
@@ -187,6 +187,8 @@ User set budget exceeded
 You set a **monthly budget limit** in your [profile](https://app.scrapeunblocker.com/dashboard/profile), and this billing period's spend has reached it. Spend is counted the way your invoice is: your plan's fixed monthly fee, if it has one, plus the requests billed on top of it, excluding VAT. Requests paid from coupon credit do not count. We also email you once when the limit is reached.
 
 On a plan with a fixed monthly fee the limit cannot be lower than that fee, and the requests the fee already includes are never blocked - a limit equal to the fee simply stops the key where overage billing would begin. Leave the field empty or set it to `0` for no limit.
+
+You can also set a **daily budget limit** on any plan that bills usage - pay-as-you-go, or a plan with a fixed monthly fee and overages. It counts today's spend (the UTC day) the same way. On a plan with a fixed fee only the requests billed above the plan's included requests count, because the fee already pays for the rest. Once today's spend reaches the limit, the key returns the same `402` until 00:00 UTC or until you raise or remove the limit, and we email you once that day.
 
 The key works again at the start of your next billing period, or within about a minute after you raise or remove the limit. Usage is counted with a delay of a few minutes, so the period's spend can end up slightly above the limit.
 

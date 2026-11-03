@@ -13,6 +13,15 @@ description: "Notable changes to the ScrapeUnblocker API."
   [restricted targets](/errors#restricted-targets).
 </Update>
 
+<Update label="2026-11-03" description="Daily budget limit on plans with a monthly fee">
+  The **daily budget limit** is no longer limited to pay-as-you-go: you can
+  set one on any plan that bills usage, including a plan with a fixed monthly
+  fee and overages. There only today's requests billed above the plan's
+  included requests count toward it - the fee already pays for the rest.
+  Reaching it returns the same **`402`** `User set budget exceeded` until
+  00:00 UTC. See [402 payment required](/errors#user-set-budget-exceeded).
+</Update>
+
 <Update label="2026-11-03" description="Daily budget limit on pay-as-you-go plans">
   On a pay-as-you-go plan you can now also set a **daily budget limit** (EUR,
   excluding VAT) next to the monthly one in your
