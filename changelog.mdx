@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-03" description="Secret and configuration files are not fetched">
+  `/getPageSource` and `/getImage` now refuse URLs that ask for a secret or
+  server configuration file - `/.env` and its variants, a `.git` or `.ssh`
+  directory, `wp-config.php`, private keys and similar - with a plain-text
+  **`403`** and `X-SU-Error-Code: secret_file_target`. Fetching them is a
+  search for leaked credentials, not scraping. Not billed. Pages that only
+  mention such a file name are fetched as before. See
+  [restricted targets](/errors#restricted-targets).
+</Update>
+
 <Update label="2026-11-03" description="Daily budget limit on pay-as-you-go plans">
   On a pay-as-you-go plan you can now also set a **daily budget limit** (EUR,
   excluding VAT) next to the monthly one in your
