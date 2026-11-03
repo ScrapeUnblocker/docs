@@ -84,6 +84,15 @@ A job set to `marked` or `all` with no usable key **fails immediately with the r
 
 Your organisation has a number of **concurrency slots** - how many jobs may run at once across the whole fleet. Beyond that, jobs wait in `pending` until one of your running jobs finishes. A queue of your own making looks exactly like a queue caused by capacity, so check what else of yours is running before assuming the fleet is full.
 
+### Slots and the free plan
+
+Every account starts with **one free slot**. It runs anything you start by hand - from the dashboard, the API or `su-cloud run` - with two limits:
+
+- **each run stops after 30 minutes** and ends as `timed_out`;
+- **no schedules.** Creating one is refused with *"Scheduled runs need a paid slot"*, because a timer is what turns one free slot into permanent occupancy.
+
+Slots are bought under **Billing → Spider Cloud**. A bought slot **replaces** the free one rather than adding to it, and lifts both limits: one paid slot is one slot with no run limit and with schedules, N paid slots are N jobs at once. Buying slots does not change your scraping plan or its request quota.
+
 ## Retention
 
 Items and logs are kept for the retention period of your plan and then deleted. A job whose data has passed that point still exists, with its stats and history intact; its **Items** view says the stored data has been deleted rather than showing an empty list. If you need the data to outlive that window, add a [destination](/spider-cloud/destinations).
