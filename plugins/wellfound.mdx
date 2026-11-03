@@ -32,6 +32,7 @@ POST /jobs/wellfound
 | `url` | no | A Wellfound search URL instead of `role` / `location` / `remote`, e.g. `https://wellfound.com/role/l/software-engineer/san-francisco`. |
 | `page` | no | 1-based listing page to start from, `1`-`500`. Default `1`. Use `nextPage` from a previous response to continue. |
 | `max_results` | no | How many jobs to collect across pages, `1`-`500`. Default: the whole first page (20 companies with up to 3 jobs each, usually 30-60 jobs). Each page fetched is one billed request (`pagesFetched`). |
+| `title_match` | no | With a `role` (default `true`): return the jobs whose title carries the role's words first, then the ones Wellfound files under that role, and leave out the companies' other jobs Wellfound lists on the role's page. `false` returns the listing as Wellfound shows it. |
 | `proxy_country` | no | Proxy country the request is sent from (ISO-2). Leave blank to let the API pick. |
 
 <CodeGroup>
@@ -82,6 +83,7 @@ result = su.wellfound_jobs("software engineer", location: "new york")
   "totalCompanies": 334,
   "page": 1,
   "pageCount": 17,
+  "titleMatches": 38,
   "jobs": [
     {
       "id": "4787364",
@@ -140,7 +142,9 @@ result = su.wellfound_jobs("software engineer", location: "new york")
 | `description` | The full job description (Markdown). |
 | `company` | Hiring startup: `id`, `name`, `slug`, `url`, `tagline`, `logoUrl`, `companySize`, `stage` and `badges`. |
 
-`totalJobs`, `totalCompanies` and `pageCount` are the totals for the search; `nextPage` and `hasMore` drive paging. A listing page holds 20 companies with up to 3 matching jobs each.
+`totalJobs`, `totalCompanies` and `pageCount` are the totals for the search; `nextPage` and `hasMore` drive paging. A listing page holds 20 companies with up to 3 jobs each.
+
+A role's listing page shows each company with up to three of its jobs, and some of them belong to other roles (an "HR Officer" on the finance page). With a `role`, the jobs whose title carries the role's words come first, then the ones Wellfound files under the role, and the rest are left out; `titleMatches` counts the first kind. When `max_results` is given with a `location` and the role's page holds too few title matches, the location's whole listing and then the role's remote jobs open to that location fill in, at no extra charge. Set `title_match=false` to get the listing exactly as Wellfound shows it.
 
 ## Job page
 

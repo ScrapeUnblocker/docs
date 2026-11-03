@@ -1,12 +1,12 @@
 ---
 title: "Meta Ad Library plugin"
-description: "An advertiser's live ads from Meta's Ad Library as clean JSON - ad copy, CTA, format, image and video creative URLs, landing page, platforms and run dates."
+description: "An advertiser's live ads from Meta's Ad Library as clean JSON - ad copy, CTA, format, image and video creative URLs, landing page, platforms, run dates, reach and spend ranges, and the advertiser's Page details."
 sidebarTitle: "Meta Ad Library"
 ---
 
 The **Meta Ad Library** plugin turns any advertiser's public ads from Meta's Ad Library into structured JSON. Give it an advertiser - a Page name or a numeric Page ID - and it returns the ads Meta shows in its Ad Library: each with the ad copy, call-to-action, format, the image and video creative URLs, the landing page, the platforms it runs on, and its run dates.
 
-It runs a real browser on our own anti-bot fleet and reads the same Ad Library a person sees, then captures Meta's internal results directly - so you get an advertiser's whole active set without a Meta developer account, an access token, or the political-ads-only limits of Meta's official Ad Library API. This is a competitor-ads tool: see what your competitors are running, in which format, and where they send the click.
+It reads the same Ad Library a person sees: the first page of ads comes straight from the page (usually in a few seconds), and when you ask for more, a real browser on our own anti-bot fleet pages through the rest and captures Meta's internal results directly - so you get an advertiser's whole active set without a Meta developer account, an access token, or the political-ads-only limits of Meta's official Ad Library API. This is a competitor-ads tool: see what your competitors are running, in which format, and where they send the click.
 
 <Note>
 Try it in the dashboard first: [app.scrapeunblocker.com/dashboard/plugins](https://app.scrapeunblocker.com/dashboard/plugins). You get a live results view plus a copy-paste snippet.
@@ -21,7 +21,7 @@ POST /ads/meta-ad-library
 | Field | Required | Notes |
 | --- | --- | --- |
 | `advertiser` | yes | A Facebook Page name (keyword search) or a numeric Page ID (that advertiser's whole set). A Page ID is the exact-advertiser match; a name can span several Pages sharing it. |
-| `country` | no | Ad Library country (ISO-2, e.g. `US`, `GB`, `DE`). Meta scopes the library by country. Default `US`. |
+| `country` | no | Ad Library country (ISO-2, e.g. `US`, `GB`, `DE`), or `ALL` for every country. Meta scopes the library by country. Default `US`. |
 | `active_status` | no | `active` (default), `inactive`, or `all`. |
 | `media_type` | no | Creative filter: `all` (default), `image`, `video`, or `meme`. |
 | `max_ads` | no | Upper bound on ads returned; the plugin paginates until it reaches this or runs out. Default `50`, max `500`. |
@@ -90,16 +90,29 @@ result = su.meta_ad_library(
 ```json
 {
   "advertiser": "Nike",
+  "query": {
+    "advertiser": "Nike",
+    "country": "US",
+    "active_status": "active",
+    "media_type": "all",
+    "max_ads": 50
+  },
+  "search_url": "https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=US&media_type=all&q=Nike&search_type=keyword_unordered",
   "resultsCollected": 30,
   "has_more": true,
   "results": [
     {
       "ad_archive_id": "1049210304776058",
+      "ad_library_url": "https://www.facebook.com/ads/library/?id=1049210304776058",
       "collation_id": "1065726462591268",
+      "collation_count": 3,
       "page_id": "15087023444",
       "page_name": "Nike",
       "page_profile_uri": "https://www.facebook.com/nike/",
+      "page_profile_picture_url": "https://scontent.xx.fbcdn.net/v/nike-60x60.jpg",
       "page_like_count": 39281044,
+      "page_categories": ["Sportswear Store"],
+      "page_is_deleted": false,
       "is_active": true,
       "started_running": "2026-08-07",
       "ended": null,
@@ -120,9 +133,25 @@ result = su.meta_ad_library(
           "video_url": "https://video.xx.fbcdn.net/v/hd.mp4"
         }
       ],
+      "images": [],
+      "videos": [
+        {
+          "video_url": "https://video.xx.fbcdn.net/v/hd.mp4",
+          "preview_image_url": "https://scontent.xx.fbcdn.net/v/preview.jpg"
+        }
+      ],
+      "cards": [],
+      "extra_texts": [],
+      "extra_links": [],
       "categories": ["UNKNOWN"],
+      "contains_sensitive_content": false,
+      "contains_digital_created_media": false,
+      "total_active_time": 7344000,
+      "impressions": "<100",
+      "spend": null,
       "currency": null,
-      "reach_estimate": null
+      "reach_estimate": null,
+      "targeted_or_reached_countries": []
     }
   ]
 }
@@ -132,16 +161,19 @@ result = su.meta_ad_library(
 
 | Field | Notes |
 | --- | --- |
+| `query` / `search_url` | The parameters this call ran with and the Ad Library URL it read. |
 | `resultsCollected` | Number of ads returned on this call (deduplicated by `ad_archive_id`). |
 | `has_more` | `true` when the advertiser has more ads than `max_ads` returned - raise `max_ads` for more. |
-| `ad_archive_id` | Meta's own Ad Library id for the ad. |
+| `ad_archive_id` / `ad_library_url` | Meta's own Ad Library id for the ad, and the ad's public Ad Library page. |
 
 ### Ad fields
 
 | Field | Notes |
 | --- | --- |
 | `page_name` / `page_id` | The advertiser's Page name and id. |
-| `page_profile_uri` | Link to the advertiser's Facebook Page. |
+| `page_profile_uri` / `page_profile_picture_url` | Link to the advertiser's Facebook Page and its profile picture. |
+| `page_like_count` / `page_categories` / `page_is_deleted` | The Page's likes, its categories, and whether it has been deleted. |
+| `collation_id` / `collation_count` | Meta groups near-identical ads; `collation_count` is how many ads share this one's group. |
 | `is_active` | Whether the ad is currently running. |
 | `started_running` / `ended` | Run dates (ISO `YYYY-MM-DD`, UTC). `ended` is `null` while the ad is still active. |
 | `platforms` | Where the ad runs, as Meta's placement names, e.g. `FACEBOOK`, `MESSENGER`, `AUDIENCE_NETWORK`. |
@@ -152,7 +184,15 @@ result = su.meta_ad_library(
 | `cta_text` / `cta_type` | The button label (`Shop now`) and its type (`SHOP_NOW`, `LEARN_MORE`, `SIGN_UP`, ...). |
 | `link_url` | The landing page the ad sends the click to. |
 | `creatives` | The ad's media: an array of `{ type, image_url, video_url }`. `type` is `image` or `video`; a video also carries its `image_url` preview. Carousel/DCO ads return one entry per card. |
+| `images` / `videos` / `cards` | The same media split by kind: image URLs, `{ video_url, preview_image_url }`, and carousel cards with their own `title`, `body`, `caption`, `link_url`, `link_description`, `cta_text`, `cta_type`, `image_url`, `video_url` and `video_preview_image_url`. |
+| `extra_texts` / `extra_links` | Further copy and links Meta lists for the ad (other headlines, lead-form text, extra landing pages). |
 | `categories` | Meta's ad categories, `["UNKNOWN"]` for ordinary commercial ads. |
+| `contains_sensitive_content` / `contains_digital_created_media` | Meta's flags for sensitive content and AI-made or digitally altered media. |
+| `total_active_time` | How long the ad has run, in seconds. |
+| `impressions` / `spend` / `currency` / `reach_estimate` | Meta's ranges where it publishes them (impressions for many ads, spend and reach mostly for political and EU ads); `null` otherwise. |
+| `targeted_or_reached_countries` | Countries Meta lists for the ad's targeting or reach, when it shows them. |
+
+Every key above is always present, `null` or `[]` when Meta shows nothing for that ad.
 
 ## When an advertiser has no ads
 

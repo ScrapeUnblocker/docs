@@ -3,6 +3,34 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-03" description="Crunchbase filled from the company's homepage, Meta Ad Library's full ad record, Wellfound role search returns that role; SDKs 0.18.3">
+  **[Crunchbase](/plugins/crunchbase)** fills what Crunchbase leaves empty
+  from the company's own homepage, in the same call and at no extra charge:
+  `seoDescription`, `coverImage`, `employeeCount`, `linkedinId`,
+  `headquarters.street` and `headquarters.postalCode`, the `instagram`,
+  `youtube` and `github` social links, and an empty `foundedOn`,
+  `contactEmail` or `phone`. `fromWebsite` names the keys that came from the
+  homepage; Crunchbase's own values always win.
+  **[Meta Ad Library](/plugins/meta-ad-library)** ads now carry
+  `ad_library_url`, `collation_count`, `contains_sensitive_content`,
+  `contains_digital_created_media`, `total_active_time`, `impressions`,
+  `spend`, `targeted_or_reached_countries`, the Page's
+  `page_profile_picture_url`, `page_categories` and `page_is_deleted`, and
+  the media split into `images`, `videos` and `cards` with `extra_texts` and
+  `extra_links`; the answer echoes the `query` and the `search_url` read.
+  `country=ALL` searches every country. The first page of ads now comes back
+  in a few seconds without a browser, and advertisers whose ads fit on that
+  page no longer come back empty.
+  **[Wellfound](/plugins/wellfound)** role searches return jobs that are that
+  role: title matches first, then the jobs Wellfound files under the role,
+  the companies' other jobs left out (`titleMatches` counts the first kind).
+  With `max_results` and a `location`, a thin role page is topped up from the
+  location's listing and the role's remote jobs, at no extra charge;
+  `title_match=false` keeps the old listing.
+  Every new key is always present (`null` or `[]` when empty); nothing was
+  removed or renamed. **SDKs 0.18.3** describe the new fields.
+</Update>
+
 <Update label="2026-11-03" description="Google SERP and Bing: favicons, sitelinks, ratings, related search links; Bing AI summary and real ad links; SDKs 0.18.2">
   **[`/serpApi`](/guides/serp-scraping)** organic results now also carry
   `favicon`, `sitelinks` (`title`, `url`, `description`), `rating` (`value`,
