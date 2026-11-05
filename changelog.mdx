@@ -3,6 +3,15 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-05" description="Crawler-only URLs answer at once">
+  `/getPageSource` now answers a URL the site serves only to search-engine
+  crawlers it verifies by IP - the sitemap files under
+  `facebook.com/sitemap/` - with an immediate plain-text **`403`** and
+  `X-SU-Error-Code: crawler_only_target`, instead of a `403` after several
+  seconds of retries. Not billed. Facebook's other pages are fetched as
+  before. See [restricted targets](/errors#restricted-targets).
+</Update>
+
 <Update label="2026-11-03" description="Crunchbase filled from the company's homepage, Meta Ad Library's full ad record, Wellfound role search returns that role; SDKs 0.18.3">
   **[Crunchbase](/plugins/crunchbase)** fills what Crunchbase leaves empty
   from the company's own homepage, in the same call and at no extra charge:
