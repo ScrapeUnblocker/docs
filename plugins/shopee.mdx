@@ -206,6 +206,7 @@ To pass ids instead, leave the link out: `su.shopee_product(shop_id="442800909",
     "title": "Beats iPhone 17 Drenched Case with MagSafe and Camera Control",
     "price": 34.9,
     "originalPrice": null,
+    "originalPriceStatus": "lookup_failed",
     "discountPercent": 41,
     "isPixPrice": false,
     "currency": "SGD",
@@ -280,6 +281,7 @@ To pass ids instead, leave the link out: `su.shopee_product(shop_id="442800909",
 | --- | --- |
 | `dataLevel` | `full`: the whole listing. `meta`: Shopee showed only the title and main image (Indonesia, Thailand, Vietnam and the Philippines); price, rating, labels and shop are still included. |
 | `title` / `images` / `price` / `originalPrice` / `discountPercent` / `currency` / `rating` / `labels` | As in search. |
+| `originalPriceStatus` | What a `null` `originalPrice` means. `found`: it is set. `no_discount`: Shopee shows no discount, so there is no list price. `pix`: a Pix price, whose list price Shopee does not show. `not_shown`: only the product page gives a discount (usually one some variations have) and Shopee's listings show the product without one, so there is no crossed-out price to read. `lookup_failed`: Shopee shows a discount, but no listing read in this call showed the crossed-out price; a retry can find it. A list price once found is returned again on later calls while the product keeps the same price and discount. |
 | `description` / `brand` / `condition` | Listing text, brand and condition (`full` only). |
 | `availability` / `inStock` | `in_stock`, `sold_out` (every variation sold out) or `unavailable` (the seller withdrew the listing); `inStock` is `true` only for `in_stock` (`full` only). |
 | `categories` | The category path the product page's breadcrumb shows, each with `id` and `name` (`full` only). |

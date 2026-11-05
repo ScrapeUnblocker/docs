@@ -3,6 +3,17 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-05" description="Shopee product: steady originalPrice and originalPriceStatus">
+  **[Shopee](/plugins/shopee)** product calls find the crossed-out list price
+  far more often and return the same value call after call: the lookup now
+  searches around the product's own price first, and a list price once found
+  is returned again while the product keeps the same price and discount. The
+  new `originalPriceStatus` field says what a `null` `originalPrice` means -
+  `no_discount`, `pix`, `not_shown` (only the product page gives a discount)
+  or `lookup_failed` (a retry can find it) - and is `found` when the price is
+  set.
+</Update>
+
 <Update label="2026-11-05" description="Crawler-only URLs answer at once">
   `/getPageSource` now answers a URL the site serves only to search-engine
   crawlers it verifies by IP - the sitemap files under
