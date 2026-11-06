@@ -17910,7 +17910,7 @@
           "Plugins"
         ],
         "summary": "Scrape Taobao / Tmall keyword or category listings",
-        "description": "Returns the products Taobao lists for a keyword `q` (or a `category`) as JSON: `products` (`position`, `itemId`, `title`, `url`, `image`, `price` in yuan with `currency` CNY, `priceLabel` (Taobao's price tag, e.g. 优惠价), `localPrices` (the same price in the storefront's currency, HKD and TWD), `shopId`, `shopName`, `descriptionMatchScore`, `freeShipping`, `categoryId`, `rootCategoryId`, `sellingPoints`, `reviewHighlights`), `totalResults` (how many listings Taobao reports), and `filterOptions` (brand and property facets; pass an option's `filter` value back as `filter`). Sort by relevance, sales or price and filter by a yuan price range (products whose listed price falls outside it are left out and counted in `droppedOutsidePriceRange`). Taobao shows signed-out visitors only the first 20 products of a list, so one call returns up to 20 (narrow with price ranges and filters to reach more). When Taobao has no list for the keyword, the call answers with the list of the closest keyword Taobao itself suggests and says so: `keywordSubstituted` true and `matchedKeyword`. Text comes in Chinese as sellers write it. Companion to `/marketplace/taobao-product`. One unit per call.",
+        "description": "Returns the products Taobao lists for a keyword `q` (or a `category`) as JSON: `products` (`position`, `itemId`, `itemKey` (the item's catalogue key: pass it to `/marketplace/taobao-product` as `item_id`), `title`, `url`, `catalogueUrl` (the item's public catalogue page), `image`, `price` in yuan with `currency` CNY, `priceLabel` (Taobao's price tag, e.g. 优惠价), `localPrices` (the same price in the storefront's currency, HKD and TWD), `shopId`, `shopName`, `descriptionMatchScore`, `freeShipping`, `categoryId`, `rootCategoryId`, `sellingPoints`, `reviewHighlights`), `totalResults` (how many listings Taobao reports), and `filterOptions` (brand and property facets; pass an option's `filter` value back as `filter`). Sort by relevance, sales or price and filter by a yuan price range (products whose listed price falls outside it are left out and counted in `droppedOutsidePriceRange`). Taobao shows signed-out visitors only the first 20 products of a list, so one call returns up to 20 (narrow with price ranges and filters to reach more). When Taobao has no list for the keyword, the call answers with the list of the closest keyword Taobao itself suggests and says so: `keywordSubstituted` true and `matchedKeyword`. Text comes in Chinese as sellers write it. Companion to `/marketplace/taobao-product`. One unit per call.",
         "operationId": "taobao_search_marketplace_taobao_search_post",
         "parameters": [
           {
@@ -18058,7 +18058,7 @@
           "Plugins"
         ],
         "summary": "Scrape one Taobao / Tmall item",
-        "description": "Returns one Taobao or Tmall item (by `item_id` or `url`) as JSON: `itemId`, `url`, `platform` (taobao / tmall), `title` (`titleTruncated` when Taobao shortens it, as it does for Tmall items), `price`, `originalPrice` and `priceMax` (for a price range) in yuan with `currency` CNY, `image`, `location` (ships from), `categoryId`, `rootCategoryId`, `categoryPath`, `freeShipping`, `paymentMethods`, `sellableLanguages`, `rating` (positive / neutral / negative split and counts; Taobao items only, Tmall does not publish it), `latestReview` (`rating`, `content`, `date`, `variant`, `hasMedia`, `followUps`; no reviewer identity, so no review photo or video URLs) and `shop` (`shopId`, `name`, `url`, `logo`, `sellerType` B = Tmall / C = Taobao, `creditLevel`, `openedAt`, `itemCount`, `scores` for description, service and delivery). This is what Taobao shows signed-out visitors: variants (SKUs), stock and monthly sales need a Taobao login and are not included. Companion to `/marketplace/taobao-search`. One unit per call.",
+        "description": "Returns one Taobao or Tmall item (by `item_id` or `url`) as JSON: `itemId`, `itemKey` (the item's catalogue key), `url`, `catalogueUrl`, `platform` (taobao / tmall), `title` (`titleTruncated` when Taobao shortens it, as it does for Tmall items), `price`, `originalPrice` and `priceMax` (for a price range) in yuan with `currency` CNY, `image`, `location` (ships from), `categoryId`, `rootCategoryId`, `categoryPath`, `freeShipping`, `paymentMethods`, `sellableLanguages`, `rating` (positive / neutral / negative split and counts; Taobao items only, Tmall does not publish it), `latestReview` (`rating`, `content`, `date`, `variant`, `hasMedia`, `followUps`; no reviewer identity, so no review photo or video URLs) and `shop` (`shopId`, `name`, `url`, `logo`, `sellerType` B = Tmall / C = Taobao, `creditLevel`, `openedAt`, `itemCount`, `scores` for description, service and delivery). This is what Taobao shows signed-out visitors: variants (SKUs), stock and monthly sales need a Taobao login and are not included. Taobao's public catalogue opens an item by its catalogue key (`itemKey` in `/marketplace/taobao-search` results, or the key in a www.taobao.com/list/item/<key>.htm or world.taobao.com/item/<key>.htm link); a numeric id is tried as given and answers 404 when the catalogue does not open it. Companion to `/marketplace/taobao-search`. One unit per call.",
         "operationId": "taobao_product_marketplace_taobao_product_post",
         "parameters": [
           {
@@ -18074,10 +18074,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Numeric Taobao or Tmall item id, e.g. '765833709683' (the `id` in item.taobao.com/item.htm?id=...).",
+              "description": "The item's catalogue key, as `/marketplace/taobao-search` returns it in `itemKey`, e.g. 'M3hoaXBUL3N4L2VnVUJncG9JWFphZz09'. A numeric Taobao or Tmall item id (the `id` in item.taobao.com/item.htm?id=...) is tried as given; Taobao's public catalogue opens items by key, so a numeric id may answer 404.",
               "title": "Item Id"
             },
-            "description": "Numeric Taobao or Tmall item id, e.g. '765833709683' (the `id` in item.taobao.com/item.htm?id=...)."
+            "description": "The item's catalogue key, as `/marketplace/taobao-search` returns it in `itemKey`, e.g. 'M3hoaXBUL3N4L2VnVUJncG9JWFphZz09'. A numeric Taobao or Tmall item id (the `id` in item.taobao.com/item.htm?id=...) is tried as given; Taobao's public catalogue opens items by key, so a numeric id may answer 404."
           },
           {
             "name": "url",
@@ -18092,10 +18092,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Taobao or Tmall item link, e.g. 'https://item.taobao.com/item.htm?id=765833709683' or 'https://detail.tmall.com/item.htm?id=1081364414020' (world.taobao.com, mobile and overseas item links work too). Either item_id or url is required.",
+              "description": "The item's catalogue link, e.g. 'https://www.taobao.com/list/item/M3hoaXBUL3N4L2VnVUJncG9JWFphZz09.htm' or 'https://world.taobao.com/item/M3hoaXBUL3N4L2VnVUJncG9JWFphZz09.htm' (the links Taobao's own lists and search engines give). An item.taobao.com or detail.tmall.com link is taken by its numeric id, as `item_id` is. Either item_id or url is required.",
               "title": "Url"
             },
-            "description": "Taobao or Tmall item link, e.g. 'https://item.taobao.com/item.htm?id=765833709683' or 'https://detail.tmall.com/item.htm?id=1081364414020' (world.taobao.com, mobile and overseas item links work too). Either item_id or url is required."
+            "description": "The item's catalogue link, e.g. 'https://www.taobao.com/list/item/M3hoaXBUL3N4L2VnVUJncG9JWFphZz09.htm' or 'https://world.taobao.com/item/M3hoaXBUL3N4L2VnVUJncG9JWFphZz09.htm' (the links Taobao's own lists and search engines give). An item.taobao.com or detail.tmall.com link is taken by its numeric id, as `item_id` is. Either item_id or url is required."
           }
         ],
         "responses": {
@@ -18111,7 +18111,7 @@
             "description": "Invalid or missing item_id / url."
           },
           "404": {
-            "description": "Taobao has no public page for the item (removed, or not shown to signed-out visitors); not billed."
+            "description": "Taobao has no public page for the item (removed, not shown to signed-out visitors, or asked for by a numeric id the catalogue does not open); not billed."
           },
           "502": {
             "description": "Taobao refused every attempt, or no answer in time; not billed."

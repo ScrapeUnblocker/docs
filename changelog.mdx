@@ -3,6 +3,19 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-06" description="Taobao item: opened by its catalogue key">
+  **[Taobao & Tmall](/plugins/taobao)** item calls take the item's catalogue
+  key: Taobao's public catalogue now opens an item page only by this opaque
+  per-item key, not by the numeric id. Every search product carries it as
+  `itemKey`, with its catalogue page as `catalogueUrl`; pass `itemKey` to
+  `/marketplace/taobao-product` as `item_id`, or the catalogue link
+  (`https://www.taobao.com/list/item/<key>.htm` or
+  `https://world.taobao.com/item/<key>.htm`) as `url`. A numeric id, or an
+  `item.taobao.com` / `detail.tmall.com` link, is still tried once, but
+  usually answers `404` (not billed) with a message asking for the `itemKey`.
+  Item answers carry `itemKey` and `catalogueUrl` too.
+</Update>
+
 <Update label="2026-11-05" description="Shopee product: steady originalPrice and originalPriceStatus">
   **[Shopee](/plugins/shopee)** product calls find the crossed-out list price
   far more often and return the same value call after call: the lookup now

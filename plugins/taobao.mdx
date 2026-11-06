@@ -6,8 +6,8 @@ sidebarTitle: "Taobao & Tmall"
 
 The **Taobao & Tmall** plugin returns listings from Taobao and Tmall, Alibaba Group's consumer marketplaces in China, as structured JSON. It is two endpoints:
 
-- **`/marketplace/taobao-search`** - the products Taobao lists for a keyword (Chinese or English) or a category: item id, title, link and image, the price in yuan with Taobao's price tag (such as a discount price) and the same price in local currencies, the shop and its description score, free shipping, category ids, selling points and review highlights, plus Taobao's count of matching listings and the brand and property filters you can apply next.
-- **`/marketplace/taobao-product`** - one Taobao or Tmall item: the platform, title, price, original price and price range in yuan, image, ship-from location, category path, free shipping, payment methods, the buyer rating split (Taobao items only), the latest review (stars, text, date and variant, no reviewer identity) and the shop with its seller type, credit level, opening date, item count and description, service and delivery scores.
+- **`/marketplace/taobao-search`** - the products Taobao lists for a keyword (Chinese or English) or a category: item id and catalogue key, title, link, catalogue link and image, the price in yuan with Taobao's price tag (such as a discount price) and the same price in local currencies, the shop and its description score, free shipping, category ids, selling points and review highlights, plus Taobao's count of matching listings and the brand and property filters you can apply next.
+- **`/marketplace/taobao-product`** - one Taobao or Tmall item, by the catalogue key a search returns: the platform, title, price, original price and price range in yuan, image, ship-from location, category path, free shipping, payment methods, the buyer rating split (Taobao items only), the latest review (stars, text, date and variant, no reviewer identity) and the shop with its seller type, credit level, opening date, item count and description, service and delivery scores.
 
 The plugin reads the public catalogue Taobao publishes for signed-out visitors, so no Taobao login is involved, and what Taobao shows only after a login is not included: SKUs (variants), stock and monthly sales. Taobao shows signed-out visitors the first 20 products of a list, so one search returns up to 20; narrow it with a price range or a filter to reach other products. Text comes back in Chinese, as sellers write it, and prices are in yuan (CNY). For wholesale prices, see the [1688 plugin](/plugins/1688).
 
@@ -83,22 +83,24 @@ When Taobao has no public list for a keyword, the call answers with the list of 
   "sort": "sales",
   "currency": "CNY",
   "localCurrency": "SGD",
-  "totalResults": 59084,
+  "totalResults": 59366,
   "resultsCollected": 20,
   "products": [
     {
       "position": 1,
       "itemId": "1078907312106",
+      "itemKey": "SnA2dmxGcWpIZXRWLzJoZ0tCQjdXQT09",
       "title": "【新款18勃艮第红色】图拉斯雪雾适用iPhone18ProMax手机壳苹果17磁吸外壳16pm高级磨砂15Pro保护套14P全包13",
       "url": "https://item.taobao.com/item.htm?id=1078907312106",
+      "catalogueUrl": "https://www.taobao.com/list/item/SnA2dmxGcWpIZXRWLzJoZ0tCQjdXQT09.htm",
       "image": "https://img.alicdn.com/imgextra/O1CN01MD26uLjX8UC1chua_!!6000000000818-2-yinhe.png",
       "price": 116.0,
       "currency": "CNY",
       "priceLabel": "优惠价",
       "localPrices": [
-        { "currency": "SGD", "price": 22.53 },
-        { "currency": "HKD", "price": 137.73 },
-        { "currency": "TWD", "price": 572.08 }
+        { "currency": "SGD", "price": 22.56 },
+        { "currency": "HKD", "price": 137.78 },
+        { "currency": "TWD", "price": 580.38 }
       ],
       "shopId": "72104903",
       "shopName": "图拉斯数码旗舰店",
@@ -112,17 +114,19 @@ When Taobao has no public list for a keyword, the call answers with the list of 
     },
     {
       "position": 2,
-      "itemId": "971278517006",
-      "title": "绿联适用苹果iPhone18Promax磁吸手机壳17pro透明duo全包+16pm保护套新款15超薄散热14magsafe镜头13安全防摔",
-      "url": "https://item.taobao.com/item.htm?id=971278517006",
-      "image": "https://img.alicdn.com/imgextra/O1CN01pyIQGB0WC2I1chua_!!6000000001904-2-yinhe.png",
-      "price": 54.9,
+      "itemId": "582890145005",
+      "itemKey": "SmFWQlNHc2lpUGEzZHVBTlJ6eS9RQT09",
+      "title": "绿联适用苹果iPhone18ProMax气囊柔盾17手机壳防摔16Pro透明保护套全包+15镜头14超薄13软壳散热高级12xr11",
+      "url": "https://item.taobao.com/item.htm?id=582890145005",
+      "catalogueUrl": "https://www.taobao.com/list/item/SmFWQlNHc2lpUGEzZHVBTlJ6eS9RQT09.htm",
+      "image": "https://img.alicdn.com/imgextra/O1CN01H6TunABXd6C1chua_!!6000000000337-2-yinhe.png",
+      "price": 29.9,
       "currency": "CNY",
-      "priceLabel": "优惠价",
+      "priceLabel": "热销款",
       "localPrices": [
-        { "currency": "SGD", "price": 10.66 },
-        { "currency": "HKD", "price": 65.18 },
-        { "currency": "TWD", "price": 270.75 }
+        { "currency": "SGD", "price": 5.82 },
+        { "currency": "HKD", "price": 35.52 },
+        { "currency": "TWD", "price": 149.6 }
       ],
       "shopId": "67095450",
       "shopName": "绿联数码旗舰店",
@@ -131,7 +135,7 @@ When Taobao has no public list for a keyword, the call answers with the list of 
       "areaLimit": false,
       "categoryId": "150704",
       "rootCategoryId": "50008090",
-      "sellingPoints": ["强磁吸附AI拍照键抗发黄"],
+      "sellingPoints": ["全面防护 双C大气囊防摔", "军工级认证 升级气囊防摔"],
       "reviewHighlights": []
     }
   ],
@@ -140,8 +144,8 @@ When Taobao has no public list for a keyword, the call answers with the list of 
       "name": "品牌",
       "propertyId": "20000",
       "options": [
-        { "name": "Nohon/诺希", "filter": "20000-88634403", "count": 2 },
-        { "name": "以诺", "filter": "20000-6766802", "count": 2 }
+        { "name": "Nohon/诺希", "filter": "20000-88634403", "count": 1 },
+        { "name": "以诺", "filter": "20000-6766802", "count": 11 }
       ]
     }
   ]
@@ -152,7 +156,8 @@ When Taobao has no public list for a keyword, the call answers with the list of 
 | --- | --- |
 | `matchedKeyword` / `keywordSubstituted` | The keyword whose list was returned, and `true` when it is Taobao's suggestion instead of `q`. |
 | `totalResults` | How many listings Taobao reports for the keyword. |
-| `products[].itemId` / `url` | Taobao item id and link. Pass the id to [Item](#item). |
+| `products[].itemId` / `url` | Taobao item id and the shopper link (`item.taobao.com`). |
+| `products[].itemKey` / `catalogueUrl` | The item's catalogue key and its public catalogue page. Pass `itemKey` to [Item](#item) as `item_id`. |
 | `products[].title` / `image` | Title (Chinese) and image. |
 | `products[].price` / `currency` / `priceLabel` | Price in yuan (`CNY`) and Taobao's price tag, e.g. `优惠价` (discount price). |
 | `products[].localPrices` | The same price in the storefront's currencies (`SGD`, `HKD`, `TWD`). |
@@ -169,14 +174,16 @@ When Taobao has no public list for a keyword, the call answers with the list of 
 POST /marketplace/taobao-product
 ```
 
+Taobao's public catalogue opens an item page only by the item's catalogue key, an opaque string such as `M3hoaXBUL3N4L2VnVUJncG9JWFphZz09` (item 765833709683) that only Taobao's own pages carry. Take it from `itemKey` in a [search](#search) result; a numeric item id is tried once, but it usually answers `404` (not billed) with a message asking for the `itemKey`.
+
 | Field | Required | Notes |
 | --- | --- | --- |
-| `item_id` | one of `item_id` / `url` | Numeric Taobao or Tmall item id, e.g. `765833709683` (the `id` in `item.taobao.com/item.htm?id=...`). |
-| `url` | one of `item_id` / `url` | Taobao or Tmall item link, e.g. `https://item.taobao.com/item.htm?id=765833709683` or `https://detail.tmall.com/item.htm?id=1081364414020`. world.taobao.com, mobile and overseas item links work too. |
+| `item_id` | one of `item_id` / `url` | The item's catalogue key, e.g. `M3hoaXBUL3N4L2VnVUJncG9JWFphZz09`: `itemKey` from a [search](#search). A numeric Taobao or Tmall item id (the `id` in `item.taobao.com/item.htm?id=...`) is tried as given, but usually answers `404`. |
+| `url` | one of `item_id` / `url` | The item's catalogue link, e.g. `https://www.taobao.com/list/item/M3hoaXBUL3N4L2VnVUJncG9JWFphZz09.htm` (`catalogueUrl` from a search) or `https://world.taobao.com/item/M3hoaXBUL3N4L2VnVUJncG9JWFphZz09.htm`. An `item.taobao.com` or `detail.tmall.com` link is taken by its numeric id, like a numeric `item_id`. |
 
 <CodeGroup>
 ```bash cURL
-curl -X POST "https://api.scrapeunblocker.com/marketplace/taobao-product?item_id=971278517006" \
+curl -X POST "https://api.scrapeunblocker.com/marketplace/taobao-product?item_id=M3hoaXBUL3N4L2VnVUJncG9JWFphZz09" \
   -H "x-scrapeunblocker-key: YOUR_API_KEY"
 ```
 
@@ -185,7 +192,7 @@ from scrapeunblocker import Client
 
 su = Client()  # reads SCRAPEUNBLOCKER_KEY
 
-result = su.taobao_product("971278517006")
+result = su.taobao_product("M3hoaXBUL3N4L2VnVUJncG9JWFphZz09")
 ```
 
 ```ts Node.js
@@ -193,7 +200,7 @@ import { ScrapeUnblockerClient } from "scrapeunblocker";
 
 const su = new ScrapeUnblockerClient(); // reads SCRAPEUNBLOCKER_KEY
 
-const result = await su.taobaoProduct("971278517006");
+const result = await su.taobaoProduct("M3hoaXBUL3N4L2VnVUJncG9JWFphZz09");
 ```
 
 ```php PHP
@@ -201,7 +208,7 @@ use ScrapeUnblocker\Client;
 
 $su = new Client(); // reads SCRAPEUNBLOCKER_KEY
 
-$result = $su->taobaoProduct('971278517006');
+$result = $su->taobaoProduct('M3hoaXBUL3N4L2VnVUJncG9JWFphZz09');
 ```
 
 ```ruby Ruby
@@ -209,58 +216,74 @@ require "scrapeunblocker"
 
 su = ScrapeUnblocker::Client.new # reads SCRAPEUNBLOCKER_KEY
 
-result = su.taobao_product("971278517006")
+result = su.taobao_product("M3hoaXBUL3N4L2VnVUJncG9JWFphZz09")
 ```
 </CodeGroup>
 
-To pass a link instead of an id, use the `url` option, e.g. `su.taobao_product(url="https://item.taobao.com/item.htm?id=765833709683")` in Python. An item is billed as one request; a removed item, or one Taobao does not show signed-out visitors, returns `404` and is not billed.
+To pass a catalogue link instead of a key, use the `url` option, e.g. `su.taobao_product(url="https://www.taobao.com/list/item/M3hoaXBUL3N4L2VnVUJncG9JWFphZz09.htm")` in Python. An item is billed as one request; a removed item, one Taobao does not show signed-out visitors, or a numeric id the catalogue does not open returns `404` and is not billed.
 
 ### Response
 
 ```json
 {
-  "query": { "itemId": "971278517006" },
+  "query": { "itemId": null, "itemKey": "M3hoaXBUL3N4L2VnVUJncG9JWFphZz09" },
   "product": {
-    "itemId": "971278517006",
-    "url": "https://detail.tmall.com/item.htm?id=971278517006",
-    "platform": "tmall",
-    "title": "绿联适用苹果iPho...",
-    "titleTruncated": true,
-    "price": 52.8,
+    "itemId": "765833709683",
+    "itemKey": "M3hoaXBUL3N4L2VnVUJncG9JWFphZz09",
+    "url": "https://item.taobao.com/item.htm?id=765833709683",
+    "catalogueUrl": "https://www.taobao.com/list/item/M3hoaXBUL3N4L2VnVUJncG9JWFphZz09.htm",
+    "platform": "taobao",
+    "title": "真无线蓝牙5.5耳机 ANC主动降噪高音质 2025新款五代顶配 杜比环绕音效 超长续航IPX5防水",
+    "titleTruncated": false,
+    "price": 388.0,
     "priceMax": null,
-    "originalPrice": 52.8,
+    "originalPrice": 388.0,
     "currency": "CNY",
     "hasPriceRange": false,
     "priceNote": "价格可能因优惠活动发生变化",
-    "image": "https://img.alicdn.com/imgextra/O1CN01pyIQGB0WC2I1chua_!!6000000001904-2-yinhe.png",
-    "images": ["https://img.alicdn.com/imgextra/O1CN01pyIQGB0WC2I1chua_!!6000000001904-2-yinhe.png"],
+    "image": "https://img.alicdn.com/imgextra/i3/2523443838/O1CN01QULkBg1eDrFVYcid7_!!2523443838.jpg",
+    "images": ["https://img.alicdn.com/imgextra/i3/2523443838/O1CN01QULkBg1eDrFVYcid7_!!2523443838.jpg"],
     "location": "广东深圳",
-    "categoryId": "150704",
-    "rootCategoryId": "50008090",
-    "categoryPath": ["阿里B2C商城", "手机及配件", "手机配件", "保护套/硅胶套"],
+    "categoryId": "50005050",
+    "rootCategoryId": "50011972",
+    "categoryPath": ["影音视听", "耳机耳放", "耳机"],
     "freeShipping": false,
     "areaLimit": false,
-    "paymentMethods": ["蚂蚁花呗", "信用卡支付", "集分宝"],
-    "sellableLanguages": ["en_US"],
-    "rating": null,
+    "paymentMethods": ["蚂蚁花呗", "集分宝", "支付宝支付"],
+    "sellableLanguages": ["en_US", "ru_RU", "ms_MY", "th_TH"],
+    "rating": {
+      "positivePercent": 99,
+      "neutralPercent": 1,
+      "negativePercent": 0,
+      "positiveCount": 70000,
+      "positiveCountText": "7万+",
+      "negativeCount": 500,
+      "negativeCountText": "500+"
+    },
     "latestReview": {
       "rating": 5,
-      "content": "刷小红书看到好多人推这种透明磁吸壳，就买了个康宁抗菌的试试。我手容易出汗，以前透 ...",
-      "date": "2026-10-11T12:18:00Z",
-      "variant": "适用手机型号:iPhone 17;颜色分类:【全透明·AI按键】24小时抗菌★康 ...",
-      "hasMedia": false
+      "content": "拿到手试了下这款华强北Pro3代蓝牙耳机，连接OPPO手机秒连，音质日常听完全够用，戴着跑步也不会掉，这个价位能买到这品质真的很惊喜👍，商家回复问题也很耐心，挺满意的一次网购体验😋，凑个图发评价还能领淘金币，太值啦✨",
+      "date": "2026-10-29T00:33:00Z",
+      "variant": "颜色分类:【顺丰包邮】全天发货★即拍即发★到货快人一步",
+      "hasMedia": false,
+      "followUps": [
+        {
+          "content": "这款华强北Pro3代蓝牙耳机用了快一周，体验比我之前预期的好太多👍 顺丰寄来速度很快，降噪效果日常通勤够用，连我的OPPO手机秒连不卡顿，戴着逛一下午耳朵也不疼，这个价位能买到这个品质真的很惊喜，性价比拉满，推荐给想入平价耳机的朋友😊",
+          "daysAfterReview": 0
+        }
+      ]
     },
     "shop": {
-      "shopId": "67095450",
-      "name": "绿联数码旗舰店",
-      "url": "https://shop67095450.taobao.com",
-      "logo": "https://img.alicdn.com/imgextra//d2/82/TB1rBsXkkL0gK0jSZFASuwA9pXa.jpg",
-      "sellerType": "B",
-      "creditLevel": 20,
-      "openedAt": "2011-05-30T06:37:22Z",
-      "itemCount": 1332,
-      "newItemCount": 29,
-      "scores": { "delivery": 4.9, "service": 4.8, "description": 4.8 }
+      "shopId": "467290190",
+      "name": "深圳华强北正品直销总店",
+      "url": "https://shop467290190.taobao.com",
+      "logo": "https://img.alicdn.com/imgextra/i1/2523443838/O1CN01QzSMvU1eDr1UvyYwc_!!2523443838.jpg",
+      "sellerType": "C",
+      "creditLevel": 17,
+      "openedAt": "2019-08-05T16:41:09Z",
+      "itemCount": 20,
+      "newItemCount": 1,
+      "scores": { "delivery": 4.8, "service": 4.8, "description": 4.7 }
     }
   },
   "source": "www.taobao.com"
@@ -269,6 +292,8 @@ To pass a link instead of an id, use the `url` option, e.g. `su.taobao_product(u
 
 | Field | Notes |
 | --- | --- |
+| `itemId` / `itemKey` | Taobao item id and the item's catalogue key (the key opens the item; use it for repeat calls). |
+| `url` / `catalogueUrl` | The shopper link (`item.taobao.com` or `detail.tmall.com`) and the item's public catalogue page. |
 | `platform` | `taobao` or `tmall`. |
 | `title` / `titleTruncated` | The title, and `true` when Taobao shortens it, as it does for Tmall items. |
 | `price` / `originalPrice` / `priceMax` / `hasPriceRange` / `currency` | Price in yuan, the price before a promotion, and the top of the range when the item has one. |
@@ -286,7 +311,7 @@ To pass a link instead of an id, use the `url` option, e.g. `su.taobao_product(u
 | Status | Meaning |
 | --- | --- |
 | `400` | Invalid parameters, e.g. neither `q` nor `category`, an unknown `sort`, or a missing `item_id` / `url`. |
-| `404` | Taobao has no public list for the keyword (nor for any keyword it suggests instead), the category or the filters, or no public page for the item. Not billed. |
+| `404` | Taobao has no public list for the keyword (nor for any keyword it suggests instead), the category or the filters, or no public page for the item (removed, not shown to signed-out visitors, or asked for by a numeric id the catalogue does not open: pass its `itemKey`). Not billed. |
 | `502` | Taobao refused every attempt, or did not answer in time. Not billed; retry. |
 
 ## What you can build
