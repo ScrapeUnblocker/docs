@@ -185,6 +185,10 @@ you exactly which step broke and what the page looked like at that moment:
 The most common cause is a selector that doesn't match. That's exactly what
 `list_elements` is for.
 
+If a step fails because the site answered with its block page instead of the
+content, you get the usual free `403` for a blocked request, not a `422` -
+retry the call.
+
 ## Discover with `list_elements`, then act with `steps`
 
 Instead of guessing selectors from a page you can't see, ask the API for them.
