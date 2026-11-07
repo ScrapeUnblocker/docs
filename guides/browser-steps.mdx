@@ -187,7 +187,10 @@ The most common cause is a selector that doesn't match. That's exactly what
 
 If a step fails because the site answered with its block page instead of the
 content, you get the usual free `403` for a blocked request, not a `422` -
-retry the call.
+retry the call. When every step up to the failing one only reads the page
+(`wait_for`, `wait_for_text`, `wait`, `scroll`), the API has already tried once
+more through another exit before answering. Steps that act on the page
+(`click`, `type`, `select`, `press_key`) are never repeated for you.
 
 ## Discover with `list_elements`, then act with `steps`
 
