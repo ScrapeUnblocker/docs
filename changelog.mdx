@@ -3,6 +3,13 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-08" description="Suspended keys: key_suspended">
+  An API key suspended for abuse, such as scanning sites for exploitable
+  endpoints through us, gets **`403`** with `X-SU-Error-Code: key_suspended`
+  on every call, before anything is fetched. These answers are never billed.
+  Contact support to have the key reviewed.
+</Update>
+
 <Update label="2026-11-06" description="Taobao item: opened by its catalogue key">
   **[Taobao & Tmall](/plugins/taobao)** item calls take the item's catalogue
   key: Taobao's public catalogue now opens an item page only by this opaque
