@@ -3,6 +3,14 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-09" description="IP-address targets: ip_target">
+  `/getPageSource` and `/getImage` now fetch websites by domain name only. A
+  URL whose host is an IP address, in any notation, an alias of one on a
+  wildcard-DNS service, or a URL that only wraps one gets **`403`** with
+  `X-SU-Error-Code: ip_target`, before anything is fetched. These answers are
+  never billed.
+</Update>
+
 <Update label="2026-11-08" description="Suspended keys: key_suspended">
   An API key suspended for abuse, such as scanning sites for exploitable
   endpoints through us, gets **`403`** with `X-SU-Error-Code: key_suspended`
