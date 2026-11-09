@@ -1590,7 +1590,7 @@
           "Plugins"
         ],
         "summary": "Scrape an Amazon product page",
-        "description": "Fetches a single Amazon product and returns it as JSON: `title`, `brand`, `price` + `currency`, `listPrice` and `savingsPercent`, `availability` (+ a boolean `inStock`), `rating`, `reviewCount`, `seller`, `features` (bullet points), `categories` (breadcrumb) and `images`. Identify the product with either `asin` (plus `marketplace`) or a full product `url`.\n\nAmazon prices each page in the currency of the delivery location it infers from the visitor's IP address, so `proxy_country` defaults to the marketplace's home country (amazon.com -> US) and the call is routed through proxies in that country. The country of the proxy that served the request is reported as `exitCountry`.",
+        "description": "Fetches a single Amazon product and returns it as JSON: `title`, `brand` and `brandStoreUrl`, `parentAsin`, `manufacturer`, `modelNumber`, `partNumber`, `productCodes` (UPC, EAN, GTIN, ISBN), `condition`, the `amazonsChoice`, `bestSellerBadge`, `deal` and `coupon` markers, `price` + `currency`, `listPrice`, `savingsPercent` and `savingsAmount`, `unitPrice`, `subscribeAndSavePrice`, `shippingPrice`, `recentSales`, `availability` (+ a boolean `inStock`), `maxOrderQuantity`, `rating`, `reviewCount`, `ratingDistribution` (percent per star), `reviewSummary`, `seller`, `sellerUrl`, `sellerId`, `shipsFrom`, `fulfilledByAmazon`, `prime`, `delivery`, `returnPolicy`, `offersCount` and `offersFromPrice`, `bestSellersRank`, `features` (bullet points), `categories` (breadcrumb), `description`, `fromTheManufacturer` and `fromTheBrand` (text and images), `importantInformation`, `ingredients`, `whatsInTheBox`, `documents`, `warrantyAndSupport`, `productDetails`, `productOverview`, `dimensions`, `weight`, `dateFirstAvailable`, `variantDimensions` and `variants` (each with its own ASIN and options), `sustainability`, `protectionPlans`, `newerModel`, `sponsoredProducts`, `relatedProducts`, `images` (the whole gallery) and `videos`. A field the page does not show is null or empty. Identify the product with either `asin` (plus `marketplace`) or a full product `url`.\n\nOther sellers' full offers are not on the product page: only their count and lowest price are returned here, `/marketplace/amazon-offers` lists them. `prime` and `delivery` are what a visitor who is not signed in sees.\n\nAmazon prices each page in the currency of the delivery location it infers from the visitor's IP address, so `proxy_country` defaults to the marketplace's home country (amazon.com -> US) and the call is routed through proxies in that country. The country of the proxy that served the request is reported as `exitCountry`.",
         "operationId": "amazon_product_marketplace_amazon_product_post",
         "parameters": [
           {
@@ -2402,7 +2402,7 @@
           "Plugins"
         ],
         "summary": "Scrape Trustpilot company reviews",
-        "description": "Returns a company's Trustpilot profile and reviews as JSON. `company` is the reviewed domain (e.g. `www.nike.com`). The response has a `company` summary (`trustScore`, `totalReviews`, `ratingDistribution` 1-5, `categories`, `contact`) and a `reviews` array - each with `rating`, `title`, `text`, `verified`, `author` (name, country, review count), `reply` (the company's response) and dates. Page with `page`/`pages` (20 reviews per page), and filter with `stars`, `sort` (recency/relevancy), `language`, `date`, `search`, `verified` or `replies`.",
+        "description": "Returns a company's Trustpilot profile and reviews as JSON. `company` is the reviewed domain (e.g. `www.nike.com`). The response has a `company` summary (`trustScore`, `totalReviews`, `ratingDistribution` 1-5, `categories`, `contact`) and a `reviews` array - each with `url`, `rating`, `title`, `text`, `verified`, `verificationLevel`, `verificationSource`, `source`, `pending`, `merged`, `author` (name, country, review count, `id`, `image`, `profileUrl`, `reviewsOfThisCompany`), `reply` (the company's response, with dates) and `date` / `experiencedDate` / `updatedDate`. Page with `page`/`pages` (20 reviews per page), and filter with `stars`, `sort` (recency/relevancy), `language`, `date`, `search`, `verified` or `replies`.",
         "operationId": "trustpilot_reviews_reviews_trustpilot_post",
         "parameters": [
           {
@@ -3819,7 +3819,7 @@
           "Plugins"
         ],
         "summary": "Scrape Walmart product search",
-        "description": "Searches Walmart for `query` and returns the products as JSON: `name`, `price` and `wasPrice`, `rating`, `reviewCount`, `brand`, `seller`, `availability`, `image` and a product `url`. Sort with `sort`, filter with `min_price`/`max_price`, and collect up to `max_results` across pages.",
+        "description": "Searches Walmart for `query` and returns the products as JSON: `name`, `price` and `wasPrice`, `rating`, `reviewCount`, `brand`, `seller`, `availability`, `image`, a product `url`, `sponsored`, `unitPrice`, `priceRange`, `promotions`, `fulfillment`, `deliveryAvailable` and `variants`. The response also carries the search's `totalResults`, `pages`, `filters` and `sponsoredProducts`. Sort with `sort`, filter with `min_price`/`max_price`, and collect up to `max_results` across pages.",
         "operationId": "walmart_search_marketplace_walmart_search_post",
         "parameters": [
           {
@@ -3931,7 +3931,7 @@
         ],
         "responses": {
           "200": {
-            "description": "JSON with a `products` array.",
+            "description": "JSON with a `products` array and the search's `totalResults`, `pages`, `filters` and `sponsoredProducts`.",
             "content": {
               "application/json": {
                 "schema": {}
@@ -3971,7 +3971,7 @@
           "Plugins"
         ],
         "summary": "Scrape one Walmart product's full detail",
-        "description": "Fetches one Walmart product page (by `item_id` or `url`) and returns it as JSON: `itemId`, `title`, `brand`, `model`, `upc`, `price`, `wasPrice`, `listPrice`, `unitPrice` (e.g. per ounce, where Walmart shows one), `currency`, `rollback` / `clearance`, `availability` and `inStock`, `condition`, `seller` (name, Walmart or marketplace seller, its rating and review count), `additionalSellerCount`, `fulfillment` (shipping, pickup and delivery: available or not, date, fee, store or place), `returnPolicy`, `rating`, `reviewCount`, `reviewSummary` (star histogram, recommend percentage, aspect scores), the first `reviews`, `categories`, `shortDescription`, `description`, `highlights`, `specifications`, `warranty`, `variantOptions` and every `variants` entry (its own item id, attributes, price, stock), `images` and `videos`.\n\nFulfillment dates and the store are what Walmart quotes for the US location it assigns to the request (`location` names it), not a ZIP code or store you choose. Other sellers' offers are not on the product page: only their count (`additionalSellerCount`) is returned. Companion to `/marketplace/walmart-search`.",
+        "description": "Fetches one Walmart product page (by `item_id` or `url`) and returns it as JSON: `itemId`, `title`, `brand`, `model`, `upc`, `price`, `wasPrice`, `listPrice`, `unitPrice` (e.g. per ounce, where Walmart shows one), `currency`, `rollback` / `clearance`, `availability` and `inStock`, `condition`, `seller` (name, Walmart or marketplace seller, its rating and review count), `additionalSellerCount`, `fulfillment` (shipping, pickup and delivery: available or not, date, fee, store or place), `returnPolicy`, `rating`, `reviewCount`, `totalReviewCount`, `reviewSummary` (star histogram, recommend percentage, aspect scores), `reviewSummaryText`, `reviewBullets`, `reviewTopics`, `topPositiveReview`, `topNegativeReview`, the first `reviews`, `offersCount`, `otherOffersFromPrice`, `otherSellers`, `promotions`, `deliveryAvailable`, `pickupAvailable`, `categories`, `relatedPages`, `colors`, `shortDescription`, `description`, `pageSummary`, `highlights`, `specifications`, `directions`, `ingredients`, `activeIngredients`, `nutritionFacts`, `warranty`, `variantOptions` and every `variants` entry (its own item id, attributes, price, stock), `images`, `videos`, `infographics` and `view360Images`.\n\nFulfillment dates and the store are what Walmart quotes for the US location it assigns to the request (`location` names it), not a ZIP code or store you choose. The product page holds only some of the other sellers' offers (`otherSellers`); `offersCount` is how many there are. Companion to `/marketplace/walmart-search`.",
         "operationId": "walmart_product_marketplace_walmart_product_post",
         "parameters": [
           {
@@ -9063,7 +9063,7 @@
           "Plugins"
         ],
         "summary": "Scrape Google Shopping product listings",
-        "description": "Runs the Google Shopping vertical (`udm=28`) for `q` and returns the product cards as JSON: `title`, `price`, `currency`, `currencyCode`, `originalPrice`, `discount`, `merchant`, `rating`, `reviewCount` and Google's own ids for the product (`productId`, `catalogId`, `offerId` - stable across searches, for tracking one product). Set `proxy_country`/`gl` to target a market (prices/merchants are region-specific) and `min_price`/`max_price` to filter. One render returns the first page of products (v1). Note: Google Shopping exposes no per-product URL, so `url` is omitted and `image` is best-effort.",
+        "description": "Runs the Google Shopping vertical (`udm=28`) for `q` and returns the product cards as JSON: `title`, `price`, `currency`, `currencyCode`, `originalPrice`, `discount`, `merchant`, `delivery`, `rating`, `reviewCount`, `image` and Google's own ids for the product (`productId`, `catalogId`, `offerId` - stable across searches, for tracking one product). Set `proxy_country`/`gl` to target a market (prices/merchants are region-specific) and `min_price`/`max_price` to filter. One render returns the first page of products (v1). Note: Google Shopping exposes no per-product URL, so `url` is omitted. `image` is the product's thumbnail URL.",
         "operationId": "google_shopping_goods_google_shopping_post",
         "parameters": [
           {
@@ -11342,7 +11342,7 @@
           "Plugins"
         ],
         "summary": "Scrape a single Zillow property's full detail",
-        "description": "Fetches one Zillow property (by `url` or `zpid`) and returns the full record as JSON: `price`, `zestimate`, `rentZestimate`, `beds`, `baths`, `area`, `lotSize`, `yearBuilt`, `homeType`, `status`, `description`, `priceHistory`, `taxHistory`, `schools`, `facts`, `parking`, listing `brokerName`/`listingAgent`, `mlsid`, `monthlyHoaFee`, `pricePerSqft`, `daysOnZillow`, `taxAssessedValue`, coordinates, the `photos` gallery and `virtualTourUrl`. Every field is always present and is `null` when Zillow does not show it for that listing (for-sale and sold pages carry fewer sections than rentals). Companion to the Zillow search plugin (`/realestate/zillow`).",
+        "description": "Fetches one Zillow property (by `url` or `zpid`) and returns the full record as JSON: `price`, `zestimate`, `rentZestimate`, `beds`, `baths`, `area`, `lotSize`, `yearBuilt`, `homeType`, `status`, `description`, `priceHistory`, `taxHistory`, `schools`, `facts`, `parking`, listing `brokerName`/`listingAgent`, `mlsid`, `monthlyHoaFee`, `pricePerSqft`, `daysOnZillow`, `datePosted`, `pageViewCount` and `favoriteCount` (how many people viewed and saved the listing), `taxAssessedValue`, coordinates, the `photos` gallery and `virtualTourUrl`. Every field is always present and is `null` when Zillow does not show it for that listing (for-sale and sold pages carry fewer sections than rentals). Companion to the Zillow search plugin (`/realestate/zillow`).",
         "operationId": "zillow_detail_realestate_zillow_detail_post",
         "parameters": [
           {

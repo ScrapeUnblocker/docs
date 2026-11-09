@@ -127,6 +127,7 @@ A `403` means Google kept answering with a CAPTCHA; retry, or try another `proxy
 | `merchant` | The store selling the product, when Google names one. |
 | `rating` / `reviewCount` | Star rating (out of 5) and the review count as Google prints it (a string such as `32K`). |
 | `image` | Product image, when available. |
+| `delivery` | The delivery line on the card, e.g. `Free delivery`. |
 | `productId` / `catalogId` / `offerId` | Google's own ids for the product, its catalog entry and the offer. They stay the same across searches, so use `productId` to follow one product over time or to merge results; the list is already deduplicated by it. |
 
 A field with no value is left out of that product, so a card may carry only `title` and price.

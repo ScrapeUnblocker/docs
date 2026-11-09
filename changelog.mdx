@@ -3,6 +3,30 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-09" description="More product data on seven plugins">
+  No request changes; every existing field keeps its name and type.
+
+  - **[Walmart](/plugins/walmart)** product: promotions, total review count,
+    offers count and lowest other offer, related pages, directions,
+    ingredients, top positive and negative review, review summary and topics,
+    colors, infographics, 360 view, page summary, and `deliveryAvailable` /
+    `pickupAvailable`. Search: `totalResults`, `pages`, `filters`,
+    `sponsoredProducts`, and per product `sponsored`, `unitPrice`,
+    `priceRange`, `promotions`, `fulfillment`, `variants`.
+  - **[Amazon](/plugins/amazon)** product: seller link and id, delivery, return
+    policy, offers count, rating distribution, review summary, best sellers
+    rank, variants, product details, description sections, videos and related
+    products. `images` is now the whole gallery. Fixed: `listPrice` could show a
+    per-unit price, and `seller` could be `null`.
+  - **[Meta Ad Library](/plugins/meta-ad-library)**: a numeric Page ID now
+    returns that Page's ads; before, some Pages came back empty.
+  - **[Trustpilot](/plugins/trustpilot)**: review `url`, `updatedDate`,
+    `source`, `verificationSource`, `pending`, `merged`, and the reviewer's
+    `id`, `image`, `profileUrl` and `reviewsOfThisCompany`.
+  - **[Zillow](/plugins/zillow)** detail: `datePosted`, `pageViewCount`,
+    `favoriteCount`.
+  - **[Google Shopping](/plugins/google-shopping)**: `delivery`; `merchant` and
+    `image` are filled on far more products.
 <Update label="2026-11-09" description="IP-address targets: ip_target">
   `/getPageSource` and `/getImage` now fetch websites by domain name only. A
   URL whose host is an IP address, in any notation, an alias of one on a

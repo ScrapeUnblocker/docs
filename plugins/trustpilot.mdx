@@ -179,15 +179,16 @@ The `company` object carries `trustScore`, `totalReviews`, `reviewsLast12Months`
 
 | Field | Notes |
 | --- | --- |
-| `id` | Trustpilot's review id. |
+| `id` / `url` | Trustpilot's review id and the review's own page. |
 | `title` / `text` | Review headline and body. |
 | `rating` | Star rating, `1`-`5`. |
-| `author` | `name`, `country` (ISO-2), `reviewCount` (reviews the author has written) and `verified`. |
-| `date` / `experiencedDate` | When the review was posted and the date of the experience it describes (ISO-8601). |
-| `verified` / `verificationLevel` | Trustpilot's verified badge and its level, e.g. `not-verified`. |
+| `author` | `name`, `country` (ISO-2), `reviewCount` (reviews the author has written), `verified`, `id`, `image`, `profileUrl` and `reviewsOfThisCompany`. |
+| `date` / `experiencedDate` / `updatedDate` | When the review was posted, the date of the experience it describes (ISO 8601), and when it was last edited. |
+| `verified` / `verificationLevel` / `verificationSource` / `source` | Trustpilot's verified badge and its level (e.g. `not-verified`), how the review was verified, and where it came from. |
 | `likes` | Useful votes on the review. |
+| `pending` / `merged` | Trustpilot's moderation state for the review. |
 | `language` | Language code of the review. |
-| `reply` | The company's reply as `text` and `date`, or `null` when the company has not replied. |
+| `reply` | The company's reply as `text`, `date` and `updatedDate`, or `null` when the company has not replied. |
 
 ## What you can build
 

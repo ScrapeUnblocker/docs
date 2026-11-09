@@ -116,13 +116,25 @@ An ASIN that Amazon does not have on that marketplace (a removed product, a typo
 | --- | --- |
 | `price` / `currency` | Numeric price and ISO currency, parsed from Amazon's own format. `null` when the item shows no price (out of stock / buying options only). |
 | `priceRaw` | Price exactly as Amazon printed it. |
-| `listPrice` / `savingsPercent` | The struck-through original price and the discount, when the page shows a deal. |
+| `listPrice` / `savingsPercent` / `savingsAmount` | The struck-through original price and the discount, when the page shows a deal. |
 | `availability` / `inStock` | Amazon's availability line and a boolean derived from it. |
 | `rating` / `reviewCount` | Star rating (out of 5) and number of ratings. |
-| `seller` | The "Sold by ... Fulfilled by ..." line. |
+| `seller` / `sellerUrl` / `sellerId` / `shipsFrom` | Who sells it, a link to the seller, its id, and who ships it. |
 | `features` | The bullet points from the product page. |
 | `categories` | The breadcrumb category path. |
 | `images` | All main-image URLs; `image` is the primary one. |
+| `brandStoreUrl` / `manufacturer` / `modelNumber` / `partNumber` / `productCodes` | Brand store link and product identity; `productCodes` is a list of `{ type, value }`. |
+| `parentAsin` / `variantDimensions` / `variants` | The variant family, what its variants differ by, and each variant's `asin`, `url` and `attributes`. |
+| `condition` / `amazonsChoice` / `bestSellerBadge` / `deal` / `coupon` | Item condition and the badges and offers on the page. |
+| `unitPrice` / `unitPriceRaw` / `subscribeAndSavePrice` / `subscribeAndSavePriceRaw` / `shippingPrice` | Per-unit, Subscribe & Save and shipping prices. |
+| `recentSales` / `maxOrderQuantity` | Amazon's "bought in past month" line and the most one order may hold. |
+| `fulfilledByAmazon` / `prime` / `delivery` / `returnPolicy` | Fulfillment, delivery (`message`, date, price, fastest option) and the return policy, as a signed-out visitor sees them. |
+| `offersCount` / `offersFromPrice` / `offersFromPriceRaw` | How many offers the item has and the lowest of them. The offers themselves are on [`/marketplace/amazon-offers`](/plugins/amazon-offers). |
+| `ratingDistribution` / `reviewSummary` | Percent of ratings per star, and Amazon's written review summary. |
+| `bestSellersRank` | Ranks with `rank`, `category` and `url`. |
+| `description` / `fromTheManufacturer` / `fromTheBrand` / `importantInformation` / `ingredients` / `whatsInTheBox` / `documents` / `warrantyAndSupport` / `sustainability` | The page's text sections. `fromTheManufacturer` and `fromTheBrand` are `{ text, images }`. |
+| `productDetails` / `productOverview` / `dimensions` / `weight` / `dateFirstAvailable` | The detail tables as name/value objects, and their common values. |
+| `videos` / `sponsoredProducts` / `relatedProducts` / `protectionPlans` / `newerModel` | Page videos, the product carousels (`asin`, `title`, `url`), plans on offer and a newer model of the item. |
 | `exitCountry` | The country that served the call (lowercase ISO-2). |
 
 ## Search endpoint

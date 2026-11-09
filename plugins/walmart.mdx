@@ -116,6 +116,19 @@ A keyword Walmart sends to a category landing page with no product grid (e.g. `b
 | `seller` | `Walmart.com` or a marketplace seller name. |
 | `availability` | Stock state as Walmart words it. |
 | `url` | Clean `/ip/` product URL. |
+| `sponsored` | `true` on an ad card. |
+| `unitPrice` / `priceRange` | Price per unit as Walmart prints it (e.g. `1.2 ¢/ea`), and the `min` / `max` of a product sold at several prices. |
+| `promotions` | Offers shown on the tile. |
+| `fulfillment` / `deliveryAvailable` | The ways to get it, each with `type` and date (and `storeId` for pickup), and a boolean for shipping or delivery. |
+| `variants` | The variant swatches on the tile, each with `name`, `itemId` and `url`. |
+
+### Search fields
+
+| Field | Notes |
+| --- | --- |
+| `totalResults` / `pages` | How many results Walmart counts for the search and how many pages it offers. |
+| `filters` | The search's filters: a `name` and `type`, with `values` or a `min` / `max` range. |
+| `sponsoredProducts` | The ad cards of the first page, in the same shape as `products`. |
 
 <Note>
 Any field with no value is omitted from a product, so each item carries only the fields Walmart's search tile actually showed (e.g. `wasPrice` or `brand` may be absent).
@@ -363,16 +376,27 @@ Give `item_id` or `url`, not both. Each product is billed as one request.
 | `unitPrice` / `unitPriceText` | Price per unit (e.g. per ounce), where Walmart shows one. |
 | `rollback` / `clearance` | Walmart's Rollback and Clearance flags. |
 | `availability` / `inStock` / `orderLimit` | Stock state, a boolean, and the most one order may hold. |
-| `seller` | `name`, `type` (`walmart` or a marketplace seller), `rating`, `reviewCount` and `fulfilledByWalmart`. |
-| `additionalSellerCount` | How many other sellers offer the item. Their offers are not on the product page, so only the count is returned. |
+| `seller` | `id`, `name`, `type` (`walmart` or a marketplace seller), `url`, `rating`, `reviewCount` and `fulfilledByWalmart`. |
+| `additionalSellerCount` | How many other sellers offer the item. |
 | `fulfillment` | One entry per way to get it (`shipping`, `pickup`, `delivery`): `available`, `status`, `date`, `price`, `location` and Walmart's `message`. |
 | `location` | The US location Walmart assigned to the request, which the fulfillment dates and store are quoted for. It is not a ZIP code or store you choose. |
 | `returnPolicy` | Whether it is returnable, free returns, the return window in days and Walmart's text. |
 | `rating` / `reviewCount` / `reviewSummary` | Star rating and count, plus the star histogram, the recommend percentage and aspect scores. |
-| `reviews` | The first reviews on the page: `rating`, `title`, `text`, `date`, `author` (as Walmart shows it), `helpfulVotes` and the `seller` it was bought from. |
+| `reviews` | The reviews on the page, the featured ones included: `rating`, `title`, `text`, `date`, `author` (as Walmart shows it), `helpfulVotes` and the `seller` it was bought from. |
 | `categories` / `shortDescription` / `description` / `highlights` / `specifications` / `warranty` / `warnings` | Category path and the product page text and specs. |
 | `variantOptions` / `variants` | The variant menus (colour, size) and every variant with its own `itemId`, `attributes`, `price`, `wasPrice`, stock, link and image. |
 | `images` / `videos` | Image and video links. |
+| `totalReviewCount` | Total number of reviews, `0` when there are none. |
+| `topPositiveReview` / `topNegativeReview` | The featured best and worst review. |
+| `reviewSummaryText` / `reviewBullets` / `reviewTopics` | Walmart's written review summary, its bullets (`aspect`, `label`, `sentiment`, `summary`) and the review topics (`name`, `mentions`). |
+| `promotions` | Offers on the page, each with `id`, `type` and `description`. |
+| `offersCount` / `otherOffersFromPrice` / `otherSellers` | How many offers the item has, the lowest other offer, and the other offers the page embeds (usually only some of them). |
+| `deliveryAvailable` / `pickupAvailable` | Booleans: shipping or delivery is available, and store pickup is available. |
+| `colors` | The product's colors. |
+| `directions` / `ingredients` / `activeIngredients` / `nutritionFacts` | Use directions (`name` / `value`) and contents, where Walmart has them. |
+| `pageSummary` | Walmart's product summary as `text` and/or `items` (`title`, `description`). |
+| `relatedPages` | Related Walmart pages, each with `name` and `url`. |
+| `infographics` / `view360Images` | Infographic images and the images of a 360 view. |
 
 ## Errors
 
