@@ -1,0 +1,60 @@
+---
+title: "LangChain"
+description: "LangChain tools for ScrapeUnblocker: give your agent live web data - pages as Markdown or JSON, Google search and 100+ site scrapers."
+---
+
+The `langchain-scrapeunblocker` package gives a LangChain agent tools to read any public page in a real browser (as clean Markdown or structured JSON), search Google, and run 100+ ready-made site scrapers, including pages behind Cloudflare, DataDome, PerimeterX and Akamai.
+
+<Note>
+  The package is open source at [github.com/ScrapeUnblocker/langchain-scrapeunblocker](https://github.com/ScrapeUnblocker/langchain-scrapeunblocker) and published on [PyPI](https://pypi.org/project/langchain-scrapeunblocker/). It is built on the [Python SDK](/sdks/python).
+</Note>
+
+## Install
+
+```bash
+pip install -U langchain-scrapeunblocker
+export SCRAPEUNBLOCKER_API_KEY="YOUR_API_KEY"
+```
+
+Requires Python 3.10+. The key also falls back to the `SCRAPEUNBLOCKER_KEY` variable, or pass `api_key=` to any tool.
+
+## Use with an agent
+
+```python
+from langchain.agents import create_agent
+from langchain_scrapeunblocker import ScrapeUnblockerToolkit
+
+agent = create_agent(
+    "anthropic:claude-sonnet-5-5",
+    tools=ScrapeUnblockerToolkit().get_tools(),
+)
+result = agent.invoke(
+    {"messages": [{"role": "user", "content": "What does the Echo Dot cost on amazon.com today?"}]}
+)
+print(result["messages"][-1].content)
+```
+
+## Tools
+
+| Tool | What it does | Billed |
+| --- | --- | --- |
+| `ScrapeUnblockerMarkdown` | A page as clean Markdown (main content, absolute links) | 1 request |
+| `ScrapeUnblockerSearchAndRead` | A Google search plus the top 1-5 results read as Markdown, in one call | 1 + 1 per page |
+| `ScrapeUnblockerGoogleSearch` | Organic results, AI Overview, People also ask and related searches | 1 per result page |
+| `ScrapeUnblockerParsedData` | Structured JSON from a product, article or listing page ([parsed data](/guides/parsed-data)) | 1 request |
+| `ScrapeUnblockerListPlugins` | Search the catalog of [site plugins](/plugins/overview) | free |
+| `ScrapeUnblockerRunPlugin` | Run a site plugin and get its JSON | per plugin |
+
+Every tool takes an optional `proxy_country` ([country targeting](/guides/country-targeting)) and supports `ainvoke`. `ScrapeUnblockerGoogleSearch`, `ScrapeUnblockerParsedData` and `ScrapeUnblockerRunPlugin` return the full API response as the `ToolMessage` artifact, while the model reads a compact version.
+
+```python
+from langchain_scrapeunblocker import ScrapeUnblockerMarkdown, ScrapeUnblockerRunPlugin
+
+ScrapeUnblockerMarkdown().invoke({"url": "https://example.com"})
+
+ScrapeUnblockerRunPlugin().invoke(
+    {"plugin": "youtube_transcript", "params": {"video": "dQw4w9WgXcQ"}}
+)
+```
+
+Failed calls come back to the model as text it can act on (for example "the page itself answered 404, do not retry") instead of raising. The plugin catalog comes from the installed `scrapeunblocker` SDK, so upgrading the SDK picks up new plugins.
