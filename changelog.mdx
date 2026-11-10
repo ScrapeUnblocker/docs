@@ -3,6 +3,18 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-10" description="getPageSource: proxy_country falls back to another country">
+  `/getPageSource` now treats `proxy_country` as a preference. When the
+  requested country cannot serve the page (no exits there, blocked or
+  unavailable), the call is answered from another country within the same
+  time limit, instead of failing. `X-Proxy-Country-Requested`,
+  `X-Proxy-Country-Fallback-Reason` and `X-Proxy-Country` say when this
+  happened and which country served the page. Sites whose page depends on the
+  country (search engines, marketplaces and travel sites with per-country
+  prices) keep the requested country strictly. See
+  [country targeting](/guides/country-targeting#fallback-on-getpagesource).
+</Update>
+
 <Update label="2026-11-09" description="More product data on seven plugins">
   No request changes; every existing field keeps its name and type.
 

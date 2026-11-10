@@ -67,7 +67,21 @@ The `proxy_country` parameter sets the country the request is made from. It's ac
 | United Kingdom | `gb` |
 | United States | `us` |
 
-If you request a country we don't have proxies for, the request fails with `HTTP 400` and the response body lists the countries that are available. Smaller pools (some countries have only a handful of IPs) still work, just with slower rotation. To confirm which country actually served a successful request, check the `proxy_country` field in the response (on `/serpApi`) or use `get_cookies=true` (on `/getPageSource`).
+On `/serpApi` and `/getImage`, a country we don't have proxies for fails with `HTTP 400` and the response body lists the countries that are available. On `/getPageSource` the requested country is tried first and, when it cannot serve the page, the call is answered from another country (see [fallback](#fallback-on-getpagesource) below). Smaller pools (some countries have only a handful of IPs) still work, just with slower rotation.
+
+## Fallback on `/getPageSource`
+
+`/getPageSource` treats `proxy_country` as a preference. The call is made from the requested country first; when that country cannot serve the page - we have no exits there, the site blocks them, or they are unavailable - the same call runs again from another country, inside the same time limit. You are billed once, for the answer you get.
+
+When the page came from another country than the one you asked for, the response says so in its headers:
+
+| Header | Value |
+| --- | --- |
+| `X-Proxy-Country` | The country that served the page, when known |
+| `X-Proxy-Country-Requested` | The country you asked for |
+| `X-Proxy-Country-Fallback-Reason` | `no_exits_in_country`, `blocked_in_country`, `unavailable_in_country`, or `country_not_used_for_site` (the site serves the same page everywhere, so the country is not used) |
+
+Sites whose page depends on the country - search engines, and marketplaces and travel sites with per-country prices or currency - keep the requested country strictly: a page from another country would be a different answer. There an unsupported country still answers `400`.
 
 ## Examples
 
@@ -95,7 +109,7 @@ curl -X POST "https://api.scrapeunblocker.com/getImage?url=https://host.com/img.
 
 ## Verifying which country was used
 
-`/serpApi` always returns the `proxy_country` actually used in its JSON response. For `/getPageSource`, set `get_cookies=true` to see which proxy served the request:
+`/serpApi` always returns the `proxy_country` actually used in its JSON response. `/getPageSource` names it in the `X-Proxy-Country` response header when it is known; you can also set `get_cookies=true` to see which proxy served the request:
 
 ```json
 {
@@ -110,5 +124,5 @@ See [cookies and sessions](/guides/cookies-and-sessions).
 ## Tips
 
 - **Match the country to the target.** Scraping `amazon.de` from a US IP often returns the US redirect page. Use `proxy_country=de`.
-- **Rotate on `403`.** If a target blocks one country, try another. Cycling `us` → `gb` → `de` resolves most rate-based blocks.
+- **Rotate on `403`.** `/getPageSource` already moves to another country when the requested one is blocked. On the other endpoints, if a target blocks one country, try another: cycling `us` → `gb` → `de` resolves most rate-based blocks.
 - **Expect higher latency on smaller pools.** Less common countries have smaller proxy pools, which means longer rotation between requests.

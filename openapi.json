@@ -32,10 +32,10 @@
             "required": false,
             "schema": {
               "type": "string",
-              "description": "Two-letter ISO country code (e.g. `de`, `us`) of the country the request is made from, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries.",
+              "description": "Two-letter ISO country code (e.g. `de`, `us`) of the country the request is made from, so the site serves that country's prices, language and content. Omit it and the country is picked for you. When that country cannot serve the page (no exits there, blocked or unavailable), the call is answered from another country: `X-Proxy-Country-Requested` and `X-Proxy-Country-Fallback-Reason` say so, and `X-Proxy-Country` names the country that served it. Sites whose page depends on the country (search engines, marketplaces with per-country prices) keep the requested country, and an unsupported code there answers 400 with the list of available countries.",
               "title": "Proxy Country"
             },
-            "description": "Two-letter ISO country code (e.g. `de`, `us`) of the country the request is made from, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries."
+            "description": "Two-letter ISO country code (e.g. `de`, `us`) of the country the request is made from, so the site serves that country's prices, language and content. Omit it and the country is picked for you. When that country cannot serve the page (no exits there, blocked or unavailable), the call is answered from another country: `X-Proxy-Country-Requested` and `X-Proxy-Country-Fallback-Reason` say so, and `X-Proxy-Country` names the country that served it. Sites whose page depends on the country (search engines, marketplaces with per-country prices) keep the requested country, and an unsupported code there answers 400 with the list of available countries."
           },
           {
             "name": "parsed_data",
