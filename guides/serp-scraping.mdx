@@ -115,7 +115,7 @@ the three result lists (`topAds`, `bottomAds`, `organic`), `aiOverview` and the
 | Field | Notes |
 | --- | --- |
 | `title`, `description`, `position` | As Google shows them. `description` is the snippet, without the date Google prints ahead of it; an empty string when Google shows none. `position` counts across pages. |
-| `url` | The real page URL. Google hides it behind a redirect on the results page; we follow that redirect for you. If it cannot be followed in time, `url` is the site's home page. |
+| `url` | The real page URL. Google hides it behind a redirect on the results page; we follow that redirect for you. Google gives out a page's links a few at a time, so by default some results (often one or two in ten) carry the site's home page instead, and a result with no site shown (such as a video) keeps Google's redirect link. Set [`full_urls=true`](#full-urls) to wait for every real URL. |
 | `displayedUrl` | The breadcrumb Google prints under the title, e.g. `https://www.g2.com › ... › CRM Software Resources`. |
 | `domain` | The site's hostname, without `www.`. For an ad, the domain the ad shows (an ad's `url` can be a click tracker). |
 | `source` | Organic only: the site's name Google prints above the breadcrumb (`G2`). |
@@ -249,6 +249,25 @@ curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=running+shoes&page
 Results from all pages are concatenated into `topAds`, `bottomAds`, and `organic` with `position` reflecting cross-page ordering.
 
 **Billing:** each result page rendered is charged as one API request - a `pages_to_check=3` call that returns three pages counts as 3 requests, not 1. The `pagesFetched` field in the response tells you exactly how many were charged (it can be lower than `pages_to_check` when Google has fewer pages). `/getPageSource` and `/getImage` bill a flat 1 per request; plugins that page through results count pages the same way as `/serpApi`, and each plugin page says how its calls are counted.
+
+### `full_urls`
+
+Wait until every result has its real URL. Defaults to `false`.
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=best+crm+software&full_urls=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+Google does not put the result URLs on the results page. It gives them out a
+few at a time: the first ones at once, the last ones up to about 40 seconds
+after the search. By default `/serpApi` returns after about 13 seconds of
+waiting, which is enough for most results; the ones whose URL has not come yet
+get the site's home page as `url`. With `full_urls=true` the call waits for
+all of them and takes up to about 40 seconds longer, so allow a client timeout
+of at least 120 seconds. Use it when you need the exact page of every result
+(to open, cite or rank-track it); leave it off when titles, snippets and the
+top results are enough. Billed the same either way.
 
 ### `proxy_country`
 

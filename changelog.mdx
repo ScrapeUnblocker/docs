@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-11" description="serpApi: full_urls for every real result URL">
+  New optional [`full_urls`](/guides/serp-scraping#full-urls) parameter on
+  `/serpApi`. Google gives out a results page's links a few at a time, the last
+  ones up to about 40 seconds after the search. By default the call returns
+  sooner and a result whose link has not come yet carries the site's home page
+  as `url`. With `full_urls=true` the call waits for every real URL (up to
+  about 40 seconds longer). Billed the same. The Python, Node.js, Ruby and PHP
+  SDKs support it from 0.19.0.
+</Update>
+
 <Update label="2026-11-10" description="LangChain integration">
   New [`langchain-scrapeunblocker`](/sdks/langchain) package on PyPI: LangChain
   tools to read pages as Markdown or structured JSON, search Google, search and
