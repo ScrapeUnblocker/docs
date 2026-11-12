@@ -3,6 +3,15 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-12" description="Where to get a key, in the 400, 401 and 402 bodies">
+  The `Missing x-scrapeunblocker-key` (400), `No valid subscription` (401) and
+  `Quota exceeded` (402) bodies now add two lines after the message: where a
+  person signs up or picks a plan, and where an AI agent can buy a key or
+  credits with its user's OK. The first line is unchanged, and the SDKs match
+  on it; if your own code compares the whole body, compare the first line. See
+  [errors](/errors#401-unauthorized).
+</Update>
+
 <Update label="2026-11-11" description="serpApi: full_urls for every real result URL">
   New optional [`full_urls`](/guides/serp-scraping#full-urls) parameter on
   `/serpApi`. Google gives out a results page's links a few at a time, the last

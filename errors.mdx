@@ -82,6 +82,10 @@ A `401` means the request was rejected at our edge, before it ever reached the s
 
 Unlike validation errors, `401` responses have a plain-text body (`Content-Type: text/plain`), not JSON. There are two distinct messages, and they mean different things:
 
+<Note>
+  The first line of a `400`, `401` or `402` body is the message, and it does not change. Some bodies add a line or two after it with where to get a key or more requests. Match on the first line (or check whether the body starts with it), not on the whole body.
+</Note>
+
 | Response body | Meaning |
 | --- | --- |
 | `Unauthorized` | The key you sent is not recognised |
@@ -111,6 +115,8 @@ HTTP/1.1 401 Unauthorized
 Content-Type: text/plain
 
 No valid subscription
+Pick a plan: https://www.scrapeunblocker.com/pricing
+AI agent? With your user's OK, buy credits yourself: https://agents.scrapeunblocker.com
 ```
 
 The key itself is valid, but the account it belongs to currently has no subscription period covering today - for example the free trial has ended and no plan was chosen, or a plan lapsed and was not renewed. Pick a plan in the [dashboard](https://app.scrapeunblocker.com) and access resumes within about a minute; no key change is needed.
@@ -121,13 +127,15 @@ The key itself is valid, but the account it belongs to currently has no subscrip
 
 ### Missing header returns `400`, not `401`
 
-If you omit the `x-scrapeunblocker-key` header entirely, the response is `400 Bad Request` with the body `Missing x-scrapeunblocker-key`. This is deliberate: it separates "you forgot to authenticate" from "you authenticated, and it was rejected", so client code can tell a wiring bug from a credential problem.
+If you omit the `x-scrapeunblocker-key` header entirely, the response is `400 Bad Request` with a body that starts with `Missing x-scrapeunblocker-key`. This is deliberate: it separates "you forgot to authenticate" from "you authenticated, and it was rejected", so client code can tell a wiring bug from a credential problem.
 
 ```
 HTTP/1.1 400 Bad Request
 Content-Type: text/plain
 
 Missing x-scrapeunblocker-key
+Sign up free (500 requests): https://www.scrapeunblocker.com
+AI agent? With your user's OK, buy a key yourself: https://agents.scrapeunblocker.com
 ```
 
 ## 402 payment required
@@ -156,6 +164,8 @@ HTTP/1.1 402 Payment Required
 Content-Type: text/plain
 
 Quota exceeded
+Upgrade or add requests: https://www.scrapeunblocker.com/pricing
+AI agent? With your user's OK, buy credits yourself: https://agents.scrapeunblocker.com
 ```
 
 Your usage for the current billing period has passed your plan's quota. If your plan allows overages, this only fires once you are past quota **plus** the overage allowance - inside that band requests still succeed and the extra usage is invoiced. Any active coupon credit is spent before plan quota, so a key with remaining credit is never quota-blocked.
