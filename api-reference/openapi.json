@@ -153,6 +153,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "web-page-fetch"
         ]
       }
     },
@@ -270,6 +273,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "google-search"
         ]
       }
     },
@@ -513,6 +519,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -728,6 +737,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -915,6 +927,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -1004,6 +1019,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "image-search"
         ]
       }
     },
@@ -1106,6 +1124,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "local-businesses"
         ]
       }
     },
@@ -1226,6 +1247,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -1463,6 +1487,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -1593,6 +1620,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -1705,6 +1735,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "amazon"
         ]
       }
     },
@@ -1852,6 +1885,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "amazon"
         ]
       }
     },
@@ -1969,6 +2005,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "amazon"
         ]
       }
     },
@@ -2073,6 +2112,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "seo-and-ads"
         ]
       }
     },
@@ -2311,6 +2353,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "seo-and-ads"
         ]
       }
     },
@@ -2405,6 +2450,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "seo-and-ads"
         ]
       }
     },
@@ -2609,6 +2657,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "review-sites"
         ]
       }
     },
@@ -2826,6 +2877,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "real-estate"
         ]
       }
     },
@@ -3023,6 +3077,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -3252,6 +3309,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -3423,6 +3483,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -3631,6 +3694,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "jobs"
         ]
       }
     },
@@ -3822,6 +3888,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -3974,6 +4043,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -4074,6 +4146,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -4172,6 +4247,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "youtube-and-spotify"
         ]
       }
     },
@@ -4333,6 +4411,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -4433,6 +4514,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -4580,6 +4664,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "companies-and-apps"
         ]
       }
     },
@@ -4764,6 +4851,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "companies-and-apps"
         ]
       }
     },
@@ -4966,6 +5056,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "review-sites"
         ]
       }
     },
@@ -5126,6 +5219,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "review-sites"
         ]
       }
     },
@@ -5249,6 +5345,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -5418,6 +5517,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -5518,6 +5620,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -5687,6 +5792,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -5787,6 +5895,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -5989,6 +6100,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "jobs"
         ]
       }
     },
@@ -6161,6 +6275,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "companies-and-apps"
         ]
       }
     },
@@ -6339,6 +6456,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "local-businesses"
         ]
       }
     },
@@ -6547,6 +6667,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "jobs"
         ]
       }
     },
@@ -6719,6 +6842,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "youtube-and-spotify"
         ]
       }
     },
@@ -7023,6 +7149,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "real-estate"
         ]
       }
     },
@@ -7117,6 +7246,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "real-estate"
         ]
       }
     },
@@ -7199,6 +7331,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -7295,6 +7430,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -7366,6 +7504,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -7555,6 +7696,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "google-search"
         ]
       }
     },
@@ -7727,6 +7871,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "google-search"
         ]
       }
     },
@@ -7799,6 +7946,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "seo-and-ads"
         ]
       }
     },
@@ -7950,6 +8100,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "seo-and-ads"
         ]
       }
     },
@@ -8023,6 +8176,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "seo-and-ads"
         ]
       }
     },
@@ -8168,6 +8324,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "local-businesses"
         ]
       }
     },
@@ -8346,6 +8505,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "local-businesses"
         ]
       }
     },
@@ -8608,6 +8770,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "jobs"
         ]
       }
     },
@@ -8715,6 +8880,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "jobs"
         ]
       }
     },
@@ -8938,6 +9106,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "jobs"
         ]
       }
     },
@@ -9066,6 +9237,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "jobs"
         ]
       }
     },
@@ -9200,6 +9374,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "google-search"
         ]
       }
     },
@@ -9381,6 +9558,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "image-search"
         ]
       }
     },
@@ -9495,6 +9675,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "google-search"
         ]
       }
     },
@@ -9629,6 +9812,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "image-search"
         ]
       }
     },
@@ -9884,6 +10070,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "real-estate"
         ]
       }
     },
@@ -9996,6 +10185,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "amazon"
         ]
       }
     },
@@ -10168,6 +10360,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "amazon"
         ]
       }
     },
@@ -10280,6 +10475,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "amazon"
         ]
       }
     },
@@ -10385,6 +10583,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "youtube-and-spotify"
         ]
       }
     },
@@ -10495,6 +10696,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "youtube-and-spotify"
         ]
       }
     },
@@ -10599,6 +10803,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "other-search-engines"
         ]
       }
     },
@@ -10703,6 +10910,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "other-search-engines"
         ]
       }
     },
@@ -10827,6 +11037,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "image-search"
         ]
       }
     },
@@ -10931,6 +11144,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "other-search-engines"
         ]
       }
     },
@@ -11035,6 +11251,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "other-search-engines"
         ]
       }
     },
@@ -11141,6 +11360,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "image-search"
         ]
       }
     },
@@ -11233,6 +11455,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "image-search"
         ]
       }
     },
@@ -11345,6 +11570,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "companies-and-apps"
         ]
       }
     },
@@ -11442,6 +11670,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "real-estate"
         ]
       }
     },
@@ -11638,6 +11869,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "local-businesses"
         ]
       }
     },
@@ -11846,6 +12080,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "local-businesses"
         ]
       }
     },
@@ -12025,6 +12262,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "jobs"
         ]
       }
     },
@@ -12184,6 +12424,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "companies-and-apps"
         ]
       }
     },
@@ -12520,6 +12763,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "vehicles-and-sports"
         ]
       }
     },
@@ -12632,6 +12878,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -12738,6 +12987,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -12959,6 +13211,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "real-estate"
         ]
       }
     },
@@ -13059,6 +13314,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -13224,6 +13482,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -13360,6 +13621,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -13478,6 +13742,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -13578,6 +13845,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -13739,6 +14009,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -13977,6 +14250,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "vehicles-and-sports"
         ]
       }
     },
@@ -14088,6 +14364,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -14237,6 +14516,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -14319,6 +14601,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -14468,6 +14753,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -14622,6 +14910,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -14740,6 +15031,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -14948,6 +15242,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -15030,6 +15327,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -15124,6 +15424,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -15206,6 +15509,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -15437,6 +15743,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "real-estate"
         ]
       }
     },
@@ -15635,6 +15944,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -15787,6 +16099,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -15971,6 +16286,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -16161,6 +16479,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -16351,6 +16672,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -16500,6 +16824,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -16618,6 +16945,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -16721,6 +17051,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -16803,6 +17136,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -17095,6 +17431,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "jobs"
         ]
       }
     },
@@ -17267,6 +17606,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -17457,6 +17799,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -17617,6 +17962,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "travel"
         ]
       }
     },
@@ -17795,6 +18143,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -17913,6 +18264,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -18061,6 +18415,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -18143,6 +18500,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -18290,6 +18650,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -18390,6 +18753,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -18537,6 +18903,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -18655,6 +19024,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -18827,6 +19199,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -18927,6 +19302,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -19033,6 +19411,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -19115,6 +19496,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -19370,6 +19754,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -19470,6 +19857,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -19605,6 +19995,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -19729,6 +20122,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -19810,6 +20206,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -19892,6 +20291,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -19997,6 +20399,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -20109,6 +20514,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -20245,6 +20653,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -20363,6 +20774,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -20481,6 +20895,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -20563,6 +20980,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "global-marketplaces"
         ]
       }
     },
@@ -20675,6 +21095,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -20775,6 +21198,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -20893,6 +21319,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -20975,6 +21404,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -21047,6 +21479,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "ai-assistant-answers"
         ]
       }
     },
@@ -21122,6 +21557,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "ai-assistant-answers"
         ]
       }
     },
@@ -21254,6 +21692,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -21347,6 +21788,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -21465,6 +21909,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -21529,6 +21976,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -21719,6 +22169,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -21783,6 +22236,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -21847,6 +22303,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "us-retailers"
         ]
       }
     },
@@ -21964,6 +22423,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -22057,6 +22519,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "groceries"
         ]
       }
     },
@@ -22172,6 +22637,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "vehicles-and-sports"
         ]
       }
     },
@@ -22338,6 +22806,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "vehicles-and-sports"
         ]
       }
     },
@@ -22420,6 +22891,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "vehicles-and-sports"
         ]
       }
     },
@@ -22520,6 +22994,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "vehicles-and-sports"
         ]
       }
     },
@@ -22656,6 +23133,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "vehicles-and-sports"
         ]
       }
     },
@@ -22774,6 +23254,9 @@
           {
             "ScrapeUnblockerKey": []
           }
+        ],
+        "x-zeroclick-services": [
+          "vehicles-and-sports"
         ]
       }
     }
