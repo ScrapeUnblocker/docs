@@ -311,6 +311,7 @@
               "sdks/nodejs",
               "sdks/php",
               "sdks/ruby",
+              "sdks/rust",
               "sdks/scrapy",
               "sdks/langchain"
             ]

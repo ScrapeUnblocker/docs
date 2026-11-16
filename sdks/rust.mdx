@@ -1,0 +1,240 @@
+---
+title: "Rust"
+description: "Install the official scrapeunblocker crate: an async Tokio client with an optional blocking client, typed errors and automatic retries."
+---
+
+The official Rust client wraps the ScrapeUnblocker API in an async (Tokio + reqwest) crate with request builders, typed errors and automatic retries, plus an optional blocking client.
+
+```bash
+cargo add scrapeunblocker
+cargo add tokio --features macros,rt-multi-thread
+```
+
+Requires Rust 1.88+. Full API reference on [docs.rs](https://docs.rs/scrapeunblocker).
+
+Store your API key in an environment variable so the client picks it up automatically:
+
+```bash
+export SCRAPEUNBLOCKER_KEY="YOUR_API_KEY"
+```
+
+## Quickstart
+
+```rust
+use scrapeunblocker::Client;
+
+#[tokio::main]
+async fn main() -> scrapeunblocker::Result<()> {
+    let su = Client::from_env()?; // reads SCRAPEUNBLOCKER_KEY, or Client::new("YOUR_API_KEY")?
+
+    let html = su.get_page_source("https://example.com").await?;
+    println!("{} bytes", html.len());
+    Ok(())
+}
+```
+
+Every method returns a request builder: set options on it, then `.await` it (or call `.send().await`). Options you leave out are not sent, so the API's own defaults apply. A builder owns a cheap clone of the client, so a request can be handed straight to `tokio::spawn`.
+
+```rust
+let html = su
+    .get_page_source("https://example.com")
+    .proxy_country("de")
+    .time_sleep(2)
+    .await?;
+```
+
+## Get Markdown for LLMs
+
+`get_markdown()` returns the page as clean Markdown for LLMs, agents and RAG pipelines. By default you get the main content only. It takes the same options as `get_page_source()`, and is billed the same.
+
+```rust
+let md = su.get_markdown("https://en.wikipedia.org/wiki/Web_scraping").await?;
+
+// The whole page, not only the main content
+let full = su.get_markdown(url).main_content_only(false).await?;
+```
+
+See [Markdown for LLMs](/guides/markdown) for what is kept and what is dropped.
+
+## Get parsed JSON instead of HTML
+
+`get_parsed()` returns structured data extracted using Schema.org, `__NEXT_DATA__`, or AI-generated rules - no per-site parsers to maintain.
+
+```rust
+let page = su.get_parsed("https://www.amazon.com/dp/B08N5WRWNW").await?;
+
+println!("{:?}", page.page_type);   // Some("product")
+println!("{}", page.data["title"]);
+println!("{}", page.data["price"]);
+```
+
+If a parse ever comes back wrong, force a fresh set of rules:
+
+```rust
+let page = su.get_parsed(url).refresh_rules(true).rules_hint("price is missing").await?;
+```
+
+When the page loads but nothing can be extracted from it, `get_parsed()` does not fail: `data_extracted` is `false`, `detail` says why, and `html` carries the rendered page. The call is billed like a page-source call. See [when nothing can be extracted](/guides/parsed-data#when-nothing-can-be-extracted).
+
+## Scrape a Google SERP
+
+```rust
+let serp = su.serp("best running shoes").pages_to_check(2).await?;
+
+for result in serp["organic"].as_array().into_iter().flatten() {
+    println!("{} {} {}", result["position"], result["title"], result["url"]);
+}
+```
+
+`.full_urls(true)` waits until every result has its real URL (up to about 40 seconds longer, billed the same). See [`full_urls`](/guides/serp-scraping#full-urls).
+
+## Capture cookies and the proxy used
+
+```rust
+let page = su.get_page_with_cookies("https://example.com").await?;
+
+println!("{:?}", page.html);
+println!("{}", page.cookies);
+println!("{:?}", page.proxy);   // e.g. Some("us")
+```
+
+## Fetch an image
+
+```rust
+let bytes = su.get_image("https://example.com/photo.jpg").await?;
+std::fs::write("photo.jpg", bytes)?;
+```
+
+## Drive the browser with steps
+
+Pass actions to run in a real browser after the page loads. You get back the HTML of the resulting state.
+
+```rust
+use scrapeunblocker::Step;
+
+let html = su
+    .get_page_source("https://example.com")
+    .steps([
+        Step::type_text("input[name=q]", "wireless headphones"),
+        Step::press_key("Enter"),
+        Step::wait_for(".search-results").timeout_ms(10_000),
+    ])
+    .await?;
+```
+
+Discover the selectors first with `list_elements()`, which returns the page's interactive elements as JSON:
+
+```rust
+let page = su.list_elements("https://example.com").await?;
+
+for el in page["elements"].as_array().into_iter().flatten() {
+    println!("{} {} {}", el["tag"], el["selector"], el["text"]);
+}
+```
+
+Each element's `selector` drops straight into a `Step`. Full action reference in the [browser steps guide](/guides/browser-steps).
+
+## Plugins
+
+Every plugin has a method that returns its JSON as a `serde_json::Value`. The plugin's required input goes in positionally; every other parameter is a setter. Each [plugin page](/plugins/overview) documents the parameters; the Rust method is the Python method's name (`target_search`, `google_trends`), and Skyscanner's are `skyscanner_flights`, `skyscanner_hotels` and `skyscanner_carhire`.
+
+```rust
+let products = su.target_search("coffee maker").sort("price_low").max_results(48).await?;
+let product = su.amazon_product().asin("B0BSHF7WHW").marketplace("amazon.com").await?;
+let trends = su.google_trends(["coffee", "tea"]).geo("US").await?;   // sent comma-separated
+let reviews = su.trustpilot_reviews("www.nike.com").stars([4, 5]).await?;
+let flights = su
+    .skyscanner_flights()
+    .origin("London")
+    .dest("New York")
+    .depart_date("2026-09-01")
+    .currency("USD")
+    .await?;
+
+// Any plugin endpoint by path, parameters named as the API names them
+let data = su
+    .plugin("/marketplace/target-search")
+    .param("query", "tv")
+    .param("max_results", 24)
+    .await?;
+```
+
+## Concurrency
+
+Plan limits are concurrency: how many requests run at the same time on a key. Cap your own in-flight requests to match, for example with a `tokio::sync::Semaphore`:
+
+```rust
+use std::sync::Arc;
+use tokio::sync::Semaphore;
+
+let slots = Arc::new(Semaphore::new(10));
+let mut tasks = Vec::new();
+for url in urls {
+    let request = su.get_parsed(url);
+    let slots = slots.clone();
+    tasks.push(tokio::spawn(async move {
+        let _slot = slots.acquire().await.unwrap();
+        request.await
+    }));
+}
+```
+
+## Blocking client
+
+Enable the `blocking` feature for code without an async runtime. The methods are the same; finish a request with `.send()`:
+
+```toml
+scrapeunblocker = { version = "0.19", features = ["blocking"] }
+```
+
+```rust
+use scrapeunblocker::blocking::Client;
+
+let su = Client::from_env()?;
+let html = su.get_page_source("https://example.com").send()?;
+```
+
+Like `reqwest::blocking`, it runs its own small runtime, so do not use it inside async code.
+
+## Error handling
+
+Every call returns `scrapeunblocker::Result<T>`. An error response from the API is `Error::Api`, and its `kind` says what went wrong:
+
+```rust
+use scrapeunblocker::{ApiErrorKind, Error};
+
+match su.get_page_source("https://example.com").await {
+    Ok(html) => println!("{} bytes", html.len()),
+    Err(Error::Api(e)) => match e.kind {
+        ApiErrorKind::Blocked => {}                 // 403: blocked on every bypass path (not billed)
+        k if k.is_payment_required() => {}          // 402: quota, credit limit, budget or failed payment
+        ApiErrorKind::RateLimit => {}               // 429: over your concurrency limit
+        ApiErrorKind::UpstreamOutage => {}          // 503: the target site itself is down
+        ApiErrorKind::TargetNotFound => {
+            // 404/410 from the target itself (billed); its page is on target_not_found.html
+            let t = e.target_not_found.as_ref().unwrap();
+            println!("{} {:?}", t.origin_status, t.html);
+        }
+        _ => println!("{e}"),
+    },
+    Err(Error::Timeout(_)) => {}                    // this client gave up locally
+    Err(e) => println!("{e}"),
+}
+```
+
+`ApiErrorKind` covers every status the API sends: `InvalidRequest` (400), `Authentication` and `NoSubscription` (401), `QuotaExceeded`, `CreditLimitExceeded`, `BudgetExceeded`, `PaymentFailed` and `PaymentRequired` (402), `Blocked` (403), `NotFound` and `TargetNotFound` (404/410), `BrowserTimeout` (408), `UnsupportedContent` (415), `Validation` and `StepFailed` (422, a failed step carries `step_failed` with `step_index`, `action`, `reason`, `selector` and `html`), `RateLimit` (429), `UpstreamOutage` (503) and `Server` (other 5xx). See [errors](/errors) for what each means.
+
+HTTP 429, 502, 503, 504 and network errors are retried automatically with exponential backoff (`Client::builder().max_retries(n)`, default 2). A 401 or 402 is never retried, and neither is billed.
+
+## Client options
+
+```rust
+use std::time::Duration;
+
+let su = scrapeunblocker::Client::builder()
+    .api_key("YOUR_API_KEY")
+    .timeout(Duration::from_secs(120))   // default 180 s
+    .max_retries(3)                      // default 2
+    .user_agent("my-crawler/1.4")        // your app's token, sent after the SDK's
+    .build()?;
+```

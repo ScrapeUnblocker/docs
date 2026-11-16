@@ -3,6 +3,13 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-16" description="Rust SDK">
+  New official [Rust client](/sdks/rust), the `scrapeunblocker` crate on
+  crates.io: an async (Tokio) client with an optional blocking one, request
+  builders for every endpoint and plugin, typed errors and automatic retries.
+  It starts at 0.19.0, the version of the other SDKs it matches. No API changes.
+</Update>
+
 <Update label="2026-11-12" description="Where to get a key, in the 400, 401 and 402 bodies">
   The `Missing x-scrapeunblocker-key` (400), `No valid subscription` (401) and
   `Quota exceeded` (402) bodies now add two lines after the message: where a
