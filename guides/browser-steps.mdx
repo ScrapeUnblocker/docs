@@ -287,3 +287,9 @@ ideal for AI agents that decide what to do from structured data:
   `list_elements` is read-only and idempotent - it inspects the page and returns,
   with no side effects. Only `steps` acts on the page.
 </Note>
+
+<Note>
+  `list_elements` returns its own format, so it cannot be combined with
+  `parsed_data`, `get_cookies` or `markdown`. Such a request answers `422` and
+  is not billed.
+</Note>

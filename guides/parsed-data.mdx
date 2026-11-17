@@ -132,6 +132,8 @@ A dead URL is different: when the target itself answers `404` / `410`, you get t
 
 ## Combining with `get_cookies`
 
-`get_cookies=true` takes precedence over `parsed_data=true`: with both set, you get the `html` + `cookies` + `proxy` JSON of a cookies call, without `data`. If you need structured data and cookies for the same page, make two calls.
+Set both `parsed_data=true` and `get_cookies=true` to get the structured data and the cookies of the same page in one call: the response is the `html` + `cookies` + `proxy` JSON of a cookies call with `data` added.
+
+`parsed_data` cannot be combined with `markdown` or `list_elements`: each returns its own format, so such a request answers `422` and is not billed.
 
 See [cookies and sessions](/guides/cookies-and-sessions).

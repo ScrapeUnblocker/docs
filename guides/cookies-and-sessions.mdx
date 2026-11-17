@@ -93,4 +93,20 @@ The `proxy` field tells you which country pool served the request. If you need a
 
 ## Combining with `parsed_data`
 
-`get_cookies=true` takes precedence: with both `parsed_data=true` and `get_cookies=true` set, the response is the same `html` + `cookies` + `proxy` JSON shown above, and `parsed_data` is ignored. If you need structured data and cookies for the same page, make two calls.
+Add `parsed_data=true` next to `get_cookies=true` and the same JSON also carries `data`, the structured data a [parsed data](/guides/parsed-data) call returns. One call gives you the page, its cookies and the extracted fields:
+
+```json
+{
+  "html": "<!DOCTYPE html>...",
+  "cookies": [ ... ],
+  "proxy": "us",
+  "data": {
+    "page_type": "product",
+    "data": { "name": "...", "price": "..." }
+  }
+}
+```
+
+When no structured data could be extracted, `data.data` is empty and `data_extracted` is `false`, as in a plain parsed data call. Billed as one call.
+
+`get_cookies` cannot be combined with `markdown` or `list_elements`: each returns its own format, so such a request answers `422` and is not billed.

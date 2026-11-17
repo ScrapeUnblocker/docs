@@ -3,6 +3,23 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-17" description="getPageSource: response formats that combine, and those that don't">
+  `/getPageSource` used to pick one response format silently when several were
+  asked for. Now:
+  - `get_cookies=true` + `parsed_data=true` returns both in one JSON: `html`,
+    `cookies`, `proxy` and `data`. Before, `data` was left out. See
+    [cookies and sessions](/guides/cookies-and-sessions).
+  - `list_elements=true` with `parsed_data` or `get_cookies` answers `422` and
+    is not billed, as `markdown=true` with another format already did. Before,
+    the elements list came back and the other flag was ignored.
+  - `get_cookies=true` on a [dead URL](/errors#dead-urls-x-origin-status) whose
+    page is empty now answers the same JSON with an empty `html` and the
+    target's status. Before, the body was empty.
+
+  Calls with one format flag answer exactly as before. The SDK methods never
+  send these combinations, so the SDKs need no update.
+</Update>
+
 <Update label="2026-11-16" description="Rust SDK">
   New official [Rust client](/sdks/rust), the `scrapeunblocker` crate on
   crates.io: an async (Tokio) client with an optional blocking one, request

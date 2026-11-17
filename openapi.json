@@ -12,7 +12,7 @@
           "Scraping"
         ],
         "summary": "Fetch the HTML (or parsed JSON) for any URL",
-        "description": "Routes the URL through the appropriate anti-bot bypass chain (site-specific handlers, real-browser rendering, rotating proxies). Returns the prettified HTML by default; when the target answers with JSON, that JSON exactly as served; when the URL leads to a PDF (inline or as a download), the original file as `application/pdf`. Set `markdown=true` to receive the page as clean Markdown (`text/markdown`) for LLMs and agents: by default only the main content, with absolute links (`main_content_only=false` keeps the whole page). Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to receive JSON with the HTML, the cookies and `proxy`, the country of the exit that served the request.",
+        "description": "Routes the URL through the appropriate anti-bot bypass chain (site-specific handlers, real-browser rendering, rotating proxies). Returns the prettified HTML by default; when the target answers with JSON, that JSON exactly as served; when the URL leads to a PDF (inline or as a download), the original file as `application/pdf`. Set `markdown=true` to receive the page as clean Markdown (`text/markdown`) for LLMs and agents: by default only the main content, with absolute links (`main_content_only=false` keeps the whole page). Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to receive JSON with the HTML, the cookies and `proxy`, the country of the exit that served the request; add `parsed_data=true` to get `data` in that same JSON.",
         "operationId": "get_page_source_getPageSource_post",
         "parameters": [
           {
@@ -79,11 +79,11 @@
             "required": false,
             "schema": {
               "type": "boolean",
-              "description": "Return JSON with the page `html`, the `cookies` set during the visit and the `proxy` used, instead of HTML. Takes precedence over `parsed_data`.",
+              "description": "Return JSON with the page `html`, the `cookies` set during the visit and the `proxy` used, instead of HTML. With `parsed_data=true` the same JSON also carries the extracted `data`.",
               "default": false,
               "title": "Get Cookies"
             },
-            "description": "Return JSON with the page `html`, the `cookies` set during the visit and the `proxy` used, instead of HTML. Takes precedence over `parsed_data`."
+            "description": "Return JSON with the page `html`, the `cookies` set during the visit and the `proxy` used, instead of HTML. With `parsed_data=true` the same JSON also carries the extracted `data`."
           },
           {
             "name": "list_elements",
@@ -91,11 +91,11 @@
             "required": false,
             "schema": {
               "type": "boolean",
-              "description": "Return the page's interactive elements (buttons, inputs, selects, links, forms) with ready-to-use selectors instead of HTML, to help build `steps`.",
+              "description": "Return the page's interactive elements (buttons, inputs, selects, links, forms) with ready-to-use selectors instead of HTML, to help build `steps`. Cannot be combined with `parsed_data`, `get_cookies` or `markdown` (422).",
               "default": false,
               "title": "List Elements"
             },
-            "description": "Return the page's interactive elements (buttons, inputs, selects, links, forms) with ready-to-use selectors instead of HTML, to help build `steps`."
+            "description": "Return the page's interactive elements (buttons, inputs, selects, links, forms) with ready-to-use selectors instead of HTML, to help build `steps`. Cannot be combined with `parsed_data`, `get_cookies` or `markdown` (422)."
           },
           {
             "name": "steps",
@@ -137,7 +137,7 @@
             "description": "The URL is not an HTML document (image, file); use /getImage for images. Not billed."
           },
           "422": {
-            "description": "Validation error. Not billed."
+            "description": "Validation error, e.g. `markdown` or `list_elements` combined with another response format. Not billed."
           },
           "503": {
             "description": "No render capacity on our side right now; not the target's fault, not billed - retry with backoff."
