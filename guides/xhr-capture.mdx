@@ -59,6 +59,11 @@ const pages = xhr.filter((c) => c.status === 200).map((c) => JSON.parse(c.body))
 
 </CodeGroup>
 
+The SDKs wrap this as `get_page_with_xhr` ([Python](/sdks/python), [Ruby](/sdks/ruby),
+[Rust](/sdks/rust)) and `getPageWithXhr` ([Node.js](/sdks/nodejs), [PHP](/sdks/php)),
+which return the calls as typed objects. AI assistants get it through the
+[MCP server](/sdks/mcp)'s `capture_xhr` tool.
+
 ### Make the page fire the call
 
 Some calls happen only after an interaction: a search submitted, a "load more"

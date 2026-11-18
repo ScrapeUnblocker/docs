@@ -16,7 +16,7 @@ bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
 ## What you need
 
 - A paid ChatGPT plan (**Plus, Pro, Business or Enterprise**) with **developer mode**.
-  All four ScrapeUnblocker tools are read-only, so a **Plus** plan is enough.
+  Every ScrapeUnblocker tool except `browse_page` and `capture_xhr` is read-only, so a **Plus** plan is enough for them.
 - Your ScrapeUnblocker API key - grab it from the [dashboard](https://app.scrapeunblocker.com).
 
 ## Add the connector
@@ -81,7 +81,8 @@ bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
 | `google_search` | Run a Google search and return organic results as JSON. |
 | `search_and_read` | Search Google and read the top 1-5 results as Markdown in one call. |
 | `list_elements` | List a page's interactive elements (buttons, inputs, links, forms) with ready-to-use selectors. |
-| `browse_page` | Run browser steps on a page (click, type, select, scroll, wait), then return the resulting HTML. The one tool not marked read-only, because it acts on the website. |
+| `browse_page` | Run browser steps on a page (click, type, select, scroll, wait), then return the resulting HTML. Not marked read-only, because it acts on the website. |
+| `capture_xhr` | Load a page in a real browser and return the JSON its own API calls received (every XHR/fetch whose URL contains a fragment such as `/api/search`), with optional steps that make the page fire the call. Not marked read-only, because the steps act on the website. |
 | `list_plugins` / `run_plugin` | Find and run any of the 100+ [site plugins](/plugins/overview); the 15 most-used are also tools of their own. |
 
 ## Example prompts

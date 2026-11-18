@@ -134,6 +134,34 @@ for el in page["elements"].as_array().into_iter().flatten() {
 
 Each element's `selector` drops straight into a `Step`. Full action reference in the [browser steps guide](/guides/browser-steps).
 
+## Capture the page's own API calls (XHR/fetch)
+
+Many sites render from a JSON API the page calls itself, and that API often
+refuses direct requests. `get_page_with_xhr` renders the page in a real browser and
+returns every XHR/fetch response whose URL contains the fragment you pass, in
+the order the page received them. Add `steps` to make the page fire the call
+(a search, "load more").
+
+```rust
+use scrapeunblocker::Step;
+
+let page = su
+    .get_page_with_xhr("https://quotes.toscrape.com/scroll", "/api/quotes")
+    .steps([Step::scroll_to_bottom(), Step::wait(1500)])
+    .await?;
+for call in &page.xhr {
+    if call.status == 200 {
+        println!("{} {}", call.url, call.json()?["quotes"][0]["text"]);
+    }
+}
+```
+
+Each call has `url`, `method`, `status`, `content_type`, `body` (text) and
+`body_omitted` (why there is no body). Up to 20 responses and 10 MB of bodies;
+`page.xhr_truncated` is true when more matched. When the site answers every matching
+call with 403 or 429, the request fails like a block and is not billed. Rules
+and the response shape: [capturing the page's API calls](/guides/xhr-capture).
+
 ## Plugins
 
 Every plugin has a method that returns its JSON as a `serde_json::Value`. The plugin's required input goes in positionally; every other parameter is a setter. Each [plugin page](/plugins/overview) documents the parameters; the Rust method is the Python method's name (`target_search`, `google_trends`), and Skyscanner's are `skyscanner_flights`, `skyscanner_hotels` and `skyscanner_carhire`.
