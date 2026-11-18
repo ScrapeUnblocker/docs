@@ -113,6 +113,14 @@ curl -X POST "https://api.scrapeunblocker.com/getPageSource" \
 Full action reference, limits and the `422` failure shape are in
 [browser steps and element discovery](/guides/browser-steps).
 
+### `capture_xhr`
+
+When the page loads its data from its own JSON API, `capture_xhr=<URL fragment>`
+returns that API's responses next to the HTML, as the page received them - also
+when the API refuses direct requests. Combine it with `steps` to make the page
+fire the call (a search, "load more"). See
+[capturing the page's API calls](/guides/xhr-capture).
+
 ## Response
 
 By default, the response body is the prettified HTML of the page. Content-Type is `text/html`.
@@ -121,7 +129,7 @@ When the target answers with JSON (an API endpoint), the body is that JSON exact
 
 With `markdown=true` the body is the page as clean Markdown (`text/markdown`), ready for an LLM. See [Markdown for LLMs](/guides/markdown).
 
-When you add `parsed_data=true` or `get_cookies=true`, the response becomes JSON. See [parsed data](/guides/parsed-data) and [cookies and sessions](/guides/cookies-and-sessions).
+When you add `parsed_data=true`, `get_cookies=true` or `capture_xhr`, the response becomes JSON. See [parsed data](/guides/parsed-data), [cookies and sessions](/guides/cookies-and-sessions) and [capturing the page's API calls](/guides/xhr-capture).
 
 ## Errors
 

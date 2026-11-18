@@ -295,6 +295,7 @@
               "guides/page-source",
               "guides/markdown",
               "guides/browser-steps",
+              "guides/xhr-capture",
               "guides/parsed-data",
               "guides/serp-scraping",
               "guides/image-fetching",

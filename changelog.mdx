@@ -3,6 +3,22 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-18" description="getPageSource: capture_xhr returns the page's own API calls">
+  New `/getPageSource` parameter `capture_xhr=<URL fragment>`. The page is
+  rendered in a real browser and every XHR/fetch response whose URL contains
+  the fragment comes back next to the HTML as JSON: `html`, `xhr` (`url`,
+  `method`, `status`, `content_type`, `body`), `xhr_truncated` and `proxy`.
+  It is made for sites that render from a JSON API refusing direct requests:
+  the page makes the call, so it succeeds. Combine it with `steps` to make the
+  page fire the call (a search, "load more"). When the site answers every
+  matching call with `403` or `429`, the answer is a free `403`. See
+  [capturing the page's API calls](/guides/xhr-capture).
+
+  New SDK methods in 0.20.0: `get_page_with_xhr` (Python, Ruby, Rust) and
+  `getPageWithXhr` (Node.js, PHP). Calls without `capture_xhr` answer exactly
+  as before.
+</Update>
+
 <Update label="2026-11-17" description="getPageSource: response formats that combine, and those that don't">
   `/getPageSource` used to pick one response format silently when several were
   asked for. Now:

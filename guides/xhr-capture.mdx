@@ -1,0 +1,143 @@
+---
+title: "Capturing the page's API calls"
+description: "Get the JSON a page loads from its own API (XHR/fetch) next to the HTML, even when that API refuses direct requests."
+---
+
+Many sites render their content from a JSON API the page calls itself: search
+results, listings, prices, "load more" pages. That JSON is usually cleaner than
+the HTML built from it. Calling the API directly often fails, though: the site
+signs every request inside the page (F5/Shape, Akamai and similar), so a request
+made from outside gets a `403` while the same call made by the page succeeds.
+
+`capture_xhr` returns those calls as the page made them. Pass a fragment of the
+API URL; ScrapeUnblocker renders the page in a real browser and returns every
+XHR/fetch response whose URL contains the fragment, next to the HTML.
+
+## Request
+
+Find the call in your browser's DevTools (Network tab, filter **Fetch/XHR**) and
+pass a part of its URL that identifies it, e.g. `/api/quotes` or
+`/v2/providers`.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  -G \
+  --data-urlencode "url=https://quotes.toscrape.com/scroll" \
+  --data-urlencode "capture_xhr=/api/quotes"
+```
+
+```python Python
+import json, requests
+
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://quotes.toscrape.com/scroll", "capture_xhr": "/api/quotes"},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=120,
+)
+for call in r.json()["xhr"]:
+    if call["status"] == 200:
+        data = json.loads(call["body"])
+```
+
+```javascript Node.js
+const qs = new URLSearchParams({
+  url: "https://quotes.toscrape.com/scroll",
+  capture_xhr: "/api/quotes",
+});
+
+const res = await fetch(`https://api.scrapeunblocker.com/getPageSource?${qs}`, {
+  method: "POST",
+  headers: { "x-scrapeunblocker-key": "YOUR_API_KEY" },
+});
+const { xhr } = await res.json();
+const pages = xhr.filter((c) => c.status === 200).map((c) => JSON.parse(c.body));
+```
+
+</CodeGroup>
+
+### Make the page fire the call
+
+Some calls happen only after an interaction: a search submitted, a "load more"
+button clicked, the page scrolled. Combine `capture_xhr` with
+[`steps`](/guides/browser-steps), and every matching call the steps trigger is
+returned, in order:
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/getPageSource" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY" \
+  -G \
+  --data-urlencode "url=https://quotes.toscrape.com/scroll" \
+  --data-urlencode "capture_xhr=/api/quotes" \
+  --data-urlencode 'steps=[{"action":"scroll","value":"bottom"},{"action":"wait","value":1500},{"action":"scroll","value":"bottom"},{"action":"wait","value":1500}]'
+```
+
+After the page load and the last step, the browser waits a few seconds for
+matching calls that are still in flight. If a call starts late, end your steps
+with a `wait_for` (an element the response renders) or a `wait`.
+
+## Response
+
+The response is JSON:
+
+```json
+{
+  "html": "<!DOCTYPE html>...",
+  "xhr": [
+    {
+      "url": "https://quotes.toscrape.com/api/quotes?page=1",
+      "method": "GET",
+      "status": 200,
+      "content_type": "application/json",
+      "body": "{\"has_next\": true, \"page\": 1, \"quotes\": [...]}"
+    }
+  ],
+  "xhr_truncated": false,
+  "proxy": "us"
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `html` | The page after the load and your steps, as a normal call returns it |
+| `xhr` | The matching responses in the order the page received them |
+| `xhr[].url` / `method` | The request the page made |
+| `xhr[].status` | The status the site answered. `0` when the request failed without a response |
+| `xhr[].content_type` | The response's `Content-Type` |
+| `xhr[].body` | The response body as text. `null` when it is not returned, with `body_omitted` saying why |
+| `xhr[].body_omitted` | `binary` (not a text type), `size_limit` (over the total size limit), `in_flight` (still loading when the page was done, e.g. a long-poll), `redirect`, `unavailable` (the browser no longer held the body) or `request_failed` |
+| `xhr_truncated` | `true` when more calls matched than are returned |
+| `proxy` | Country of the exit that served the request |
+
+The `status` is what the site sent, also when the page itself could not read
+the answer (a call the site refused without CORS headers shows up with its real
+`403`, while the page's script saw `0`).
+
+## Rules
+
+- **What matches:** XHR and fetch requests whose URL contains the fragment
+  (plain substring, case-sensitive). Documents, scripts, images and other
+  resources never match.
+- **Limits:** up to 20 responses and 10 MB of bodies per call. A body past the
+  size limit is left out, its record stays. The fragment can be up to 500
+  characters.
+- **Request headers** are not returned. A redirect is returned as its own
+  record (`body_omitted: "redirect"`); the request it leads to is matched on
+  its own.
+- **Formats:** cannot be combined with `parsed_data`, `markdown`,
+  `list_elements` or `get_cookies` (`422`).
+- **Billing:** billed like any other `/getPageSource` request. The page is
+  rendered in a browser, as with `steps`. When the site answers **every**
+  matching call with `403` or `429` (an anti-bot refusing the call), the page
+  served nothing you asked for: the answer is a free `403`, also when a step
+  failed because the data never came. A call without `steps` is first tried
+  on another exit; a call with `steps` runs once. Any other status is the
+  site's answer and is delivered (`401`, `400`, `404`, `500`; a request that
+  failed without a response is not counted). A call where nothing matched is
+  delivered with an empty `xhr`.
+- **Failed steps:** when a step fails for another reason, the `422` answer
+  described in [browser steps](/guides/browser-steps) also carries `xhr`: the
+  calls the page made before the step broke.
