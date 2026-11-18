@@ -12,7 +12,7 @@
           "Scraping"
         ],
         "summary": "Fetch the HTML (or parsed JSON) for any URL",
-        "description": "Routes the URL through the appropriate anti-bot bypass chain (site-specific handlers, real-browser rendering, rotating proxies). Returns the prettified HTML by default; when the target answers with JSON, that JSON exactly as served; when the URL leads to a PDF (inline or as a download), the original file as `application/pdf`. Set `markdown=true` to receive the page as clean Markdown (`text/markdown`) for LLMs and agents: by default only the main content, with absolute links (`main_content_only=false` keeps the whole page). Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to receive JSON with the HTML, the cookies and `proxy`, the country of the exit that served the request; add `parsed_data=true` to get `data` in that same JSON.",
+        "description": "Routes the URL through the appropriate anti-bot bypass chain (site-specific handlers, real-browser rendering, rotating proxies). Returns the prettified HTML by default; when the target answers with JSON, that JSON exactly as served; when the URL leads to a PDF (inline or as a download), the original file as `application/pdf`. Set `markdown=true` to receive the page as clean Markdown (`text/markdown`) for LLMs and agents: by default only the main content, with absolute links (`main_content_only=false` keeps the whole page). Set `parsed_data=true` to receive a structured JSON payload extracted via Schema.org / __NEXT_DATA__ / AI-generated rules; the response body becomes `{ \"data\": { page_type, source, data } }` instead of HTML. Use `get_cookies=true` to receive JSON with the HTML, the cookies and `proxy`, the country of the exit that served the request; add `parsed_data=true` to get `data` in that same JSON. Set `capture_xhr=<URL fragment>` to receive JSON with the page `html` and the page's own XHR/fetch responses whose URL contains the fragment (`xhr`), e.g. the search API a results page calls.",
         "operationId": "get_page_source_getPageSource_post",
         "parameters": [
           {
@@ -107,11 +107,23 @@
               "title": "Steps"
             },
             "description": "JSON array of browser actions to run after the page loads (wait_for, wait_for_text, wait, click, type, select, press_key, scroll). The request is rendered in a real browser and runs once."
+          },
+          {
+            "name": "capture_xhr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 500,
+              "description": "A fragment of an API URL the page calls itself, e.g. `/api/search`. The page is rendered in a real browser and every XHR/fetch response whose URL contains the fragment comes back with the page as JSON: `html`, `xhr` (`url`, `method`, `status`, `content_type`, `body`), `xhr_truncated` and `proxy`. Up to 20 responses and 10 MB of bodies. Combine with `steps` to make the page fire the call (a search, \"load more\"). When the site answers every matching call 403 or 429, the call is answered 403 and not billed. Cannot be combined with `parsed_data`, `markdown`, `list_elements` or `get_cookies` (422).",
+              "title": "Capture Xhr"
+            },
+            "description": "A fragment of an API URL the page calls itself, e.g. `/api/search`. The page is rendered in a real browser and every XHR/fetch response whose URL contains the fragment comes back with the page as JSON: `html`, `xhr` (`url`, `method`, `status`, `content_type`, `body`), `xhr_truncated` and `proxy`. Up to 20 responses and 10 MB of bodies. Combine with `steps` to make the page fire the call (a search, \"load more\"). When the site answers every matching call 403 or 429, the call is answered 403 and not billed. Cannot be combined with `parsed_data`, `markdown`, `list_elements` or `get_cookies` (422)."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success — body is HTML (the target's own JSON as served when it answers with JSON; the original file bytes with `Content-Type: application/pdf` and a `Content-Disposition` filename when the URL leads to a PDF, also with `markdown` / `parsed_data`; Markdown with `markdown=true`, JSON with `parsed_data=true` / `get_cookies=true`). With `parsed_data=true` a page that rendered but yielded no structured data is still a 200: `data.data` is empty, `data_extracted` is `false` and `html` carries the rendered page. Also a dead-origin 5xx page, as served (can be empty): then the `X-Origin-Status` header carries the target's status. The same for the target's own 401, 451 or empty 500, confirmed from more than one exit. A target that answers 204 (or another 2xx with no body) comes back as an empty 200. Billed.",
+            "description": "Success — body is HTML (the target's own JSON as served when it answers with JSON; the original file bytes with `Content-Type: application/pdf` and a `Content-Disposition` filename when the URL leads to a PDF, also with `markdown` / `parsed_data`; Markdown with `markdown=true`, JSON with `parsed_data=true` / `get_cookies=true` / `capture_xhr`). With `parsed_data=true` a page that rendered but yielded no structured data is still a 200: `data.data` is empty, `data_extracted` is `false` and `html` carries the rendered page. Also a dead-origin 5xx page, as served (can be empty): then the `X-Origin-Status` header carries the target's status. The same for the target's own 401, 451 or empty 500, confirmed from more than one exit. A target that answers 204 (or another 2xx with no body) comes back as an empty 200. Billed.",
             "content": {
               "application/json": {
                 "schema": {}
@@ -5856,10 +5868,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'SG'). Leave blank to let the API pick.",
+              "description": "Preferred proxy country (ISO-2, e.g. 'DE'). Leave blank (recommended) to let the API pick. When 1688 blocks that country's exit, the remaining attempts use any country and the response carries X-Proxy-Country-Requested and X-Proxy-Country-Fallback-Reason.",
               "title": "Proxy Country"
             },
-            "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'SG'). Leave blank to let the API pick."
+            "description": "Preferred proxy country (ISO-2, e.g. 'DE'). Leave blank (recommended) to let the API pick. When 1688 blocks that country's exit, the remaining attempts use any country and the response carries X-Proxy-Country-Requested and X-Proxy-Country-Fallback-Reason."
           }
         ],
         "responses": {
@@ -12246,6 +12258,350 @@
           },
           "502": {
             "description": "Blocked by Naukri, no results page returned, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "jobs"
+        ]
+      }
+    },
+    "/jobs/stepstone": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape StepStone job listings",
+        "description": "Searches StepStone (stepstone.de, .at or .be) for `keyword` in `location` and returns `jobs`: `jobId`, `title`, `url`, `companyName`, `companyId`, `companyUrl`, `companyLogo`, `location`, `remote` (partial / full), `salaryMin`/`salaryMax`/`salaryPeriod`/`salaryCurrency` with `salaryType` (predicted or exact), `datePosted`, `validThrough`, `snippet`, `benefits`, `labels`, `noCoverLetter`, `isSponsored`, `isTopJob` and `position`, plus `totalResults`, `pageCount` and `nextPage`. Filter with `radius`, `days`, `remote`, `employment`, `experience`, `contract_type`, `min_salary`, `language` and `apply_method`, sort with `sort`, or pass a StepStone results URL as `search_url`. `details=true` adds `description`, `sections` (introduction, tasks, profile, benefits), `employmentType`, `contractType`, `workType`, `industry`, `address`, `latitude`/`longitude`, `companySectors` and `companyEmployees`. Billed one unit per StepStone page fetched (`callUnits`).",
+        "operationId": "stepstone_jobs_jobs_stepstone_post",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Job title, skill or company, e.g. 'python developer' or 'Pflegefachkraft'.",
+              "title": "Keyword"
+            },
+            "description": "Job title, skill or company, e.g. 'python developer' or 'Pflegefachkraft'."
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "City or region, e.g. 'Berlin' or 'München'. Leave empty to search the whole country.",
+              "title": "Location"
+            },
+            "description": "City or region, e.g. 'Berlin' or 'München'. Leave empty to search the whole country."
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "StepStone site: de, at, be (stepstone.de, stepstone.at, stepstone.be).",
+              "default": "de",
+              "title": "Country"
+            },
+            "description": "StepStone site: de, at, be (stepstone.de, stepstone.at, stepstone.be)."
+          },
+          {
+            "name": "radius",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Distance around `location` in km: 5, 10, 20, 30, 40, 50, 75, 100.",
+              "title": "Radius"
+            },
+            "description": "Distance around `location` in km: 5, 10, 20, 30, 40, 50, 75, 100."
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Posting age: 1 or 7 (last 24 hours or last 7 days).",
+              "title": "Days"
+            },
+            "description": "Posting age: 1 or 7 (last 24 hours or last 7 days)."
+          },
+          {
+            "name": "remote",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "partial (home office possible) or full (home office only).",
+              "title": "Remote"
+            },
+            "description": "partial (home office possible) or full (home office only)."
+          },
+          {
+            "name": "employment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "full_time or part_time.",
+              "title": "Employment"
+            },
+            "description": "full_time or part_time."
+          },
+          {
+            "name": "experience",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma list of: none, experienced, manager (no experience, with experience, with staff responsibility).",
+              "title": "Experience"
+            },
+            "description": "Comma list of: none, experienced, manager (no experience, with experience, with staff responsibility)."
+          },
+          {
+            "name": "contract_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma list of: permanent, temporary, temp_agency, trainee, freelance, apprenticeship, thesis, internship, working_student, phd, sales_agent (stepstone.de / .at), or StepStone's numeric contract-type ids.",
+              "title": "Contract Type"
+            },
+            "description": "Comma list of: permanent, temporary, temp_agency, trainee, freelance, apprenticeship, thesis, internship, working_student, phd, sales_agent (stepstone.de / .at), or StepStone's numeric contract-type ids."
+          },
+          {
+            "name": "min_salary",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Minimum yearly salary, 10000-100000 in steps of 10000.",
+              "title": "Min Salary"
+            },
+            "description": "Minimum yearly salary, 10000-100000 in steps of 10000."
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Language the ad is written in, comma list of two-letter codes, e.g. 'en'.",
+              "title": "Language"
+            },
+            "description": "Language the ad is written in, comma list of two-letter codes, e.g. 'en'."
+          },
+          {
+            "name": "apply_method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma list of: company_site, quick_apply (apply on the company's site or with StepStone's quick apply).",
+              "title": "Apply Method"
+            },
+            "description": "Comma list of: company_site, quick_apply (apply on the company's site or with StepStone's quick apply)."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "relevance or date (newest first).",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "relevance or date (newest first)."
+          },
+          {
+            "name": "search_url",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A StepStone results page URL to collect instead of keyword/location and filters, e.g. 'https://www.stepstone.de/jobs/data-analyst/in-berlin?radius=30'.",
+              "title": "Search Url"
+            },
+            "description": "A StepStone results page URL to collect instead of keyword/location and filters, e.g. 'https://www.stepstone.de/jobs/data-analyst/in-berlin?radius=30'."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based results page to start from; `nextPage` continues.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based results page to start from; `nextPage` continues."
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Jobs to collect, 1-500. Each results page (25 jobs) is billed one unit.",
+              "default": 25,
+              "title": "Max Results"
+            },
+            "description": "Jobs to collect, 1-500. Each results page (25 jobs) is billed one unit."
+          },
+          {
+            "name": "details",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Add each job's page: full description by section, contract and work type, address with coordinates, company size. Up to 50 jobs; one more unit per job page fetched.",
+              "default": false,
+              "title": "Details"
+            },
+            "description": "Add each job's page: full description by section, contract and work type, address with coordinates, company size. Up to 50 jobs; one more unit per job page fetched."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the requests are sent from (ISO-2, e.g. 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the requests are sent from (ISO-2, e.g. 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `jobs` array plus totals.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters."
+          },
+          "404": {
+            "description": "StepStone found no jobs for this search."
+          },
+          "502": {
+            "description": "Blocked by StepStone, no results page returned, or the call did not finish in time."
           },
           "422": {
             "description": "Validation Error",
@@ -23259,6 +23615,2806 @@
           "vehicles-and-sports"
         ]
       }
+    },
+    "/sports/actionnetwork-odds": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Action Network betting odds for a league",
+        "description": "Returns one league's `games` from Action Network: `status`, `startTime`, the `home` and `away` teams, the `score` once played, `consensus` and `opening` lines, the `publicBetting` split (percent of tickets and of money per side), and `odds`: each book's moneyline, spread and total with `american` and `decimal` prices and the `line` where one applies. `best` is the top moneyline price per side across sportsbooks; prediction markets carry `exchange: true` and are left out of it. Use `date` for another day and `books` to pick books by name or id; for leagues the site lists by week (NFL, college football) `date` returns that whole week. A day with no games returns an empty `games` array and a `message`.",
+        "operationId": "actionnetwork_odds_sports_actionnetwork_odds_post",
+        "parameters": [
+          {
+            "name": "league",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "League slug as used on actionnetwork.com, e.g. 'nba', 'nfl', 'mlb', 'nhl', 'ncaaf', 'ncaab', 'soccer'.",
+              "title": "League"
+            },
+            "description": "League slug as used on actionnetwork.com, e.g. 'nba', 'nfl', 'mlb', 'nhl', 'ncaaf', 'ncaab', 'soccer'."
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Day to read, as YYYY-MM-DD. Defaults to the site's current view of the league.",
+              "title": "Date"
+            },
+            "description": "Day to read, as YYYY-MM-DD. Defaults to the site's current view of the league."
+          },
+          {
+            "name": "books",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated sportsbooks by name or Action Network id, e.g. 'draftkings,fanduel,79'. Defaults to the books the site shows for this league.",
+              "title": "Books"
+            },
+            "description": "Comma-separated sportsbooks by name or Action Network id, e.g. 'draftkings,fanduel,79'. Defaults to the books the site shows for this league."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `games` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad `league`, `date` or `books`, or an invalid proxy country."
+          },
+          "404": {
+            "description": "Action Network has no such league."
+          },
+          "502": {
+            "description": "Blocked, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/betexplorer-matches": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape BetExplorer fixtures and results for a league",
+        "description": "Reads a BetExplorer league, fixtures or results page and returns its `matches`: `home`, `away`, `round`, `status`, `score` once played, `date` with `time` and `startTime` where the page gives a time, and `odds`: the average price per outcome (`home`, `draw`, `away`; two-way sports have no `draw`), plus `winner` for results. Fixtures pages add the number of `bookmakers`. Pass a match `url` to `/sports/betexplorer-odds` for each bookmaker's price. A page with no matches listed returns an empty `matches` array and a `message`.",
+        "operationId": "betexplorer_matches_sports_betexplorer_matches_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "A BetExplorer league page, as a link or path, e.g. 'football/england/premier-league', or the league's fixtures or results page ('.../results').",
+              "title": "Url"
+            },
+            "description": "A BetExplorer league page, as a link or path, e.g. 'football/england/premier-league', or the league's fixtures or results page ('.../results')."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `matches` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`url` is not a league, fixtures or results page, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "BetExplorer has no page at this address."
+          },
+          "502": {
+            "description": "Blocked, no matches table on that page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/betexplorer-odds": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape BetExplorer bookmaker odds for a match",
+        "description": "Reads one BetExplorer match and returns `event` (teams, `startTime`, `status`, `score`) and `markets` for the chosen `market`: each `selections` entry has the site's `average`, the `best` bookmaker price, and `odds` with every bookmaker's `decimal` price, `movement` (`up` or `down` where the site marks it) and `updatedAt`; betting exchanges carry `exchange: true` and are left out of `best`. Handicap and total markets return one entry per `line`. `availableMarkets` lists what else the match offers. A market with no bookmaker prices returns empty `markets` and a `message`.",
+        "operationId": "betexplorer_odds_sports_betexplorer_odds_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "A BetExplorer match page, as a link or path, e.g. 'football/england/premier-league/arsenal-leeds/xtmHKGT0'.",
+              "title": "Url"
+            },
+            "description": "A BetExplorer match page, as a link or path, e.g. 'football/england/premier-league/arsenal-leeds/xtmHKGT0'."
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Market code: '1x2', 'ou' (over/under), 'ah' (Asian handicap), 'ha' (home/away), 'dc' (double chance), 'bts' (both teams to score). Defaults to the match's main market.",
+              "title": "Market"
+            },
+            "description": "Market code: '1x2', 'ou' (over/under), 'ah' (Asian handicap), 'ha' (home/away), 'dc' (double chance), 'bts' (both teams to score). Defaults to the match's main market."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `event` and `markets`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`url` is not a match page, an unknown `market`, or an invalid proxy country."
+          },
+          "404": {
+            "description": "BetExplorer has no page at this address."
+          },
+          "502": {
+            "description": "Blocked, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/draftkings-odds": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "DraftKings sportsbook odds for a league",
+        "description": "Reads a DraftKings sportsbook league and returns `league`, `events` (`home`, `away`, `startTime`, `status`, `live`, `url`) with their `markets` (`name`, `type`, `subcategory`, `margin` on two-way and three-way markets) and each market's `selections` (`name`, `side`, `points`, `milestone`, `player`, `american`, `decimal`, `fractional`, `impliedProbability`). Prices are numbers. `league` is a name such as `nba`, `nfl`, `mlb`, `nhl`, `ncaab`, `ufc`, `epl`, `ucl`, or a numeric DraftKings league id. By default the league's game lines come back; `availableCategories` lists the market groups, and `category` and `subcategory` (a name or id from that list) fetch one, such as player props or futures. `state` selects the US state whose lines are read (default `nj`). Some exit countries are refused; `proxy_country` chooses where the request is sent from. A league with no current events returns empty `events` and a `message`.",
+        "operationId": "draftkings_odds_sports_draftkings_odds_post",
+        "parameters": [
+          {
+            "name": "league",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "League name or id, e.g. 'nba', 'nfl', 'nhl', 'mlb', 'epl', or 42648.",
+              "title": "League"
+            },
+            "description": "League name or id, e.g. 'nba', 'nfl', 'nhl', 'mlb', 'epl', or 42648."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Market group by name or id, e.g. 'Player Points', from `availableCategories`.",
+              "title": "Category"
+            },
+            "description": "Market group by name or id, e.g. 'Player Points', from `availableCategories`."
+          },
+          {
+            "name": "subcategory",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Sub-group of `category`, by name or id.",
+              "title": "Subcategory"
+            },
+            "description": "Sub-group of `category`, by name or id."
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "US state code whose lines to read, e.g. 'nj', 'ny', 'pa' (default 'nj').",
+              "title": "State"
+            },
+            "description": "US state code whose lines to read, e.g. 'nj', 'ny', 'pa' (default 'nj')."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `league` and `events` (empty with a `message` when nothing is on offer).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`league`, `category`, `state` or the proxy country is invalid."
+          },
+          "404": {
+            "description": "No such league or category at DraftKings."
+          },
+          "502": {
+            "description": "Blocked, unreadable, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/espn-scoreboard": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Get ESPN scores, schedules and betting lines for a league",
+        "description": "Returns a league's `games` for a day (today by default) or a date range: `startTime`, `status` (`state` is `pre`, `in` or `post`), `venue`, `broadcasts`, `url`, and `home` and `away` with the team, `score`, `record`, `linescores`, `leaders` and `probables`. Tournament and field sports return the same game shape: a tennis event lists each match with its `draw` and `round`, a fight card each bout, and golf or racing has one game with a `competitors` field. Where ESPN carries betting lines, `odds` gives each provider's `details`, `spread`, `overUnder`, `moneyline`, `pointSpread` and `total`, with American prices as numbers and `open` and `close` quotes. A day without games, such as the off-season, returns an empty `games` array with a `message`. ESPN groups games by US Eastern day.",
+        "operationId": "espn_scoreboard_sports_espn_scoreboard_post",
+        "parameters": [
+          {
+            "name": "sport",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "ESPN's sport path, e.g. 'basketball', 'football', 'baseball', 'hockey', 'soccer', 'tennis', 'golf', 'mma', 'racing'.",
+              "title": "Sport"
+            },
+            "description": "ESPN's sport path, e.g. 'basketball', 'football', 'baseball', 'hockey', 'soccer', 'tennis', 'golf', 'mma', 'racing'."
+          },
+          {
+            "name": "league",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "ESPN's league path within the sport, e.g. 'nba', 'wnba', 'mens-college-basketball', 'nfl', 'college-football', 'mlb', 'nhl', 'atp', 'pga', 'ufc', 'f1', or a soccer code such as 'eng.1', 'esp.1', 'usa.1', 'uefa.champions'.",
+              "title": "League"
+            },
+            "description": "ESPN's league path within the sport, e.g. 'nba', 'wnba', 'mens-college-basketball', 'nfl', 'college-football', 'mlb', 'nhl', 'atp', 'pga', 'ufc', 'f1', or a soccer code such as 'eng.1', 'esp.1', 'usa.1', 'uefa.champions'."
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A day (YYYY-MM-DD or YYYYMMDD) or a range (YYYYMMDD-YYYYMMDD). Leave blank for today.",
+              "title": "Date"
+            },
+            "description": "A day (YYYY-MM-DD or YYYYMMDD) or a range (YYYYMMDD-YYYYMMDD). Leave blank for today."
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "ESPN's group id for college leagues, e.g. '80' for all FBS football or '50' for all Division I men's basketball.",
+              "title": "Group"
+            },
+            "description": "ESPN's group id for college leagues, e.g. '80' for all FBS football or '50' for all Division I men's basketball."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `league` and a `games` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad `sport`, `league`, `date` or `group`, or an invalid proxy country."
+          },
+          "404": {
+            "description": "ESPN has no such sport or league."
+          },
+          "502": {
+            "description": "Blocked, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/espn-summary": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Get an ESPN box score, leaders, odds and win probability",
+        "description": "Returns one game in `event` (`status`, `startTime`, `venue`, `officials`, `weather`, and `home` and `away` with score and line scores), plus whatever ESPN holds for it: `boxscore` with team `statistics` and per-player stat `groups`, `leaders`, `odds` per provider, the `predictor` and `winProbability` series, `scoringPlays`, `keyEvents` and `lineups` for soccer, and `injuries`. Sections ESPN does not have for a game, such as a box score before kick-off, are left out.",
+        "operationId": "espn_summary_sports_espn_summary_post",
+        "parameters": [
+          {
+            "name": "sport",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "ESPN's sport path, e.g. 'basketball', 'football', 'baseball', 'hockey', 'soccer', 'tennis', 'golf', 'mma', 'racing'.",
+              "title": "Sport"
+            },
+            "description": "ESPN's sport path, e.g. 'basketball', 'football', 'baseball', 'hockey', 'soccer', 'tennis', 'golf', 'mma', 'racing'."
+          },
+          {
+            "name": "league",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "ESPN's league path within the sport, e.g. 'nba', 'wnba', 'mens-college-basketball', 'nfl', 'college-football', 'mlb', 'nhl', 'atp', 'pga', 'ufc', 'f1', or a soccer code such as 'eng.1', 'esp.1', 'usa.1', 'uefa.champions'.",
+              "title": "League"
+            },
+            "description": "ESPN's league path within the sport, e.g. 'nba', 'wnba', 'mens-college-basketball', 'nfl', 'college-football', 'mlb', 'nhl', 'atp', 'pga', 'ufc', 'f1', or a soccer code such as 'eng.1', 'esp.1', 'usa.1', 'uefa.champions'."
+          },
+          {
+            "name": "event",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The game's id from `/sports/espn-scoreboard`, or an espn.com game link containing `gameId`.",
+              "title": "Event"
+            },
+            "description": "The game's id from `/sports/espn-scoreboard`, or an espn.com game link containing `gameId`."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `event` and the sections ESPN holds for the game.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad `sport`, `league` or `event`, or an invalid proxy country."
+          },
+          "404": {
+            "description": "ESPN has no such game."
+          },
+          "502": {
+            "description": "Blocked, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/fanduel-odds": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "FanDuel sportsbook odds for a league, page or event",
+        "description": "Reads FanDuel's public sportsbook content and returns `events` (`name`, `home`, `away`, `sport`, `competition`, `startTime`, `url`) with their `markets` (`name`, `type`, `status`, `inPlay`, `margin` on two-way and three-way markets) and each market's `selections` (`name`, `side`, `points`, `status`, `american`, `decimal`, `fractional`, `impliedProbability`). Prices are numbers. Pass one of `league` (`nba`, `nfl`, `mlb`, `nhl`, `ncaab`, `soccer`, `epl`, `ucl`, `ufc`, `tennis` or a numeric sport id), `page` (a FanDuel page id) or `event_id` (one game's full board, with props; `tab` picks one of the game's `availableTabs`). `state` selects the US state whose lines are read (default `nj`). `include_futures=true` adds outright and futures markets. FanDuel answers from outside the US as well as from the US. A league with no current games returns empty `events` and a `message`.",
+        "operationId": "fanduel_odds_sports_fanduel_odds_post",
+        "parameters": [
+          {
+            "name": "league",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "League name, e.g. 'nba', 'nfl', 'soccer', 'epl', or a numeric sport id.",
+              "title": "League"
+            },
+            "description": "League name, e.g. 'nba', 'nfl', 'soccer', 'epl', or a numeric sport id."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "FanDuel page id, e.g. 'nba'; from the site's /navigation/ links.",
+              "title": "Page"
+            },
+            "description": "FanDuel page id, e.g. 'nba'; from the site's /navigation/ links."
+          },
+          {
+            "name": "event_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "One event id for its full market board.",
+              "title": "Event Id"
+            },
+            "description": "One event id for its full market board."
+          },
+          {
+            "name": "tab",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With `event_id`: a tab from `availableTabs`, lowercase with dashes, e.g. 'player-points'.",
+              "title": "Tab"
+            },
+            "description": "With `event_id`: a tab from `availableTabs`, lowercase with dashes, e.g. 'player-points'."
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "US state code, e.g. 'nj', 'ny', 'pa' (default 'nj').",
+              "title": "State"
+            },
+            "description": "US state code, e.g. 'nj', 'ny', 'pa' (default 'nj')."
+          },
+          {
+            "name": "include_futures",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Add futures and outright markets.",
+              "default": false,
+              "title": "Include Futures"
+            },
+            "description": "Add futures and outright markets."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `events` (empty with a `message` when nothing is on offer).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad `league`, `page`, `event_id`, `state`, or proxy country."
+          },
+          "404": {
+            "description": "FanDuel has no such league, page or event."
+          },
+          "502": {
+            "description": "Blocked, unreadable, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/finance/finviz-quote": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Get a Finviz stock quote and snapshot",
+        "description": "Reads the Finviz page for one US-listed symbol and returns `snapshot`: the page's table as named numeric fields (`peRatio`, `eps`, `marketCap`, `beta`, `rsi`, `shortFloatPercent`, `targetPrice`, ...; percentages are in fields ending in `Percent`, as whole percents; ETFs have their own set). Also `analystRatings` (firm, action, rating, price target), `news` (headline, source, `url`, `publishedAt` in US Eastern), `sector`, `industry`, `country`, `exchange`, `company`, `website` and `description`.",
+        "operationId": "finviz_quote_finance_finviz_quote_post",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "US-listed ticker, e.g. 'AAPL' or 'BRK-B'.",
+              "title": "Symbol"
+            },
+            "description": "US-listed ticker, e.g. 'AAPL' or 'BRK-B'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `snapshot`, `analystRatings` and `news`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid symbol or proxy country."
+          },
+          "404": {
+            "description": "Finviz does not know that symbol."
+          },
+          "502": {
+            "description": "Blocked, unreadable, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
+    },
+    "/finance/finviz-screener": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Run a Finviz stock screener",
+        "description": "Runs a Finviz screen and returns one page of `rows`, with `totalCount`, `totalPages`, `page`, `pageSize` and `hasNextPage`. Build it from `filters`, `signal` and `order`, or paste a screener link (or its query string) into `query`. `view` picks the columns: 111 overview, 121 valuation, 131 ownership, 141 performance, 161 financial, 171 technical; each row is keyed by column (`ticker`, `company`, `sector`, `marketCap`, `peRatio`, `price`, `changePercent`, `volume`, ...; `columns` lists them). Finviz shows 20 rows per page. Filters that match nothing return an empty `rows`.",
+        "operationId": "finviz_screener_finance_finviz_screener_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A Finviz screener link or query string, e.g. 'v=111&f=cap_large,sec_technology&o=-marketcap'.",
+              "title": "Query"
+            },
+            "description": "A Finviz screener link or query string, e.g. 'v=111&f=cap_large,sec_technology&o=-marketcap'."
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Finviz filter codes, comma-separated, e.g. 'cap_large,sec_technology,fa_pe_u20'.",
+              "title": "Filters"
+            },
+            "description": "Finviz filter codes, comma-separated, e.g. 'cap_large,sec_technology,fa_pe_u20'."
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Column set: 111, 121, 131, 141, 161 or 171. Default 111.",
+              "title": "View"
+            },
+            "description": "Column set: 111, 121, 131, 141, 161 or 171. Default 111."
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Sort, e.g. 'ticker' or '-marketcap' (descending).",
+              "title": "Order"
+            },
+            "description": "Sort, e.g. 'ticker' or '-marketcap' (descending)."
+          },
+          {
+            "name": "signal",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Finviz signal, e.g. 'ta_topgainers'.",
+              "title": "Signal"
+            },
+            "description": "Finviz signal, e.g. 'ta_topgainers'."
+          },
+          {
+            "name": "tickers",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Limit the screen to these tickers, comma-separated.",
+              "title": "Tickers"
+            },
+            "description": "Limit the screen to these tickers, comma-separated."
+          },
+          {
+            "name": "etf",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Screen ETFs instead of stocks.",
+              "default": false,
+              "title": "Etf"
+            },
+            "description": "Screen ETFs instead of stocks."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10000,
+              "minimum": 1,
+              "description": "Page number, starting at 1.",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number, starting at 1."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `rows` and the page counts.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameter, or `query` is not a Finviz screener address."
+          },
+          "502": {
+            "description": "Blocked, unreadable, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
+    },
+    "/sports/flashscore-matches": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Flashscore fixtures and results for a sport or competition",
+        "description": "Reads a Flashscore sport, competition, results or fixtures page and returns its `matches`: `id`, `url`, `competition`, `round`, `startTime`, `status` (`state` is `scheduled`, `live` or `finished`, `stage` names it), `home` and `away` with name, logo, country and `score`, `winner`, and period `periods` once played. A competition's overview page returns the recent results and the upcoming fixtures Flashscore loads with it; use its `/results/` or `/fixtures/` address for one of them. A sport's front page (e.g. 'football') lists today's matches, where a row shows `displayTime` instead of a timestamp. A page without matches, such as `/fixtures/` of a finished season, returns an empty `matches` array with a `message`.",
+        "operationId": "flashscore_matches_sports_flashscore_matches_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "A Flashscore page, as a link or path, e.g. 'football/england/premier-league', 'basketball/usa/nba/results', 'tennis/atp-singles/stockholm' or 'football' for today's matches.",
+              "title": "Url"
+            },
+            "description": "A Flashscore page, as a link or path, e.g. 'football/england/premier-league', 'basketball/usa/nba/results', 'tennis/atp-singles/stockholm' or 'football' for today's matches."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `matches`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`url` is not a Flashscore sport, competition or results page, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "Flashscore has no page at this address."
+          },
+          "502": {
+            "description": "Blocked, no match table on that page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/flashscore-match": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a Flashscore match: details, statistics, lineups and odds",
+        "description": "Reads one Flashscore match and returns `competition`, `startTime`, `status`, `home` and `away` with `score`, `winner`, `periods`, `venue`, `referee`, `attendance`, `incidents` (goals, cards, substitutions with minute and player), `statistics` by group, `lineups` (starters, substitutes, missing players, coaches) and `odds`: for each market and scope, every bookmaker's `prices` with `value`, `opening` and, once settled, `result`. Sections Flashscore does not hold for a match are left out, and any that could not be loaded are named in `unavailable`. Odds vary by country of the bookmakers; set `odds_region`.",
+        "operationId": "flashscore_match_sports_flashscore_match_post",
+        "parameters": [
+          {
+            "name": "match",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "A Flashscore match link or id, as returned in `matches[].url` from `/sports/flashscore-matches`.",
+              "title": "Match"
+            },
+            "description": "A Flashscore match link or id, as returned in `matches[].url` from `/sports/flashscore-matches`."
+          },
+          {
+            "name": "odds_region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "ISO-2 country whose bookmakers the odds come from.",
+              "default": "GB",
+              "title": "Odds Region"
+            },
+            "description": "ISO-2 country whose bookmakers the odds come from."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with the match and its sections.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`match` is not a Flashscore match, `odds_region` is invalid, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "Flashscore has no match at this address."
+          },
+          "502": {
+            "description": "Blocked, no match on that page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/fotmob-league": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Get a FotMob league table, fixtures and top players",
+        "description": "Returns one football competition: `table` (a list with one block per league table, conference or cup group, each with `rows` carrying `position`, `team`, `played`, `wins`, `draws`, `losses`, `goalsFor`, `goalsAgainst`, `goalDifference`, `points`, `xG`, `form` and `qualification`, plus `home` and `away` splits), `fixtures` for the whole season (`round`, `startTime`, `status`, `home` and `away` with scores once played, `url`), `topPlayers` and `topTeams` per stat category, `playoff` for knockout brackets, and `availableSeasons`. A league without a table or fixtures yet returns empty lists with a `message`.",
+        "operationId": "fotmob_league_sports_fotmob_league_post",
+        "parameters": [
+          {
+            "name": "league",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "A FotMob league id (47 is the Premier League) or a fotmob.com/leagues/... link.",
+              "title": "League"
+            },
+            "description": "A FotMob league id (47 is the Premier League) or a fotmob.com/leagues/... link."
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "A season as FotMob writes it, e.g. '2024/2025' or '2026'. Leave blank for the current one; `availableSeasons` lists them.",
+              "title": "Season"
+            },
+            "description": "A season as FotMob writes it, e.g. '2024/2025' or '2026'. Leave blank for the current one; `availableSeasons` lists them."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `table` and `fixtures`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`league` is not a FotMob league, `season` is malformed, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "FotMob has no such league."
+          },
+          "502": {
+            "description": "Blocked, no league data on the page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/fotmob-match": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Get a FotMob match with events, lineups and statistics",
+        "description": "Returns one football match: `competition`, `startTime`, `status`, `home` and `away` with the score, `venue`, `referee`, `attendance`, `events` (goals with the running score, cards, substitutions, added time), `lineups` with formation, coach, ratings, starters, substitutes and unavailable players, `statistics` for the match and each half, `shots` with expected goals and pitch position, `playerStats`, `playerOfTheMatch` and `headToHead`. Sections FotMob does not hold for a match, such as statistics before kick-off, are left out.",
+        "operationId": "fotmob_match_sports_fotmob_match_post",
+        "parameters": [
+          {
+            "name": "match",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "A FotMob match id or a fotmob.com match link, as returned in `fixtures[].url` from `/sports/fotmob-league`.",
+              "title": "Match"
+            },
+            "description": "A FotMob match id or a fotmob.com match link, as returned in `fixtures[].url` from `/sports/fotmob-league`."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with the match, `events`, `lineups` and `statistics`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`match` is not a FotMob match, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "FotMob has no such match."
+          },
+          "502": {
+            "description": "Blocked, no match data on the page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/finance/investing-quote": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape an Investing.com equity quote",
+        "description": "Reads one Investing.com equity page and returns `price`, `change`, `changePercent`, open, high, low, `previousClose`, `volume`, `marketCap`, 52-week range and `lastUpdated`, with `preMarket` and `afterHours` figures where the listing has them; `performance` from one day to all time; `statistics` (EPS, P/E, revenue, net income, EBITDA, beta, dividend, returns and margins); `earnings` (latest and next report); `dividends`; `analyst` consensus, price targets and recent rating changes; `technicals` verdicts per chart interval; and the `company` profile. Pass the page as a link or just its slug. Sections an instrument does not have are left out.",
+        "operationId": "investing_quote_finance_investing_quote_post",
+        "parameters": [
+          {
+            "name": "equity",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Equity page as a link or slug, e.g. 'apple-computer-inc' or 'https://www.investing.com/equities/nvidia-corp'.",
+              "title": "Equity"
+            },
+            "description": "Equity page as a link or slug, e.g. 'apple-computer-inc' or 'https://www.investing.com/equities/nvidia-corp'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `price`, `statistics`, `analyst` and `company`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`equity` is not an Investing.com equity page, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "Investing.com has no equity at this address."
+          },
+          "502": {
+            "description": "Blocked, no quote on that page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
+    },
+    "/finance/investing-economic-calendar": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape the Investing.com economic calendar",
+        "description": "Returns the economic calendar for a date range: each entry in `events` has `name`, `country`, `countryCode`, `currency`, `importance` (high, medium, low), `time` (ISO 8601, UTC), the reference `period`, `actual`, `forecast` and `previous` as numbers with their `unit`, `category`, `source` and a link to the indicator's page. Filter by `countries` and `importance`. Dates default to today (UTC); a range can span up to 31 days. A range with no events returns an empty `events` list. `truncated` is true if the list had to stop early.",
+        "operationId": "investing_economic_calendar_finance_investing_economic_calendar_post",
+        "parameters": [
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First day, YYYY-MM-DD. Defaults to today (UTC).",
+              "title": "Date From"
+            },
+            "description": "First day, YYYY-MM-DD. Defaults to today (UTC)."
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last day, YYYY-MM-DD. Defaults to `date_from`.",
+              "title": "Date To"
+            },
+            "description": "Last day, YYYY-MM-DD. Defaults to `date_from`."
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated ISO-2 codes or names, e.g. 'US,DE,JP' or 'United States,Euro Zone'. 'EU' is the Euro Zone. Leave blank for all.",
+              "title": "Countries"
+            },
+            "description": "Comma-separated ISO-2 codes or names, e.g. 'US,DE,JP' or 'United States,Euro Zone'. 'EU' is the Euro Zone. Leave blank for all."
+          },
+          {
+            "name": "importance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated: 'high', 'medium', 'low'. Leave blank for all.",
+              "title": "Importance"
+            },
+            "description": "Comma-separated: 'high', 'medium', 'low'. Leave blank for all."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with an `events` array and `total`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "A date, `countries` or `importance` is invalid, or the proxy country is."
+          },
+          "502": {
+            "description": "Blocked, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
+    },
+    "/finance/marketwatch-quote": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a MarketWatch stock quote",
+        "description": "Reads a stock's MarketWatch quote page and returns `price`, `change`, `changePercent`, `previousClose`, `marketState` and `quoteTime`; `keyData` (open, day and 52-week ranges, market cap, shares, beta, P/E, EPS, dividend and short interest); `performance` over 5 days to 1 year; `analyst` (consensus, target price, yearly and quarterly EPS estimates, rating history and recent rating changes); `competitors`; and news `headlines` with links, sources and times. Pass `country_code` for a listing outside the US; those listings return only the consensus and number of ratings in `analyst`. Figures are numbers in the listing's own units, and some non-US listings mix units (a London price is in pence, its market cap in pounds). `unavailable` lists any section that could not be read.",
+        "operationId": "marketwatch_quote_finance_marketwatch_quote_post",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Ticker symbol, e.g. 'AAPL'.",
+              "title": "Symbol"
+            },
+            "description": "Ticker symbol, e.g. 'AAPL'."
+          },
+          {
+            "name": "country_code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "MarketWatch country code of the listing for stocks outside the US, e.g. 'uk' (London), 'xe' (Xetra) or 'jp' (Tokyo). Leave blank for US stocks.",
+              "title": "Country Code"
+            },
+            "description": "MarketWatch country code of the listing for stocks outside the US, e.g. 'uk' (London), 'xe' (Xetra) or 'jp' (Tokyo). Leave blank for US stocks."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `price`, `keyData`, `analyst` and `headlines`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`symbol` or `country_code` is malformed, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "MarketWatch has no stock with this symbol."
+          },
+          "502": {
+            "description": "Blocked, no usable data on the page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
+    },
+    "/sports/oddschecker-odds": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Oddschecker betting odds for an event",
+        "description": "Reads one Oddschecker event page and returns `event` (name, competition, teams, `startTime`), `markets` with their `selections`, and for each selection every price in `odds` (`decimal`, `fractional`, each-way terms where offered; betting exchanges carry `exchange: true`) plus `best`: the top bookmaker price and who offers it, leaving exchanges out as Oddschecker does. `availableMarkets` names the other markets of the event. Works for match pages, outright winners and horse races. A runner priced only at starting price has no `odds`, and one priced only on exchanges has no `best`. An event Oddschecker lists without prices yet returns empty `markets` and a `message`.",
+        "operationId": "oddschecker_odds_sports_oddschecker_odds_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "An Oddschecker event page, as a link or path, e.g. 'football/english/premier-league/man-city-v-fulham/winner'.",
+              "title": "Url"
+            },
+            "description": "An Oddschecker event page, as a link or path, e.g. 'football/english/premier-league/man-city-v-fulham/winner'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `event` and `markets`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`url` is not an Oddschecker page, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "Oddschecker has no page at this address."
+          },
+          "502": {
+            "description": "Blocked, no odds on that page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/oddschecker-events": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape Oddschecker fixtures for a sport or competition",
+        "description": "Reads an Oddschecker sport or competition page and returns its `events`: name, teams, `startTime` (or the page's `date` and `time` where it shows no timestamp), `url`, and the headline `markets` with the best price per selection. Some sports also return every bookmaker's price in `odds`. Horse racing pages list races without prices; pass a race `url` to `/sports/oddschecker-odds` for those.",
+        "operationId": "oddschecker_events_sports_oddschecker_events_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "An Oddschecker sport or competition page, as a link or path, e.g. 'football/english/premier-league' or 'basketball/nba'.",
+              "title": "Url"
+            },
+            "description": "An Oddschecker sport or competition page, as a link or path, e.g. 'football/english/premier-league' or 'basketball/nba'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with an `events` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`url` is not an Oddschecker page, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "Oddschecker has no page at this address."
+          },
+          "502": {
+            "description": "Blocked, no events on that page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/oddsportal-matches": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape OddsPortal fixtures or results for a league",
+        "description": "Reads an OddsPortal league or results page and returns its `matches`: `home`, `away`, `status`, `startTime`, `tournament`, `venue`, the `score` and `partialResult` once played, and `odds` per outcome (`home`, `draw`, `away`; two-way sports have no `draw`) with `average` and `highest` prices and the number of `bookmakers`. Each match has a `url` to pass to `/sports/oddsportal-odds`. The site shows the matches around the current date; a league with nothing listed returns an empty `matches` array and a `message`. Team names and tournament names can be localised to the request's exit country.",
+        "operationId": "oddsportal_matches_sports_oddsportal_matches_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "An OddsPortal league page, as a link or path, e.g. 'football/england/premier-league', or a results page such as 'football/england/premier-league/results' or 'football/england/premier-league-2025-2026/results'.",
+              "title": "Url"
+            },
+            "description": "An OddsPortal league page, as a link or path, e.g. 'football/england/premier-league', or a results page such as 'football/england/premier-league/results' or 'football/england/premier-league-2025-2026/results'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `matches` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`url` is not an OddsPortal league or results page, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "OddsPortal has no page at this address."
+          },
+          "502": {
+            "description": "Blocked, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/oddsportal-odds": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape OddsPortal bookmaker odds for a match",
+        "description": "Reads one OddsPortal match page and returns `event` (teams, `startTime`, `tournament`, `status`) and its main market (1X2, or Home/Away for two-way sports): each selection has the `average` and `best` price and `odds` with every bookmaker's `decimal` price and `movement` (`up` or `down` where the site marks it); betting exchanges carry `exchange: true` and are left out of `best`. Pass the `url` from `/sports/oddsportal-matches`. The site lists the bookmakers licensed in the visitor's country, so the bookmakers returned depend on the exit; use `proxy_country` for a given country. This is a browser render and takes longer than the league endpoint.",
+        "operationId": "oddsportal_odds_sports_oddsportal_odds_post",
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "An OddsPortal match page, as returned by `/sports/oddsportal-matches`, e.g. 'football/h2h/fulham-69ZiU2Om/manchester-city-Wtn9Stg0/#MuVKeqEE'.",
+              "title": "Url"
+            },
+            "description": "An OddsPortal match page, as returned by `/sports/oddsportal-matches`, e.g. 'football/h2h/fulham-69ZiU2Om/manchester-city-Wtn9Stg0/#MuVKeqEE'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'GB', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `event` and `markets`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`url` is not an OddsPortal match page, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "OddsPortal has no page at this address."
+          },
+          "502": {
+            "description": "Blocked, no odds table on that page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/sports/pinnacle-odds": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Pinnacle sports betting odds for a sport or league",
+        "description": "Reads Pinnacle's public odds board and returns `matchups`: id, `league`, `home`, `away`, `startTime`, `live`, `url`, and `markets`, each with `type` (`moneyline`, `spread`, `total`, `team_total`), `period` and `periodName`, `alternate`, `maxRiskStake`, `margin` and `selections` (`name`, `side`, `points`, `american`, `decimal`, `impliedProbability`, `fairProbability`). Prices are numbers, in American and decimal form. `sport` is a name such as `basketball`, `soccer`, `hockey`, `tennis`, or an id; `football` means American football (use `soccer` for association football). Passing a `league` returns every period, alternate lines and, with `include_specials=true`, player props and futures in `specials`; a whole-sport call returns each game's main lines (`marketCoverage: main`). A league with nothing on offer returns empty `matchups` and a `message`. Geo-dependent: pass `proxy_country` to choose where the request is sent from.",
+        "operationId": "pinnacle_odds_sports_pinnacle_odds_post",
+        "parameters": [
+          {
+            "name": "sport",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Sport name or id, e.g. 'basketball', 'soccer', 'hockey', 'tennis', '4'. A well-known league also works here, e.g. 'nba' or 'epl'.",
+              "title": "Sport"
+            },
+            "description": "Sport name or id, e.g. 'basketball', 'soccer', 'hockey', 'tennis', '4'. A well-known league also works here, e.g. 'nba' or 'epl'."
+          },
+          {
+            "name": "league",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "League name or id, e.g. 'nba', 'epl', 'Spain - La Liga', or '487'.",
+              "title": "League"
+            },
+            "description": "League name or id, e.g. 'nba', 'epl', 'Spain - La Liga', or '487'."
+          },
+          {
+            "name": "include_specials",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Add player props and futures in `specials` (only with a league).",
+              "default": false,
+              "title": "Include Specials"
+            },
+            "description": "Add player props and futures in `specials` (only with a league)."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `sport` and `matchups` (empty with a `message` when nothing is on offer).",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`sport` or `league` is not usable, more than one league matches, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "Pinnacle has no such sport or league."
+          },
+          "502": {
+            "description": "Blocked, unreadable, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "sports-odds-and-scores"
+        ]
+      }
+    },
+    "/finance/stockanalysis-stock": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Get a StockAnalysis stock overview and financial statements",
+        "description": "Returns one stock's `quote` (price, change, day and 52-week ranges, volume), `overview` (`marketCap`, `revenue`, `netIncome`, `eps`, `peRatio`, `forwardPE`, dividend, `beta`, `analystRating`, `priceTarget`, `earningsDate`), `profile`, `analysts` and `news`, plus `incomeStatement`, `balanceSheet` and `cashFlow` as far as StockAnalysis shows them to free visitors. Each statement has `periods` (newest first, with `endDate`, `fiscalYear` and `fiscalQuarter`) and `rows` with their `values` in the same order; a row in percent carries `unit: percent`. `period` chooses annual or quarterly figures. ETFs return the overview without statements. `unavailable` names any statement that could not be read.",
+        "operationId": "stockanalysis_stock_finance_stockanalysis_stock_post",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "US ticker such as 'AAPL', or exchange and ticker for a non-US listing, e.g. 'LON:VOD', 'TSX:RY'.",
+              "title": "Symbol"
+            },
+            "description": "US ticker such as 'AAPL', or exchange and ticker for a non-US listing, e.g. 'LON:VOD', 'TSX:RY'."
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Statement period: 'annual' or 'quarterly'.",
+              "default": "annual",
+              "title": "Period"
+            },
+            "description": "Statement period: 'annual' or 'quarterly'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `quote`, `overview` and the statements.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid symbol, period or proxy country."
+          },
+          "404": {
+            "description": "StockAnalysis has no page for that symbol."
+          },
+          "502": {
+            "description": "Blocked, unreadable, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
+    },
+    "/finance/tradingview-symbol": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a TradingView symbol: price, fundamentals and technical rating",
+        "description": "Returns the data TradingView shows for one symbol: `price`, `change`, `changePercent`, session high and low, `volume` and 52-week and all-time ranges, with `preMarket` and `postMarket` figures where they exist; `fundamentals` (market cap, P/E, EPS, margins, debt, dividends, revenue, earnings dates); `performance` from one week to all time; `technicals` (overall `rating` from Strong Sell to Strong Buy, moving averages and oscillators, RSI, MACD and more); `analysts` (rating counts and price targets); `company` profile; and news `headlines`. Works for stocks, ETFs, indices, crypto, forex and futures. Sections that do not apply to an asset are left out, and `unavailable` lists any section that could not be read this time. `dataDelaySeconds` gives the delay of the quote.",
+        "operationId": "tradingview_symbol_finance_tradingview_symbol_post",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "`EXCHANGE:TICKER`, e.g. 'NASDAQ:AAPL', 'XETR:SAP', 'BINANCE:BTCUSDT' or 'FX:EURUSD'.",
+              "title": "Symbol"
+            },
+            "description": "`EXCHANGE:TICKER`, e.g. 'NASDAQ:AAPL', 'XETR:SAP', 'BINANCE:BTCUSDT' or 'FX:EURUSD'."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `price`, `fundamentals`, `technicals`, `company` and `headlines`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`symbol` is not in `EXCHANGE:TICKER` form, or the proxy country is invalid."
+          },
+          "404": {
+            "description": "TradingView has no such symbol."
+          },
+          "502": {
+            "description": "Blocked, no quote for that symbol, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
+    },
+    "/finance/tradingview-screener": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Scrape a TradingView market-movers list",
+        "description": "Returns `rows` from a public TradingView market-movers page for a stock market: `symbol`, `ticker`, `name`, `exchange`, `price`, `currency`, `changePercent`, `volume`, `relativeVolume`, `marketCap`, `peRatio`, `eps`, `dividendYield`, `sector`, `analystRating` and `url`, plus whatever extra columns that list shows (for example `rsi` on the overbought list). `totalCount` is how many stocks match the list on TradingView; the page itself shows the top rows of it, at most 100. `sort` re-orders those rows, it does not fetch a different top of the list. Session lists such as after-hours movers can be empty outside their session; those return empty `rows` and a `message`.",
+        "operationId": "tradingview_screener_finance_tradingview_screener_post",
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Stock market as it appears in TradingView addresses, e.g. 'usa', 'germany', 'japan', 'india', 'united-kingdom'.",
+              "default": "usa",
+              "title": "Market"
+            },
+            "description": "Stock market as it appears in TradingView addresses, e.g. 'usa', 'germany', 'japan', 'india', 'united-kingdom'."
+          },
+          {
+            "name": "list",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Which list, e.g. 'gainers', 'losers', 'active', 'large-cap', 'small-cap', 'unusual-volume', 'most-volatile', 'overbought', 'oversold', 'best-performing', 'high-dividend', 'ath', 'atl', '52wk-high', '52wk-low', 'pre-market-gainers', 'after-hours-gainers', 'all-stocks'.",
+              "default": "gainers",
+              "title": "List"
+            },
+            "description": "Which list, e.g. 'gainers', 'losers', 'active', 'large-cap', 'small-cap', 'unusual-volume', 'most-volatile', 'overbought', 'oversold', 'best-performing', 'high-dividend', 'ath', 'atl', '52wk-high', '52wk-low', 'pre-market-gainers', 'after-hours-gainers', 'all-stocks'."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Row field to re-order by, e.g. 'marketCap', 'volume', 'changePercent', 'peRatio'. Leave blank for the site's order.",
+              "title": "Sort"
+            },
+            "description": "Row field to re-order by, e.g. 'marketCap', 'volume', 'changePercent', 'peRatio'. Leave blank for the site's order."
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "'desc' (highest first) or 'asc'. Used with `sort`.",
+              "default": "desc",
+              "title": "Order"
+            },
+            "description": "'desc' (highest first) or 'asc'. Used with `sort`."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "Rows to return, 1 to 100.",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Rows to return, 1 to 100."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `rows`, `totalCount`, `market` and `list`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "`market`, `list`, `sort`, `order` or `limit` is invalid, or the proxy country is."
+          },
+          "404": {
+            "description": "TradingView has no such market or list."
+          },
+          "502": {
+            "description": "Blocked, no rows on the page, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
+    },
+    "/finance/yahoo-quote": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Get Yahoo Finance stock quotes",
+        "description": "Returns live quotes for up to 10 symbols. Each entry of `quotes` has the price, `change` and `changePercent`, the day and 52-week ranges, `volume`, `marketCap`, `peRatio`, `eps`, `dividendRate` and `dividendYieldPercent`, `name`, `exchange`, `currency` and `quoteTime`, plus `analyst` (recommendation, price targets, recent rating changes), `profile`, `financials`, `earnings` and `performance` where Yahoo has them. Works for stocks, ETFs, indices, crypto, currencies and futures; funds add `fund`, crypto adds `crypto`. A symbol Yahoo does not know is listed in `notFound`, one that could not be read in `failed`; both are absent when empty. Billed per symbol returned.",
+        "operationId": "yahoo_quote_finance_yahoo_quote_post",
+        "parameters": [
+          {
+            "name": "symbols",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Comma-separated symbols, up to 10, e.g. 'AAPL,MSFT,VOD.L'.",
+              "title": "Symbols"
+            },
+            "description": "Comma-separated symbols, up to 10, e.g. 'AAPL,MSFT,VOD.L'."
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "One symbol, as an alternative to `symbols`.",
+              "title": "Symbol"
+            },
+            "description": "One symbol, as an alternative to `symbols`."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with a `quotes` array.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "No symbol, an invalid symbol, too many symbols, or an invalid proxy country."
+          },
+          "404": {
+            "description": "None of the requested symbols exist on Yahoo Finance."
+          },
+          "502": {
+            "description": "Blocked, unreadable, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
+    },
+    "/finance/yahoo-history": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Get Yahoo Finance price history",
+        "description": "Returns OHLCV `rows` for one symbol: `date` (exchange-local day), `timestamp` (UTC), `open`, `high`, `low`, `close`, `adjClose` and `volume`, oldest first, plus `dividends` and `splits` that fell inside the window. Choose the window with `range`, or with `start` and `end` for exact dates. Yahoo limits how far back intraday bars go and how many days one request can cover; a window it refuses returns 400 with its reason.",
+        "operationId": "yahoo_history_finance_yahoo_history_post",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Yahoo Finance symbol: 'AAPL', a listing with its suffix ('VOD.L', '7203.T'), an index ('^GSPC'), a crypto pair ('BTC-USD'), a currency ('EURUSD=X') or a future ('ES=F').",
+              "title": "Symbol"
+            },
+            "description": "Yahoo Finance symbol: 'AAPL', a listing with its suffix ('VOD.L', '7203.T'), an index ('^GSPC'), a crypto pair ('BTC-USD'), a currency ('EURUSD=X') or a future ('ES=F')."
+          },
+          {
+            "name": "range",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd or max. Ignored when `start` and `end` are given.",
+              "default": "1mo",
+              "title": "Range"
+            },
+            "description": "1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd or max. Ignored when `start` and `end` are given."
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Bar size: 1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo or 3mo.",
+              "default": "1d",
+              "title": "Interval"
+            },
+            "description": "Bar size: 1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo or 3mo."
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First day of the window, YYYY-MM-DD. Use with `end`.",
+              "title": "Start"
+            },
+            "description": "First day of the window, YYYY-MM-DD. Use with `end`."
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Day after the last one in the window, YYYY-MM-DD. Use with `start`.",
+              "title": "End"
+            },
+            "description": "Day after the last one in the window, YYYY-MM-DD. Use with `start`."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `rows`, `dividends` and `splits`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid symbol, range, interval or dates, or a range and interval Yahoo refuses."
+          },
+          "404": {
+            "description": "The symbol does not exist, or has no prices in that window."
+          },
+          "502": {
+            "description": "Blocked, unreadable, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
+    },
+    "/finance/yahoo-options": {
+      "post": {
+        "tags": [
+          "Plugins"
+        ],
+        "summary": "Get a Yahoo Finance option chain",
+        "description": "Returns the `calls` and `puts` for one expiration of a symbol: `contractSymbol`, `strike`, `lastPrice`, `change`, `changePercent`, `bid`, `ask`, `volume`, `openInterest`, `impliedVolatilityPercent` and `inTheMoney`. Also returns every listed `expirationDates`, the `strikes`, and the `underlyingPrice`. Without `expiration` you get the nearest one.",
+        "operationId": "yahoo_options_finance_yahoo_options_post",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Yahoo Finance symbol with listed options, e.g. 'AAPL', 'SPY'.",
+              "title": "Symbol"
+            },
+            "description": "Yahoo Finance symbol with listed options, e.g. 'AAPL', 'SPY'."
+          },
+          {
+            "name": "expiration",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Expiration as YYYY-MM-DD or Unix seconds. Leave blank for the nearest.",
+              "title": "Expiration"
+            },
+            "description": "Expiration as YYYY-MM-DD or Unix seconds. Leave blank for the nearest."
+          },
+          {
+            "name": "proxy_country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick.",
+              "title": "Proxy Country"
+            },
+            "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON with `calls` and `puts`.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid symbol or expiration, an expiration that is not listed, or an invalid proxy country."
+          },
+          "404": {
+            "description": "The symbol does not exist, or has no listed options."
+          },
+          "502": {
+            "description": "Blocked, unreadable, or the call did not finish in time."
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "stock-market-data"
+        ]
+      }
     }
   },
   "components": {
@@ -23299,13 +26455,6 @@
           "type": {
             "type": "string",
             "title": "Error Type"
-          },
-          "input": {
-            "title": "Input"
-          },
-          "ctx": {
-            "type": "object",
-            "title": "Context"
           }
         },
         "type": "object",
