@@ -136,6 +136,7 @@ When the question is about buying something, ChatGPT lays its picks out as produ
 "products": [
   {
     "position": 1,
+    "ranked": true,
     "name": "Roborock Q10 VF+",
     "label": "Best overall",
     "price": {
@@ -173,7 +174,7 @@ When the question is about buying something, ChatGPT lays its picks out as produ
 
 | Field | Notes |
 | --- | --- |
-| `position`, `name` | The pick's rank and name as ChatGPT shows them. |
+| `position`, `name` | The pick's rank and name as ChatGPT shows them. `ranked` is true when ChatGPT numbered the pick. |
 | `label` | ChatGPT's own tag for the pick, e.g. "Best overall value" (`null` when it shows none). |
 | `price` | `text` as shown ("$69.99", "$75-$100", "Around $155"), plus `currency`, `min` and `max` (equal for a single price). `null` when no price is shown. |
 | `priceNote` | A short line ChatGPT puts under the price, e.g. where the price was seen. |
