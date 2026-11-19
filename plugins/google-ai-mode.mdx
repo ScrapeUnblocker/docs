@@ -178,8 +178,8 @@ When AI Mode recommends products, each one links to Google Shopping, and Google 
 | --- | --- |
 | `position`, `name` | The pick's place in the answer and the name AI Mode writes for it. |
 | `ranked` | `true` for a numbered pick; `false` for a product card in a carousel or a product mentioned outside the numbered list. |
-| `label` / `description` | AI Mode's own heading for the pick (e.g. "Best Value Under $100") and the text it writes about it. |
-| `statedPrice` | A price AI Mode writes next to the name, e.g. "$120 - $150" (`null` when it writes none). It can differ a lot from the offer Google pairs with the pick. |
+| `label` / `description` | AI Mode's own heading for the pick (e.g. "Best Value Under $100") and the text it writes about it (for a product card, the notes under the card). |
+| `statedPrice` | A price AI Mode writes next to the name or in the notes under a product card, e.g. "$120 - $150" (`null` when it writes none). It can differ a lot from the offer Google pairs with the pick. |
 | `price` / `originalPrice` | The headline offer's price and its list price, as `text`, `currency`, `min`, `max`. |
 | `rating` / `reviewCount` | The product's rating and number of reviews on Google Shopping. |
 | `merchant` | The shop whose offer Google shows for the pick: `name`, `url`, `domain`. |
