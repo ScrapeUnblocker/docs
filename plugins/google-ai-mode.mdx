@@ -141,6 +141,48 @@ Each answer is billed as one request. A `502` (no complete answer) is not billed
 | `followUps` | The follow-up questions Google closes the answer with, when it offers any (else an empty list). |
 | `hl` / `gl` / `proxyCountry` | The language and market used, and the country the request was sent from. |
 | `url` | The AI Mode address the answer was read from. |
+| `products` | For a shopping question, the products AI Mode recommends, in order, with the offer Google pairs with each (see below). An empty list for other questions. |
+
+### Products (shopping questions)
+
+When AI Mode recommends products, each one links to Google Shopping, and Google pairs it with a headline offer. `products` returns both:
+
+```json
+"products": [
+  {
+    "position": 1,
+    "name": "Anker Soundcore Liberty Buds 2",
+    "label": "Best Overall / Around $100",
+    "description": "Standout features: Phenomenal active noise cancellation (ANC), crystal-clear call quality, great companion app EQ, and around 7 hours of continuous battery.",
+    "price": { "text": "USD 109.99", "currency": "USD", "min": 109.99, "max": 109.99 },
+    "originalPrice": { "text": "USD 129.99", "currency": "USD", "min": 129.99, "max": 129.99 },
+    "rating": 4.33,
+    "reviewCount": 6,
+    "merchant": { "name": "soundcore US", "url": "https://www.soundcore.com", "domain": "soundcore.com" },
+    "offerTitle": "Anker soundcore Liberty Buds 2 AI-Powered In Ear Earbuds for Daily Use",
+    "googleShopping": {
+      "catalogId": "13540998241842874674",
+      "productDocId": "14222282975090224913",
+      "offerDocId": "1038004068629821290",
+      "gpcId": "13098707171627049894",
+      "imageDocId": "11884533095814766477",
+      "url": "https://www.google.com/search?ibp=oshop&prds=..."
+    }
+  }
+]
+```
+
+| Field | Notes |
+| --- | --- |
+| `position`, `name` | The pick's rank and the name AI Mode writes in the answer. |
+| `label` / `description` | AI Mode's own heading for the pick (e.g. "Best Value Under $100") and the text it writes about it. |
+| `price` / `originalPrice` | The headline offer's price and its list price, as `text`, `currency`, `min`, `max`. |
+| `rating` / `reviewCount` | The product's rating and number of reviews on Google Shopping. |
+| `merchant` | The shop whose offer Google shows for the pick: `name`, `url`, `domain`. |
+| `offerTitle` | That offer's own product title. It can name a different model than the answer does, which shows where Google matched the pick to another listing. |
+| `googleShopping` | Google Shopping ids of the product and offer, and the product viewer `url`. |
+
+Product cards appear where Google Shopping covers the market; in other markets AI Mode names products only in the text, and `products` is empty.
 
 ## Errors
 
@@ -155,6 +197,7 @@ Each answer is billed as one request. A `502` (no complete answer) is not billed
 
 - **AI search visibility tracking** - see whether Google's AI recommends your brand, product or site for the questions your customers ask, and which competitors it cites instead.
 - **Citation monitoring** - track which domains AI Mode cites for a topic and how that shifts over time and by market.
+- **AI shopping visibility** - see which products Google's AI recommends for a shopping question, which merchant's offer it pairs with each, and at what price.
 - **Content research** - read how Google's AI structures an answer (steps, comparison tables, recommended tools) to plan your own content.
 - **Market comparison** - ask the same question from several countries and languages and compare the answers.
 

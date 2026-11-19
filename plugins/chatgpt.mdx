@@ -126,6 +126,62 @@ Each answer is billed as one request. A `503` (ChatGPT capacity busy) is not bil
 | `model` | Always `null`: signed-out ChatGPT does not show the model. |
 | `country` | The country you asked from (`null` when left blank). |
 | `conversationId` | ChatGPT's id for this one-question conversation. |
+| `products` | For a shopping question, the products ChatGPT recommends, in the order shown (see below). An empty list for other questions. |
+
+### Products (shopping questions)
+
+When the question is about buying something, ChatGPT lays its picks out as product cards, and `products` returns them in order:
+
+```json
+"products": [
+  {
+    "position": 1,
+    "name": "Roborock Q10 VF+",
+    "label": "Best overall",
+    "price": {
+      "text": "$219.99",
+      "currency": "USD",
+      "min": 219.99,
+      "max": 219.99
+    },
+    "priceNote": null,
+    "features": [
+      "10,000 Pa advertised suction",
+      "Self-emptying option",
+      "Vacuum and mop",
+      "Anti-tangle brush system"
+    ],
+    "description": "Great feature-to-price combination.",
+    "image": "https://images.openai.com/...",
+    "imageTitle": "Roborock - Q10 Series Robot Vacuum & Mop, 10000Pa Suction, 70 Days Self-Emptying, Anti-Tangle Brush, Obstacle Avoidance - White",
+    "merchant": {
+      "name": null,
+      "url": "https://www.samsclub.com/...",
+      "domain": "samsclub.com"
+    },
+    "shopLinks": [
+      {
+        "url": "https://www.samsclub.com/...",
+        "domain": "samsclub.com",
+        "text": "Check price at Sam's Club",
+        "fromCatalog": false
+      }
+    ]
+  }
+]
+```
+
+| Field | Notes |
+| --- | --- |
+| `position`, `name` | The pick's rank and name as ChatGPT shows them. |
+| `label` | ChatGPT's own tag for the pick, e.g. "Best overall value" (`null` when it shows none). |
+| `price` | `text` as shown ("$69.99", "$75-$100", "Around $155"), plus `currency`, `min` and `max` (equal for a single price). `null` when no price is shown. |
+| `priceNote` | A short line ChatGPT puts under the price, e.g. where the price was seen. |
+| `features` / `description` | The bullet points and the closing verdict for the pick. |
+| `image` / `imageTitle` | The product image and its title (often the listing title of the page it came from). |
+| `merchant` / `shopLinks` | The shop the card links to. `fromCatalog` is `true` when the link came from ChatGPT's merchant product catalog (the feeds merchants submit to ChatGPT). Many cards carry no shop link. |
+
+Prices are what ChatGPT shows in the answer, not a live price check: compare them with the merchant's own page when that matters.
 
 ## Errors
 
@@ -139,6 +195,7 @@ Each answer is billed as one request. A `503` (ChatGPT capacity busy) is not bil
 
 - **AI visibility tracking** - see whether ChatGPT recommends your brand or product for the questions your customers ask, and who it names instead.
 - **Citation monitoring** - track which sites ChatGPT cites and links for a topic, and in which country.
+- **AI shopping visibility** - see which products ChatGPT recommends for a shopping question, at what price, under which label, and which merchants its catalog links to.
 - **Answer comparison** - put ChatGPT's answer next to [Gemini](/plugins/gemini) and [Google AI Mode](/plugins/google-ai-mode) for the same question.
 - **Market research** - ask the same question from several countries and compare local recommendations.
 
