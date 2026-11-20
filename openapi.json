@@ -186,10 +186,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "The search query, as typed into Google.",
+              "description": "The search query, as typed into Google. A query with an operator that narrows the results (`site:`, `inurl:`, `intitle:`, `intext:`, `filetype:`, `before:`/`after:`) is run in Google's Web results view, which applies the operator; that view has no AI Overview and none of the other page-one blocks.",
               "title": "Keyword"
             },
-            "description": "The search query, as typed into Google."
+            "description": "The search query, as typed into Google. A query with an operator that narrows the results (`site:`, `inurl:`, `intitle:`, `intext:`, `filetype:`, `before:`/`after:`) is run in Google's Web results view, which applies the operator; that view has no AI Overview and none of the other page-one blocks."
           },
           {
             "name": "proxy_country",

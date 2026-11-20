@@ -331,6 +331,24 @@ curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=insurance&wait_aft
 
 Kept for compatibility; it has no effect. A CAPTCHA is handled on our side by retrying from other exits, so leave it at 0. If a country keeps answering `403`, try another `proxy_country`.
 
+### Search operators
+
+`site:`, `inurl:`, `intitle:`, `intext:`, `filetype:` and `before:`/`after:`
+work in `keyword`, including excluded forms such as `-site:pinterest.com`:
+
+```bash
+curl -X POST "https://api.scrapeunblocker.com/serpApi?keyword=site%3Areddit.com+cheapest+scraping+api" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+Google's default results view often answers such a query with a short
+re-ranked list that ignores the operator, so a query with one of these
+operators is run in Google's "Web" view, which applies it. That view has no
+AI Overview and none of the other page-one blocks (`peopleAlsoAsk`,
+`knowledgeGraph`, `topStories` and the rest come back empty); organic results,
+ads and `pages_to_check` work as usual. Queries without an operator, including
+quoted phrases, use the default view.
+
 ## Errors
 
 | Code | Meaning |

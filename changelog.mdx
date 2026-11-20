@@ -3,6 +3,20 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-20" description="serpApi: real result URLs again, and search operators are applied">
+  Results had come back with the site's home page as `url` (and `full_urls=true`
+  returned early with most URLs still home pages) since Google changed how it
+  answers a result's click tracking. The real page URL is back: by default the
+  top results get it within the usual wait, and with `full_urls=true` every
+  result does.
+
+  A `keyword` with `site:`, `inurl:`, `intitle:`, `intext:`, `filetype:` or
+  `before:`/`after:` is now run in Google's "Web" view, because the default view
+  often ignored the operator (`site:reddit.com ...` returned pages from other
+  sites). That view has no AI Overview or other page-one blocks. See
+  [search operators](/guides/serp-scraping#search-operators).
+</Update>
+
 <Update label="2026-11-18" description="getPageSource: capture_xhr returns the page's own API calls">
   New `/getPageSource` parameter `capture_xhr=<URL fragment>`. The page is
   rendered in a real browser and every XHR/fetch response whose URL contains
