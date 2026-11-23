@@ -114,6 +114,17 @@ print(page.request_headers["user-agent"])  # the headers sent to the target
 
 Fields the render path could not observe are empty. See [response and request headers](/guides/response-headers).
 
+## Keep calls on one IP (sticky session)
+
+```python
+first = su.get_page_with_headers("https://example.com/search?q=shoes", session="run-42")
+detail = su.get_page_with_headers("https://example.com/item/1", session="run-42")
+if detail.session_changed:
+    print("answered through another IP; the session now uses it")
+```
+
+The `session` option works on every page method. See [sticky sessions](/guides/sticky-sessions).
+
 ## Fetch an image
 
 ```python

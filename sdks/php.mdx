@@ -101,6 +101,18 @@ print_r($page->requestHeaders);                // the headers sent to the target
 
 Fields the render path could not observe are empty. See [response and request headers](/guides/response-headers).
 
+## Keep calls on one IP (sticky session)
+
+```php
+$first = $su->getPageWithHeaders('https://example.com/search?q=shoes', ['session' => 'run-42']);
+$detail = $su->getPageWithHeaders('https://example.com/item/1', ['session' => 'run-42']);
+if ($detail->sessionChanged) {
+    echo "answered through another IP; the session now uses it\n";
+}
+```
+
+The `session` option works on every page method. See [sticky sessions](/guides/sticky-sessions).
+
 ## Fetch an image
 
 ```php

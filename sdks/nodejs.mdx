@@ -110,6 +110,16 @@ console.log(page.requestHeaders?.["user-agent"]);  // the headers sent to the ta
 
 Fields the render path could not observe are empty. See [response and request headers](/guides/response-headers).
 
+## Keep calls on one IP (sticky session)
+
+```ts
+const first = await su.getPageWithHeaders("https://example.com/search?q=shoes", { session: "run-42" });
+const detail = await su.getPageWithHeaders("https://example.com/item/1", { session: "run-42" });
+if (detail.sessionChanged) console.log("answered through another IP; the session now uses it");
+```
+
+The `session` option works on every page method. See [sticky sessions](/guides/sticky-sessions).
+
 ## Fetch an image
 
 ```ts

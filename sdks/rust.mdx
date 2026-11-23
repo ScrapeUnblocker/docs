@@ -114,6 +114,24 @@ if let Some(cookies) = page.header("set-cookie") {
 
 Fields the render path could not observe are empty. See [response and request headers](/guides/response-headers).
 
+## Keep calls on one IP (sticky session)
+
+```rust
+let first = su
+    .get_page_with_headers("https://example.com/search?q=shoes")
+    .session("run-42")
+    .await?;
+let detail = su
+    .get_page_with_headers("https://example.com/item/1")
+    .session("run-42")
+    .await?;
+if detail.session_changed {
+    println!("answered through another IP; the session now uses it");
+}
+```
+
+The `session` option works on every page method. See [sticky sessions](/guides/sticky-sessions).
+
 ## Fetch an image
 
 ```rust

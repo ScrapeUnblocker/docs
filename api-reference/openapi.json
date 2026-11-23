@@ -91,11 +91,23 @@
             "required": false,
             "schema": {
               "type": "boolean",
-              "description": "Return JSON with the page `html`, the `cookies` set during the visit and the `proxy` used, instead of HTML. With `parsed_data=true` the same JSON also carries the extracted `data`.",
+              "description": "Return JSON with the page `html`, the target's `status_code`, the `final_url` after redirects, the target's response `headers` and the `request_headers` sent for that page, plus the `proxy` country. Header names are lowercase; a header sent more than once is joined with \", \" except `set-cookie`, which is a list. Fields the render path could not observe are `null`. Combines with `get_cookies` and `parsed_data`.",
               "default": false,
               "title": "Get Headers"
             },
             "description": "Return JSON with the page `html`, the target's `status_code`, the `final_url` after redirects, the target's response `headers` and the `request_headers` sent for that page, plus the `proxy` country. Header names are lowercase; a header sent more than once is joined with \", \" except `set-cookie`, which is a list. Fields the render path could not observe are `null`. Combines with `get_cookies` and `parsed_data`."
+          },
+          {
+            "name": "session",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "Sticky session id (1-64 letters, digits, `_`, `.`, `-`). Calls with the same `session` leave through the same proxy IP for as long as the session is used (it expires after 10 minutes without calls). A session belongs to your API key only. When that IP cannot get the page, the call is answered through another one, the response carries `X-Session-Changed: true`, and the session moves to the new IP. Up to 4 calls of one session run on its IP at once; more parallel calls are answered through other IPs (flagged the same way) without moving the session.",
+              "title": "Session"
+            },
+            "description": "Sticky session id (1-64 letters, digits, `_`, `.`, `-`). Calls with the same `session` leave through the same proxy IP for as long as the session is used (it expires after 10 minutes without calls). A session belongs to your API key only. When that IP cannot get the page, the call is answered through another one, the response carries `X-Session-Changed: true`, and the session moves to the new IP. Up to 4 calls of one session run on its IP at once; more parallel calls are answered through other IPs (flagged the same way) without moving the session."
           },
           {
             "name": "list_elements",

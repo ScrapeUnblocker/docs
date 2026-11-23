@@ -1,0 +1,64 @@
+---
+title: "Sticky sessions"
+description: "Keep a flow of requests on one IP: calls with the same session id leave through the same proxy IP."
+---
+
+By default every `/getPageSource` call can leave through a different IP. Add `session=<id>` and every call with that id leaves through the same IP, as long as the session is in use. Use it when a site ties something to the visitor's address: a cart, a search session, a paginated listing, a rate limit you want to keep predictable.
+
+## Request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com/page/1&session=crawl-42" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com/page/2&session=crawl-42" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+for page in range(1, 4):
+    r = requests.post(
+        "https://api.scrapeunblocker.com/getPageSource",
+        params={"url": f"https://example.com/page/{page}", "session": "crawl-42"},
+        headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+        timeout=120,
+    )
+    print(page, r.status_code, r.headers.get("X-Session-Changed"))
+```
+
+</CodeGroup>
+
+## How a session behaves
+
+| | |
+| --- | --- |
+| Session id | Any string of 1-64 letters, digits, `_`, `.` or `-` that you choose. A malformed id answers `422` and is not billed. |
+| Lifetime | A session lives while you use it and expires after 10 minutes without calls. A new call with the same id after that starts a new session on a new IP. |
+| Scope | A session belongs to your API key only. The same id used with another key is a different session. |
+| Country | The first call's `proxy_country` picks the session's country. A later call that names another `proxy_country` moves the session to an IP in that country. |
+| Parallel calls | Up to 4 calls of one session run on its IP at the same time. More parallel calls are answered through other IPs and flagged (see below); the session keeps its IP. |
+| Price | A session call is billed like the same call without it. |
+
+## When the IP changes
+
+Unblocking comes first: when the session's IP cannot get the page (the site blocks it, the IP does not answer), the call is answered through another IP rather than failing. Such an answer carries the response header:
+
+```
+X-Session-Changed: true
+```
+
+and the session moves to the IP that served the page, so the next call continues there. The same header marks an answer that did not come over the session's IP for any other reason: a parallel call over the limit, or a call that switched the session's country. When the header is absent, the page came over the session's IP.
+
+If your flow must not continue on another IP (for example a multi-step form), check for `X-Session-Changed` and restart the flow when it appears.
+
+## Combining with other parameters
+
+`session` works with every other `/getPageSource` option: [`parsed_data`](/guides/parsed-data), [`markdown`](/guides/markdown), [`get_cookies`](/guides/cookies-and-sessions), [`get_headers`](/guides/response-headers), [`steps`](/guides/browser-steps), [`capture_xhr`](/guides/xhr-capture) and [`proxy_country`](/guides/country-targeting). A call with `steps` or `capture_xhr` runs once on the session's IP and is not retried through another IP, because a step may submit a form.
+
+<Note>
+  A session keeps the IP. Cookies are not carried between calls: pass the ones you need yourself, for example from a [`get_cookies`](/guides/cookies-and-sessions) answer.
+</Note>

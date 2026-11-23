@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-23" description="getPageSource: sticky sessions with session=<id>">
+  New `/getPageSource` parameter `session=<id>`. Calls with the same id leave
+  through the same proxy IP while the session is in use (it expires after 10
+  minutes without calls) and the session belongs to your API key only. When
+  that IP cannot get the page, the call is answered through another one, the
+  response carries `X-Session-Changed: true`, and the session moves to the new
+  IP. Works with every other option; billed like the same call without it.
+  See [sticky sessions](/guides/sticky-sessions).
+</Update>
+
 <Update label="2026-11-23" description="getPageSource: target status and headers with get_headers=true">
   New `/getPageSource` parameter `get_headers=true`. The answer is JSON with
   the page and what the target answered with: `status_code`, `final_url`
