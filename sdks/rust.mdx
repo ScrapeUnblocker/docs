@@ -98,6 +98,22 @@ println!("{}", page.cookies);
 println!("{:?}", page.proxy);   // e.g. Some("us")
 ```
 
+## Get the target's status and headers
+
+```rust
+let page = su.get_page_with_headers("https://example.com").await?;
+
+println!("{:?} {:?}", page.status_code, page.final_url); // the target's status, URL after redirects
+if let Some(ct) = page.header("content-type").and_then(|v| v.as_str()) {
+    println!("{ct}");                                     // response headers, lowercase names
+}
+if let Some(cookies) = page.header("set-cookie") {
+    for c in cookies.values() { println!("{c}"); }        // set-cookie is always a list
+}
+```
+
+Fields the render path could not observe are empty. See [response and request headers](/guides/response-headers).
+
 ## Fetch an image
 
 ```rust

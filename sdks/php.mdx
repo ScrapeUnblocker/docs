@@ -88,6 +88,19 @@ print_r($page->cookies);
 echo $page->proxy;
 ```
 
+## Get the target's status and headers
+
+```php
+$page = $su->getPageWithHeaders('https://example.com');
+
+echo $page->statusCode, ' ', $page->finalUrl;  // the target's status, URL after redirects
+echo $page->headers['content-type'];           // response headers, lowercase names
+print_r($page->headers['set-cookie']);         // always a list of strings
+print_r($page->requestHeaders);                // the headers sent to the target
+```
+
+Fields the render path could not observe are empty. See [response and request headers](/guides/response-headers).
+
 ## Fetch an image
 
 ```php

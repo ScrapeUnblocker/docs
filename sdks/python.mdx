@@ -101,6 +101,19 @@ print(page.cookies)
 print(page.proxy)     # e.g. "us"
 ```
 
+## Get the target's status and headers
+
+```python
+page = su.get_page_with_headers("https://example.com")
+
+print(page.status_code, page.final_url)    # the target's status, URL after redirects
+print(page.headers["content-type"])        # response headers, lowercase names
+print(page.headers.get("set-cookie"))      # always a list of strings
+print(page.request_headers["user-agent"])  # the headers sent to the target
+```
+
+Fields the render path could not observe are empty. See [response and request headers](/guides/response-headers).
+
 ## Fetch an image
 
 ```python

@@ -97,6 +97,19 @@ const page = await su.getPageWithCookies("https://example.com");
 console.log(page.html, page.cookies, page.proxy);
 ```
 
+## Get the target's status and headers
+
+```ts
+const page = await su.getPageWithHeaders("https://example.com");
+
+console.log(page.statusCode, page.finalUrl);       // the target's status, URL after redirects
+console.log(page.headers?.["content-type"]);       // response headers, lowercase names
+console.log(page.headers?.["set-cookie"]);         // always a list of strings
+console.log(page.requestHeaders?.["user-agent"]);  // the headers sent to the target
+```
+
+Fields the render path could not observe are empty. See [response and request headers](/guides/response-headers).
+
 ## Fetch an image
 
 ```ts

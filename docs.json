@@ -301,6 +301,7 @@
               "guides/image-fetching",
               "guides/country-targeting",
               "guides/cookies-and-sessions",
+              "guides/response-headers",
               "guides/handling-failures"
             ]
           },

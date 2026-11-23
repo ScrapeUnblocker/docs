@@ -37,7 +37,7 @@ The public API has three endpoints. All other paths on `api.scrapeunblocker.com`
 
 `200` responses are content-type aware:
 
-- `/getPageSource` returns `text/html` by default, or `application/json` when `parsed_data=true` or `get_cookies=true`.
+- `/getPageSource` returns `text/html` by default, or `application/json` when `parsed_data=true`, `get_cookies=true` or `get_headers=true`.
 - `/serpApi` always returns `application/json`.
 - `/getImage` returns the image's own type (`image/jpeg`, `image/webp`, `image/png`, `image/gif`, `image/svg+xml`, ...), bytes unchanged.
 

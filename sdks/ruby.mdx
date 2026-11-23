@@ -85,6 +85,19 @@ p page.cookies
 puts page.proxy
 ```
 
+## Get the target's status and headers
+
+```ruby
+page = su.get_page_with_headers("https://example.com")
+
+puts page.status_code, page.final_url  # the target's status, URL after redirects
+puts page.headers["content-type"]      # response headers, lowercase names
+p page.headers["set-cookie"]           # always an Array of Strings
+p page.request_headers                 # the headers sent to the target
+```
+
+Fields the render path could not observe are empty. See [response and request headers](/guides/response-headers).
+
 ## Fetch an image
 
 ```ruby

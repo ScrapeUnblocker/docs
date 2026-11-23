@@ -1,0 +1,93 @@
+---
+title: "Response and request headers"
+description: "Get the target's status code, final URL, response headers and the request headers that were sent, next to the page - what a proxy gives you, with the unblocking done for you."
+---
+
+By default, `/getPageSource` returns the page and nothing else. Set `get_headers=true` and the answer becomes JSON that also carries what the target answered with: its status code, the URL the request ended on after redirects, its response headers, and the request headers that were actually sent for that page.
+
+Use it when you are moving from plain proxies and your code reads headers: caching (`etag`, `last-modified`, `cache-control`), redirects, `set-cookie`, content type, rate-limit headers, or to check which browser identity a page was fetched with.
+
+## Request
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.scrapeunblocker.com/getPageSource?url=https://example.com&get_headers=true" \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+r = requests.post(
+    "https://api.scrapeunblocker.com/getPageSource",
+    params={"url": "https://example.com", "get_headers": True},
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=120,
+)
+payload = r.json()
+print(payload["status_code"], payload["headers"].get("content-type"))
+```
+
+</CodeGroup>
+
+## Response shape
+
+```json
+{
+  "html": "<!DOCTYPE html>...",
+  "status_code": 200,
+  "final_url": "https://www.example.com/",
+  "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "cache-control": "max-age=600",
+    "etag": "\"84238dfc8092e5d9c0dac8ef93371a07\"",
+    "set-cookie": [
+      "session=abc123; Path=/; Secure; HttpOnly",
+      "region=us; Path=/"
+    ],
+    "vary": "Accept-Encoding, Cookie"
+  },
+  "request_headers": {
+    "host": "www.example.com",
+    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) ...",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "accept-language": "en-US,en;q=0.9",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "sec-fetch-mode": "navigate"
+  },
+  "proxy": "us"
+}
+```
+
+| Field | What it is |
+| --- | --- |
+| `html` | The page source, same as you'd get without `get_headers` |
+| `status_code` | The status the target answered the page with |
+| `final_url` | The URL the request ended on, after the target's redirects |
+| `headers` | The target's response headers for that page |
+| `request_headers` | The request headers that were sent to the target for that page, including the ones the browser identity adds (`user-agent`, `sec-ch-ua`, `accept-*`) |
+| `proxy` | ISO country code of the proxy that served the request |
+
+Header names are lowercase. A header the target sent more than once is joined with `", "`, except `set-cookie`, which is always a list (cookie values can contain commas).
+
+The headers describe the target's response. `content-length` and `content-encoding` are the target's transfer, not the size or encoding of `html` as we deliver it. HTTP/2 pseudo-headers (`:authority`, `:path`) are left out, so an HTTP/2 request has no `host` entry.
+
+When the page reloaded itself in the browser before it was ready (a bot check that clears and reloads, a script redirect), the browser reports only the request headers the page itself set for that reload. `request_headers` then lacks the ones its network layer adds, such as `cookie` and `accept-encoding`.
+
+<Note>
+  Some pages are rendered by a path that does not expose headers. Then `headers`, `request_headers` and `final_url` are `null` and `status_code` is the status we answered with. The page itself is the same.
+</Note>
+
+## Pages the target answers with an error
+
+When the target's own answer is the result - a page that does not exist (`404`, `410`), or the target's own `401`, `451` or `5xx` page - the JSON is the same and `status_code` is the target's status. See [errors](/errors) for which of these are billed.
+
+## Combining with other parameters
+
+- `get_cookies=true` adds `cookies`, the target's cookies from the session, to the same JSON. See [cookies and sessions](/guides/cookies-and-sessions).
+- `parsed_data=true` adds `data`, the extracted fields. See [parsed data](/guides/parsed-data).
+
+`get_headers` cannot be combined with `markdown`, `list_elements` or `capture_xhr`: each returns its own format, so such a request answers `422` and is not billed.
+
+A `get_headers` call is billed like the same call without it.

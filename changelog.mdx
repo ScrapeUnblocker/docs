@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-23" description="getPageSource: target status and headers with get_headers=true">
+  New `/getPageSource` parameter `get_headers=true`. The answer is JSON with
+  the page and what the target answered with: `status_code`, `final_url`
+  after redirects, the target's response `headers` and the `request_headers`
+  that were sent for the page, including the browser identity's own
+  (`user-agent`, `sec-ch-ua`). Combines with `get_cookies` and `parsed_data`;
+  billed like the same call without it. See
+  [response and request headers](/guides/response-headers).
+</Update>
+
 <Update label="2026-11-23" description="getPageSource: XML feeds and sitemaps come back as served">
   When the target answers with an XML document (an RSS or Atom feed, a
   sitemap), `/getPageSource` now returns it exactly as the target served it.
