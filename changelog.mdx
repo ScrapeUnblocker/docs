@@ -3,6 +3,16 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-23" description="getPageSource: XML feeds and sitemaps come back as served">
+  When the target answers with an XML document (an RSS or Atom feed, a
+  sitemap), `/getPageSource` now returns it exactly as the target served it.
+  Before, it went through the same HTML formatting as a page: tag names were
+  lowercased (`<pubDate>` arrived as `<pubdate>`) and every `<link>` came back
+  empty with its URL as loose text after it, so a feed parser found no item
+  links. HTML pages are unchanged, and Content-Type stays `text/html`. See
+  [page source](/guides/page-source#response).
+</Update>
+
 <Update label="2026-11-23" description="Google Maps: place URLs without an id">
   `/maps/reviews` and `/maps/place-details` accept a Google Maps place URL
   that only names the place, such as one copied before the place panel
