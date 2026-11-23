@@ -23,7 +23,7 @@ Pass one of `place_id`, `url` or `feature_id`. If you pass more than one, `featu
 | Field | Required | Notes |
 | --- | --- | --- |
 | `place_id` | one of the three | A Google place id, e.g. `ChIJN1t_tDeuEmsRUsoyG83frY4`. |
-| `url` | one of the three | A Google Maps place URL: a `/maps/place/...` URL, a `maps.app.goo.gl` share link or a `maps?cid=` link. The place is read out of it. |
+| `url` | one of the three | A Google Maps place URL: a `/maps/place/...` URL, a `maps.app.goo.gl` share link or a `maps?cid=` link. The place is read out of it. A URL that only names the place (copied without its id, e.g. `/maps/place/Eiffel+Tower/@48.858,2.294,17z`) is looked up by name; a name Google matches to several places (a chain such as `Starbucks`) answers 400. |
 | `feature_id` | one of the three | A Maps feature id `0xHEX:0xHEX`, e.g. `0x47e66e2964e34e2d:0x8ddca9ee380ef7e0`. Fastest - no resolve step. Every response returns it as `featureId`, so store it for repeat lookups. |
 | `hl` | no | Google interface language, e.g. `en` (default), `de`, `fr`. |
 | `gl` | no | Google country (ISO-2, lowercase). Default `us`. |
@@ -120,7 +120,7 @@ result = su.maps_place_details(place_id: "ChIJN1t_tDeuEmsRUsoyG83frY4", hl: "en"
 | `photo` / `photos` | The hero photo and the photo URLs in the feed. |
 | `relatedPlaces` | Places Google lists as "people also search for", each with `name` and `feature_id` you can pass back to this endpoint. |
 | `featureId` / `cid` / `googleMapsUrl` | Google's ids for the place and a stable Maps link built from the `cid`. |
-| `resolvedFrom` | Which input identified the place: `place_id`, `url` or `feature_id`. |
+| `resolvedFrom` | Which input identified the place: `place_id`, `url`, `feature_id` or `name` (a URL that only named the place). |
 
 <Note>
 Fields Google does not have for a place are left out of `place`, so check for a key's presence rather than for `null`.

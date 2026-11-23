@@ -8216,10 +8216,10 @@
                   "type": "null"
                 }
               ],
-              "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it.",
+              "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it; a URL that only names the place (no id, e.g. /maps/place/<name>/@lat,lng,zoom) is looked up by name - 400 when the name is not one place.",
               "title": "Url"
             },
-            "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it."
+            "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it; a URL that only names the place (no id, e.g. /maps/place/<name>/@lat,lng,zoom) is looked up by name - 400 when the name is not one place."
           },
           {
             "name": "place_id",
@@ -8364,10 +8364,10 @@
                   "type": "null"
                 }
               ],
-              "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it.",
+              "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it; a URL that only names the place (no id, e.g. /maps/place/<name>/@lat,lng,zoom) is looked up by name - 400 when the name is not one place.",
               "title": "Url"
             },
-            "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it."
+            "description": "A Google Maps place URL: a /maps/place/... URL, a maps.app.goo.gl share link or a maps?cid= link. The place is read out of it; a URL that only names the place (no id, e.g. /maps/place/<name>/@lat,lng,zoom) is looked up by name - 400 when the name is not one place."
           },
           {
             "name": "place_id",

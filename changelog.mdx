@@ -3,6 +3,15 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-23" description="Google Maps: place URLs without an id">
+  `/maps/reviews` and `/maps/place-details` accept a Google Maps place URL
+  that only names the place, such as one copied before the place panel
+  loaded (`/maps/place/Eiffel+Tower/@48.858,2.294,17z`). The place is looked
+  up by name near the URL's map view and `resolvedFrom` is `name`. A name
+  that matches several places (a chain such as `Starbucks`) answers 400 -
+  paste the URL with the place id, or pass `place_id`.
+</Update>
+
 <Update label="2026-11-20" description="serpApi: real result URLs again, and search operators are applied">
   Results had come back with the site's home page as `url` (and `full_urls=true`
   returned early with most URLs still home pages) since Google changed how it
