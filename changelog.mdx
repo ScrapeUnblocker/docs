@@ -3,6 +3,14 @@ title: "Changelog"
 description: "Notable changes to the ScrapeUnblocker API."
 ---
 
+<Update label="2026-11-24" description="New: GET /api/v1/usage - plan usage and overage from code">
+  New endpoint `GET /api/v1/usage`. With your API key it returns the current
+  billing period: requests used and left, included and overage requests,
+  overage cost and the period's cost so far - the same numbers your invoice is
+  made from. Calls are free, allowed 10 per minute per key, and answer even
+  when the key is blocked for quota or budget. See [usage and overage](/usage).
+</Update>
+
 <Update label="2026-11-23" description="getPageSource: sticky sessions with session=<id>">
   New `/getPageSource` parameter `session=<id>`. Calls with the same id leave
   through the same proxy IP while the session is in use (it expires after 10

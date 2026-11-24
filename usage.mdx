@@ -1,0 +1,84 @@
+---
+title: "Usage and overage"
+description: "Check your plan usage, overage and current spend from code."
+---
+
+`GET /api/v1/usage` returns the current billing period of the API key you call it with: how many requests you have used, how many included and overage requests are left, and what the period costs so far. These are the same numbers your invoice is made from.
+
+Calls to this endpoint are **free** - they are not counted as requests.
+
+```bash
+curl https://api.scrapeunblocker.com/api/v1/usage \
+  -H "x-scrapeunblocker-key: YOUR_API_KEY"
+```
+
+```python
+import requests
+
+r = requests.get(
+    "https://api.scrapeunblocker.com/api/v1/usage",
+    headers={"x-scrapeunblocker-key": "YOUR_API_KEY"},
+    timeout=30,
+)
+usage = r.json()["usage"]
+print(usage["requests_used"], usage["overage_requests_used"], usage["overage_cost"])
+```
+
+## Response
+
+```json
+{
+  "status": "overage",
+  "plan": {
+    "name": "Scale",
+    "monthly_fee": "599.00",
+    "included_requests": 966000,
+    "overages_allowed": true,
+    "overage_requests_limit": 193200,
+    "overage_price_per_request": "0.00068",
+    "currency": "EUR"
+  },
+  "billing_period": {
+    "start": "2026-11-24T10:15:02+00:00",
+    "end": "2026-12-24T10:15:02+00:00"
+  },
+  "usage": {
+    "requests_used": 1012500,
+    "requests_limit": 1159200,
+    "requests_remaining": 146700,
+    "included_requests_used": 966000,
+    "included_requests_remaining": 0,
+    "overage_requests_used": 46500,
+    "overage_requests_remaining": 146700,
+    "overage_cost": "31.62",
+    "period_cost": "630.62"
+  },
+  "budget": {
+    "monthly_limit": null,
+    "daily_limit": null
+  },
+  "generated_at": "2026-12-20T08:00:41+00:00"
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `status` | `active`, `overage` (past the included requests, billed per request), `quota_exceeded`, `budget_exceeded`, `credit_limit_exceeded`, `payment_failed` or `no_subscription`. Anything other than `active` and `overage` means scraping calls currently get `402` - see [402 payment required](/errors#402-payment-required). |
+| `billing_period` | Start and end of the current period. On the free plan, whose requests are granted once, `end` is `null`. |
+| `plan.included_requests` | Requests the monthly fee covers. `0` on pay-as-you-go, where every request is billed. |
+| `plan.overage_requests_limit` | Most requests billed per request in one period, on top of the included ones. |
+| `usage.requests_used` | Billable requests this period. Failed requests are not counted. |
+| `usage.requests_remaining` | Requests left this period before calls get `402 Quota exceeded`. |
+| `usage.overage_cost` | What the overage requests cost so far (EUR, excl. VAT). |
+| `usage.period_cost` | Monthly fee plus overage cost so far (EUR, excl. VAT). |
+| `budget` | Your own spending limits set in the [dashboard](https://app.scrapeunblocker.com), `null` when not set. |
+| `coupon_requests_remaining` | Only while a coupon has credit left. Requests paid from a coupon are not in `requests_used` and cost nothing. |
+
+All amounts are strings with exact decimals, in EUR.
+
+## Limits and freshness
+
+- Usage figures refresh **about once a minute**, and each answer is cached for up to 60 seconds (see the `Cache-Control: max-age` response header). Polling more often returns the same numbers.
+- Up to **10 calls per minute per API key**. More get `429` with `X-SU-Deny-Reason: usage_rate` and `Retry-After: 60`.
+- The endpoint answers even when your key is blocked for quota, budget or payment, and it does not use a slot of your concurrent requests limit.
+- `503` with `Retry-After` means the figures are briefly unavailable; retry after that many seconds.

@@ -26439,6 +26439,64 @@
           "stock-market-data"
         ]
       }
+    },
+    "/api/v1/usage": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Plan usage and overage",
+        "description": "Usage of the current billing period for the API key in `x-scrapeunblocker-key`: requests used, included and overage requests left, and what the period costs so far. These are the numbers billing uses. Calls to this endpoint are free and do not count as requests.\n\nFigures refresh about once a minute and each answer is cached for up to 60 seconds (`Cache-Control: max-age`). The endpoint allows 10 calls per minute per key; more get `429`.",
+        "operationId": "get_usage",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No usage report for this key."
+          },
+          "429": {
+            "description": "More than 10 calls in a minute with this key."
+          },
+          "503": {
+            "description": "Usage is temporarily unavailable. Retry after `Retry-After` seconds."
+          }
+        },
+        "security": [
+          {
+            "ScrapeUnblockerKey": []
+          }
+        ],
+        "x-zeroclick-services": [
+          "ai-assistant-answers",
+          "amazon",
+          "companies-and-apps",
+          "global-marketplaces",
+          "google-search",
+          "groceries",
+          "image-search",
+          "jobs",
+          "local-businesses",
+          "other-search-engines",
+          "real-estate",
+          "review-sites",
+          "seo-and-ads",
+          "sports-odds-and-scores",
+          "stock-market-data",
+          "travel",
+          "us-retailers",
+          "vehicles-and-sports",
+          "web-page-fetch",
+          "youtube-and-spotify"
+        ]
+      }
     }
   },
   "components": {
@@ -26488,6 +26546,225 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "UsageResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Key status: `active`, `overage`, `quota_exceeded`, `budget_exceeded`, `credit_limit_exceeded`, `payment_failed` or `no_subscription`."
+          },
+          "plan": {
+            "$ref": "#/components/schemas/UsagePlan"
+          },
+          "billing_period": {
+            "$ref": "#/components/schemas/UsagePeriod"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/UsageNumbers"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/UsageBudget"
+          },
+          "coupon_requests_remaining": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coupon Requests Remaining",
+            "description": "Prepaid coupon requests left. Present only while a coupon has credit; they are spent before the plan."
+          },
+          "generated_at": {
+            "type": "string",
+            "title": "Generated At",
+            "description": "When these figures were read (ISO 8601, UTC). They refresh about once a minute."
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "plan",
+          "billing_period",
+          "usage",
+          "budget",
+          "generated_at"
+        ],
+        "title": "UsageResponse"
+      },
+      "UsagePlan": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Plan name."
+          },
+          "monthly_fee": {
+            "type": "string",
+            "title": "Monthly Fee",
+            "description": "Fixed fee per billing period, EUR. `0.00` on pay-as-you-go and free plans."
+          },
+          "included_requests": {
+            "type": "integer",
+            "title": "Included Requests",
+            "description": "Requests the plan includes without a per-request charge. 0 on pay-as-you-go."
+          },
+          "overages_allowed": {
+            "type": "boolean",
+            "title": "Overages Allowed",
+            "description": "Whether requests above `included_requests` are served and billed per request."
+          },
+          "overage_requests_limit": {
+            "type": "integer",
+            "title": "Overage Requests Limit",
+            "description": "Most requests billed per request in one period, on top of the included ones."
+          },
+          "overage_price_per_request": {
+            "type": "string",
+            "title": "Overage Price Per Request",
+            "description": "Price of one request above the included amount, EUR."
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Currency of every amount.",
+            "default": "EUR"
+          }
+        },
+        "type": "object",
+        "required": [
+          "monthly_fee",
+          "included_requests",
+          "overages_allowed",
+          "overage_requests_limit",
+          "overage_price_per_request"
+        ],
+        "title": "UsagePlan"
+      },
+      "UsagePeriod": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "title": "Start",
+            "description": "Start of the current billing period (ISO 8601, UTC)."
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End",
+            "description": "End of the current billing period (ISO 8601, UTC). `null` on the free plan, whose quota is granted once."
+          }
+        },
+        "type": "object",
+        "required": [
+          "start"
+        ],
+        "title": "UsagePeriod"
+      },
+      "UsageNumbers": {
+        "properties": {
+          "requests_used": {
+            "type": "integer",
+            "title": "Requests Used",
+            "description": "Billable requests this period. Failed requests are not counted."
+          },
+          "requests_limit": {
+            "type": "integer",
+            "title": "Requests Limit",
+            "description": "Most requests the plan serves this period, overage included."
+          },
+          "requests_remaining": {
+            "type": "integer",
+            "title": "Requests Remaining",
+            "description": "Requests left this period before the API answers 402."
+          },
+          "included_requests_used": {
+            "type": "integer",
+            "title": "Included Requests Used"
+          },
+          "included_requests_remaining": {
+            "type": "integer",
+            "title": "Included Requests Remaining"
+          },
+          "overage_requests_used": {
+            "type": "integer",
+            "title": "Overage Requests Used",
+            "description": "Requests above `included_requests`, billed at `overage_price_per_request`."
+          },
+          "overage_requests_remaining": {
+            "type": "integer",
+            "title": "Overage Requests Remaining"
+          },
+          "overage_cost": {
+            "type": "string",
+            "title": "Overage Cost",
+            "description": "What the overage requests cost so far, EUR excl. VAT."
+          },
+          "period_cost": {
+            "type": "string",
+            "title": "Period Cost",
+            "description": "Monthly fee plus overage cost so far, EUR excl. VAT."
+          }
+        },
+        "type": "object",
+        "required": [
+          "requests_used",
+          "requests_limit",
+          "requests_remaining",
+          "included_requests_used",
+          "included_requests_remaining",
+          "overage_requests_used",
+          "overage_requests_remaining",
+          "overage_cost",
+          "period_cost"
+        ],
+        "title": "UsageNumbers"
+      },
+      "UsageBudget": {
+        "properties": {
+          "monthly_limit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monthly Limit",
+            "description": "Your own monthly spending limit, EUR. `null` when not set."
+          },
+          "daily_limit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Limit",
+            "description": "Your own daily spending limit, EUR. `null` when not set."
+          }
+        },
+        "type": "object",
+        "title": "UsageBudget"
       }
     },
     "securitySchemes": {

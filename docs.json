@@ -36,6 +36,7 @@
               "authentication",
               "errors",
               "rate-limits",
+              "usage",
               "changelog"
             ]
           },
