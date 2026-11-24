@@ -17966,10 +17966,10 @@
             "description": "Invalid parameters, or none of `code`, `query` and `category`."
           },
           "404": {
-            "description": "Smyths has no product with that code, or no such category."
+            "description": "Smyths has no product with that code, or no such category. A product 404 is billed as one request when Smyths' search does not list the code either; otherwise, and for a category, it is not billed."
           },
           "502": {
-            "description": "Smyths refused every attempt or did not answer in time - retry. With `X-Origin-Status`, the body is Smyths' own JSON error, which Smyths also returns for a product code it does not know."
+            "description": "Smyths refused every attempt or did not answer in time - retry. With `X-Origin-Status`, the body is Smyths' own JSON error for a code its search still lists (or when the search gave no answer): a fault on Smyths' side, not billed."
           },
           "422": {
             "description": "Validation Error",

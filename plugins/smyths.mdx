@@ -69,7 +69,7 @@ result = su.smyths_inventory("259087")
 ```
 </CodeGroup>
 
-One product is billed as one request.
+One product is billed as one request, and so is the `404` for a code Smyths does not have.
 
 ### Response
 
@@ -179,7 +179,7 @@ result = su.smyths_details("225095")
 ```
 </CodeGroup>
 
-One product's details are billed as one request.
+One product's details are billed as one request, and so is the `404` for a code Smyths does not have.
 
 ### Response
 
@@ -501,8 +501,8 @@ A search with no matches is a `200` with an empty `products` list.
 | Status | Meaning |
 | --- | --- |
 | `400` | Invalid parameters, or none of `code`, `query` and `category`. |
-| `404` | Smyths has no product with that code, or no such category. |
-| `502` | Smyths refused every attempt or did not answer in time; retry. With `X-Origin-Status`, the body is Smyths' own JSON error, which Smyths also returns for some codes it does not know. That answer is not billed. |
+| `404` | Smyths has no product with that code (for example one Smyths removed), or no such category. Smyths answers a code it does not have with the same error as an outage, so the plugin checks Smyths' search for the code: a product `404` is billed as one request when the search does not list the code either, and free when the search cannot confirm it. A category `404` is not billed. |
+| `502` | Smyths refused every attempt or did not answer in time; retry. With `X-Origin-Status`, the body is Smyths' own JSON error for a code its search still lists, a fault on Smyths' side. Not billed. |
 
 ## What you can build
 
